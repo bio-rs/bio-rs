@@ -6,13 +6,16 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   rust:
     name: Rust
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
