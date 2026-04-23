@@ -1,5 +1,5 @@
 use biors_core::{parse_fasta, tokenize_fasta, BioRsError};
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
 
@@ -13,19 +13,8 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    Inspect {
-        path: PathBuf,
-    },
-    Tokenize {
-        path: PathBuf,
-        #[arg(long, value_enum, default_value_t = OutputFormat::Json)]
-        format: OutputFormat,
-    },
-}
-
-#[derive(Clone, Debug, ValueEnum)]
-enum OutputFormat {
-    Json,
+    Inspect { path: PathBuf },
+    Tokenize { path: PathBuf },
 }
 
 fn main() {
@@ -52,17 +41,13 @@ fn run() -> Result<(), CliError> {
             println!("warnings: {}", tokenized.warnings.len());
             println!("errors: {}", tokenized.errors.len());
         }
-        Command::Tokenize { path, format } => {
+        Command::Tokenize { path } => {
             let input =
                 fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })?;
             let tokenized = tokenize_fasta(&input)?;
 
-            match format {
-                OutputFormat::Json => {
-                    let json = serde_json::to_string_pretty(&tokenized)?;
-                    println!("{json}");
-                }
-            }
+            let json = serde_json::to_string_pretty(&tokenized)?;
+            println!("{json}");
         }
     }
 

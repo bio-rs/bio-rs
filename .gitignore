@@ -1,24 +1,3 @@
 /target/
 **/*.rs.bk
 .DS_Store
-.env
-.env.*
-.idea/
-.vscode/
-*.log
-
-# npm
-node_modules/
-npm-debug.log*
-dist/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-build/
-dist/
-*.egg-info/
-.mypy_cache/
-.pytest_cache/

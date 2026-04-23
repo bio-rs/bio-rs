@@ -1,12 +1,12 @@
 use serde::Serialize;
 use std::fmt;
 
-pub const PROTEIN_20: &str = "protein-20";
-pub const PROTEIN_20_RESIDUES: [char; 20] = [
+const PROTEIN_20: &str = "protein-20";
+const PROTEIN_20_RESIDUES: [char; 20] = [
     'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W',
     'Y',
 ];
-pub const AMBIGUOUS_RESIDUES: [char; 6] = ['X', 'B', 'Z', 'J', 'U', 'O'];
+const AMBIGUOUS_RESIDUES: [char; 6] = ['X', 'B', 'Z', 'J', 'U', 'O'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProteinSequence {
@@ -126,7 +126,7 @@ pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     }
 }
 
-pub fn protein_20_token(residue: char) -> Option<u8> {
+fn protein_20_token(residue: char) -> Option<u8> {
     PROTEIN_20_RESIDUES
         .iter()
         .position(|candidate| *candidate == residue)
