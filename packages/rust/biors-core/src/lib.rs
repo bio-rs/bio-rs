@@ -58,45 +58,62 @@ impl fmt::Display for BioRsError {
 impl std::error::Error for BioRsError {}
 
 pub fn parse_fasta(input: &str) -> Result<ProteinSequence, BioRsError> {
+    let record_count = input
+        .trim()
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && line.starts_with('>'))
+        .count();
+    if record_count > 1 {
+        return Err(BioRsError::MultiFastaUnsupported);
+    }
+
+    let mut records = parse_fasta_records(input)?;
+    Ok(records.remove(0))
+}
+
+pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsError> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
         return Err(BioRsError::EmptyInput);
     }
 
-    let mut lines = trimmed
+    let lines = trimmed
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty());
-    let header = lines.next().ok_or(BioRsError::EmptyInput)?;
-    if !header.starts_with('>') {
-        return Err(BioRsError::MissingHeader);
-    }
 
-    let id = header[1..]
-        .split_whitespace()
-        .next()
-        .unwrap_or_default()
-        .to_string();
+    let mut records = Vec::new();
+    let mut current_id = None;
     let mut sequence = String::new();
 
     for line in lines {
-        if line.starts_with('>') {
-            return Err(BioRsError::MultiFastaUnsupported);
+        if let Some(header) = line.strip_prefix('>') {
+            if let Some(id) = current_id.replace(fasta_id(header)) {
+                push_fasta_record(&mut records, id, &mut sequence)?;
+            }
+        } else {
+            if current_id.is_none() {
+                return Err(BioRsError::MissingHeader);
+            }
+            sequence.push_str(line);
         }
-        sequence.push_str(line);
     }
 
-    let sequence = sequence.to_ascii_uppercase();
-    if sequence.is_empty() {
-        return Err(BioRsError::MissingSequence { id });
-    }
+    let id = current_id.ok_or(BioRsError::MissingHeader)?;
+    push_fasta_record(&mut records, id, &mut sequence)?;
 
-    Ok(ProteinSequence { id, sequence })
+    Ok(records)
 }
 
 pub fn tokenize_fasta(input: &str) -> Result<TokenizedProtein, BioRsError> {
     let protein = parse_fasta(input)?;
     Ok(tokenize_protein(&protein))
+}
+
+pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
+    let proteins = parse_fasta_records(input)?;
+    Ok(proteins.iter().map(tokenize_protein).collect())
 }
 
 pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
@@ -133,6 +150,30 @@ fn protein_20_token(residue: char) -> Option<u8> {
         .map(|position| position as u8)
 }
 
+fn fasta_id(header: &str) -> String {
+    header
+        .split_whitespace()
+        .next()
+        .unwrap_or_default()
+        .to_string()
+}
+
+fn push_fasta_record(
+    records: &mut Vec<ProteinSequence>,
+    id: String,
+    sequence: &mut String,
+) -> Result<(), BioRsError> {
+    if sequence.is_empty() {
+        return Err(BioRsError::MissingSequence { id });
+    }
+
+    records.push(ProteinSequence {
+        id,
+        sequence: std::mem::take(sequence).to_ascii_uppercase(),
+    });
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,6 +202,39 @@ mod tests {
         let protein = parse_fasta(">sp|P12345|KINASE example protein\nACDE").expect("valid FASTA");
 
         assert_eq!(protein.id, "sp|P12345|KINASE");
+    }
+
+    #[test]
+    fn parses_multi_fasta_records_in_order() {
+        let records = parse_fasta_records(">seq1 first\nACDE\n>seq2 second\nmnpq")
+            .expect("valid multi-FASTA");
+
+        assert_eq!(
+            records,
+            vec![
+                ProteinSequence {
+                    id: "seq1".to_string(),
+                    sequence: "ACDE".to_string(),
+                },
+                ProteinSequence {
+                    id: "seq2".to_string(),
+                    sequence: "MNPQ".to_string(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_empty_record_in_multi_fasta() {
+        let error =
+            parse_fasta_records(">seq1\nACDE\n>seq2").expect_err("empty record should fail");
+
+        assert_eq!(
+            error,
+            BioRsError::MissingSequence {
+                id: "seq2".to_string()
+            }
+        );
     }
 
     #[test]
@@ -195,6 +269,47 @@ mod tests {
             vec![ResidueIssue {
                 residue: '*',
                 position: 2,
+            }]
+        );
+    }
+
+    #[test]
+    fn tokenizes_multi_fasta_records_independently() {
+        let tokenized =
+            tokenize_fasta_records(">seq1\nacx\n>seq2\nBJ*").expect("valid multi-FASTA");
+
+        assert_eq!(tokenized.len(), 2);
+        assert_eq!(tokenized[0].id, "seq1");
+        assert_eq!(tokenized[0].tokens, vec![0, 1]);
+        assert_eq!(
+            tokenized[0].warnings,
+            vec![ResidueIssue {
+                residue: 'X',
+                position: 3,
+            }]
+        );
+        assert!(tokenized[0].errors.is_empty());
+
+        assert_eq!(tokenized[1].id, "seq2");
+        assert!(tokenized[1].tokens.is_empty());
+        assert_eq!(
+            tokenized[1].warnings,
+            vec![
+                ResidueIssue {
+                    residue: 'B',
+                    position: 1,
+                },
+                ResidueIssue {
+                    residue: 'J',
+                    position: 2,
+                },
+            ]
+        );
+        assert_eq!(
+            tokenized[1].errors,
+            vec![ResidueIssue {
+                residue: '*',
+                position: 3,
             }]
         );
     }
