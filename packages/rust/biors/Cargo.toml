@@ -1,11 +1,11 @@
 [package]
-name = "biors-cli"
+name = "biors"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Command-line tools for bio-rs biological AI model input workflows."
-readme = "../../README.md"
+readme = "../../../README.md"
 keywords = ["bioinformatics", "protein", "cli", "ai"]
 categories = ["command-line-utilities", "science"]
 

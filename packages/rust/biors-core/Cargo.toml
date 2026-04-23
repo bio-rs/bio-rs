@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Core protein input contracts and tokenization for bio-rs."
-readme = "../../README.md"
+readme = "../../../README.md"
 keywords = ["bioinformatics", "protein", "tokenizer", "ai"]
 categories = ["science"]
 
