@@ -29,6 +29,12 @@ Tokenize FASTA records:
 cargo run -p biors -- tokenize examples/protein.fasta
 ```
 
+Tokenize FASTA records from stdin:
+
+```bash
+cat examples/protein.fasta | cargo run -p biors -- tokenize -
+```
+
 Tokenize a multi-record FASTA file:
 
 ```bash
@@ -39,7 +45,37 @@ Use the Rust library:
 
 ```toml
 [dependencies]
-biors-core = "0.3.0"
+biors-core = "0.4.0"
+```
+
+## JSON Contracts
+
+`tokenize` always emits an array of records:
+
+```json
+[
+  {
+    "id": "seq1",
+    "length": 4,
+    "alphabet": "protein-20",
+    "valid": true,
+    "tokens": [0, 1, 2, 3],
+    "warnings": [],
+    "errors": []
+  }
+]
+```
+
+`inspect` always emits a summary object:
+
+```json
+{
+  "records": 1,
+  "total_length": 4,
+  "valid_records": 1,
+  "warning_count": 0,
+  "error_count": 0
+}
 ```
 
 ## Checks

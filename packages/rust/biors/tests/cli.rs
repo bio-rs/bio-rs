@@ -1,6 +1,7 @@
 use serde_json::Value;
+use std::io::Write;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[test]
 fn tokenize_multi_fasta_outputs_json_array() {
@@ -25,4 +26,54 @@ fn tokenize_multi_fasta_outputs_json_array() {
     assert_eq!(records.len(), 2);
     assert_eq!(records[0]["id"], "seq1");
     assert_eq!(records[1]["id"], "seq2");
+}
+
+#[test]
+fn tokenize_stdin_outputs_json_array() {
+    let output = run_with_stdin("tokenize", ">seq1\nACDE\n");
+    let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
+    let records = value.as_array().expect("tokenize output is an array");
+
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0]["id"], "seq1");
+    assert_eq!(records[0]["tokens"], serde_json::json!([0, 1, 2, 3]));
+}
+
+#[test]
+fn inspect_stdin_outputs_json_summary() {
+    let output = run_with_stdin("inspect", ">seq1\nACX\n>seq2\nM*\n");
+    let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
+
+    assert_eq!(value["records"], 2);
+    assert_eq!(value["total_length"], 5);
+    assert_eq!(value["valid_records"], 0);
+    assert_eq!(value["warning_count"], 1);
+    assert_eq!(value["error_count"], 1);
+}
+
+fn run_with_stdin(command: &str, input: &str) -> Vec<u8> {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg(command)
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors");
+
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin pipe")
+        .write_all(input.as_bytes())
+        .expect("write stdin");
+
+    let output = child.wait_with_output().expect("wait for biors");
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    output.stdout
 }

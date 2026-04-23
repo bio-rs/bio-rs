@@ -31,6 +31,15 @@ pub struct TokenizedProtein {
     pub errors: Vec<ResidueIssue>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ProteinBatchSummary {
+    pub records: usize,
+    pub total_length: usize,
+    pub valid_records: usize,
+    pub warning_count: usize,
+    pub error_count: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BioRsError {
     EmptyInput,
@@ -92,6 +101,16 @@ pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsErr
 pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
     let proteins = parse_fasta_records(input)?;
     Ok(proteins.iter().map(tokenize_protein).collect())
+}
+
+pub fn summarize_tokenized_proteins(proteins: &[TokenizedProtein]) -> ProteinBatchSummary {
+    ProteinBatchSummary {
+        records: proteins.len(),
+        total_length: proteins.iter().map(|protein| protein.length).sum(),
+        valid_records: proteins.iter().filter(|protein| protein.valid).count(),
+        warning_count: proteins.iter().map(|protein| protein.warnings.len()).sum(),
+        error_count: proteins.iter().map(|protein| protein.errors.len()).sum(),
+    }
 }
 
 pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
@@ -291,6 +310,23 @@ mod tests {
                 residue: '*',
                 position: 3,
             }]
+        );
+    }
+
+    #[test]
+    fn summarizes_tokenized_protein_batches() {
+        let tokenized = tokenize_fasta_records(">seq1\nACX\n>seq2\nM*").expect("valid multi-FASTA");
+        let summary = summarize_tokenized_proteins(&tokenized);
+
+        assert_eq!(
+            summary,
+            ProteinBatchSummary {
+                records: 2,
+                total_length: 5,
+                valid_records: 0,
+                warning_count: 1,
+                error_count: 1,
+            }
         );
     }
 

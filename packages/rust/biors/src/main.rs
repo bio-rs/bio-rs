@@ -1,6 +1,7 @@
-use biors_core::{tokenize_fasta_records, BioRsError};
+use biors_core::{summarize_tokenized_proteins, tokenize_fasta_records, BioRsError};
 use clap::{Parser, Subcommand};
 use std::fs;
+use std::io::{self, Read};
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
@@ -29,24 +30,15 @@ fn run() -> Result<(), CliError> {
 
     match cli.command {
         Command::Inspect { path } => {
-            let input =
-                fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })?;
+            let input = read_input(path)?;
             let tokenized = tokenize_fasta_records(&input)?;
+            let summary = summarize_tokenized_proteins(&tokenized);
 
-            let total_length: usize = tokenized.iter().map(|protein| protein.length).sum();
-            let valid_records = tokenized.iter().filter(|protein| protein.valid).count();
-            let warning_count: usize = tokenized.iter().map(|protein| protein.warnings.len()).sum();
-            let error_count: usize = tokenized.iter().map(|protein| protein.errors.len()).sum();
-
-            println!("records: {}", tokenized.len());
-            println!("total_length: {total_length}");
-            println!("valid_records: {valid_records}");
-            println!("warning_count: {warning_count}");
-            println!("error_count: {error_count}");
+            let json = serde_json::to_string_pretty(&summary)?;
+            println!("{json}");
         }
         Command::Tokenize { path } => {
-            let input =
-                fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })?;
+            let input = read_input(path)?;
             let tokenized = tokenize_fasta_records(&input)?;
 
             let json = serde_json::to_string_pretty(&tokenized)?;
@@ -55,6 +47,18 @@ fn run() -> Result<(), CliError> {
     }
 
     Ok(())
+}
+
+fn read_input(path: PathBuf) -> Result<String, CliError> {
+    if path.as_os_str() == "-" {
+        let mut input = String::new();
+        io::stdin()
+            .read_to_string(&mut input)
+            .map_err(|source| CliError::Read { path, source })?;
+        return Ok(input);
+    }
+
+    fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })
 }
 
 #[derive(Debug)]
