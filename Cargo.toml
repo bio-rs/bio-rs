@@ -2,6 +2,8 @@
 members = [
     "packages/rust/biors",
     "packages/rust/biors-core",
+    "packages/rust/biors-wasm",
+    "packages/rust/biors-python",
 ]
 resolver = "2"
 
@@ -9,7 +11,7 @@ resolver = "2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bio-rs/bio-rs"
-version = "0.1.0"
+version = "0.1.2"
 
 [workspace.dependencies]
 biors-core = { version = "0.1.0", path = "packages/rust/biors-core" }

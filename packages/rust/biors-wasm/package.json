@@ -1,6 +1,6 @@
 {
   "name": "biors",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Rust/WASM tools for biological AI models.",
   "main": "index.js",
   "scripts": {
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/bio-rs/bio-rs/issues"
   },
-  "homepage": "https://github.com/bio-rs/bio-rs#readme"
+  "homepage": "https://github.com/bio-rs/bio-rs#readme",
+  "dependencies": {
+    "user": "^0.0.0"
+  }
 }
