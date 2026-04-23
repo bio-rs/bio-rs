@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "biors"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "biors-core",
  "clap",
@@ -63,14 +63,14 @@ dependencies = [
 
 [[package]]
 name = "biors-core"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "biors-python"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "biors-core",
  "pyo3",
@@ -79,7 +79,7 @@ dependencies = [
 
 [[package]]
 name = "biors-wasm"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "biors-core",
  "serde",

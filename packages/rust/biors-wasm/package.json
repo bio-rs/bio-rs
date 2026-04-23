@@ -1,6 +1,6 @@
 {
   "name": "biors",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Rust/WASM tools for biological AI models.",
   "main": "index.js",
   "scripts": {
