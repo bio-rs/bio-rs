@@ -23,12 +23,4 @@ jobs:
       - name: Publish biors-core
         run: cargo publish -p biors-core --token ${{ secrets.CRATES_IO_TOKEN }}
       - name: Publish biors
-        run: |
-          for attempt in 1 2 3 4 5; do
-            if cargo publish -p biors --token ${{ secrets.CRATES_IO_TOKEN }}; then
-              exit 0
-            fi
-            echo "biors-core is not visible in the crates.io index yet; retry ${attempt}/5"
-            sleep 30
-          done
-          exit 1
+        run: cargo publish -p biors --token ${{ secrets.CRATES_IO_TOKEN }}

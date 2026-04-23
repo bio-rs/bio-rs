@@ -33,37 +33,23 @@ fn run() -> Result<(), CliError> {
                 fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })?;
             let tokenized = tokenize_fasta_records(&input)?;
 
-            if let [protein] = tokenized.as_slice() {
-                println!("id: {}", protein.id);
-                println!("length: {}", protein.length);
-                println!("alphabet: {}", protein.alphabet);
-                println!("valid: {}", protein.valid);
-                println!("warnings: {}", protein.warnings.len());
-                println!("errors: {}", protein.errors.len());
-            } else {
-                let total_length: usize = tokenized.iter().map(|protein| protein.length).sum();
-                let valid_records = tokenized.iter().filter(|protein| protein.valid).count();
-                let warning_count: usize =
-                    tokenized.iter().map(|protein| protein.warnings.len()).sum();
-                let error_count: usize = tokenized.iter().map(|protein| protein.errors.len()).sum();
+            let total_length: usize = tokenized.iter().map(|protein| protein.length).sum();
+            let valid_records = tokenized.iter().filter(|protein| protein.valid).count();
+            let warning_count: usize = tokenized.iter().map(|protein| protein.warnings.len()).sum();
+            let error_count: usize = tokenized.iter().map(|protein| protein.errors.len()).sum();
 
-                println!("records: {}", tokenized.len());
-                println!("total_length: {total_length}");
-                println!("valid_records: {valid_records}");
-                println!("warning_count: {warning_count}");
-                println!("error_count: {error_count}");
-            }
+            println!("records: {}", tokenized.len());
+            println!("total_length: {total_length}");
+            println!("valid_records: {valid_records}");
+            println!("warning_count: {warning_count}");
+            println!("error_count: {error_count}");
         }
         Command::Tokenize { path } => {
             let input =
                 fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })?;
             let tokenized = tokenize_fasta_records(&input)?;
 
-            let json = if let [protein] = tokenized.as_slice() {
-                serde_json::to_string_pretty(protein)?
-            } else {
-                serde_json::to_string_pretty(&tokenized)?
-            };
+            let json = serde_json::to_string_pretty(&tokenized)?;
             println!("{json}");
         }
     }
