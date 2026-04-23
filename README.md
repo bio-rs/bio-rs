@@ -3,17 +3,17 @@
 [![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-Rust tools for validating protein FASTA input and tokenizing it into stable
-`protein-20` token ids.
+Rust tools for validating protein FASTA input and tokenizing single-record and
+multi-record FASTA files into stable `protein-20` token ids.
 
 ## Features
 
-- FASTA parsing for one protein sequence
+- FASTA parsing for one or more protein sequences
 - `protein-20` residue validation
 - lowercase sequence normalization
 - ambiguous residue reporting for `X`, `B`, `Z`, `J`, `U`, and `O`
 - invalid residue reporting
-- JSON output from the CLI
+- JSON output from the CLI, including array output for multi-FASTA tokenization
 
 ## Quickstart
 
@@ -27,6 +27,12 @@ Tokenize a protein sequence:
 
 ```bash
 cargo run -p biors -- tokenize examples/protein.fasta
+```
+
+Tokenize a multi-FASTA file:
+
+```bash
+cargo run -p biors -- tokenize examples/multi.fasta
 ```
 
 Use the Rust library:
@@ -53,6 +59,7 @@ packages/
     biors/       CLI
     biors-core/  FASTA parsing and tokenization library
 examples/
+  multi.fasta
   protein.fasta
 ```
 
