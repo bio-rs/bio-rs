@@ -1,0 +1,19 @@
+[package]
+name = "biors-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Command-line tools for bio-rs biological AI model input workflows."
+readme = "../../README.md"
+keywords = ["bioinformatics", "protein", "cli", "ai"]
+categories = ["command-line-utilities", "science"]
+
+[[bin]]
+name = "biors"
+path = "src/main.rs"
+
+[dependencies]
+biors-core.workspace = true
+clap.workspace = true
+serde_json.workspace = true
