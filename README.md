@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
 [![Crates.io Core](https://img.shields.io/crates/v/biors-core.svg)](https://crates.io/crates/biors-core)
-[![Crates.io CLI](https://img.shields.io/crates/v/biors-cli.svg)](https://crates.io/crates/biors-cli)
+[![Crates.io CLI](https://img.shields.io/crates/v/biors.svg)](https://crates.io/crates/biors)
+[![npm](https://img.shields.io/npm/v/biors.svg)](https://www.npmjs.com/package/biors)
+[![PyPI](https://img.shields.io/pypi/v/biors.svg)](https://pypi.org/project/biors/)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 Rust/WASM tools for biological AI models.
@@ -59,62 +61,38 @@ Not implemented yet:
 
 ## Quickstart
 
-From source:
+### CLI (Rust)
 
+Install the CLI:
 ```bash
-cargo run -p biors-cli -- inspect examples/protein.fasta
+cargo install biors
 ```
 
+Inspect a protein sequence:
 ```bash
-cargo run -p biors-cli -- tokenize examples/protein.fasta --format json
+biors inspect examples/protein.fasta
 ```
 
-Example output:
-
-```json
-{
-  "id": "seq1",
-  "length": 4,
-  "alphabet": "protein-20",
-  "valid": true,
-  "tokens": [0, 1, 2, 3],
-  "warnings": [],
-  "errors": []
-}
-```
-
-## Distribution
-
-The first public distribution target is crates.io:
-
-- `biors-core`: Rust library for protein input contracts and tokenization
-- `biors-cli`: installable CLI package that provides the `biors` binary
-
-After the first release, users should be able to install the CLI with:
-
+Tokenize for AI model input:
 ```bash
-cargo install biors-cli
+biors tokenize examples/protein.fasta --format json
 ```
 
-Rust projects should be able to depend on the core crate with:
+### Library (Rust)
 
+Add to your project:
 ```toml
 [dependencies]
 biors-core = "0.1"
 ```
 
-Before publishing, the release path should be:
+## Distribution
 
-```bash
-scripts/check.sh
-cargo publish -p biors-core --dry-run
-cargo publish -p biors-cli --dry-run
-cargo publish -p biors-core
-cargo publish -p biors-cli
-```
+The project is distributed across multiple ecosystems:
 
-GitHub Releases with prebuilt binaries can come after the CLI API stabilizes.
-WASM/npm distribution should wait until `biors-wasm` exists.
+- **crates.io**: `biors` (CLI), `biors-core` (Library)
+- **npm**: `biors` (WASM bindings - coming soon)
+- **PyPI**: `biors` (Python bindings - coming soon)
 
 ## Checks
 
@@ -138,30 +116,20 @@ Local git hooks are stored in `.githooks/`. Enable them with:
 git config core.hooksPath .githooks
 ```
 
-The hooks enforce:
+## Workspace Structure
 
-- pre-commit: full `scripts/check.sh`
-- pre-push: full `scripts/check.sh`
-- commit-msg: Conventional Commit format
-
-## Workspace
+The project is a monorepo managed under the `packages/` directory:
 
 ```txt
-crates/
-  biors-core/  FASTA parsing, protein validation, tokenization
-  biors-cli/   CLI entrypoint for inspect/tokenize workflows
+packages/
+  rust/
+    biors/       Main CLI tool and unified entrypoint
+    biors-core/  Core protein parsing and tokenization logic
+  npm/           WebAssembly bindings for JavaScript/TypeScript
+  python/        High-performance Python bindings via PyO3
 examples/
   protein.fasta
 ```
-
-The repo is intended to grow as a monorepo for the bio-AI tooling stack:
-
-1. `biors-core`: stable biological model input contracts
-2. `biors-cli`: local inspection, validation, and tokenization
-3. `biors-wasm`: browser-side validation and model input demos
-4. `biors-runtime`: portable wrappers around Python-born model artifacts
-5. `biors-mcp`: agent-callable tools
-6. `biors-models`: small model integrations and reference examples
 
 ## Protein-20
 
