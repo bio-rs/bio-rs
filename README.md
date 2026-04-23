@@ -1,5 +1,10 @@
 # bio-rs
 
+[![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
+[![Crates.io Core](https://img.shields.io/crates/v/biors-core.svg)](https://crates.io/crates/biors-core)
+[![Crates.io CLI](https://img.shields.io/crates/v/biors-cli.svg)](https://crates.io/crates/biors-cli)
+[![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
+
 Rust/WASM tools for biological AI models.
 
 `bio-rs` turns Python-born bio-AI models into portable, inspectable tools for
