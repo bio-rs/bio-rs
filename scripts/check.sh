@@ -12,6 +12,10 @@ cargo fmt --check
 echo "==> cargo check --workspace --all-targets --all-features"
 cargo check --workspace --all-targets --all-features
 
+echo "==> cargo check -p biors-core --target wasm32-unknown-unknown --all-features"
+rustup target add wasm32-unknown-unknown
+cargo check -p biors-core --target wasm32-unknown-unknown --all-features
+
 echo "==> cargo test --workspace --all-targets --all-features"
 cargo test --workspace --all-targets --all-features
 

@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 const PROTEIN_20: &str = "protein-20";
@@ -8,30 +8,30 @@ const PROTEIN_20_RESIDUES: [char; 20] = [
 ];
 const AMBIGUOUS_RESIDUES: [char; 6] = ['X', 'B', 'Z', 'J', 'U', 'O'];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProteinSequence {
     pub id: String,
     pub sequence: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ResidueIssue {
     pub residue: char,
     pub position: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenizedProtein {
     pub id: String,
     pub length: usize,
-    pub alphabet: &'static str,
+    pub alphabet: String,
     pub valid: bool,
     pub tokens: Vec<u8>,
     pub warnings: Vec<ResidueIssue>,
     pub errors: Vec<ResidueIssue>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProteinBatchSummary {
     pub records: usize,
     pub total_length: usize,
@@ -132,7 +132,7 @@ pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     TokenizedProtein {
         id: protein.id.clone(),
         length: protein.sequence.chars().count(),
-        alphabet: PROTEIN_20,
+        alphabet: PROTEIN_20.to_string(),
         valid: warnings.is_empty() && errors.is_empty(),
         tokens,
         warnings,
@@ -328,6 +328,16 @@ mod tests {
                 error_count: 1,
             }
         );
+    }
+
+    #[test]
+    fn tokenized_protein_round_trips_through_json() {
+        let tokenized = tokenize_fasta_records(">seq1\nACX").expect("valid FASTA");
+        let json = serde_json::to_string(&tokenized).expect("serialize tokenized protein");
+        let decoded: Vec<TokenizedProtein> =
+            serde_json::from_str(&json).expect("deserialize tokenized protein");
+
+        assert_eq!(decoded, tokenized);
     }
 
     #[test]

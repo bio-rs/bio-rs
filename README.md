@@ -45,7 +45,18 @@ Use the Rust library:
 
 ```toml
 [dependencies]
-biors-core = "0.4.0"
+biors-core = "0.5.0"
+```
+
+```rust
+use biors_core::{summarize_tokenized_proteins, tokenize_fasta_records};
+
+let tokenized = tokenize_fasta_records(">seq1\nACDE\n")?;
+let summary = summarize_tokenized_proteins(&tokenized);
+
+assert_eq!(summary.records, 1);
+assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
 ## JSON Contracts
@@ -84,8 +95,15 @@ biors-core = "0.4.0"
 scripts/check.sh
 ```
 
-The check suite runs `cargo fmt`, `cargo check`, `cargo test`, and `cargo clippy`
-with warnings denied.
+The check suite runs `cargo fmt`, native Rust checks, a `biors-core`
+`wasm32-unknown-unknown` build check, tests, and `cargo clippy` with warnings
+denied.
+
+Run the Rust library example:
+
+```bash
+cargo run -p biors-core --example tokenize
+```
 
 ## Workspace
 
