@@ -1,0 +1,33 @@
+{
+  "schema_version": "biors.package.v0",
+  "name": "protein-seed",
+  "model": {
+    "format": "onnx",
+    "path": "models/protein-seed.onnx"
+  },
+  "preprocessing": [
+    {
+      "name": "protein_fasta_tokenize",
+      "implementation": "biors-core",
+      "contract": "protein-20"
+    }
+  ],
+  "postprocessing": [
+    {
+      "name": "classification_scores",
+      "implementation": "python-baseline",
+      "contract": "float32-vector"
+    }
+  ],
+  "runtime": {
+    "backend": "onnx-webgpu",
+    "target": "browser-wasm-webgpu"
+  },
+  "fixtures": [
+    {
+      "name": "tiny-protein",
+      "input": "fixtures/tiny.fasta",
+      "expected_output": "fixtures/tiny.output.json"
+    }
+  ]
+}

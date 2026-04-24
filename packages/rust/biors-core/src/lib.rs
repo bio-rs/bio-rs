@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+pub mod package;
+
+pub use package::{
+    inspect_package_manifest, validate_package_manifest, ModelArtifact, PackageFixture,
+    PackageManifest, PackageManifestSummary, PackageValidationReport, PipelineStep, RuntimeTarget,
+};
+
 const PROTEIN_20: &str = "protein-20";
 const PROTEIN_20_RESIDUES: [char; 20] = [
     'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W',

@@ -51,6 +51,77 @@ fn inspect_stdin_outputs_json_summary() {
     assert_eq!(value["error_count"], 1);
 }
 
+#[test]
+fn package_inspect_outputs_manifest_summary() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("inspect")
+        .arg(manifest)
+        .output()
+        .expect("run biors package inspect");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+
+    assert_eq!(value["schema_version"], "biors.package.v0");
+    assert_eq!(value["name"], "protein-seed");
+    assert_eq!(value["model_format"], "onnx");
+    assert_eq!(value["runtime_backend"], "onnx-webgpu");
+    assert_eq!(value["runtime_target"], "browser-wasm-webgpu");
+    assert_eq!(value["fixtures"], 1);
+}
+
+#[test]
+fn package_validate_fails_invalid_manifest() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("validate")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors package validate")
+        .tap_stdin(
+            r#"{
+              "schema_version": "biors.package.v0",
+              "name": "",
+              "model": { "format": "onnx", "path": "" },
+              "preprocessing": [],
+              "postprocessing": [],
+              "runtime": {
+                "backend": "onnx-webgpu",
+                "target": "browser-wasm-webgpu"
+              },
+              "fixtures": []
+            }"#,
+        );
+
+    assert!(
+        !output.status.success(),
+        "expected validation failure, stdout: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+
+    assert_eq!(value["valid"], false);
+    assert_eq!(value["issues"][0], "name is required");
+    assert_eq!(value["issues"][1], "model.path is required");
+    assert_eq!(
+        value["issues"][2],
+        "fixtures must include at least one fixture"
+    );
+}
+
 fn run_with_stdin(command: &str, input: &str) -> Vec<u8> {
     let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg(command)
@@ -76,4 +147,20 @@ fn run_with_stdin(command: &str, input: &str) -> Vec<u8> {
     );
 
     output.stdout
+}
+
+trait ChildInputExt {
+    fn tap_stdin(self, input: &str) -> std::process::Output;
+}
+
+impl ChildInputExt for std::process::Child {
+    fn tap_stdin(mut self, input: &str) -> std::process::Output {
+        self.stdin
+            .as_mut()
+            .expect("stdin pipe")
+            .write_all(input.as_bytes())
+            .expect("write stdin");
+
+        self.wait_with_output().expect("wait for biors")
+    }
 }

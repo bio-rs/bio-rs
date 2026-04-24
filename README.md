@@ -4,10 +4,55 @@
 [![Release](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml/badge.svg)](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-Rust tools for validating protein FASTA input and tokenizing FASTA records into
-stable `protein-20` token ids.
+Open source Rust/WASM tools for biological AI models.
 
-## Features
+Python is where many bio-AI models are born. bio-rs is where the tooling around
+them becomes portable, inspectable, and easier to use from CLIs, browsers,
+servers, and agents.
+
+bio-rs is starting with small, production-quality building blocks for biological
+AI model migration. The current release provides a protein FASTA seed module and
+a portable package manifest that can describe model artifacts, preprocessing,
+postprocessing, runtime targets, fixtures, and expected outputs.
+
+## 1.0.0 Goal
+
+bio-rs reaches `1.0.0` when a Python-born biological AI model can be packaged,
+inspected, verified against its Python baseline, and executed through portable
+runtime surfaces:
+
+- CLI tools
+- browser-ready WASM/WebGPU
+- server-side Rust usage
+- agent-friendly machine-readable interfaces
+
+The long-term goal is not only model format conversion. bio-rs should also make
+the surrounding bio/chem tooling portable: the practical pieces currently often
+handled by Python libraries such as BioPython and RDKit.
+
+Performance and cost improvements are benchmark targets, not current claims.
+
+## Current Modules
+
+### Protein FASTA
+
+The protein FASTA seed module validates protein FASTA input and tokenizes FASTA
+records into stable `protein-20` token ids.
+
+### Package Manifest
+
+The package manifest module describes a portable biological AI model package:
+
+- model artifact format and path
+- preprocessing and postprocessing steps
+- runtime backend and target
+- parity fixtures and expected outputs
+
+`biors package inspect` emits a compact manifest summary. `biors package
+validate` emits a machine-readable validation report and exits non-zero when the
+manifest is incomplete.
+
+## Current Features
 
 - FASTA parsing for one or more protein sequences
 - `protein-20` residue validation
@@ -15,6 +60,20 @@ stable `protein-20` token ids.
 - ambiguous residue reporting for `X`, `B`, `Z`, `J`, `U`, and `O`
 - invalid residue reporting
 - JSON array output from the CLI
+- portable model package manifest structs in `biors-core`
+- package manifest inspection and validation from the CLI
+
+## Release Path
+
+- `0.6.0`: Portable package manifest inspect/validate.
+- `0.7.0`: Runtime bridge planning for ONNX/WebGPU package targets.
+- `0.8.0`: Verification harness for Python-baseline parity fixtures.
+
+## Not Yet
+
+bio-rs does not yet provide a full model migration engine, a browser AlphaFold
+runtime, or a Rust replacement for all BioPython/RDKit functionality. Those are
+the milestones this repository is moving toward.
 
 ## Quickstart
 
@@ -40,6 +99,18 @@ Tokenize a multi-record FASTA file:
 
 ```bash
 cargo run -p biors -- tokenize examples/multi.fasta
+```
+
+Inspect a portable model package manifest:
+
+```bash
+cargo run -p biors -- package inspect examples/protein-package/manifest.json
+```
+
+Validate a portable model package manifest:
+
+```bash
+cargo run -p biors -- package validate examples/protein-package/manifest.json
 ```
 
 Use the Rust library:
@@ -89,6 +160,30 @@ assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
 }
 ```
 
+`package inspect` always emits a manifest summary object:
+
+```json
+{
+  "schema_version": "biors.package.v0",
+  "name": "protein-seed",
+  "model_format": "onnx",
+  "runtime_backend": "onnx-webgpu",
+  "runtime_target": "browser-wasm-webgpu",
+  "preprocessing_steps": 1,
+  "postprocessing_steps": 1,
+  "fixtures": 1
+}
+```
+
+`package validate` always emits a validation report:
+
+```json
+{
+  "valid": true,
+  "issues": []
+}
+```
+
 ## Checks
 
 ```bash
@@ -111,9 +206,10 @@ cargo run -p biors-core --example tokenize
 packages/
   rust/
     biors/       CLI
-    biors-core/  FASTA parsing and tokenization library
+    biors-core/  FASTA parsing, tokenization, and package contracts
 examples/
   multi.fasta
+  protein-package/
   protein.fasta
 ```
 
