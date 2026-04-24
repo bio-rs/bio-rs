@@ -2,11 +2,16 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub mod package;
+pub mod verification;
 
 pub use package::{
     inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, ModelArtifact,
     PackageFixture, PackageManifest, PackageManifestSummary, PackageValidationReport, PipelineStep,
     RuntimeBridgeReport, RuntimeTarget,
+};
+pub use verification::{
+    verify_package_outputs, FixtureObservation, FixtureVerificationResult,
+    PackageVerificationReport, VerificationStatus,
 };
 
 const PROTEIN_20: &str = "protein-20";

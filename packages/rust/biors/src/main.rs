@@ -1,6 +1,7 @@
 use biors_core::{
     inspect_package_manifest, plan_runtime_bridge, summarize_tokenized_proteins,
-    tokenize_fasta_records, validate_package_manifest, BioRsError, PackageManifest,
+    tokenize_fasta_records, validate_package_manifest, verify_package_outputs, BioRsError,
+    FixtureObservation, PackageManifest,
 };
 use clap::{Parser, Subcommand};
 use std::fs;
@@ -31,9 +32,19 @@ enum Command {
 
 #[derive(Debug, Subcommand)]
 enum PackageCommand {
-    Bridge { path: PathBuf },
-    Inspect { path: PathBuf },
-    Validate { path: PathBuf },
+    Bridge {
+        path: PathBuf,
+    },
+    Inspect {
+        path: PathBuf,
+    },
+    Validate {
+        path: PathBuf,
+    },
+    Verify {
+        manifest: PathBuf,
+        observations: PathBuf,
+    },
 }
 
 fn main() {
@@ -85,6 +96,27 @@ fn run() -> Result<(), CliError> {
                     return Err(CliError::Validation(report.issues));
                 }
             }
+            PackageCommand::Verify {
+                manifest,
+                observations,
+            } => {
+                let manifest = read_package_manifest(manifest)?;
+                let observations = read_fixture_observations(observations)?;
+                let report = verify_package_outputs(&manifest, &observations);
+
+                let json = serde_json::to_string_pretty(&report)?;
+                println!("{json}");
+
+                if report.failed > 0 {
+                    return Err(CliError::Validation(
+                        report
+                            .results
+                            .into_iter()
+                            .filter_map(|result| result.issue)
+                            .collect(),
+                    ));
+                }
+            }
         },
         Command::Tokenize { path } => {
             let input = read_input(path)?;
@@ -111,6 +143,11 @@ fn read_input(path: PathBuf) -> Result<String, CliError> {
 }
 
 fn read_package_manifest(path: PathBuf) -> Result<PackageManifest, CliError> {
+    let input = read_input(path)?;
+    serde_json::from_str(&input).map_err(CliError::Json)
+}
+
+fn read_fixture_observations(path: PathBuf) -> Result<Vec<FixtureObservation>, CliError> {
     let input = read_input(path)?;
     serde_json::from_str(&input).map_err(CliError::Json)
 }

@@ -155,6 +155,35 @@ fn package_bridge_outputs_runtime_plan() {
     );
 }
 
+#[test]
+fn package_verify_outputs_fixture_report() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");
+    let observations = manifest_dir.join("../../../examples/protein-package/observations.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("verify")
+        .arg(manifest)
+        .arg(observations)
+        .output()
+        .expect("run biors package verify");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+
+    assert_eq!(value["package"], "protein-seed");
+    assert_eq!(value["fixtures"], 1);
+    assert_eq!(value["passed"], 1);
+    assert_eq!(value["failed"], 0);
+    assert_eq!(value["results"][0]["status"], "passed");
+}
+
 fn run_with_stdin(command: &str, input: &str) -> Vec<u8> {
     let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg(command)

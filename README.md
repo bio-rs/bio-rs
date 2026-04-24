@@ -58,6 +58,12 @@ The runtime bridge planner checks whether a package manifest targets a supported
 portable runtime. In `0.7.0`, the supported bridge is ONNX/WebGPU for browser
 WASM/WebGPU execution planning.
 
+### Verification Harness
+
+The verification harness compares package fixtures against observed runtime
+outputs. This gives each migration package a small parity report before the
+project grows into full Python-baseline execution and benchmark automation.
+
 ## Current Features
 
 - FASTA parsing for one or more protein sequences
@@ -69,6 +75,7 @@ WASM/WebGPU execution planning.
 - portable model package manifest structs in `biors-core`
 - package manifest inspection and validation from the CLI
 - runtime bridge planning for ONNX/WebGPU browser targets
+- fixture output verification reports for package parity checks
 
 ## Release Path
 
@@ -124,6 +131,14 @@ Plan the portable runtime bridge for a package:
 
 ```bash
 cargo run -p biors -- package bridge examples/protein-package/manifest.json
+```
+
+Verify package fixture observations:
+
+```bash
+cargo run -p biors -- package verify \
+  examples/protein-package/manifest.json \
+  examples/protein-package/observations.json
 ```
 
 Use the Rust library:
@@ -209,6 +224,27 @@ assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
 }
 ```
 
+`package verify` always emits a fixture verification report:
+
+```json
+{
+  "package": "protein-seed",
+  "fixtures": 1,
+  "passed": 1,
+  "failed": 0,
+  "results": [
+    {
+      "name": "tiny-protein",
+      "input": "fixtures/tiny.fasta",
+      "expected_output": "fixtures/tiny.output.json",
+      "observed_output": "fixtures/tiny.output.json",
+      "status": "passed",
+      "issue": null
+    }
+  ]
+}
+```
+
 ## Checks
 
 ```bash
@@ -235,6 +271,8 @@ packages/
 examples/
   multi.fasta
   protein-package/
+    fixtures/
+    observations.json
   protein.fasta
 ```
 
