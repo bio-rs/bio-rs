@@ -43,9 +43,8 @@ cargo run -p biors -- tokenize examples/multi.fasta
 
 Use the Rust library:
 
-```toml
-[dependencies]
-biors-core = "0.5.0"
+```bash
+cargo add biors-core
 ```
 
 ```rust
