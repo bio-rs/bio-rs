@@ -31,12 +31,20 @@ pub struct TokenizedProtein {
     pub errors: Vec<ResidueIssue>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ProteinBatchSummary {
+    pub records: usize,
+    pub total_length: usize,
+    pub valid_records: usize,
+    pub warning_count: usize,
+    pub error_count: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BioRsError {
     EmptyInput,
     MissingHeader,
     MissingSequence { id: String },
-    MultiFastaUnsupported,
 }
 
 impl fmt::Display for BioRsError {
@@ -50,27 +58,11 @@ impl fmt::Display for BioRsError {
             Self::MissingSequence { id } => {
                 write!(f, "FASTA record '{id}' does not contain a sequence")
             }
-            Self::MultiFastaUnsupported => write!(f, "multi-FASTA input is not supported yet"),
         }
     }
 }
 
 impl std::error::Error for BioRsError {}
-
-pub fn parse_fasta(input: &str) -> Result<ProteinSequence, BioRsError> {
-    let record_count = input
-        .trim()
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty() && line.starts_with('>'))
-        .count();
-    if record_count > 1 {
-        return Err(BioRsError::MultiFastaUnsupported);
-    }
-
-    let mut records = parse_fasta_records(input)?;
-    Ok(records.remove(0))
-}
 
 pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsError> {
     let trimmed = input.trim();
@@ -106,14 +98,19 @@ pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsErr
     Ok(records)
 }
 
-pub fn tokenize_fasta(input: &str) -> Result<TokenizedProtein, BioRsError> {
-    let protein = parse_fasta(input)?;
-    Ok(tokenize_protein(&protein))
-}
-
 pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
     let proteins = parse_fasta_records(input)?;
     Ok(proteins.iter().map(tokenize_protein).collect())
+}
+
+pub fn summarize_tokenized_proteins(proteins: &[TokenizedProtein]) -> ProteinBatchSummary {
+    ProteinBatchSummary {
+        records: proteins.len(),
+        total_length: proteins.iter().map(|protein| protein.length).sum(),
+        valid_records: proteins.iter().filter(|protein| protein.valid).count(),
+        warning_count: proteins.iter().map(|protein| protein.warnings.len()).sum(),
+        error_count: proteins.iter().map(|protein| protein.errors.len()).sum(),
+    }
 }
 
 pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
@@ -180,28 +177,30 @@ mod tests {
 
     #[test]
     fn tokenizes_valid_protein_20_sequence() {
-        let tokenized = tokenize_fasta(">seq1\nACDE").expect("valid FASTA");
+        let tokenized = tokenize_fasta_records(">seq1\nACDE").expect("valid FASTA");
 
-        assert_eq!(tokenized.id, "seq1");
-        assert_eq!(tokenized.length, 4);
-        assert!(tokenized.valid);
-        assert_eq!(tokenized.tokens, vec![0, 1, 2, 3]);
-        assert!(tokenized.warnings.is_empty());
-        assert!(tokenized.errors.is_empty());
+        assert_eq!(tokenized.len(), 1);
+        assert_eq!(tokenized[0].id, "seq1");
+        assert_eq!(tokenized[0].length, 4);
+        assert!(tokenized[0].valid);
+        assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
+        assert!(tokenized[0].warnings.is_empty());
+        assert!(tokenized[0].errors.is_empty());
     }
 
     #[test]
     fn normalizes_lowercase_sequence() {
-        let tokenized = tokenize_fasta(">seq1\nacde").expect("valid FASTA");
+        let tokenized = tokenize_fasta_records(">seq1\nacde").expect("valid FASTA");
 
-        assert_eq!(tokenized.tokens, vec![0, 1, 2, 3]);
+        assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
     }
 
     #[test]
     fn preserves_fasta_id() {
-        let protein = parse_fasta(">sp|P12345|KINASE example protein\nACDE").expect("valid FASTA");
+        let proteins =
+            parse_fasta_records(">sp|P12345|KINASE example protein\nACDE").expect("valid FASTA");
 
-        assert_eq!(protein.id, "sp|P12345|KINASE");
+        assert_eq!(proteins[0].id, "sp|P12345|KINASE");
     }
 
     #[test]
@@ -239,12 +238,12 @@ mod tests {
 
     #[test]
     fn reports_ambiguous_residues() {
-        let tokenized = tokenize_fasta(">seq1\nAXZ").expect("valid FASTA");
+        let tokenized = tokenize_fasta_records(">seq1\nAXZ").expect("valid FASTA");
 
-        assert!(!tokenized.valid);
-        assert_eq!(tokenized.tokens, vec![0]);
+        assert!(!tokenized[0].valid);
+        assert_eq!(tokenized[0].tokens, vec![0]);
         assert_eq!(
-            tokenized.warnings,
+            tokenized[0].warnings,
             vec![
                 ResidueIssue {
                     residue: 'X',
@@ -256,16 +255,16 @@ mod tests {
                 },
             ]
         );
-        assert!(tokenized.errors.is_empty());
+        assert!(tokenized[0].errors.is_empty());
     }
 
     #[test]
     fn reports_invalid_characters() {
-        let tokenized = tokenize_fasta(">seq1\nA*D").expect("valid FASTA");
+        let tokenized = tokenize_fasta_records(">seq1\nA*D").expect("valid FASTA");
 
-        assert!(!tokenized.valid);
+        assert!(!tokenized[0].valid);
         assert_eq!(
-            tokenized.errors,
+            tokenized[0].errors,
             vec![ResidueIssue {
                 residue: '*',
                 position: 2,
@@ -315,8 +314,25 @@ mod tests {
     }
 
     #[test]
+    fn summarizes_tokenized_protein_batches() {
+        let tokenized = tokenize_fasta_records(">seq1\nACX\n>seq2\nM*").expect("valid multi-FASTA");
+        let summary = summarize_tokenized_proteins(&tokenized);
+
+        assert_eq!(
+            summary,
+            ProteinBatchSummary {
+                records: 2,
+                total_length: 5,
+                valid_records: 0,
+                warning_count: 1,
+                error_count: 1,
+            }
+        );
+    }
+
+    #[test]
     fn rejects_empty_sequence() {
-        let error = tokenize_fasta(">seq1").expect_err("empty sequence should fail");
+        let error = tokenize_fasta_records(">seq1").expect_err("empty sequence should fail");
 
         assert_eq!(
             error,
@@ -324,12 +340,5 @@ mod tests {
                 id: "seq1".to_string()
             }
         );
-    }
-
-    #[test]
-    fn rejects_multi_fasta() {
-        let error = tokenize_fasta(">seq1\nAC\n>seq2\nDE").expect_err("multi-FASTA should fail");
-
-        assert_eq!(error, BioRsError::MultiFastaUnsupported);
     }
 }

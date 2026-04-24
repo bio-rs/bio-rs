@@ -3,8 +3,8 @@
 [![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-Rust tools for validating protein FASTA input and tokenizing single-record and
-multi-record FASTA files into stable `protein-20` token ids.
+Rust tools for validating protein FASTA input and tokenizing FASTA records into
+stable `protein-20` token ids.
 
 ## Features
 
@@ -13,23 +13,29 @@ multi-record FASTA files into stable `protein-20` token ids.
 - lowercase sequence normalization
 - ambiguous residue reporting for `X`, `B`, `Z`, `J`, `U`, and `O`
 - invalid residue reporting
-- JSON output from the CLI, including array output for multi-FASTA tokenization
+- JSON array output from the CLI
 
 ## Quickstart
 
-Inspect a protein sequence:
+Inspect FASTA records:
 
 ```bash
 cargo run -p biors -- inspect examples/protein.fasta
 ```
 
-Tokenize a protein sequence:
+Tokenize FASTA records:
 
 ```bash
 cargo run -p biors -- tokenize examples/protein.fasta
 ```
 
-Tokenize a multi-FASTA file:
+Tokenize FASTA records from stdin:
+
+```bash
+cat examples/protein.fasta | cargo run -p biors -- tokenize -
+```
+
+Tokenize a multi-record FASTA file:
 
 ```bash
 cargo run -p biors -- tokenize examples/multi.fasta
@@ -39,7 +45,37 @@ Use the Rust library:
 
 ```toml
 [dependencies]
-biors-core = "0.0.1"
+biors-core = "0.4.0"
+```
+
+## JSON Contracts
+
+`tokenize` always emits an array of records:
+
+```json
+[
+  {
+    "id": "seq1",
+    "length": 4,
+    "alphabet": "protein-20",
+    "valid": true,
+    "tokens": [0, 1, 2, 3],
+    "warnings": [],
+    "errors": []
+  }
+]
+```
+
+`inspect` always emits a summary object:
+
+```json
+{
+  "records": 1,
+  "total_length": 4,
+  "valid_records": 1,
+  "warning_count": 0,
+  "error_count": 0
+}
 ```
 
 ## Checks
