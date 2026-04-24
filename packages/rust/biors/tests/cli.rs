@@ -122,6 +122,39 @@ fn package_validate_fails_invalid_manifest() {
     );
 }
 
+#[test]
+fn package_bridge_outputs_runtime_plan() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("bridge")
+        .arg(manifest)
+        .output()
+        .expect("run biors package bridge");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+
+    assert_eq!(value["ready"], true);
+    assert_eq!(value["backend"], "onnx-webgpu");
+    assert_eq!(value["target"], "browser-wasm-webgpu");
+    assert_eq!(value["execution_provider"], "webgpu");
+    assert_eq!(
+        value["blocking_issues"]
+            .as_array()
+            .expect("issues array")
+            .len(),
+        0
+    );
+}
+
 fn run_with_stdin(command: &str, input: &str) -> Vec<u8> {
     let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg(command)

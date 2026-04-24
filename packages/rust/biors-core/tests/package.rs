@@ -1,4 +1,6 @@
-use biors_core::{inspect_package_manifest, validate_package_manifest, PackageManifest};
+use biors_core::{
+    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, PackageManifest,
+};
 
 fn valid_manifest() -> PackageManifest {
     serde_json::from_str(
@@ -70,6 +72,36 @@ fn validates_required_package_manifest_fields() {
             "name is required",
             "model.path is required",
             "fixtures[0].expected_output is required",
+        ]
+    );
+}
+
+#[test]
+fn plans_supported_onnx_webgpu_runtime_bridge() {
+    let manifest = valid_manifest();
+    let report = plan_runtime_bridge(&manifest);
+
+    assert!(report.ready);
+    assert_eq!(report.backend, "onnx-webgpu");
+    assert_eq!(report.target, "browser-wasm-webgpu");
+    assert_eq!(report.execution_provider, "webgpu");
+    assert!(report.blocking_issues.is_empty());
+}
+
+#[test]
+fn classifies_unsupported_runtime_bridge() {
+    let mut manifest = valid_manifest();
+    manifest.runtime.backend = "python".to_string();
+    manifest.runtime.target = "cpython-server".to_string();
+
+    let report = plan_runtime_bridge(&manifest);
+
+    assert!(!report.ready);
+    assert_eq!(
+        report.blocking_issues,
+        vec![
+            "runtime.backend 'python' is not supported by the portable bridge",
+            "runtime.target 'cpython-server' is not supported by the portable bridge",
         ]
     );
 }

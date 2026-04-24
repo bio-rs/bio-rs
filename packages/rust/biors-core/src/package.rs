@@ -55,6 +55,15 @@ pub struct PackageValidationReport {
     pub issues: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuntimeBridgeReport {
+    pub ready: bool,
+    pub backend: String,
+    pub target: String,
+    pub execution_provider: String,
+    pub blocking_issues: Vec<String>,
+}
+
 pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSummary {
     PackageManifestSummary {
         schema_version: manifest.schema_version.clone(),
@@ -103,6 +112,35 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     PackageValidationReport {
         valid: issues.is_empty(),
         issues,
+    }
+}
+
+pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
+    let mut blocking_issues = validate_package_manifest(manifest).issues;
+
+    let execution_provider = match manifest.runtime.backend.as_str() {
+        "onnx-webgpu" => "webgpu",
+        unsupported => {
+            blocking_issues.push(format!(
+                "runtime.backend '{unsupported}' is not supported by the portable bridge"
+            ));
+            "unsupported"
+        }
+    };
+
+    if manifest.runtime.target != "browser-wasm-webgpu" {
+        blocking_issues.push(format!(
+            "runtime.target '{}' is not supported by the portable bridge",
+            manifest.runtime.target
+        ));
+    }
+
+    RuntimeBridgeReport {
+        ready: blocking_issues.is_empty(),
+        backend: manifest.runtime.backend.clone(),
+        target: manifest.runtime.target.clone(),
+        execution_provider: execution_provider.to_string(),
+        blocking_issues,
     }
 }
 

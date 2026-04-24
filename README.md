@@ -52,6 +52,12 @@ The package manifest module describes a portable biological AI model package:
 validate` emits a machine-readable validation report and exits non-zero when the
 manifest is incomplete.
 
+### Runtime Bridge Plan
+
+The runtime bridge planner checks whether a package manifest targets a supported
+portable runtime. In `0.7.0`, the supported bridge is ONNX/WebGPU for browser
+WASM/WebGPU execution planning.
+
 ## Current Features
 
 - FASTA parsing for one or more protein sequences
@@ -62,6 +68,7 @@ manifest is incomplete.
 - JSON array output from the CLI
 - portable model package manifest structs in `biors-core`
 - package manifest inspection and validation from the CLI
+- runtime bridge planning for ONNX/WebGPU browser targets
 
 ## Release Path
 
@@ -111,6 +118,12 @@ Validate a portable model package manifest:
 
 ```bash
 cargo run -p biors -- package validate examples/protein-package/manifest.json
+```
+
+Plan the portable runtime bridge for a package:
+
+```bash
+cargo run -p biors -- package bridge examples/protein-package/manifest.json
 ```
 
 Use the Rust library:
@@ -181,6 +194,18 @@ assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
 {
   "valid": true,
   "issues": []
+}
+```
+
+`package bridge` always emits a runtime bridge report:
+
+```json
+{
+  "ready": true,
+  "backend": "onnx-webgpu",
+  "target": "browser-wasm-webgpu",
+  "execution_provider": "webgpu",
+  "blocking_issues": []
 }
 ```
 

@@ -4,8 +4,9 @@ use std::fmt;
 pub mod package;
 
 pub use package::{
-    inspect_package_manifest, validate_package_manifest, ModelArtifact, PackageFixture,
-    PackageManifest, PackageManifestSummary, PackageValidationReport, PipelineStep, RuntimeTarget,
+    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, ModelArtifact,
+    PackageFixture, PackageManifest, PackageManifestSummary, PackageValidationReport, PipelineStep,
+    RuntimeBridgeReport, RuntimeTarget,
 };
 
 const PROTEIN_20: &str = "protein-20";

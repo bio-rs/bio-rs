@@ -1,6 +1,6 @@
 use biors_core::{
-    inspect_package_manifest, summarize_tokenized_proteins, tokenize_fasta_records,
-    validate_package_manifest, BioRsError, PackageManifest,
+    inspect_package_manifest, plan_runtime_bridge, summarize_tokenized_proteins,
+    tokenize_fasta_records, validate_package_manifest, BioRsError, PackageManifest,
 };
 use clap::{Parser, Subcommand};
 use std::fs;
@@ -31,6 +31,7 @@ enum Command {
 
 #[derive(Debug, Subcommand)]
 enum PackageCommand {
+    Bridge { path: PathBuf },
     Inspect { path: PathBuf },
     Validate { path: PathBuf },
 }
@@ -55,6 +56,17 @@ fn run() -> Result<(), CliError> {
             println!("{json}");
         }
         Command::Package { command } => match command {
+            PackageCommand::Bridge { path } => {
+                let manifest = read_package_manifest(path)?;
+                let report = plan_runtime_bridge(&manifest);
+
+                let json = serde_json::to_string_pretty(&report)?;
+                println!("{json}");
+
+                if !report.ready {
+                    return Err(CliError::Validation(report.blocking_issues));
+                }
+            }
             PackageCommand::Inspect { path } => {
                 let manifest = read_package_manifest(path)?;
                 let summary = inspect_package_manifest(&manifest);
