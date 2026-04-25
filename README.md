@@ -115,8 +115,9 @@ Performance claims should be backed by reproducible data in-repo.
 - Benchmark guide and latest recorded result: `benchmarks/fasta_vs_biopython.md`
 - Reproducible benchmark harness: `scripts/benchmark_fasta_vs_biopython.py`
 
-The benchmark currently compares FASTA parse+tokenization throughput against a
-Biopython baseline over generated synthetic protein FASTA inputs.
+The benchmark compares FASTA parse+tokenization throughput against a
+Biopython baseline using the UniProt human reference proteome
+(UP000005640 / taxonomy 9606).
 
 ## JSON contracts
 
