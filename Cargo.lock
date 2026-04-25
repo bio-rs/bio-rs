@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "biors"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "biors-core",
  "clap",
@@ -63,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "biors-core"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "serde",
  "serde_json",
