@@ -4,90 +4,56 @@
 [![Release](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml/badge.svg)](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-Open source Rust/WASM tools for biological AI models.
+Rust workspace for practical biological AI input tooling.
 
-Python is where many bio-AI models are born. bio-rs is where the tooling around
-them becomes portable, inspectable, and easier to use from CLIs, browsers,
-servers, and agents.
+> Status: **v0.8.0** (workspace/package version in `Cargo.toml`)
 
-bio-rs is starting with small, production-quality building blocks for biological
-AI model migration. The current release provides a protein FASTA seed module and
-a portable package manifest that can describe model artifacts, preprocessing,
-postprocessing, runtime targets, fixtures, and expected outputs.
+This repository focuses on functionality that is already implemented and testable today:
 
-## 1.0.0 Goal
+- FASTA parsing (`parse_fasta_records`)
+- protein-20 tokenization (`tokenize_fasta_records`)
+- package manifest inspect/validate/bridge planning
+- fixture verification (`package verify`)
 
-bio-rs reaches `1.0.0` when a Python-born biological AI model can be packaged,
-inspected, verified against its Python baseline, and executed through portable
-runtime surfaces:
+## What exists in v0.8.0
 
-- CLI tools
-- browser-ready WASM/WebGPU
-- server-side Rust usage
-- agent-friendly machine-readable interfaces
+### Core (`biors-core`)
 
-The long-term goal is not only model format conversion. bio-rs should also make
-the surrounding bio/chem tooling portable: the practical pieces currently often
-handled by Python libraries such as BioPython and RDKit.
+`biors-core` is the engine crate. It contains data contracts and pure Rust logic:
 
-Performance and cost improvements are benchmark targets, not current claims.
+- FASTA record parsing and normalization
+- protein-20 tokenization and residue issue reporting
+- package manifest structs + validation/inspection
+- runtime bridge planning report generation
+- fixture verification report generation
 
-## Current Modules
+Use this crate when embedding bio-rs in Rust services, libraries, or tooling.
 
-### Protein FASTA
+### CLI (`biors`)
 
-The protein FASTA seed module validates protein FASTA input and tokenizes FASTA
-records into stable `protein-20` token ids.
+`biors` is the command-line surface built on top of `biors-core`.
 
-### Package Manifest
+- Reads FASTA/JSON files (or stdin for FASTA)
+- Executes core workflows
+- Emits machine-readable JSON output
+- Uses non-zero exit codes on invalid operations
 
-The package manifest module describes a portable biological AI model package:
+Use this crate when you need shell-first workflows, scripting, or CI checks.
 
-- model artifact format and path
-- preprocessing and postprocessing steps
-- runtime backend and target
-- parity fixtures and expected outputs
+## Release history and roadmap
 
-`biors package inspect` emits a compact manifest summary. `biors package
-validate` emits a machine-readable validation report and exits non-zero when the
-manifest is incomplete.
+### Delivered
 
-### Runtime Bridge Plan
+- `0.6.0`: package manifest inspect/validate
+- `0.7.0`: runtime bridge planning (`package bridge`)
+- `0.8.0`: fixture verification (`package verify`)
 
-The runtime bridge planner checks whether a package manifest targets a supported
-portable runtime. In `0.7.0`, the supported bridge is ONNX/WebGPU for browser
-WASM/WebGPU execution planning.
+### Next (post-0.8)
 
-### Verification Harness
+- `0.9.x` target: expand fixtures and verification ergonomics (larger fixture sets, clearer failure diagnostics)
+- `1.0.0` target: stable contracts and runtime-facing APIs after enough real-world package validation
 
-The verification harness compares package fixtures against observed runtime
-outputs. This gives each migration package a small parity report before the
-project grows into full Python-baseline execution and benchmark automation.
-
-## Current Features
-
-- FASTA parsing for one or more protein sequences
-- `protein-20` residue validation
-- lowercase sequence normalization
-- ambiguous residue reporting for `X`, `B`, `Z`, `J`, `U`, and `O`
-- invalid residue reporting
-- JSON array output from the CLI
-- portable model package manifest structs in `biors-core`
-- package manifest inspection and validation from the CLI
-- runtime bridge planning for ONNX/WebGPU browser targets
-- fixture output verification reports for package parity checks
-
-## Release Path
-
-- `0.6.0`: Portable package manifest inspect/validate.
-- `0.7.0`: Runtime bridge planning for ONNX/WebGPU package targets.
-- `0.8.0`: Verification harness for Python-baseline parity fixtures.
-
-## Not Yet
-
-bio-rs does not yet provide a full model migration engine, a browser AlphaFold
-runtime, or a Rust replacement for all BioPython/RDKit functionality. Those are
-the milestones this repository is moving toward.
+`0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.8.0**.
 
 ## Quickstart
 
@@ -141,24 +107,17 @@ cargo run -p biors -- package verify \
   examples/protein-package/observations.json
 ```
 
-Use the Rust library:
+## Evidence and benchmarks
 
-```bash
-cargo add biors-core
-```
+Performance claims should be backed by reproducible data in-repo.
 
-```rust
-use biors_core::{summarize_tokenized_proteins, tokenize_fasta_records};
+- Benchmark guide and latest recorded result: `benchmarks/fasta_vs_biopython.md`
+- Reproducible benchmark harness: `scripts/benchmark_fasta_vs_biopython.py`
 
-let tokenized = tokenize_fasta_records(">seq1\nACDE\n")?;
-let summary = summarize_tokenized_proteins(&tokenized);
+The benchmark currently compares FASTA parse+tokenization throughput against a
+Biopython baseline over generated synthetic protein FASTA inputs.
 
-assert_eq!(summary.records, 1);
-assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
-# Ok::<(), Box<dyn std::error::Error>>(())
-```
-
-## JSON Contracts
+## JSON contracts
 
 `tokenize` always emits an array of records:
 
@@ -185,21 +144,6 @@ assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
   "valid_records": 1,
   "warning_count": 0,
   "error_count": 0
-}
-```
-
-`package inspect` always emits a manifest summary object:
-
-```json
-{
-  "schema_version": "biors.package.v0",
-  "name": "protein-seed",
-  "model_format": "onnx",
-  "runtime_backend": "onnx-webgpu",
-  "runtime_target": "browser-wasm-webgpu",
-  "preprocessing_steps": 1,
-  "postprocessing_steps": 1,
-  "fixtures": 1
 }
 ```
 
@@ -245,7 +189,7 @@ assert_eq!(tokenized[0].tokens, vec![0, 1, 2, 3]);
 }
 ```
 
-## Checks
+## Development checks
 
 ```bash
 scripts/check.sh
@@ -267,7 +211,7 @@ cargo run -p biors-core --example tokenize
 packages/
   rust/
     biors/       CLI
-    biors-core/  FASTA parsing, tokenization, and package contracts
+    biors-core/  Core engine + contracts
 examples/
   multi.fasta
   protein-package/
@@ -276,13 +220,17 @@ examples/
   protein.fasta
 ```
 
-## Protein-20
+## Protein-20 alphabet
 
 ```txt
 A C D E F G H I K L M N P Q R S T V W Y
 ```
 
 Token ids follow that order, starting at `0`.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, checks, and PR expectations.
 
 ## License
 
