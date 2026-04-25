@@ -1,32 +1,106 @@
 #!/usr/bin/env python3
 """Reproducible FASTA parse+tokenize benchmark (biors vs Biopython).
 
+By default, this script benchmarks against the UniProt human reference proteome
+(UP000005640, taxonomy 9606) downloaded from UniProt FTP.
+
 Usage:
   python3 scripts/benchmark_fasta_vs_biopython.py
+  python3 scripts/benchmark_fasta_vs_biopython.py --input /path/to/input.fasta
 """
 
 from __future__ import annotations
 
+import argparse
+import gzip
+import hashlib
 import json
-import random
 import statistics
 import subprocess
 import tempfile
 import time
+import urllib.request
 from pathlib import Path
 
 from Bio import SeqIO
 
 ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
-TOKEN_MAP = {aa: i for i, aa in enumerate(ALPHABET)}
+TOKEN_SET = set(ALPHABET)
+AMBIGUOUS_SET = set("XBZJUO")
+UNIPROT_HUMAN_PROTEOME_GZ_URL = (
+    "https://ftp.uniprot.org/pub/databases/uniprot/current_release/"
+    "knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz"
+)
 
 
-def make_fasta(path: Path, records: int, length: int, seed: int) -> None:
-    rng = random.Random(seed)
-    with path.open("w", encoding="utf-8") as handle:
-        for idx in range(records):
-            sequence = "".join(rng.choice(ALPHABET) for _ in range(length))
-            handle.write(f">seq{idx}\n{sequence}\n")
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=None,
+        help="Existing FASTA file to benchmark. If omitted, downloads UniProt human proteome.",
+    )
+    parser.add_argument(
+        "--loops",
+        type=int,
+        default=7,
+        help="Number of timed iterations per implementation.",
+    )
+    return parser.parse_args()
+
+
+def sha256_of_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def download_uniprot_human_proteome(destination_fasta: Path) -> dict[str, str]:
+    gz_path = destination_fasta.with_suffix(destination_fasta.suffix + ".gz")
+    urllib.request.urlretrieve(UNIPROT_HUMAN_PROTEOME_GZ_URL, gz_path)
+
+    with gzip.open(gz_path, "rb") as source, destination_fasta.open("wb") as target:
+        target.write(source.read())
+
+    return {
+        "source": "UniProt reference proteome",
+        "proteome_id": "UP000005640",
+        "taxonomy_id": "9606",
+        "download_url": UNIPROT_HUMAN_PROTEOME_GZ_URL,
+        "downloaded_gz_sha256": sha256_of_file(gz_path),
+    }
+
+
+def dataset_stats(fasta_path: Path) -> dict[str, int]:
+    records = 0
+    total_residues = 0
+    canonical_residues = 0
+    ambiguous_residues = 0
+    invalid_residues = 0
+
+    with fasta_path.open("r", encoding="utf-8") as handle:
+        for record in SeqIO.parse(handle, "fasta"):
+            records += 1
+            sequence = str(record.seq).upper()
+            total_residues += len(sequence)
+            for residue in sequence:
+                if residue in TOKEN_SET:
+                    canonical_residues += 1
+                elif residue in AMBIGUOUS_SET:
+                    ambiguous_residues += 1
+                else:
+                    invalid_residues += 1
+
+    return {
+        "records": records,
+        "total_residues": total_residues,
+        "canonical_residues": canonical_residues,
+        "ambiguous_residues": ambiguous_residues,
+        "invalid_residues": invalid_residues,
+    }
 
 
 def run_biopython(fasta_path: Path) -> int:
@@ -34,8 +108,8 @@ def run_biopython(fasta_path: Path) -> int:
     with fasta_path.open("r", encoding="utf-8") as handle:
         for record in SeqIO.parse(handle, "fasta"):
             for residue in str(record.seq).upper():
-                _ = TOKEN_MAP[residue]
-                tokens += 1
+                if residue in TOKEN_SET:
+                    tokens += 1
     return tokens
 
 
@@ -67,30 +141,39 @@ def summarize(seconds):
 
 
 def main() -> int:
-    records = 5000
-    sequence_length = 600
-    loops = 7
-    seed = 7
+    args = parse_args()
 
     with tempfile.TemporaryDirectory() as tmp:
-        fasta_path = Path(tmp) / "synthetic.fasta"
-        make_fasta(fasta_path, records=records, length=sequence_length, seed=seed)
+        tmp_path = Path(tmp)
+        if args.input is None:
+            fasta_path = tmp_path / "UP000005640_9606.fasta"
+            provenance = download_uniprot_human_proteome(fasta_path)
+        else:
+            fasta_path = args.input
+            provenance = {
+                "source": "user-provided FASTA",
+                "path": str(fasta_path),
+            }
+
+        if not fasta_path.exists():
+            raise FileNotFoundError(f"FASTA not found: {fasta_path}")
+
+        stats = dataset_stats(fasta_path)
+        provenance["fasta_sha256"] = sha256_of_file(fasta_path)
 
         # Warm up both paths.
         run_biopython(fasta_path)
         run_biors_cli(fasta_path)
 
-        biopython_seconds = timed_runs(lambda: run_biopython(fasta_path), loops=loops)
-        biors_seconds = timed_runs(lambda: run_biors_cli(fasta_path), loops=loops)
+        biopython_seconds = timed_runs(lambda: run_biopython(fasta_path), loops=args.loops)
+        biors_seconds = timed_runs(lambda: run_biors_cli(fasta_path), loops=args.loops)
 
         result = {
             "dataset": {
-                "records": records,
-                "sequence_length": sequence_length,
-                "total_residues": records * sequence_length,
-                "seed": seed,
+                **provenance,
+                **stats,
             },
-            "loops": loops,
+            "loops": args.loops,
             "biopython_parse_tokenize": {
                 "seconds": biopython_seconds,
                 "summary": summarize(biopython_seconds),
