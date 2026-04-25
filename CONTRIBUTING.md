@@ -52,7 +52,7 @@ Run lint only:
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-## Scope expectations (v0.8.0)
+## Scope expectations (v0.8.1)
 
 Current contribution priority areas:
 

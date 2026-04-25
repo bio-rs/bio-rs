@@ -6,7 +6,7 @@
 
 Rust workspace for practical biological AI input tooling.
 
-> Status: **v0.8.0** (workspace/package version in `Cargo.toml`)
+> Status: **v0.8.1** (workspace/package version in `Cargo.toml`)
 
 This repository focuses on functionality that is already implemented and testable today:
 
@@ -15,7 +15,7 @@ This repository focuses on functionality that is already implemented and testabl
 - package manifest inspect/validate/bridge planning
 - fixture verification (`package verify`)
 
-## What exists in v0.8.0
+## What exists in v0.8.1
 
 ### Core (`biors-core`)
 
@@ -47,13 +47,14 @@ Use this crate when you need shell-first workflows, scripting, or CI checks.
 - `0.6.0`: package manifest inspect/validate
 - `0.7.0`: runtime bridge planning (`package bridge`)
 - `0.8.0`: fixture verification (`package verify`)
+- `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
 
 ### Next (post-0.8)
 
 - `0.9.x` target: expand fixtures and verification ergonomics (larger fixture sets, clearer failure diagnostics)
 - `1.0.0` target: stable contracts and runtime-facing APIs after enough real-world package validation
 
-`0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.8.0**.
+`0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.8.1**.
 
 ## Quickstart
 

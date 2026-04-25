@@ -1,4 +1,4 @@
-# FASTA parse+tokenize benchmark (biors v0.8.0 vs Biopython)
+# FASTA parse+tokenize benchmark (biors v0.8.1 vs Biopython)
 
 This repository should not make unverified performance claims.
 
@@ -28,7 +28,7 @@ From `benchmarks/fasta_vs_biopython.json`:
 - Biopython parse+tokenize mean: **0.205s**
 - biors CLI tokenize mean: **0.206s**
 
-Interpretation for v0.8.0:
+Interpretation for v0.8.1:
 
 - Current CLI tokenize performance is in the same range as the Biopython baseline on this synthetic workload.
 - This is a single synthetic benchmark; avoid broad generalization until larger datasets and repeated CI runs are added.
