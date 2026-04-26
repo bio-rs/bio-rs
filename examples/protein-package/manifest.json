@@ -9,13 +9,13 @@
   "tokenizer": {
     "name": "protein-20",
     "path": "tokenizers/protein-20.json",
-    "checksum": "sha256:e97637c05ea13d49b5b904e4e70ccd5e297d1ab89f12f414d34e2cc83fd24bb4",
+    "checksum": "sha256:ee19428abc3b2d9d709d314571c387ad80c57b2e0e31ad6c16abc29bb8fdcd3a",
     "contract_version": "protein-20.v0"
   },
   "vocab": {
     "name": "protein-20",
     "path": "vocabs/protein-20.json",
-    "checksum": "sha256:e4c753b467d803142648f21e512aebdbe86cc31a3440bfcc4f73dd03d7a41a78",
+    "checksum": "sha256:2b44933931b31eb9fe50278b384e0f987b71579756b62367abe56b91b26393ee",
     "contract_version": "protein-20.v0"
   },
   "preprocessing": [

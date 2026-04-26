@@ -1,7 +1,7 @@
 use biors_core::{
     build_model_inputs, build_model_inputs_checked, parse_fasta_records, tokenize_fasta_records,
     validate_fasta_input, BioRsError, ModelInputBuildError, ModelInputPolicy, PaddingPolicy,
-    ProteinSequence, ProteinTokenizer, Tokenizer, UnknownTokenPolicy,
+    ProteinSequence, ProteinTokenizer, Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 
 #[test]
@@ -54,9 +54,23 @@ fn protein_tokenizer_trait_matches_public_tokenize_function() {
     assert_eq!(tokenizer.vocabulary().tokens.len(), 20);
     assert_eq!(
         tokenizer.vocabulary().unknown_token_policy,
-        UnknownTokenPolicy::WarnOrErrorWithoutToken
+        UnknownTokenPolicy::WarnOrErrorWithUnknownToken
     );
     assert_eq!(tokenizer.tokenize(&record).tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
+fn tokenizer_preserves_sequence_length_with_unknown_tokens() {
+    let tokenized = tokenize_fasta_records(">seq1\nAX*\n").expect("valid FASTA envelope");
+
+    assert_eq!(tokenized[0].length, 3);
+    assert_eq!(
+        tokenized[0].tokens,
+        vec![0, PROTEIN_20_UNKNOWN_TOKEN_ID, PROTEIN_20_UNKNOWN_TOKEN_ID]
+    );
+    assert_eq!(tokenized[0].tokens.len(), tokenized[0].length);
+    assert_eq!(tokenized[0].warnings.len(), 1);
+    assert_eq!(tokenized[0].errors.len(), 1);
 }
 
 #[test]

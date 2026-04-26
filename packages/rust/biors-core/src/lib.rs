@@ -15,9 +15,10 @@ pub use model_input::{
 pub use package::{
     inspect_package_manifest, is_sha256_checksum, plan_runtime_bridge, read_package_file,
     resolve_package_path, sha256_digest, validate_package_manifest,
-    validate_package_manifest_artifacts, DataShape, ModelArtifact, PackageFixture, PackageManifest,
-    PackageManifestSummary, PackageValidationReport, PipelineStep, RuntimeBridgeReport,
-    RuntimeTarget, TokenAsset,
+    validate_package_manifest_artifacts, DataShape, DataType, ModelArtifact, ModelFormat,
+    PackageFixture, PackageManifest, PackageManifestSummary, PackageValidationReport, PipelineStep,
+    RuntimeBackend, RuntimeBridgeReport, RuntimeTarget, RuntimeTargetPlatform, SchemaVersion,
+    TokenAsset,
 };
 pub use sequence::{
     normalize_sequence, validate_protein_sequence, ProteinSequence, ResidueIssue,
@@ -27,6 +28,7 @@ pub use tokenizer::{
     load_protein_20_vocab, protein_20_unknown_token_policy, summarize_tokenized_proteins,
     tokenize_fasta_records, tokenize_protein, ProteinBatchSummary, ProteinTokenizer,
     TokenizedProtein, Tokenizer, UnknownTokenPolicy, VocabToken, Vocabulary,
+    PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 pub use verification::{
     stable_input_hash, verify_package_outputs, verify_package_outputs_with_observation_base,

@@ -104,6 +104,7 @@ Current v0.9.3 capabilities:
 - FASTA parsing and normalization
 - FASTA validation with line and record-index diagnostics
 - protein-20 tokenization
+- positional token alignment preserved with explicit unknown-token IDs for unresolved residues
 - residue warning/error reporting
 - model-ready input records
 - attention masks

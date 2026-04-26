@@ -62,6 +62,18 @@ fn inspect_stdin_outputs_json_summary() {
 }
 
 #[test]
+fn tokenize_preserves_unknown_token_positions() {
+    let output = run_with_stdin("tokenize", ">seq1\nAX*\n");
+    let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
+    let record = &value["data"][0];
+
+    assert_eq!(record["length"], 3);
+    assert_eq!(record["tokens"], serde_json::json!([0, 20, 20]));
+    assert_eq!(record["warnings"].as_array().expect("warnings").len(), 1);
+    assert_eq!(record["errors"].as_array().expect("errors").len(), 1);
+}
+
+#[test]
 fn model_input_stdin_outputs_model_ready_json() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("model-input")

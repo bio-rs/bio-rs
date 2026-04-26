@@ -1,7 +1,6 @@
 use crate::error::BioRsError;
-use crate::sequence::{
-    normalize_sequence, summarize_validated_sequences, validate_protein_sequence,
-};
+use crate::sequence::{normalize_sequence, summarize_validated_sequences};
+use crate::tokenizer::{analyze_fasta_records, validated_sequences_from_analyzed};
 use crate::{ProteinSequence, SequenceValidationReport};
 
 pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsError> {
@@ -56,8 +55,8 @@ pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsErr
 }
 
 pub fn validate_fasta_input(input: &str) -> Result<SequenceValidationReport, BioRsError> {
-    let records = parse_fasta_records(input)?;
-    let validated = records.iter().map(validate_protein_sequence).collect();
+    let analyzed = analyze_fasta_records(input)?;
+    let validated = validated_sequences_from_analyzed(&analyzed);
     Ok(summarize_validated_sequences(validated))
 }
 

@@ -1,5 +1,6 @@
 {
   "name": "protein-20",
+  "unknown_token_id": 20,
   "tokens": [
     "A",
     "C",
