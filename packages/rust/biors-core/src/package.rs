@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PackageManifest {
-    pub schema_version: String,
+    pub schema_version: SchemaVersion,
     pub name: String,
     pub model: ModelArtifact,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -24,7 +25,7 @@ pub struct PackageManifest {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ModelArtifact {
-    pub format: String,
+    pub format: ModelFormat,
     pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
@@ -51,8 +52,8 @@ pub struct PipelineStep {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuntimeTarget {
-    pub backend: String,
-    pub target: String,
+    pub backend: RuntimeBackend,
+    pub target: RuntimeTargetPlatform,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -69,19 +70,19 @@ pub struct PackageFixture {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DataShape {
     pub shape: Vec<String>,
-    pub dtype: String,
+    pub dtype: DataType,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PackageManifestSummary {
-    pub schema_version: String,
+    pub schema_version: SchemaVersion,
     pub name: String,
-    pub model_format: String,
+    pub model_format: ModelFormat,
     pub has_model_checksum: bool,
     pub tokenizer: Option<String>,
     pub vocab: Option<String>,
-    pub runtime_backend: String,
-    pub runtime_target: String,
+    pub runtime_backend: RuntimeBackend,
+    pub runtime_target: RuntimeTargetPlatform,
     pub preprocessing_steps: usize,
     pub postprocessing_steps: usize,
     pub fixtures: usize,
@@ -96,25 +97,57 @@ pub struct PackageValidationReport {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuntimeBridgeReport {
     pub ready: bool,
-    pub backend: String,
-    pub target: String,
+    pub backend: RuntimeBackend,
+    pub target: RuntimeTargetPlatform,
     pub execution_provider: String,
     pub blocking_issues: Vec<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SchemaVersion {
+    #[serde(rename = "biors.package.v0")]
+    BiorsPackageV0,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ModelFormat {
+    #[serde(rename = "onnx")]
+    Onnx,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RuntimeBackend {
+    #[serde(rename = "onnx-webgpu")]
+    OnnxWebgpu,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RuntimeTargetPlatform {
+    #[serde(rename = "browser-wasm-webgpu")]
+    BrowserWasmWebgpu,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DataType {
+    #[serde(rename = "uint8")]
+    Uint8,
+    #[serde(rename = "float32")]
+    Float32,
+}
+
 pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSummary {
     PackageManifestSummary {
-        schema_version: manifest.schema_version.clone(),
+        schema_version: manifest.schema_version,
         name: manifest.name.clone(),
-        model_format: manifest.model.format.clone(),
+        model_format: manifest.model.format,
         has_model_checksum: manifest.model.checksum.is_some(),
         tokenizer: manifest
             .tokenizer
             .as_ref()
             .map(|tokenizer| tokenizer.name.clone()),
         vocab: manifest.vocab.as_ref().map(|vocab| vocab.name.clone()),
-        runtime_backend: manifest.runtime.backend.clone(),
-        runtime_target: manifest.runtime.target.clone(),
+        runtime_backend: manifest.runtime.backend,
+        runtime_target: manifest.runtime.target,
         preprocessing_steps: manifest.preprocessing.len(),
         postprocessing_steps: manifest.postprocessing.len(),
         fixtures: manifest.fixtures.len(),
@@ -124,18 +157,8 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
 pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidationReport {
     let mut issues = Vec::new();
 
-    push_required_issue(&mut issues, "schema_version", &manifest.schema_version);
-    if manifest.schema_version != "biors.package.v0" {
-        issues.push(format!(
-            "schema_version '{}' is not supported; expected 'biors.package.v0'",
-            manifest.schema_version
-        ));
-    }
     push_required_issue(&mut issues, "name", &manifest.name);
-    push_required_issue(&mut issues, "model.format", &manifest.model.format);
     push_required_issue(&mut issues, "model.path", &manifest.model.path);
-    push_required_issue(&mut issues, "runtime.backend", &manifest.runtime.backend);
-    push_required_issue(&mut issues, "runtime.target", &manifest.runtime.target);
 
     if manifest.fixtures.is_empty() {
         issues.push("fixtures must include at least one fixture".to_string());
@@ -228,30 +251,13 @@ pub fn validate_package_manifest_artifacts(
 }
 
 pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
-    let mut blocking_issues = validate_package_manifest(manifest).issues;
-
-    let execution_provider = match manifest.runtime.backend.as_str() {
-        "onnx-webgpu" => "webgpu",
-        unsupported => {
-            blocking_issues.push(format!(
-                "runtime.backend '{unsupported}' is not supported by the portable bridge"
-            ));
-            "unsupported"
-        }
-    };
-
-    if manifest.runtime.target != "browser-wasm-webgpu" {
-        blocking_issues.push(format!(
-            "runtime.target '{}' is not supported by the portable bridge",
-            manifest.runtime.target
-        ));
-    }
+    let blocking_issues = validate_package_manifest(manifest).issues;
 
     RuntimeBridgeReport {
         ready: blocking_issues.is_empty(),
-        backend: manifest.runtime.backend.clone(),
-        target: manifest.runtime.target.clone(),
-        execution_provider: execution_provider.to_string(),
+        backend: manifest.runtime.backend,
+        target: manifest.runtime.target,
+        execution_provider: "webgpu".to_string(),
         blocking_issues,
     }
 }
@@ -266,7 +272,6 @@ fn validate_shape(issues: &mut Vec<String>, field: &str, shape: &DataShape) {
     if shape.shape.is_empty() {
         issues.push(format!("{field}.shape must include at least one dimension"));
     }
-    push_required_issue(issues, &format!("{field}.dtype"), &shape.dtype);
 }
 
 pub fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
@@ -335,5 +340,51 @@ fn canonical_hash_bytes(bytes: &[u8]) -> Vec<u8> {
     match serde_json::from_slice::<serde_json::Value>(bytes) {
         Ok(json) => serde_json::to_vec(&json).unwrap_or_else(|_| bytes.to_vec()),
         Err(_) => bytes.to_vec(),
+    }
+}
+
+impl fmt::Display for SchemaVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::BiorsPackageV0 => "biors.package.v0",
+        };
+        f.write_str(value)
+    }
+}
+
+impl fmt::Display for ModelFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::Onnx => "onnx",
+        };
+        f.write_str(value)
+    }
+}
+
+impl fmt::Display for RuntimeBackend {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::OnnxWebgpu => "onnx-webgpu",
+        };
+        f.write_str(value)
+    }
+}
+
+impl fmt::Display for RuntimeTargetPlatform {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::BrowserWasmWebgpu => "browser-wasm-webgpu",
+        };
+        f.write_str(value)
+    }
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::Uint8 => "uint8",
+            Self::Float32 => "float32",
+        };
+        f.write_str(value)
     }
 }

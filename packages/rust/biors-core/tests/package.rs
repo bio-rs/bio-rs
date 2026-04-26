@@ -1,5 +1,6 @@
 use biors_core::{
-    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, PackageManifest,
+    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, ModelFormat,
+    PackageManifest, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion,
 };
 use std::path::Path;
 
@@ -62,11 +63,14 @@ fn inspects_portable_package_manifest() {
     let manifest = valid_manifest();
     let summary = inspect_package_manifest(&manifest);
 
-    assert_eq!(summary.schema_version, "biors.package.v0");
+    assert_eq!(summary.schema_version, SchemaVersion::BiorsPackageV0);
     assert_eq!(summary.name, "protein-seed");
-    assert_eq!(summary.model_format, "onnx");
-    assert_eq!(summary.runtime_backend, "onnx-webgpu");
-    assert_eq!(summary.runtime_target, "browser-wasm-webgpu");
+    assert_eq!(summary.model_format, ModelFormat::Onnx);
+    assert_eq!(summary.runtime_backend, RuntimeBackend::OnnxWebgpu);
+    assert_eq!(
+        summary.runtime_target,
+        RuntimeTargetPlatform::BrowserWasmWebgpu
+    );
     assert_eq!(summary.preprocessing_steps, 1);
     assert_eq!(summary.postprocessing_steps, 1);
     assert_eq!(summary.fixtures, 1);
@@ -142,26 +146,35 @@ fn plans_supported_onnx_webgpu_runtime_bridge() {
     let report = plan_runtime_bridge(&manifest);
 
     assert!(report.ready);
-    assert_eq!(report.backend, "onnx-webgpu");
-    assert_eq!(report.target, "browser-wasm-webgpu");
+    assert_eq!(report.backend, RuntimeBackend::OnnxWebgpu);
+    assert_eq!(report.target, RuntimeTargetPlatform::BrowserWasmWebgpu);
     assert_eq!(report.execution_provider, "webgpu");
     assert!(report.blocking_issues.is_empty());
 }
 
 #[test]
-fn classifies_unsupported_runtime_bridge() {
-    let mut manifest = valid_manifest();
-    manifest.runtime.backend = "python".to_string();
-    manifest.runtime.target = "cpython-server".to_string();
+fn rejects_unsupported_runtime_values_at_deserialization_time() {
+    let error = serde_json::from_str::<PackageManifest>(
+        r#"{
+          "schema_version": "biors.package.v0",
+          "name": "protein-seed",
+          "model": { "format": "onnx", "path": "models/protein-seed.onnx" },
+          "preprocessing": [],
+          "postprocessing": [],
+          "runtime": {
+            "backend": "python",
+            "target": "cpython-server"
+          },
+          "fixtures": [
+            {
+              "name": "tiny-protein",
+              "input": "fixtures/tiny.fasta",
+              "expected_output": "fixtures/tiny.output.json"
+            }
+          ]
+        }"#,
+    )
+    .expect_err("unsupported runtime values should be rejected");
 
-    let report = plan_runtime_bridge(&manifest);
-
-    assert!(!report.ready);
-    assert_eq!(
-        report.blocking_issues,
-        vec![
-            "runtime.backend 'python' is not supported by the portable bridge",
-            "runtime.target 'cpython-server' is not supported by the portable bridge",
-        ]
-    );
+    assert!(error.to_string().contains("unknown variant"));
 }

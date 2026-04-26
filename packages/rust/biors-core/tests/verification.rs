@@ -1,14 +1,15 @@
 use biors_core::{
-    verify_package_outputs, FixtureObservation, PackageFixture, PackageManifest, RuntimeTarget,
+    verify_package_outputs, FixtureObservation, ModelArtifact, ModelFormat, PackageFixture,
+    PackageManifest, RuntimeBackend, RuntimeTarget, RuntimeTargetPlatform, SchemaVersion,
     VerificationStatus,
 };
 
 fn manifest() -> PackageManifest {
     PackageManifest {
-        schema_version: "biors.package.v0".to_string(),
+        schema_version: SchemaVersion::BiorsPackageV0,
         name: "protein-seed".to_string(),
-        model: biors_core::ModelArtifact {
-            format: "onnx".to_string(),
+        model: ModelArtifact {
+            format: ModelFormat::Onnx,
             path: "models/protein-seed.onnx".to_string(),
             checksum: None,
         },
@@ -17,8 +18,8 @@ fn manifest() -> PackageManifest {
         preprocessing: vec![],
         postprocessing: vec![],
         runtime: RuntimeTarget {
-            backend: "onnx-webgpu".to_string(),
-            target: "browser-wasm-webgpu".to_string(),
+            backend: RuntimeBackend::OnnxWebgpu,
+            target: RuntimeTargetPlatform::BrowserWasmWebgpu,
         },
         expected_input: None,
         expected_output: None,

@@ -16,8 +16,8 @@
       "type": "object",
       "required": ["backend", "target"],
       "properties": {
-        "backend": { "type": "string" },
-        "target": { "type": "string" }
+        "backend": { "const": "onnx-webgpu" },
+        "target": { "const": "browser-wasm-webgpu" }
       },
       "additionalProperties": false
     },
@@ -31,7 +31,7 @@
       "type": "object",
       "required": ["format", "path"],
       "properties": {
-        "format": { "type": "string" },
+        "format": { "const": "onnx" },
         "path": { "type": "string" },
         "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
@@ -64,7 +64,7 @@
       "required": ["shape", "dtype"],
       "properties": {
         "shape": { "type": "array", "items": { "type": "string" } },
-        "dtype": { "type": "string" }
+        "dtype": { "enum": ["uint8", "float32"] }
       },
       "additionalProperties": false
     },

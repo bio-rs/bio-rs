@@ -22,6 +22,8 @@ Manifest-relative paths are resolved against the manifest file's parent director
 
 Observation paths in `package verify` are resolved against the observations file's parent directory. If the observations file is read from stdin, relative paths are resolved against the current working directory.
 
+The package manifest contract is closed over enumerated values for `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and tensor `dtype` fields. Unsupported values fail JSON deserialization instead of being accepted as loose strings.
+
 ## JSON Success Envelope
 
 All successful command output is written to stdout as pretty JSON:

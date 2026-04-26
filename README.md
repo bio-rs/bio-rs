@@ -112,6 +112,7 @@ Current v0.9.3 capabilities:
 - `model-input` CLI output
 - model-input safety checks for unresolved residues
 - package manifest inspect/validate
+- typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
 - runtime bridge planning reports
 - manifest-relative asset validation
 - SHA-256 package and fixture checksum verification
