@@ -15,6 +15,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import platform
 import statistics
 import subprocess
 import tempfile
@@ -22,7 +23,9 @@ import time
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
+from shutil import which
 
+import Bio
 from Bio import SeqIO
 
 ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
@@ -134,6 +137,37 @@ def ensure_biors_release_binary() -> Path:
     return binary
 
 
+def command_output(command: list[str]) -> str | None:
+    if which(command[0]) is None:
+        return None
+
+    try:
+        completed = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except subprocess.SubprocessError:
+        return None
+
+    return completed.stdout.strip()
+
+
+def benchmark_environment() -> dict[str, str | None]:
+    return {
+        "os": platform.platform(),
+        "machine": platform.machine(),
+        "processor": platform.processor() or None,
+        "cpu_brand": command_output(["sysctl", "-n", "machdep.cpu.brand_string"]),
+        "python": platform.python_version(),
+        "biopython": Bio.__version__,
+        "rustc": command_output(["rustc", "--version"]),
+        "cargo": command_output(["cargo", "--version"]),
+    }
+
+
 def run_biors_cli(binary: Path, command: str, fasta_path: Path) -> None:
     subprocess.run(
         [str(binary), command, str(fasta_path)],
@@ -223,6 +257,7 @@ def main() -> int:
             **provenance,
             **stats,
         },
+        "environment": benchmark_environment(),
         "generated_at_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
         "loops": args.loops,
         "benchmarks": benchmarks,

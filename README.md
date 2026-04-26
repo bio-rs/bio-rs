@@ -119,6 +119,13 @@ The benchmark compares FASTA parse+tokenization throughput against a
 Biopython baseline using the UniProt human reference proteome
 (UP000005640 / taxonomy 9606).
 
+On the latest recorded run, `biors tokenize` completed the FASTA parse +
+protein-20 tokenization + full JSON output path in 0.291s, while a Biopython
+parse + protein-20 token/count baseline took 0.494s.
+
+This is a workload-specific baseline, not a broad claim that bio-rs is faster
+than Biopython across all FASTA parsing workloads.
+
 ## JSON contracts
 
 `tokenize` always emits an array of records:
