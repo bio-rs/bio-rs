@@ -20,7 +20,7 @@ One or two sentences describing what this release makes possible.
 
 - `scripts/check.sh`:
 - Release workflow:
-- Crates.io:
+- Crates.io or binary artifact:
 
 ## Closed issues
 
