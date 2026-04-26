@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/cli-error.v0.json",
+  "title": "bio-rs CLI error envelope",
+  "type": "object",
+  "required": ["ok", "error"],
+  "properties": {
+    "ok": { "const": false },
+    "error": {
+      "type": "object",
+      "required": ["code", "message", "location"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "location": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "required": ["line", "record_index"],
+              "properties": {
+                "line": { "type": ["integer", "null"], "minimum": 1 },
+                "record_index": { "type": ["integer", "null"], "minimum": 0 }
+              },
+              "additionalProperties": false
+            },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-manifest.v0.json",
+  "title": "bio-rs package manifest v0",
+  "type": "object",
+  "required": ["schema_version", "name", "model", "preprocessing", "postprocessing", "runtime", "fixtures"],
+  "properties": {
+    "schema_version": { "const": "biors.package.v0" },
+    "name": { "type": "string", "minLength": 1 },
+    "model": { "$ref": "#/$defs/artifact" },
+    "tokenizer": { "$ref": "#/$defs/asset" },
+    "vocab": { "$ref": "#/$defs/asset" },
+    "preprocessing": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+    "postprocessing": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+    "runtime": {
+      "type": "object",
+      "required": ["backend", "target"],
+      "properties": {
+        "backend": { "type": "string" },
+        "target": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "expected_input": { "$ref": "#/$defs/shape" },
+    "expected_output": { "$ref": "#/$defs/shape" },
+    "fixtures": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/fixture" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": ["format", "path"],
+      "properties": {
+        "format": { "type": "string" },
+        "path": { "type": "string" },
+        "checksum": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "asset": {
+      "type": "object",
+      "required": ["name", "path"],
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "checksum": { "type": "string" },
+        "contract_version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "pipelineStep": {
+      "type": "object",
+      "required": ["name", "implementation", "contract"],
+      "properties": {
+        "name": { "type": "string" },
+        "implementation": { "type": "string" },
+        "contract": { "type": "string" },
+        "contract_version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "shape": {
+      "type": "object",
+      "required": ["shape", "dtype"],
+      "properties": {
+        "shape": { "type": "array", "items": { "type": "string" } },
+        "dtype": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "fixture": {
+      "type": "object",
+      "required": ["name", "input", "expected_output"],
+      "properties": {
+        "name": { "type": "string" },
+        "input": { "type": "string" },
+        "expected_output": { "type": "string" },
+        "input_hash": { "type": "string" },
+        "expected_output_hash": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

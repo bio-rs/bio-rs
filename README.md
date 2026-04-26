@@ -6,23 +6,28 @@
 
 Rust workspace for practical biological AI input tooling.
 
-> Status: **v0.8.1** (workspace/package version in `Cargo.toml`)
+> Status: **v0.9.0** (workspace/package version in `Cargo.toml`)
 
 This repository focuses on functionality that is already implemented and testable today:
 
 - FASTA parsing (`parse_fasta_records`)
 - protein-20 tokenization (`tokenize_fasta_records`)
+- FASTA validation (`biors fasta validate`)
+- model-ready input shaping (`ModelInput`)
 - package manifest inspect/validate/bridge planning
 - fixture verification (`package verify`)
+- frozen CLI JSON success/error envelope candidates
 
-## What exists in v0.8.1
+## What exists in v0.9.0
 
 ### Core (`biors-core`)
 
 `biors-core` is the engine crate. It contains data contracts and pure Rust logic:
 
 - FASTA record parsing and normalization
+- FASTA validation with line and record-index diagnostics
 - protein-20 tokenization and residue issue reporting
+- model-ready input records with attention masks and padding/truncation policy
 - package manifest structs + validation/inspection
 - runtime bridge planning report generation
 - fixture verification report generation
@@ -35,7 +40,8 @@ Use this crate when embedding bio-rs in Rust services, libraries, or tooling.
 
 - Reads FASTA/JSON files (or stdin for FASTA)
 - Executes core workflows
-- Emits machine-readable JSON output
+- Emits machine-readable JSON success envelopes
+- Supports JSON error mode with structured error codes
 - Uses non-zero exit codes on invalid operations
 
 Use this crate when you need shell-first workflows, scripting, or CI checks.
@@ -48,13 +54,13 @@ Use this crate when you need shell-first workflows, scripting, or CI checks.
 - `0.7.0`: runtime bridge planning (`package bridge`)
 - `0.8.0`: fixture verification (`package verify`)
 - `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
+- `0.9.0`: CLI and JSON contract freeze candidates
 
-### Next (post-0.8)
+### Next (post-0.9)
 
-- `0.9.x` target: expand fixtures and verification ergonomics (larger fixture sets, clearer failure diagnostics)
 - `1.0.0` target: stable contracts and runtime-facing APIs after enough real-world package validation
 
-`0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.8.1**.
+`0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.9.0**.
 
 ### Not yet
 
@@ -90,6 +96,18 @@ Tokenize a multi-record FASTA file:
 
 ```bash
 cargo run -p biors -- tokenize examples/multi.fasta
+```
+
+Validate FASTA records:
+
+```bash
+cargo run -p biors -- fasta validate examples/protein.fasta
+```
+
+Emit structured JSON errors:
+
+```bash
+printf 'ACDE\n' | cargo run -p biors -- --json tokenize -
 ```
 
 Inspect a portable model package manifest:
@@ -140,20 +158,24 @@ Output shape:
 
 ```json
 {
-  "package": "protein-seed",
-  "fixtures": 1,
-  "passed": 1,
-  "failed": 0,
-  "results": [
-    {
-      "name": "tiny-protein",
-      "input": "fixtures/tiny.fasta",
-      "expected_output": "fixtures/tiny.output.json",
-      "observed_output": "fixtures/tiny.output.json",
-      "status": "passed",
-      "issue": null
-    }
-  ]
+  "ok": true,
+  "biors_version": "0.9.0",
+  "data": {
+    "package": "protein-seed",
+    "fixtures": 1,
+    "passed": 1,
+    "failed": 0,
+    "results": [
+      {
+        "name": "tiny-protein",
+        "input": "fixtures/tiny.fasta",
+        "expected_output": "fixtures/tiny.output.json",
+        "observed_output": "fixtures/tiny.output.json",
+        "status": "passed",
+        "issue": null
+      }
+    ]
+  }
 }
 ```
 
@@ -181,7 +203,34 @@ than Biopython across all FASTA parsing workloads.
 
 ## JSON contracts
 
-`tokenize` always emits an array of records:
+CLI success output always uses the success envelope:
+
+```json
+{
+  "ok": true,
+  "biors_version": "0.9.0",
+  "input_hash": "fnv1a64:846a502e5067bc21",
+  "data": {}
+}
+```
+
+`--json` error mode always emits:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "fasta.missing_header",
+    "message": "FASTA input must start with a header line beginning with '>' at line 1",
+    "location": {
+      "line": 1,
+      "record_index": null
+    }
+  }
+}
+```
+
+`tokenize` data is an array of records:
 
 ```json
 [
@@ -197,7 +246,7 @@ than Biopython across all FASTA parsing workloads.
 ]
 ```
 
-`inspect` always emits a summary object:
+`inspect` data is a summary object:
 
 ```json
 {
@@ -209,7 +258,7 @@ than Biopython across all FASTA parsing workloads.
 }
 ```
 
-`package validate` always emits a validation report:
+`package validate` data is a validation report:
 
 ```json
 {
@@ -218,7 +267,7 @@ than Biopython across all FASTA parsing workloads.
 }
 ```
 
-`package bridge` always emits a runtime bridge report:
+`package bridge` data is a runtime bridge report:
 
 ```json
 {
@@ -230,7 +279,7 @@ than Biopython across all FASTA parsing workloads.
 }
 ```
 
-`package verify` always emits a fixture verification report:
+`package verify` data is a fixture verification report:
 
 ```json
 {
@@ -274,6 +323,13 @@ packages/
   rust/
     biors/       CLI
     biors-core/  Core engine + contracts
+schemas/
+  cli-error.v0.json
+  cli-success.v0.json
+  inspect-output.v0.json
+  package-manifest.v0.json
+  package-validation-report.v0.json
+  tokenize-output.v0.json
 examples/
   multi.fasta
   protein-package/
@@ -293,6 +349,13 @@ Token ids follow that order, starting at `0`.
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, checks, and PR expectations.
+
+## Public contracts
+
+- CLI contract: [`docs/cli-contract.md`](docs/cli-contract.md)
+- Error code registry: [`docs/error-codes.md`](docs/error-codes.md)
+- 1.0 candidates: [`docs/public-contract-1.0-candidates.md`](docs/public-contract-1.0-candidates.md)
+- Security policy: [`SECURITY.md`](SECURITY.md)
 
 ## License
 

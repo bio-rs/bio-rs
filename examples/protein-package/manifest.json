@@ -3,13 +3,27 @@
   "name": "protein-seed",
   "model": {
     "format": "onnx",
-    "path": "models/protein-seed.onnx"
+    "path": "models/protein-seed.onnx",
+    "checksum": "sha256:draft-model-checksum"
+  },
+  "tokenizer": {
+    "name": "protein-20",
+    "path": "tokenizers/protein-20.json",
+    "checksum": "sha256:draft-tokenizer-checksum",
+    "contract_version": "protein-20.v0"
+  },
+  "vocab": {
+    "name": "protein-20",
+    "path": "vocabs/protein-20.json",
+    "checksum": "sha256:draft-vocab-checksum",
+    "contract_version": "protein-20.v0"
   },
   "preprocessing": [
     {
       "name": "protein_fasta_tokenize",
       "implementation": "biors-core",
-      "contract": "protein-20"
+      "contract": "protein-20",
+      "contract_version": "protein-20.v0"
     }
   ],
   "postprocessing": [
@@ -23,11 +37,21 @@
     "backend": "onnx-webgpu",
     "target": "browser-wasm-webgpu"
   },
+  "expected_input": {
+    "shape": ["batch", "sequence"],
+    "dtype": "uint8"
+  },
+  "expected_output": {
+    "shape": ["batch", "classes"],
+    "dtype": "float32"
+  },
   "fixtures": [
     {
       "name": "tiny-protein",
       "input": "fixtures/tiny.fasta",
-      "expected_output": "fixtures/tiny.output.json"
+      "expected_output": "fixtures/tiny.output.json",
+      "input_hash": "fnv1a64:draft-input-hash",
+      "expected_output_hash": "fnv1a64:draft-output-hash"
     }
   ]
 }

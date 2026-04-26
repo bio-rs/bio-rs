@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-validation-report.v0.json",
+  "title": "bio-rs package validation report v0",
+  "type": "object",
+  "required": ["valid", "issues"],
+  "properties": {
+    "valid": { "type": "boolean" },
+    "issues": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

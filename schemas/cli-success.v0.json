@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/cli-success.v0.json",
+  "title": "bio-rs CLI success envelope",
+  "type": "object",
+  "required": ["ok", "biors_version", "data"],
+  "properties": {
+    "ok": { "const": true },
+    "biors_version": { "type": "string" },
+    "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" },
+    "data": {}
+  },
+  "additionalProperties": false
+}

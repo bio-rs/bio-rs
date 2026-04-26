@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/tokenize-output.v0.json",
+  "title": "bio-rs tokenize data payload",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "length", "alphabet", "valid", "tokens", "warnings", "errors"],
+    "properties": {
+      "id": { "type": "string" },
+      "length": { "type": "integer", "minimum": 0 },
+      "alphabet": { "const": "protein-20" },
+      "valid": { "type": "boolean" },
+      "tokens": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+      "warnings": { "$ref": "#/$defs/residueIssues" },
+      "errors": { "$ref": "#/$defs/residueIssues" }
+    },
+    "additionalProperties": false
+  },
+  "$defs": {
+    "residueIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["residue", "position"],
+        "properties": {
+          "residue": { "type": "string", "minLength": 1, "maxLength": 1 },
+          "position": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
