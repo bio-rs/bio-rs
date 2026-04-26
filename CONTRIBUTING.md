@@ -26,6 +26,26 @@ cargo build
 3. Add/update tests with behavior changes.
 4. Run the full check script before pushing.
 
+## Choosing an issue
+
+If this is your first contribution, start with issues labeled
+`good first issue`. These should be small enough to finish without knowing the
+whole project.
+
+Issues labeled `help wanted` are also open to contributors, but they may need
+more discussion or domain context first.
+
+Good first contributions include:
+
+- README or example wording that makes current behavior clearer
+- Quickstart verification on a fresh checkout
+- small FASTA fixture additions
+- clearer error messages for existing validation paths
+- documentation fixes that separate current behavior from roadmap ideas
+
+Documentation contributions are welcome. If a doc change updates public
+behavior, include the command, input, output, or API surface it describes.
+
 ## Commands
 
 Run the repository check suite:
@@ -83,3 +103,9 @@ Please include:
 - minimal reproduction input
 - expected vs actual behavior
 - CLI output or stack traces
+
+## Asking questions or sharing use cases
+
+Use the question / use case issue template when you are not sure whether a
+workflow belongs in bio-rs yet. Small, concrete examples are more useful than
+broad roadmap requests.
