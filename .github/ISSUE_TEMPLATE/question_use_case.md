@@ -12,7 +12,12 @@ assignees: ""
 ## Current workflow
 
 
-## Where could bio-rs fit?
+## Workflow context
+
+- Data type: protein / DNA / RNA / other
+- Current tool: Biopython / custom script / Nextflow / notebook / other
+- Pain point: install / speed / reproducibility / validation / packaging / other
+- Where could bio-rs fit in the workflow?
 
 
 ## Useful input/output examples
