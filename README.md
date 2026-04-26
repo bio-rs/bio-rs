@@ -2,83 +2,112 @@
 
 [![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
 [![Release](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml/badge.svg)](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml)
+[![Benchmark](https://img.shields.io/badge/benchmark-UniProt%20FASTA-blue)](benchmarks/fasta_vs_biopython.md)
+[![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/public-contract-1.0-candidates.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs is Rust tooling for turning biological sequences into validated, model-ready inputs for bio-AI workflows.
+bio-rs turns biological sequences into validated, model-ready inputs for bio-AI workflows.
 
-> Status: **v0.9.0** (workspace/package version in `Cargo.toml`)
+```txt
+FASTA -> validated protein sequence -> token ids -> model-ready JSON
+```
 
-## Try it
+> Status: **v0.9.0** — CLI and JSON contract freeze candidate phase.
+
+## Why bio-rs?
+
+Most bio-AI models are born in Python, but the tooling around them often needs to run somewhere else:
+
+- local CLIs
+- CI pipelines
+- servers
+- browsers
+- agents
+
+bio-rs focuses on the boring but important layer before inference:
+
+- parse biological sequence input
+- validate it with structured diagnostics
+- tokenize it into stable IDs
+- emit machine-readable JSON contracts
+- keep preprocessing reproducible outside notebooks
+
+The goal is not to replace Python research workflows.
+
+The goal is to make the input layer around bio-AI models faster, more portable, and easier to trust.
+
+## Quickstart
+
+Tokenize a FASTA file:
 
 ```bash
 cargo run -p biors -- tokenize examples/protein.fasta
 ```
 
-This repository focuses on functionality that is already implemented and testable today:
+Pipe FASTA through stdin:
 
-- FASTA parsing (`parse_fasta_records`)
-- protein-20 tokenization (`tokenize_fasta_records`)
-- FASTA validation (`biors fasta validate`)
-- model-ready input shaping (`ModelInput`)
-- package manifest inspect/validate/bridge planning
-- fixture verification (`package verify`)
-- frozen CLI JSON success/error envelope candidates
+```bash
+printf '>tiny\nACDE\n' | cargo run -p biors -- tokenize -
+```
 
-## What exists in v0.9.0
+Validate FASTA:
 
-### Core (`biors-core`)
+```bash
+cargo run -p biors -- fasta validate examples/protein.fasta
+```
 
-`biors-core` is the engine crate. It contains data contracts and pure Rust logic:
+Verify package fixture outputs:
 
-- FASTA record parsing and normalization
+```bash
+cargo run -p biors -- package verify \
+  examples/protein-package/manifest.json \
+  examples/protein-package/observations.json
+```
+
+## Proof
+
+bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
+
+Latest recorded FASTA benchmark baseline:
+
+| Workflow | Mean time |
+|---|---:|
+| `biors tokenize` parse + tokenize + full JSON output | **0.291s** |
+| Biopython parse + protein-20 token/count loop | **0.494s** |
+| Biopython parse only | **0.055s** |
+
+Benchmark details:
+
+- Dataset: UniProt human reference proteome
+- Proteome ID: `UP000005640`
+- Taxonomy ID: `9606`
+- Shape: 20,659 records, 11,456,702 residues
+- Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
+- Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
+
+This is a workload-specific baseline, not a broad claim that bio-rs is faster than Biopython across all FASTA workloads.
+
+## What works today
+
+`biors-core` provides the Rust engine and data contracts.
+
+`biors` provides the CLI surface.
+
+Current v0.9.0 capabilities:
+
+- FASTA parsing and normalization
 - FASTA validation with line and record-index diagnostics
-- protein-20 tokenization and residue issue reporting
-- model-ready input records with attention masks and padding/truncation policy
-- package manifest structs + validation/inspection
-- runtime bridge planning report generation
-- fixture verification report generation
+- protein-20 tokenization
+- residue warning/error reporting
+- model-ready input records
+- attention masks
+- padding/truncation policy
+- package manifest inspect/validate
+- runtime bridge planning reports
+- package fixture verification
+- JSON success/error envelopes
 
-Use this crate when embedding bio-rs in Rust services, libraries, or tooling.
-
-### CLI (`biors`)
-
-`biors` is the command-line surface built on top of `biors-core`.
-
-- Reads FASTA/JSON files (or stdin for FASTA)
-- Executes core workflows
-- Emits machine-readable JSON success envelopes
-- Supports JSON error mode with structured error codes
-- Uses non-zero exit codes on invalid operations
-
-Use this crate when you need shell-first workflows, scripting, or CI checks.
-
-## Release history and roadmap
-
-### Delivered
-
-- `0.6.0`: package manifest inspect/validate
-- `0.7.0`: runtime bridge planning (`package bridge`)
-- `0.8.0`: fixture verification (`package verify`)
-- `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
-- `0.9.0`: CLI and JSON contract freeze candidates
-
-### Next (post-0.9)
-
-- `1.0.0` target: stable contracts and runtime-facing APIs after enough real-world package validation
-
-`0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.9.0**.
-
-### Not yet
-
-These are roadmap directions, not current capabilities:
-
-- hosted web workflows
-- Python bindings
-- model inference backends
-- package registry or plugin ecosystem
-- general-purpose chemistry or structure tooling
-
-## Quickstart
+## CLI examples
 
 Inspect FASTA records:
 
@@ -90,12 +119,6 @@ Tokenize FASTA records:
 
 ```bash
 cargo run -p biors -- tokenize examples/protein.fasta
-```
-
-Tokenize FASTA records from stdin:
-
-```bash
-cat examples/protein.fasta | cargo run -p biors -- tokenize -
 ```
 
 Tokenize a multi-record FASTA file:
@@ -116,19 +139,19 @@ Emit structured JSON errors:
 printf 'ACDE\n' | cargo run -p biors -- --json tokenize -
 ```
 
-Inspect a portable model package manifest:
+Inspect a package manifest:
 
 ```bash
 cargo run -p biors -- package inspect examples/protein-package/manifest.json
 ```
 
-Validate a portable model package manifest:
+Validate a package manifest:
 
 ```bash
 cargo run -p biors -- package validate examples/protein-package/manifest.json
 ```
 
-Plan the portable runtime bridge for a package:
+Plan a runtime bridge from a package manifest:
 
 ```bash
 cargo run -p biors -- package bridge examples/protein-package/manifest.json
@@ -142,74 +165,9 @@ cargo run -p biors -- package verify \
   examples/protein-package/observations.json
 ```
 
-## Proof asset
-
-This is the smallest reproducible package verification example in the repository.
-
-Command:
-
-```bash
-cargo run -p biors -- package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
-```
-
-Input:
-
-- package manifest: `examples/protein-package/manifest.json`
-- observed fixture map: `examples/protein-package/observations.json`
-- expected output fixture: `examples/protein-package/fixtures/tiny.output.json`
-
-Output shape:
-
-```json
-{
-  "ok": true,
-  "biors_version": "0.9.0",
-  "data": {
-    "package": "protein-seed",
-    "fixtures": 1,
-    "passed": 1,
-    "failed": 0,
-    "results": [
-      {
-        "name": "tiny-protein",
-        "input": "fixtures/tiny.fasta",
-        "expected_output": "fixtures/tiny.output.json",
-        "observed_output": "fixtures/tiny.output.json",
-        "status": "passed",
-        "issue": null
-      }
-    ]
-  }
-}
-```
-
-This proves that a portable package manifest can point to fixture inputs and
-expected JSON outputs, and that `biors` can check observed outputs against that
-contract. It is a small contract test, not a model inference benchmark.
-
-## Evidence and benchmarks
-
-Performance claims should be backed by reproducible data in-repo.
-
-- Benchmark guide and latest recorded result: `benchmarks/fasta_vs_biopython.md`
-- Reproducible benchmark harness: `scripts/benchmark_fasta_vs_biopython.py`
-
-The benchmark compares FASTA parse+tokenization throughput against a
-Biopython baseline using the UniProt human reference proteome
-(UP000005640 / taxonomy 9606).
-
-On the latest recorded run, `biors tokenize` completed the FASTA parse +
-protein-20 tokenization + full JSON output path in 0.291s, while a Biopython
-parse + protein-20 token/count baseline took 0.494s.
-
-This is a workload-specific baseline, not a broad claim that bio-rs is faster
-than Biopython across all FASTA parsing workloads.
-
 ## JSON contracts
 
-CLI success output always uses the success envelope:
+Success output uses a stable envelope shape:
 
 ```json
 {
@@ -220,7 +178,7 @@ CLI success output always uses the success envelope:
 }
 ```
 
-`--json` error mode always emits:
+`--json` error mode emits structured errors:
 
 ```json
 {
@@ -236,7 +194,7 @@ CLI success output always uses the success envelope:
 }
 ```
 
-`tokenize` data is an array of records:
+Tokenization output is record-oriented:
 
 ```json
 [
@@ -252,69 +210,63 @@ CLI success output always uses the success envelope:
 ]
 ```
 
-`inspect` data is a summary object:
+Public contract docs:
 
-```json
-{
-  "records": 1,
-  "total_length": 4,
-  "valid_records": 1,
-  "warning_count": 0,
-  "error_count": 0
-}
-```
+- [CLI contract](docs/cli-contract.md)
+- [Error code registry](docs/error-codes.md)
+- [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
+- [JSON schemas](schemas)
 
-`package validate` data is a validation report:
+## Release history
 
-```json
-{
-  "valid": true,
-  "issues": []
-}
-```
+Delivered:
 
-`package bridge` data is a runtime bridge report:
+- `0.6.0`: package manifest inspect/validate
+- `0.7.0`: runtime bridge planning with `package bridge`
+- `0.8.0`: fixture verification with `package verify`
+- `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
+- `0.9.0`: CLI and JSON contract freeze candidates
 
-```json
-{
-  "ready": true,
-  "backend": "onnx-webgpu",
-  "target": "browser-wasm-webgpu",
-  "execution_provider": "webgpu",
-  "blocking_issues": []
-}
-```
+Next:
 
-`package verify` data is a fixture verification report:
+- `1.0.0`: stable public contracts and runtime-facing APIs after enough real-world package validation
 
-```json
-{
-  "package": "protein-seed",
-  "fixtures": 1,
-  "passed": 1,
-  "failed": 0,
-  "results": [
-    {
-      "name": "tiny-protein",
-      "input": "fixtures/tiny.fasta",
-      "expected_output": "fixtures/tiny.output.json",
-      "observed_output": "fixtures/tiny.output.json",
-      "status": "passed",
-      "issue": null
-    }
-  ]
-}
-```
+## Not yet
 
-## Development checks
+These are roadmap directions, not current capabilities:
+
+- hosted web workflows
+- Python bindings
+- model inference backends
+- package registry or plugin ecosystem
+- general-purpose chemistry tooling
+- structure tooling
+- no-code or low-code workflows
+
+## Development
+
+Run checks:
 
 ```bash
 scripts/check.sh
 ```
 
-The check suite runs `cargo fmt`, native Rust checks, a `biors-core`
-`wasm32-unknown-unknown` build check, tests, and `cargo clippy` with warnings
-denied.
+The check suite runs:
+
+- `cargo fmt`
+- Rust checks
+- `biors-core` `wasm32-unknown-unknown` build check
+- tests
+- `cargo clippy` with warnings denied
+
+Reproduce the FASTA benchmark:
+
+```bash
+cargo build --release -p biors
+pip3 install biopython
+python3 scripts/benchmark_fasta_vs_biopython.py
+cat benchmarks/fasta_vs_biopython.json
+```
 
 Run the Rust library example:
 
@@ -329,6 +281,7 @@ packages/
   rust/
     biors/       CLI
     biors-core/  Core engine + contracts
+
 schemas/
   cli-error.v0.json
   cli-success.v0.json
@@ -336,12 +289,14 @@ schemas/
   package-manifest.v0.json
   package-validation-report.v0.json
   tokenize-output.v0.json
+
 examples/
+  protein.fasta
   multi.fasta
   protein-package/
-    fixtures/
+    manifest.json
     observations.json
-  protein.fasta
+    fixtures/
 ```
 
 ## Protein-20 alphabet
@@ -350,18 +305,11 @@ examples/
 A C D E F G H I K L M N P Q R S T V W Y
 ```
 
-Token ids follow that order, starting at `0`.
+Token IDs follow that order, starting at `0`.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, checks, and PR expectations.
-
-## Public contracts
-
-- CLI contract: [`docs/cli-contract.md`](docs/cli-contract.md)
-- Error code registry: [`docs/error-codes.md`](docs/error-codes.md)
-- 1.0 candidates: [`docs/public-contract-1.0-candidates.md`](docs/public-contract-1.0-candidates.md)
-- Security policy: [`SECURITY.md`](SECURITY.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, checks, and PR expectations.
 
 ## License
 
