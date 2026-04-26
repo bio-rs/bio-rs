@@ -168,9 +168,9 @@ def benchmark_environment() -> dict[str, str | None]:
     }
 
 
-def run_biors_cli(binary: Path, command: str, fasta_path: Path) -> None:
+def run_biors_cli(binary: Path, command: list[str], fasta_path: Path) -> None:
     subprocess.run(
-        [str(binary), command, str(fasta_path)],
+        [str(binary), *command, str(fasta_path)],
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -242,12 +242,17 @@ def main() -> int:
             ),
             "biors_cli_inspect_summary": benchmark_case(
                 "biors CLI inspect summary output",
-                lambda: run_biors_cli(binary, "inspect", fasta_path),
+                lambda: run_biors_cli(binary, ["inspect"], fasta_path),
+                loops=args.loops,
+            ),
+            "biors_cli_fasta_validate_json": benchmark_case(
+                "biors CLI fasta validate JSON output",
+                lambda: run_biors_cli(binary, ["fasta", "validate"], fasta_path),
                 loops=args.loops,
             ),
             "biors_cli_tokenize_json": benchmark_case(
                 "biors CLI tokenize JSON output",
-                lambda: run_biors_cli(binary, "tokenize", fasta_path),
+                lambda: run_biors_cli(binary, ["tokenize"], fasta_path),
                 loops=args.loops,
             ),
         }

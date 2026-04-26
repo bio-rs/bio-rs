@@ -12,7 +12,7 @@ bio-rs turns biological sequences into validated, model-ready inputs for bio-AI 
 FASTA -> validated protein sequence -> token ids -> model-ready JSON
 ```
 
-> Status: **v0.9.3** — CLI and JSON contract freeze.
+> Status: **v0.9.4** — CLI and JSON contract freeze.
 
 ## Why bio-rs?
 
@@ -88,6 +88,7 @@ Benchmark details:
 - Proteome ID: `UP000005640`
 - Taxonomy ID: `9606`
 - Shape: 20,659 records, 11,456,702 residues
+- Current recorded means: `fasta validate` `0.135s`, `inspect` `0.205s`, `tokenize` `0.386s`, Biopython parse+count `0.487s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 
@@ -99,7 +100,7 @@ This is a workload-specific reference-proteome baseline, not a broad claim that 
 
 `biors` provides the CLI surface.
 
-Current v0.9.3 capabilities:
+Current v0.9.4 capabilities:
 
 - FASTA parsing and normalization
 - FASTA validation with line and record-index diagnostics
@@ -201,7 +202,7 @@ Success output uses a stable envelope shape:
 ```json
 {
   "ok": true,
-  "biors_version": "0.9.3",
+  "biors_version": "0.9.4",
   "input_hash": "fnv1a64:846a502e5067bc21",
   "data": {}
 }
@@ -258,6 +259,7 @@ Delivered:
 - `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
 - `0.9.0`: CLI and JSON contract freeze baseline
 - `0.9.1`: model-input CLI, checksum-backed package validation, benchmark refresh, and contract hardening
+- `0.9.4`: tokenizer positional alignment preservation, FASTA single-pass tokenization/validation path, typed package manifest enums, and benchmark refresh
 - `0.9.3`: release workflow fix for automatic GitHub Release creation after crates publish
 - `0.9.2`: model-input safety hardening for unresolved residues and automated GitHub Release creation
 
