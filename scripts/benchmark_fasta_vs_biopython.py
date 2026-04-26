@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reproducible FASTA parse+tokenize benchmark (biors vs Biopython).
+"""Reproducible FASTA benchmark (biors vs Biopython).
 
 By default, this script benchmarks against the UniProt human reference proteome
 (UP000005640, taxonomy 9606) downloaded from UniProt FTP.
@@ -20,6 +20,7 @@ import subprocess
 import tempfile
 import time
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 
 from Bio import SeqIO
@@ -103,7 +104,17 @@ def dataset_stats(fasta_path: Path) -> dict[str, int]:
     }
 
 
-def run_biopython(fasta_path: Path) -> int:
+def run_biopython_parse_only(fasta_path: Path) -> tuple[int, int]:
+    records = 0
+    residues = 0
+    with fasta_path.open("r", encoding="utf-8") as handle:
+        for record in SeqIO.parse(handle, "fasta"):
+            records += 1
+            residues += len(record.seq)
+    return records, residues
+
+
+def run_biopython_parse_token_count(fasta_path: Path) -> int:
     tokens = 0
     with fasta_path.open("r", encoding="utf-8") as handle:
         for record in SeqIO.parse(handle, "fasta"):
@@ -113,9 +124,19 @@ def run_biopython(fasta_path: Path) -> int:
     return tokens
 
 
-def run_biors_cli(fasta_path: Path) -> None:
+def ensure_biors_release_binary() -> Path:
+    binary = Path("target") / "release" / "biors"
+    if not binary.exists():
+        subprocess.run(
+            ["cargo", "build", "--release", "-p", "biors"],
+            check=True,
+        )
+    return binary
+
+
+def run_biors_cli(binary: Path, command: str, fasta_path: Path) -> None:
     subprocess.run(
-        ["target/release/biors", "tokenize", str(fasta_path)],
+        [str(binary), command, str(fasta_path)],
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -140,6 +161,18 @@ def summarize(seconds):
     }
 
 
+def benchmark_case(name: str, fn, loops: int) -> dict:
+    # Run once before timing so process startup, imports, and filesystem caches settle.
+    warmup_result = fn()
+    seconds = timed_runs(fn, loops=loops)
+    return {
+        "name": name,
+        "warmup_result": warmup_result,
+        "seconds": seconds,
+        "summary": summarize(seconds),
+    }
+
+
 def main() -> int:
     args = parse_args()
 
@@ -160,29 +193,40 @@ def main() -> int:
 
         stats = dataset_stats(fasta_path)
         provenance["fasta_sha256"] = sha256_of_file(fasta_path)
+        binary = ensure_biors_release_binary()
 
-        # Warm up both paths.
-        run_biopython(fasta_path)
-        run_biors_cli(fasta_path)
-
-        biopython_seconds = timed_runs(lambda: run_biopython(fasta_path), loops=args.loops)
-        biors_seconds = timed_runs(lambda: run_biors_cli(fasta_path), loops=args.loops)
-
-        result = {
-            "dataset": {
-                **provenance,
-                **stats,
-            },
-            "loops": args.loops,
-            "biopython_parse_tokenize": {
-                "seconds": biopython_seconds,
-                "summary": summarize(biopython_seconds),
-            },
-            "biors_cli_tokenize": {
-                "seconds": biors_seconds,
-                "summary": summarize(biors_seconds),
-            },
+        benchmarks = {
+            "biopython_parse_only": benchmark_case(
+                "Biopython parse only",
+                lambda: run_biopython_parse_only(fasta_path),
+                loops=args.loops,
+            ),
+            "biopython_parse_token_count": benchmark_case(
+                "Biopython parse + protein-20 token/count loop",
+                lambda: run_biopython_parse_token_count(fasta_path),
+                loops=args.loops,
+            ),
+            "biors_cli_inspect_summary": benchmark_case(
+                "biors CLI inspect summary output",
+                lambda: run_biors_cli(binary, "inspect", fasta_path),
+                loops=args.loops,
+            ),
+            "biors_cli_tokenize_json": benchmark_case(
+                "biors CLI tokenize JSON output",
+                lambda: run_biors_cli(binary, "tokenize", fasta_path),
+                loops=args.loops,
+            ),
         }
+
+    result = {
+        "dataset": {
+            **provenance,
+            **stats,
+        },
+        "generated_at_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
+        "loops": args.loops,
+        "benchmarks": benchmarks,
+    }
 
     output_path = Path("benchmarks") / "fasta_vs_biopython.json"
     output_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
