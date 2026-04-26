@@ -4,9 +4,15 @@
 [![Release](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml/badge.svg)](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-Rust workspace for practical biological AI input tooling.
+bio-rs is Rust tooling for turning biological sequences into validated, model-ready inputs for bio-AI workflows.
 
 > Status: **v0.9.0** (workspace/package version in `Cargo.toml`)
+
+## Try it
+
+```bash
+cargo run -p biors -- tokenize examples/protein.fasta
+```
 
 This repository focuses on functionality that is already implemented and testable today:
 
