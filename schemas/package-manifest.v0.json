@@ -33,7 +33,7 @@
       "properties": {
         "format": { "type": "string" },
         "path": { "type": "string" },
-        "checksum": { "type": "string" }
+        "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
       "additionalProperties": false
     },
@@ -43,7 +43,7 @@
       "properties": {
         "name": { "type": "string" },
         "path": { "type": "string" },
-        "checksum": { "type": "string" },
+        "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "contract_version": { "type": "string" }
       },
       "additionalProperties": false
@@ -75,8 +75,8 @@
         "name": { "type": "string" },
         "input": { "type": "string" },
         "expected_output": { "type": "string" },
-        "input_hash": { "type": "string" },
-        "expected_output_hash": { "type": "string" }
+        "input_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "expected_output_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
       "additionalProperties": false
     }

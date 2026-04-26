@@ -1,0 +1,5 @@
+{
+  "name": "protein-20",
+  "type": "character",
+  "unknown_token_policy": "warn_or_error_without_token"
+}

@@ -92,3 +92,20 @@ fn pads_model_input_to_fixed_length() {
     assert_eq!(model_input.records[0].attention_mask, vec![1, 1, 0, 0]);
     assert!(!model_input.records[0].truncated);
 }
+
+#[test]
+fn preserves_unpadded_model_input_when_no_padding_is_requested() {
+    let tokenized = tokenize_fasta_records(">seq1\nAC\n").expect("valid FASTA");
+    let model_input = build_model_inputs(
+        &tokenized,
+        ModelInputPolicy {
+            max_length: 4,
+            pad_token_id: 255,
+            padding: PaddingPolicy::NoPadding,
+        },
+    );
+
+    assert_eq!(model_input.records[0].input_ids, vec![0, 1]);
+    assert_eq!(model_input.records[0].attention_mask, vec![1, 1]);
+    assert!(!model_input.records[0].truncated);
+}

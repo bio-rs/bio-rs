@@ -19,6 +19,11 @@ Error codes are stable identifiers for CLI JSON error mode.
 
 ## Package
 
+- `package.invalid_checksum_format`: a package checksum field does not use `sha256:<64hex>`
+- `package.checksum_mismatch`: a manifest or verification checksum does not match the file on disk
+- `package.asset_read_failed`: a manifest-relative asset path could not be read
+- `package.observed_output_missing`: a verification observation is missing or its output artifact could not be read
+- `package.output_content_mismatch`: observed output content does not match the expected output artifact
 - `package.validation_failed`: package manifest validation failed
 - `package.bridge_not_ready`: package runtime bridge planning found blocking issues
 - `package.verification_failed`: fixture observations did not match expected outputs

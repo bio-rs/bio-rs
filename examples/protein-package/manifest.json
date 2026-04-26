@@ -4,18 +4,18 @@
   "model": {
     "format": "onnx",
     "path": "models/protein-seed.onnx",
-    "checksum": "sha256:draft-model-checksum"
+    "checksum": "sha256:2c1da72b15fab35bd6f1bb62f5037b936e26e6413a220fa9afe5a64bce0df68d"
   },
   "tokenizer": {
     "name": "protein-20",
     "path": "tokenizers/protein-20.json",
-    "checksum": "sha256:draft-tokenizer-checksum",
+    "checksum": "sha256:e97637c05ea13d49b5b904e4e70ccd5e297d1ab89f12f414d34e2cc83fd24bb4",
     "contract_version": "protein-20.v0"
   },
   "vocab": {
     "name": "protein-20",
     "path": "vocabs/protein-20.json",
-    "checksum": "sha256:draft-vocab-checksum",
+    "checksum": "sha256:e4c753b467d803142648f21e512aebdbe86cc31a3440bfcc4f73dd03d7a41a78",
     "contract_version": "protein-20.v0"
   },
   "preprocessing": [
@@ -50,8 +50,8 @@
       "name": "tiny-protein",
       "input": "fixtures/tiny.fasta",
       "expected_output": "fixtures/tiny.output.json",
-      "input_hash": "fnv1a64:draft-input-hash",
-      "expected_output_hash": "fnv1a64:draft-output-hash"
+      "input_hash": "sha256:e2b3a50f4e8a5cc11de2cd1fb38bd9398b0cbe24378eeea184ba7ce535c542f3",
+      "expected_output_hash": "sha256:3e1f934b28ea75e21ce7d61840c3747380d07b26664a1656527a4559a8374e8a"
     }
   ]
 }

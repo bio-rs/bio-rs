@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/model-input-output.v0.json",
+  "title": "bio-rs model-input data payload",
+  "type": "object",
+  "required": ["policy", "records"],
+  "properties": {
+    "policy": {
+      "type": "object",
+      "required": ["max_length", "pad_token_id", "padding"],
+      "properties": {
+        "max_length": { "type": "integer", "minimum": 0 },
+        "pad_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "padding": { "enum": ["fixed_length", "no_padding"] }
+      },
+      "additionalProperties": false
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "input_ids", "attention_mask", "truncated"],
+        "properties": {
+          "id": { "type": "string" },
+          "input_ids": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
+          "attention_mask": { "type": "array", "items": { "type": "integer", "enum": [0, 1] } },
+          "truncated": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

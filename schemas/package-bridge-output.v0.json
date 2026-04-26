@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-bridge-output.v0.json",
+  "title": "bio-rs package bridge data payload",
+  "type": "object",
+  "required": ["ready", "backend", "target", "execution_provider", "blocking_issues"],
+  "properties": {
+    "ready": { "type": "boolean" },
+    "backend": { "type": "string" },
+    "target": { "type": "string" },
+    "execution_provider": { "type": "string" },
+    "blocking_issues": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

@@ -62,6 +62,39 @@ fn inspect_stdin_outputs_json_summary() {
 }
 
 #[test]
+fn model_input_stdin_outputs_model_ready_json() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("model-input")
+        .arg("--max-length")
+        .arg("6")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors model-input")
+        .tap_stdin(">seq1\nACDE\n");
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["ok"], true);
+    assert_eq!(value["data"]["policy"]["max_length"], 6);
+    assert_eq!(value["data"]["policy"]["pad_token_id"], 0);
+    assert_eq!(value["data"]["policy"]["padding"], "fixed_length");
+    assert_eq!(
+        value["data"]["records"][0]["input_ids"],
+        serde_json::json!([0, 1, 2, 3, 0, 0])
+    );
+    assert_eq!(
+        value["data"]["records"][0]["attention_mask"],
+        serde_json::json!([1, 1, 1, 1, 0, 0])
+    );
+    assert_eq!(value["data"]["records"][0]["truncated"], false);
+}
+
+#[test]
 fn fasta_validate_outputs_validation_report() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("fasta")
@@ -160,6 +193,50 @@ fn package_validate_fails_invalid_manifest() {
 }
 
 #[test]
+fn package_validate_reports_invalid_checksum_format_code() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors package validate")
+        .tap_stdin(
+            r#"{
+              "schema_version": "biors.package.v0",
+              "name": "protein-seed",
+              "model": {
+                "format": "onnx",
+                "path": "missing.onnx",
+                "checksum": "draft-model-checksum"
+              },
+              "preprocessing": [],
+              "postprocessing": [],
+              "runtime": {
+                "backend": "onnx-webgpu",
+                "target": "browser-wasm-webgpu"
+              },
+              "fixtures": [
+                {
+                  "name": "tiny-protein",
+                  "input": "fixtures/tiny.fasta",
+                  "expected_output": "fixtures/tiny.output.json"
+                }
+              ]
+            }"#,
+        );
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.invalid_checksum_format");
+}
+
+#[test]
 fn package_bridge_outputs_runtime_plan() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");
@@ -219,6 +296,49 @@ fn package_verify_outputs_fixture_report() {
     assert_eq!(value["data"]["passed"], 1);
     assert_eq!(value["data"]["failed"], 0);
     assert_eq!(value["data"]["results"][0]["status"], "passed");
+    assert_eq!(
+        value["data"]["results"][0]["expected_output_path"],
+        "fixtures/tiny.output.json"
+    );
+    assert_eq!(
+        value["data"]["results"][0]["observed_output_path"],
+        "observed/tiny.output.json"
+    );
+    assert_eq!(value["data"]["results"][0]["checksum_mismatch"], false);
+    assert_eq!(value["data"]["results"][0]["content_mismatch"], false);
+}
+
+#[test]
+fn package_verify_reports_missing_observed_output_code() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("verify")
+        .arg(manifest)
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors package verify")
+        .tap_stdin(
+            r#"[
+              {
+                "name": "tiny-protein",
+                "path": "observed/missing.json"
+              }
+            ]"#,
+        );
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.observed_output_missing");
+    assert_eq!(value["error"]["location"], "fixtures");
 }
 
 #[test]
@@ -278,6 +398,41 @@ fn public_behavior_snapshot_for_tokenize_stdout() {
                 "errors": []
             }
         ])
+    );
+}
+
+#[test]
+fn public_behavior_snapshot_for_model_input_stdout() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("model-input")
+        .arg("--max-length")
+        .arg("4")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors model-input")
+        .tap_stdin(">seq1\nACDEFG\n");
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+
+    assert_eq!(
+        value["data"],
+        serde_json::json!({
+            "policy": {
+                "max_length": 4,
+                "pad_token_id": 0,
+                "padding": "fixed_length"
+            },
+            "records": [
+                {
+                    "id": "seq1",
+                    "input_ids": [0, 1, 2, 3],
+                    "attention_mask": [1, 1, 1, 1],
+                    "truncated": true
+                }
+            ]
+        })
     );
 }
 

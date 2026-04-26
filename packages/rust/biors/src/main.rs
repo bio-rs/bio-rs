@@ -1,7 +1,8 @@
 use biors_core::{
-    inspect_package_manifest, plan_runtime_bridge, stable_input_hash, summarize_tokenized_proteins,
-    tokenize_fasta_records, validate_fasta_input, validate_package_manifest,
-    verify_package_outputs, BioRsError, ErrorLocation, FixtureObservation, PackageManifest,
+    build_model_inputs, inspect_package_manifest, plan_runtime_bridge, stable_input_hash,
+    summarize_tokenized_proteins, tokenize_fasta_records, validate_fasta_input,
+    validate_package_manifest_artifacts, verify_package_outputs_with_observation_base, BioRsError,
+    ErrorLocation, FixtureObservation, ModelInputPolicy, PackageManifest, PaddingPolicy,
 };
 use clap::{Parser, Subcommand};
 use serde::Serialize;
@@ -28,6 +29,15 @@ enum Command {
         command: FastaCommand,
     },
     Inspect {
+        path: PathBuf,
+    },
+    ModelInput {
+        #[arg(long)]
+        max_length: usize,
+        #[arg(long, default_value_t = 0)]
+        pad_token_id: u8,
+        #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
+        padding: PaddingArg,
         path: PathBuf,
     },
     Package {
@@ -90,30 +100,56 @@ fn run(command: Command) -> Result<(), CliError> {
             let summary = summarize_tokenized_proteins(&tokenized);
             print_success(Some(stable_input_hash(&input)), summary)?;
         }
+        Command::ModelInput {
+            max_length,
+            pad_token_id,
+            padding,
+            path,
+        } => {
+            let input = read_input(path)?;
+            let tokenized = tokenize_fasta_records(&input)?;
+            let model_input = build_model_inputs(
+                &tokenized,
+                ModelInputPolicy {
+                    max_length,
+                    pad_token_id,
+                    padding: padding.into(),
+                },
+            );
+            print_success(Some(stable_input_hash(&input)), model_input)?;
+        }
         Command::Package { command } => match command {
             PackageCommand::Bridge { path } => {
-                let manifest = read_package_manifest(path)?;
+                let (manifest, manifest_base_dir) = read_package_manifest(path)?;
                 let report = plan_runtime_bridge(&manifest);
-                if !report.ready {
+                let validation = validate_package_manifest_artifacts(&manifest, &manifest_base_dir);
+                if !validation.valid || !report.ready {
                     return Err(CliError::Validation {
                         code: "package.bridge_not_ready",
-                        message: format!("{:?}", report.blocking_issues),
+                        message: format!(
+                            "{:?}",
+                            validation
+                                .issues
+                                .iter()
+                                .chain(report.blocking_issues.iter())
+                                .collect::<Vec<_>>()
+                        ),
                         location: Some("manifest".to_string()),
                     });
                 }
                 print_success(None, report)?;
             }
             PackageCommand::Inspect { path } => {
-                let manifest = read_package_manifest(path)?;
+                let (manifest, _) = read_package_manifest(path)?;
                 let summary = inspect_package_manifest(&manifest);
                 print_success(None, summary)?;
             }
             PackageCommand::Validate { path } => {
-                let manifest = read_package_manifest(path)?;
-                let report = validate_package_manifest(&manifest);
+                let (manifest, manifest_base_dir) = read_package_manifest(path)?;
+                let report = validate_package_manifest_artifacts(&manifest, &manifest_base_dir);
                 if !report.valid {
                     return Err(CliError::Validation {
-                        code: "package.validation_failed",
+                        code: classify_validation_code(&report.issues),
                         message: format!("{:?}", report.issues),
                         location: Some("manifest".to_string()),
                     });
@@ -124,12 +160,18 @@ fn run(command: Command) -> Result<(), CliError> {
                 manifest,
                 observations,
             } => {
-                let manifest = read_package_manifest(manifest)?;
-                let observations = read_fixture_observations(observations)?;
-                let report = verify_package_outputs(&manifest, &observations);
+                let (manifest, manifest_base_dir) = read_package_manifest(manifest)?;
+                let (observations, observations_base_dir) =
+                    read_fixture_observations(observations)?;
+                let report = verify_package_outputs_with_observation_base(
+                    &manifest,
+                    &observations,
+                    &manifest_base_dir,
+                    &observations_base_dir,
+                );
                 if report.failed > 0 {
                     return Err(CliError::Validation {
-                        code: "package.verification_failed",
+                        code: classify_verification_code(&report),
                         message: format!(
                             "{:?}",
                             report
@@ -152,6 +194,22 @@ fn run(command: Command) -> Result<(), CliError> {
     }
 
     Ok(())
+}
+
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+enum PaddingArg {
+    #[default]
+    FixedLength,
+    NoPadding,
+}
+
+impl From<PaddingArg> for PaddingPolicy {
+    fn from(value: PaddingArg) -> Self {
+        match value {
+            PaddingArg::FixedLength => Self::FixedLength,
+            PaddingArg::NoPadding => Self::NoPadding,
+        }
+    }
 }
 
 fn print_success<T: Serialize>(input_hash: Option<String>, data: T) -> Result<(), CliError> {
@@ -177,18 +235,41 @@ fn read_input(path: PathBuf) -> Result<String, CliError> {
     fs::read_to_string(&path).map_err(|source| CliError::Read { path, source })
 }
 
-fn read_package_manifest(path: PathBuf) -> Result<PackageManifest, CliError> {
-    let input = read_input(path)?;
-    serde_json::from_str(&input).map_err(CliError::Json)
+fn read_package_manifest(path: PathBuf) -> Result<(PackageManifest, PathBuf), CliError> {
+    let (input, base_dir) = read_input_with_base_dir(path)?;
+    Ok((
+        serde_json::from_str(&input).map_err(CliError::Json)?,
+        base_dir,
+    ))
 }
 
-fn read_fixture_observations(path: PathBuf) -> Result<Vec<FixtureObservation>, CliError> {
-    let input = read_input(path)?;
-    serde_json::from_str(&input).map_err(CliError::Json)
+fn read_fixture_observations(
+    path: PathBuf,
+) -> Result<(Vec<FixtureObservation>, PathBuf), CliError> {
+    let (input, base_dir) = read_input_with_base_dir(path)?;
+    Ok((
+        serde_json::from_str(&input).map_err(CliError::Json)?,
+        base_dir,
+    ))
 }
 
 fn to_json<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
     serde_json::to_string_pretty(value)
+}
+
+fn read_input_with_base_dir(path: PathBuf) -> Result<(String, PathBuf), CliError> {
+    if path.as_os_str() == "-" {
+        return Ok((
+            read_input(path)?,
+            std::env::current_dir().map_err(CliError::CurrentDir)?,
+        ));
+    }
+
+    let base_dir = path
+        .parent()
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."));
+    Ok((read_input(path)?, base_dir))
 }
 
 #[derive(Debug, Serialize)]
@@ -237,6 +318,7 @@ enum ErrorLocationValue {
 enum CliError {
     Core(BioRsError),
     Json(serde_json::Error),
+    CurrentDir(std::io::Error),
     Read {
         path: PathBuf,
         source: std::io::Error,
@@ -254,6 +336,7 @@ impl CliError {
         match self {
             Self::Core(error) => error.code(),
             Self::Json(_) => "json.invalid",
+            Self::CurrentDir(_) => "io.read_failed",
             Self::Read { .. } => "io.read_failed",
             Self::Serialization(_) => "json.serialization_failed",
             Self::Validation { code, .. } => code,
@@ -265,14 +348,14 @@ impl CliError {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
             Self::Read { path, .. } => Some(ErrorLocationValue::Label(path.display().to_string())),
             Self::Validation { location, .. } => location.clone().map(ErrorLocationValue::Label),
-            Self::Json(_) | Self::Serialization(_) => None,
+            Self::Json(_) | Self::CurrentDir(_) | Self::Serialization(_) => None,
         }
     }
 
     const fn exit_code(&self) -> i32 {
         match self {
             Self::Core(_) | Self::Json(_) | Self::Validation { .. } => 2,
-            Self::Read { .. } | Self::Serialization(_) => 1,
+            Self::Read { .. } | Self::CurrentDir(_) | Self::Serialization(_) => 1,
         }
     }
 }
@@ -282,6 +365,7 @@ impl std::fmt::Display for CliError {
         match self {
             Self::Core(error) => write!(f, "{error}"),
             Self::Json(error) => write!(f, "{error}"),
+            Self::CurrentDir(error) => write!(f, "failed to determine current directory: {error}"),
             Self::Read { path, source } => {
                 write!(f, "failed to read '{}': {source}", path.display())
             }
@@ -302,5 +386,42 @@ impl From<BioRsError> for CliError {
 impl From<serde_json::Error> for CliError {
     fn from(error: serde_json::Error) -> Self {
         Self::Serialization(error)
+    }
+}
+
+fn classify_validation_code(issues: &[String]) -> &'static str {
+    if issues
+        .iter()
+        .any(|issue| issue.contains(".checksum must use sha256:"))
+    {
+        "package.invalid_checksum_format"
+    } else if issues
+        .iter()
+        .any(|issue| issue.contains("checksum mismatch"))
+    {
+        "package.checksum_mismatch"
+    } else if issues
+        .iter()
+        .any(|issue| issue.contains("failed to read asset"))
+    {
+        "package.asset_read_failed"
+    } else {
+        "package.validation_failed"
+    }
+}
+
+fn classify_verification_code(report: &biors_core::PackageVerificationReport) -> &'static str {
+    if report
+        .results
+        .iter()
+        .any(|result| matches!(result.status, biors_core::VerificationStatus::Missing))
+    {
+        "package.observed_output_missing"
+    } else if report.results.iter().any(|result| result.checksum_mismatch) {
+        "package.checksum_mismatch"
+    } else if report.results.iter().any(|result| result.content_mismatch) {
+        "package.output_content_mismatch"
+    } else {
+        "package.verification_failed"
     }
 }

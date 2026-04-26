@@ -12,7 +12,7 @@ bio-rs turns biological sequences into validated, model-ready inputs for bio-AI 
 FASTA -> validated protein sequence -> token ids -> model-ready JSON
 ```
 
-> Status: **v0.9.0** — CLI and JSON contract freeze candidate phase.
+> Status: **v0.9.1** — CLI and JSON contract freeze.
 
 ## Why bio-rs?
 
@@ -64,6 +64,12 @@ cargo run -p biors -- package verify \
   examples/protein-package/observations.json
 ```
 
+Build model-ready input records:
+
+```bash
+cargo run -p biors -- model-input --max-length 8 examples/protein.fasta
+```
+
 ## Proof
 
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
@@ -72,9 +78,9 @@ Latest recorded FASTA benchmark baseline:
 
 | Workflow | Mean time |
 |---|---:|
-| `biors tokenize` parse + tokenize + full JSON output | **0.291s** |
-| Biopython parse + protein-20 token/count loop | **0.494s** |
-| Biopython parse only | **0.055s** |
+| `biors tokenize` parse + tokenize + full JSON output | **0.385s** |
+| Biopython parse + protein-20 token/count loop | **0.457s** |
+| Biopython parse only | **0.056s** |
 
 Benchmark details:
 
@@ -85,7 +91,7 @@ Benchmark details:
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 
-This is a workload-specific baseline, not a broad claim that bio-rs is faster than Biopython across all FASTA workloads.
+This is a workload-specific reference-proteome baseline, not a broad claim that bio-rs is faster than Biopython across all FASTA workloads or all researcher input shapes.
 
 ## What works today
 
@@ -93,7 +99,7 @@ This is a workload-specific baseline, not a broad claim that bio-rs is faster th
 
 `biors` provides the CLI surface.
 
-Current v0.9.0 capabilities:
+Current v0.9.1 capabilities:
 
 - FASTA parsing and normalization
 - FASTA validation with line and record-index diagnostics
@@ -102,9 +108,12 @@ Current v0.9.0 capabilities:
 - model-ready input records
 - attention masks
 - padding/truncation policy
+- `model-input` CLI output
 - package manifest inspect/validate
 - runtime bridge planning reports
-- package fixture verification
+- manifest-relative asset validation
+- SHA-256 package and fixture checksum verification
+- package fixture verification from observed artifact paths
 - JSON success/error envelopes
 
 ## CLI examples
@@ -139,6 +148,12 @@ Emit structured JSON errors:
 printf 'ACDE\n' | cargo run -p biors -- --json tokenize -
 ```
 
+Build model-ready input records:
+
+```bash
+cargo run -p biors -- model-input --max-length 4 examples/protein.fasta
+```
+
 Inspect a package manifest:
 
 ```bash
@@ -165,6 +180,17 @@ cargo run -p biors -- package verify \
   examples/protein-package/observations.json
 ```
 
+`package verify` expects the observations file to point at observed output artifact paths:
+
+```json
+[
+  {
+    "name": "tiny-protein",
+    "path": "observed/tiny.output.json"
+  }
+]
+```
+
 ## JSON contracts
 
 Success output uses a stable envelope shape:
@@ -172,11 +198,13 @@ Success output uses a stable envelope shape:
 ```json
 {
   "ok": true,
-  "biors_version": "0.9.0",
+  "biors_version": "0.9.1",
   "input_hash": "fnv1a64:846a502e5067bc21",
   "data": {}
 }
 ```
+
+FASTA-backed commands keep `input_hash` in the legacy `fnv1a64:` format for backward compatibility. Package artifacts and fixture hashes use `sha256:` in manifests and verification reports.
 
 `--json` error mode emits structured errors:
 
@@ -225,7 +253,8 @@ Delivered:
 - `0.7.0`: runtime bridge planning with `package bridge`
 - `0.8.0`: fixture verification with `package verify`
 - `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
-- `0.9.0`: CLI and JSON contract freeze candidates
+- `0.9.0`: CLI and JSON contract freeze baseline
+- `0.9.1`: model-input CLI, checksum-backed package validation, benchmark refresh, and contract hardening
 
 Next:
 
@@ -285,18 +314,27 @@ packages/
 schemas/
   cli-error.v0.json
   cli-success.v0.json
+  fasta-validation-output.v0.json
   inspect-output.v0.json
+  model-input-output.v0.json
+  package-bridge-output.v0.json
+  package-inspect-output.v0.json
   package-manifest.v0.json
   package-validation-report.v0.json
+  package-verify-output.v0.json
   tokenize-output.v0.json
 
 examples/
   protein.fasta
   multi.fasta
   protein-package/
+    models/
     manifest.json
     observations.json
     fixtures/
+    observed/
+    tokenizers/
+    vocabs/
 ```
 
 ## Protein-20 alphabet

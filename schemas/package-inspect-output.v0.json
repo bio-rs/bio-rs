@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-inspect-output.v0.json",
+  "title": "bio-rs package inspect data payload",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "name",
+    "model_format",
+    "has_model_checksum",
+    "runtime_backend",
+    "runtime_target",
+    "preprocessing_steps",
+    "postprocessing_steps",
+    "fixtures"
+  ],
+  "properties": {
+    "schema_version": { "const": "biors.package.v0" },
+    "name": { "type": "string" },
+    "model_format": { "type": "string" },
+    "has_model_checksum": { "type": "boolean" },
+    "tokenizer": { "type": ["string", "null"] },
+    "vocab": { "type": ["string", "null"] },
+    "runtime_backend": { "type": "string" },
+    "runtime_target": { "type": "string" },
+    "preprocessing_steps": { "type": "integer", "minimum": 0 },
+    "postprocessing_steps": { "type": "integer", "minimum": 0 },
+    "fixtures": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false
+}

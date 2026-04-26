@@ -1,4 +1,4 @@
-# FASTA benchmark baseline (biors v0.8.1 vs Biopython)
+# FASTA benchmark baseline (biors v0.9.1 vs Biopython)
 
 This repository should not make unverified performance claims.
 
@@ -45,20 +45,22 @@ cat benchmarks/fasta_vs_biopython.json
 
 From `benchmarks/fasta_vs_biopython.json`:
 
-- Biopython parse only mean: **0.055s**
-- Biopython parse + protein-20 token/count loop mean: **0.494s**
-- biors CLI inspect summary output mean: **0.133s**
-- biors CLI tokenize full JSON output mean: **0.291s**
+- Biopython parse only mean: **0.056s**
+- Biopython parse + protein-20 token/count loop mean: **0.457s**
+- biors CLI inspect summary output mean: **0.198s**
+- biors CLI tokenize full JSON output mean: **0.385s**
 
-Interpretation for v0.8.1:
+Interpretation for v0.9.1:
 
 - The baseline uses the UniProt human reference proteome, which is a realistic
-  protein dataset size for researcher workflows.
+  reference-proteome-scale dataset for researcher workflows.
+- This is one realistic workload class, not a claim that researchers only run
+  single-proteome FASTA jobs.
 - The split matters: Biopython parse-only timing is not comparable to `biors
   tokenize`, because `biors tokenize` parses, tokenizes, launches a CLI process,
   and writes full pretty JSON.
 - On this UniProt human proteome benchmark, `biors tokenize` completed in
-  0.291s while producing full JSON output, compared with 0.494s for a Biopython
+  0.385s while producing full JSON output, compared with 0.457s for a Biopython
   parse + protein-20 token/count loop.
 - On this single-machine run, `biors inspect` gives the closest CLI-level summary
   timing, while `biors tokenize` measures the additional cost of full JSON output.

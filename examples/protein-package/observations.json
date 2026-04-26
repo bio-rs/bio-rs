@@ -1,6 +1,6 @@
 [
   {
     "name": "tiny-protein",
-    "output": "fixtures/tiny.output.json"
+    "path": "observed/tiny.output.json"
   }
 ]

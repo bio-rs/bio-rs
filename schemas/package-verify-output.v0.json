@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-verify-output.v0.json",
+  "title": "bio-rs package verify data payload",
+  "type": "object",
+  "required": ["package", "fixtures", "passed", "failed", "results"],
+  "properties": {
+    "package": { "type": "string" },
+    "fixtures": { "type": "integer", "minimum": 0 },
+    "passed": { "type": "integer", "minimum": 0 },
+    "failed": { "type": "integer", "minimum": 0 },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "input_path",
+          "expected_output_path",
+          "status",
+          "checksum_mismatch",
+          "content_mismatch"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "input_path": { "type": "string" },
+          "expected_output_path": { "type": "string" },
+          "observed_output_path": { "type": ["string", "null"] },
+          "expected_output_hash": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+          "observed_output_hash": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+          "status": { "enum": ["failed", "missing", "passed"] },
+          "checksum_mismatch": { "type": "boolean" },
+          "content_mismatch": { "type": "boolean" },
+          "issue": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

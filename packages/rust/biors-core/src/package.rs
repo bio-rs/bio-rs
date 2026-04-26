@@ -1,4 +1,7 @@
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PackageManifest {
@@ -170,6 +173,60 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     }
 }
 
+pub fn validate_package_manifest_artifacts(
+    manifest: &PackageManifest,
+    base_dir: &Path,
+) -> PackageValidationReport {
+    let mut report = validate_package_manifest(manifest);
+    validate_artifact(
+        &mut report.issues,
+        "model",
+        &manifest.model.path,
+        manifest.model.checksum.as_deref(),
+        base_dir,
+    );
+
+    if let Some(tokenizer) = &manifest.tokenizer {
+        validate_artifact(
+            &mut report.issues,
+            "tokenizer",
+            &tokenizer.path,
+            tokenizer.checksum.as_deref(),
+            base_dir,
+        );
+    }
+
+    if let Some(vocab) = &manifest.vocab {
+        validate_artifact(
+            &mut report.issues,
+            "vocab",
+            &vocab.path,
+            vocab.checksum.as_deref(),
+            base_dir,
+        );
+    }
+
+    for (index, fixture) in manifest.fixtures.iter().enumerate() {
+        validate_artifact(
+            &mut report.issues,
+            &format!("fixtures[{index}].input"),
+            &fixture.input,
+            fixture.input_hash.as_deref(),
+            base_dir,
+        );
+        validate_artifact(
+            &mut report.issues,
+            &format!("fixtures[{index}].expected_output"),
+            &fixture.expected_output,
+            fixture.expected_output_hash.as_deref(),
+            base_dir,
+        );
+    }
+
+    report.valid = report.issues.is_empty();
+    report
+}
+
 pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
     let mut blocking_issues = validate_package_manifest(manifest).issues;
 
@@ -210,4 +267,73 @@ fn validate_shape(issues: &mut Vec<String>, field: &str, shape: &DataShape) {
         issues.push(format!("{field}.shape must include at least one dimension"));
     }
     push_required_issue(issues, &format!("{field}.dtype"), &shape.dtype);
+}
+
+pub fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
+    base_dir.join(relative_path)
+}
+
+pub fn read_package_file(base_dir: &Path, relative_path: &str) -> Result<Vec<u8>, String> {
+    let resolved = resolve_package_path(base_dir, relative_path);
+    fs::read(&resolved).map_err(|error| {
+        format!(
+            "failed to read asset '{}' at '{}': {error}",
+            relative_path,
+            resolved.display()
+        )
+    })
+}
+
+pub fn sha256_digest(bytes: &[u8]) -> String {
+    let normalized = canonical_hash_bytes(bytes);
+    let digest = Sha256::digest(&normalized);
+    format!("sha256:{digest:x}")
+}
+
+pub fn is_sha256_checksum(checksum: &str) -> bool {
+    let Some(hex) = checksum.strip_prefix("sha256:") else {
+        return false;
+    };
+    hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn validate_artifact(
+    issues: &mut Vec<String>,
+    field: &str,
+    path: &str,
+    checksum: Option<&str>,
+    base_dir: &Path,
+) {
+    if path.trim().is_empty() {
+        return;
+    }
+
+    if let Some(checksum) = checksum {
+        if !is_sha256_checksum(checksum) {
+            issues.push(format!("{field}.checksum must use sha256:<64 hex>"));
+        }
+    }
+
+    match read_package_file(base_dir, path) {
+        Ok(bytes) => {
+            if let Some(checksum) = checksum {
+                if is_sha256_checksum(checksum) {
+                    let actual = sha256_digest(&bytes);
+                    if actual != checksum {
+                        issues.push(format!(
+                            "{field}.checksum mismatch: expected '{checksum}' but computed '{actual}'"
+                        ));
+                    }
+                }
+            }
+        }
+        Err(error) => issues.push(format!("{field}: {error}")),
+    }
+}
+
+fn canonical_hash_bytes(bytes: &[u8]) -> Vec<u8> {
+    match serde_json::from_slice::<serde_json::Value>(bytes) {
+        Ok(json) => serde_json::to_vec(&json).unwrap_or_else(|_| bytes.to_vec()),
+        Err(_) => bytes.to_vec(),
+    }
 }

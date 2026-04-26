@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/fasta-validation-output.v0.json",
+  "title": "bio-rs FASTA validation data payload",
+  "type": "object",
+  "required": ["records", "valid_records", "warning_count", "error_count", "sequences"],
+  "properties": {
+    "records": { "type": "integer", "minimum": 0 },
+    "valid_records": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "sequences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "sequence", "alphabet", "valid", "warnings", "errors"],
+        "properties": {
+          "id": { "type": "string" },
+          "sequence": { "type": "string" },
+          "alphabet": { "const": "protein-20" },
+          "valid": { "type": "boolean" },
+          "warnings": { "$ref": "#/$defs/residueIssues" },
+          "errors": { "$ref": "#/$defs/residueIssues" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "residueIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["residue", "position"],
+        "properties": {
+          "residue": { "type": "string", "minLength": 1, "maxLength": 1 },
+          "position": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

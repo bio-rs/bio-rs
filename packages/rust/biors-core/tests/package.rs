@@ -1,6 +1,7 @@
 use biors_core::{
     inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, PackageManifest,
 };
+use std::path::Path;
 
 fn valid_manifest() -> PackageManifest {
     serde_json::from_str(
@@ -41,6 +42,21 @@ fn valid_manifest() -> PackageManifest {
     .expect("valid manifest JSON")
 }
 
+fn example_manifest() -> PackageManifest {
+    serde_json::from_str(
+        &std::fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../../examples/protein-package/manifest.json"),
+        )
+        .expect("read example manifest"),
+    )
+    .expect("parse example manifest")
+}
+
+fn example_base_dir() -> std::path::PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../examples/protein-package")
+}
+
 #[test]
 fn inspects_portable_package_manifest() {
     let manifest = valid_manifest();
@@ -74,6 +90,50 @@ fn validates_required_package_manifest_fields() {
             "fixtures[0].expected_output is required",
         ]
     );
+}
+
+#[test]
+fn rejects_invalid_checksum_format() {
+    let mut manifest = valid_manifest();
+    manifest.model.checksum = Some("draft-model-checksum".to_string());
+
+    let report =
+        biors_core::validate_package_manifest_artifacts(&manifest, std::path::Path::new("."));
+
+    assert!(!report.valid);
+    assert!(report
+        .issues
+        .iter()
+        .any(|issue| issue.contains("model.checksum")));
+}
+
+#[test]
+fn rejects_checksum_mismatch_against_real_artifact() {
+    let mut manifest = example_manifest();
+    manifest.model.checksum =
+        Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string());
+
+    let report = biors_core::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report
+        .issues
+        .iter()
+        .any(|issue| issue.contains("model.checksum mismatch")));
+}
+
+#[test]
+fn rejects_missing_manifest_relative_artifact() {
+    let mut manifest = example_manifest();
+    manifest.vocab.as_mut().expect("vocab").path = "vocabs/missing.json".to_string();
+
+    let report = biors_core::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report
+        .issues
+        .iter()
+        .any(|issue| issue.contains("failed to read asset 'vocabs/missing.json'")));
 }
 
 #[test]
