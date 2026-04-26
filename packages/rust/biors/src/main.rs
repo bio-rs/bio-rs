@@ -1,8 +1,9 @@
 use biors_core::{
-    build_model_inputs, inspect_package_manifest, plan_runtime_bridge, stable_input_hash,
+    build_model_inputs_checked, inspect_package_manifest, plan_runtime_bridge, stable_input_hash,
     summarize_tokenized_proteins, tokenize_fasta_records, validate_fasta_input,
     validate_package_manifest_artifacts, verify_package_outputs_with_observation_base, BioRsError,
-    ErrorLocation, FixtureObservation, ModelInputPolicy, PackageManifest, PaddingPolicy,
+    ErrorLocation, FixtureObservation, ModelInputBuildError, ModelInputPolicy, PackageManifest,
+    PaddingPolicy,
 };
 use clap::{Parser, Subcommand};
 use serde::Serialize;
@@ -108,14 +109,14 @@ fn run(command: Command) -> Result<(), CliError> {
         } => {
             let input = read_input(path)?;
             let tokenized = tokenize_fasta_records(&input)?;
-            let model_input = build_model_inputs(
+            let model_input = build_model_inputs_checked(
                 &tokenized,
                 ModelInputPolicy {
                     max_length,
                     pad_token_id,
                     padding: padding.into(),
                 },
-            );
+            )?;
             print_success(Some(stable_input_hash(&input)), model_input)?;
         }
         Command::Package { command } => match command {
@@ -317,6 +318,7 @@ enum ErrorLocationValue {
 #[derive(Debug)]
 enum CliError {
     Core(BioRsError),
+    ModelInput(ModelInputBuildError),
     Json(serde_json::Error),
     CurrentDir(std::io::Error),
     Read {
@@ -335,6 +337,7 @@ impl CliError {
     const fn code(&self) -> &'static str {
         match self {
             Self::Core(error) => error.code(),
+            Self::ModelInput(_) => "model_input.invalid_sequence",
             Self::Json(_) => "json.invalid",
             Self::CurrentDir(_) => "io.read_failed",
             Self::Read { .. } => "io.read_failed",
@@ -346,6 +349,9 @@ impl CliError {
     fn location(&self) -> Option<ErrorLocationValue> {
         match self {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
+            Self::ModelInput(ModelInputBuildError::InvalidTokenizedSequence { id, .. }) => {
+                Some(ErrorLocationValue::Label(id.clone()))
+            }
             Self::Read { path, .. } => Some(ErrorLocationValue::Label(path.display().to_string())),
             Self::Validation { location, .. } => location.clone().map(ErrorLocationValue::Label),
             Self::Json(_) | Self::CurrentDir(_) | Self::Serialization(_) => None,
@@ -354,7 +360,7 @@ impl CliError {
 
     const fn exit_code(&self) -> i32 {
         match self {
-            Self::Core(_) | Self::Json(_) | Self::Validation { .. } => 2,
+            Self::Core(_) | Self::ModelInput(_) | Self::Json(_) | Self::Validation { .. } => 2,
             Self::Read { .. } | Self::CurrentDir(_) | Self::Serialization(_) => 1,
         }
     }
@@ -364,6 +370,7 @@ impl std::fmt::Display for CliError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Core(error) => write!(f, "{error}"),
+            Self::ModelInput(error) => write!(f, "{error}"),
             Self::Json(error) => write!(f, "{error}"),
             Self::CurrentDir(error) => write!(f, "failed to determine current directory: {error}"),
             Self::Read { path, source } => {
@@ -380,6 +387,12 @@ impl std::error::Error for CliError {}
 impl From<BioRsError> for CliError {
     fn from(error: BioRsError) -> Self {
         Self::Core(error)
+    }
+}
+
+impl From<ModelInputBuildError> for CliError {
+    fn from(error: ModelInputBuildError) -> Self {
+        Self::ModelInput(error)
     }
 }
 

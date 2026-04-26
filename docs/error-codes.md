@@ -13,6 +13,10 @@ Error codes are stable identifiers for CLI JSON error mode.
 - `json.invalid`: JSON input could not be decoded
 - `json.serialization_failed`: CLI output could not be serialized
 
+## Model Input
+
+- `model_input.invalid_sequence`: a tokenized sequence still contains warnings or errors and cannot be emitted as model-ready input safely
+
 ## I/O
 
 - `io.read_failed`: input path or stdin could not be read

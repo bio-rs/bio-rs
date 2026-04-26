@@ -15,6 +15,7 @@ This document records the frozen `0.9.1` CLI and JSON contract surface before
 - `biors package verify <manifest> <observations>`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
+It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 
 Manifest-relative paths are resolved against the manifest file's parent directory. If the manifest is read from stdin, relative paths are resolved against the current working directory.
 

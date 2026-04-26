@@ -1,7 +1,7 @@
 use biors_core::{
-    build_model_inputs, parse_fasta_records, tokenize_fasta_records, validate_fasta_input,
-    BioRsError, ModelInputPolicy, PaddingPolicy, ProteinSequence, ProteinTokenizer, Tokenizer,
-    UnknownTokenPolicy,
+    build_model_inputs, build_model_inputs_checked, parse_fasta_records, tokenize_fasta_records,
+    validate_fasta_input, BioRsError, ModelInputBuildError, ModelInputPolicy, PaddingPolicy,
+    ProteinSequence, ProteinTokenizer, Tokenizer, UnknownTokenPolicy,
 };
 
 #[test]
@@ -108,4 +108,27 @@ fn preserves_unpadded_model_input_when_no_padding_is_requested() {
     assert_eq!(model_input.records[0].input_ids, vec![0, 1]);
     assert_eq!(model_input.records[0].attention_mask, vec![1, 1]);
     assert!(!model_input.records[0].truncated);
+}
+
+#[test]
+fn rejects_model_input_for_sequences_with_ambiguous_or_invalid_residues() {
+    let tokenized = tokenize_fasta_records(">seq1\nAX*\n").expect("valid FASTA envelope");
+    let error = build_model_inputs_checked(
+        &tokenized,
+        ModelInputPolicy {
+            max_length: 8,
+            pad_token_id: 0,
+            padding: PaddingPolicy::FixedLength,
+        },
+    )
+    .expect_err("invalid tokenized sequence should not become model-ready input");
+
+    assert_eq!(
+        error,
+        ModelInputBuildError::InvalidTokenizedSequence {
+            id: "seq1".to_string(),
+            warning_count: 1,
+            error_count: 1,
+        }
+    );
 }

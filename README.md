@@ -109,6 +109,7 @@ Current v0.9.1 capabilities:
 - attention masks
 - padding/truncation policy
 - `model-input` CLI output
+- model-input safety checks for unresolved residues
 - package manifest inspect/validate
 - runtime bridge planning reports
 - manifest-relative asset validation

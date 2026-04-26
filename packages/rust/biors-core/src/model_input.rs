@@ -1,5 +1,6 @@
 use crate::TokenizedProtein;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ModelInputPolicy {
@@ -29,6 +30,15 @@ pub struct ModelInputRecord {
     pub truncated: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ModelInputBuildError {
+    InvalidTokenizedSequence {
+        id: String,
+        warning_count: usize,
+        error_count: usize,
+    },
+}
+
 pub fn build_model_inputs(tokenized: &[TokenizedProtein], policy: ModelInputPolicy) -> ModelInput {
     let records = tokenized
         .iter()
@@ -36,6 +46,23 @@ pub fn build_model_inputs(tokenized: &[TokenizedProtein], policy: ModelInputPoli
         .collect();
 
     ModelInput { policy, records }
+}
+
+pub fn build_model_inputs_checked(
+    tokenized: &[TokenizedProtein],
+    policy: ModelInputPolicy,
+) -> Result<ModelInput, ModelInputBuildError> {
+    for record in tokenized {
+        if !record.warnings.is_empty() || !record.errors.is_empty() {
+            return Err(ModelInputBuildError::InvalidTokenizedSequence {
+                id: record.id.clone(),
+                warning_count: record.warnings.len(),
+                error_count: record.errors.len(),
+            });
+        }
+    }
+
+    Ok(build_model_inputs(tokenized, policy))
 }
 
 fn model_input_from_tokenized(
@@ -65,3 +92,20 @@ fn model_input_from_tokenized(
         truncated,
     }
 }
+
+impl fmt::Display for ModelInputBuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidTokenizedSequence {
+                id,
+                warning_count,
+                error_count,
+            } => write!(
+                f,
+                "sequence '{id}' is not model-ready: {warning_count} warnings and {error_count} errors must be resolved before building model input"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for ModelInputBuildError {}

@@ -9,7 +9,8 @@ pub mod verification;
 pub use error::{BioRsError, ErrorLocation};
 pub use fasta::{parse_fasta_records, validate_fasta_input};
 pub use model_input::{
-    build_model_inputs, ModelInput, ModelInputPolicy, ModelInputRecord, PaddingPolicy,
+    build_model_inputs, build_model_inputs_checked, ModelInput, ModelInputBuildError,
+    ModelInputPolicy, ModelInputRecord, PaddingPolicy,
 };
 pub use package::{
     inspect_package_manifest, is_sha256_checksum, plan_runtime_bridge, read_package_file,
