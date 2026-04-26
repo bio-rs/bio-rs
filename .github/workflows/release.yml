@@ -8,7 +8,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   release-readiness:
@@ -34,3 +34,23 @@ jobs:
         run: cargo publish -p biors-core --token ${{ secrets.CRATES_IO_TOKEN }}
       - name: Publish biors
         run: cargo publish -p biors --token ${{ secrets.CRATES_IO_TOKEN }}
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish-crates
+    steps:
+      - name: Create release if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "GitHub release already exists for $TAG_NAME"
+            exit 0
+          fi
+
+          gh release create "$TAG_NAME" \
+            --title "bio-rs ${TAG_NAME#v}" \
+            --generate-notes
