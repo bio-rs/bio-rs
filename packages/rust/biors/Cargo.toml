@@ -16,4 +16,5 @@ path = "src/main.rs"
 [dependencies]
 biors-core.workspace = true
 clap.workspace = true
+serde.workspace = true
 serde_json.workspace = true

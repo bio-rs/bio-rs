@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/inspect-output.v0.json",
+  "title": "bio-rs inspect data payload",
+  "type": "object",
+  "required": ["records", "total_length", "valid_records", "warning_count", "error_count"],
+  "properties": {
+    "records": { "type": "integer", "minimum": 0 },
+    "total_length": { "type": "integer", "minimum": 0 },
+    "valid_records": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false
+}

@@ -10,17 +10,24 @@ fn manifest() -> PackageManifest {
         model: biors_core::ModelArtifact {
             format: "onnx".to_string(),
             path: "models/protein-seed.onnx".to_string(),
+            checksum: None,
         },
+        tokenizer: None,
+        vocab: None,
         preprocessing: vec![],
         postprocessing: vec![],
         runtime: RuntimeTarget {
             backend: "onnx-webgpu".to_string(),
             target: "browser-wasm-webgpu".to_string(),
         },
+        expected_input: None,
+        expected_output: None,
         fixtures: vec![PackageFixture {
             name: "tiny-protein".to_string(),
             input: "fixtures/tiny.fasta".to_string(),
             expected_output: "fixtures/tiny.output.json".to_string(),
+            input_hash: None,
+            expected_output_hash: None,
         }],
     }
 }
@@ -74,5 +81,13 @@ fn reports_missing_fixture_outputs() {
     assert_eq!(
         report.results[0].issue,
         Some("missing observation for fixture 'tiny-protein'".to_string())
+    );
+}
+
+#[test]
+fn computes_stable_fixture_hashes() {
+    assert_eq!(
+        biors_core::stable_input_hash(">seq1\nACDE\n"),
+        "fnv1a64:08a331cb13c7bd72"
     );
 }

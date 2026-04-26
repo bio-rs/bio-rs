@@ -4,11 +4,11 @@ One or two sentences describing what this release makes possible.
 
 ## Changes
 
-- 
+-
 
 ## Current capabilities
 
-- 
+-
 
 ## Documentation
 
@@ -24,7 +24,7 @@ One or two sentences describing what this release makes possible.
 
 ## Closed issues
 
-- 
+-
 
 ## Next
 

@@ -34,5 +34,3 @@ Expected output:
 - Does this require a new dependency?
 
 ## Completion criteria
-
-

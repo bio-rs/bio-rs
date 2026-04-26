@@ -5,9 +5,17 @@ pub struct PackageManifest {
     pub schema_version: String,
     pub name: String,
     pub model: ModelArtifact,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tokenizer: Option<TokenAsset>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vocab: Option<TokenAsset>,
     pub preprocessing: Vec<PipelineStep>,
     pub postprocessing: Vec<PipelineStep>,
     pub runtime: RuntimeTarget,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_input: Option<DataShape>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_output: Option<DataShape>,
     pub fixtures: Vec<PackageFixture>,
 }
 
@@ -15,6 +23,18 @@ pub struct PackageManifest {
 pub struct ModelArtifact {
     pub format: String,
     pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checksum: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TokenAsset {
+    pub name: String,
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checksum: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contract_version: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -22,6 +42,8 @@ pub struct PipelineStep {
     pub name: String,
     pub implementation: String,
     pub contract: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contract_version: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,6 +57,16 @@ pub struct PackageFixture {
     pub name: String,
     pub input: String,
     pub expected_output: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_hash: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_output_hash: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DataShape {
+    pub shape: Vec<String>,
+    pub dtype: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -42,6 +74,9 @@ pub struct PackageManifestSummary {
     pub schema_version: String,
     pub name: String,
     pub model_format: String,
+    pub has_model_checksum: bool,
+    pub tokenizer: Option<String>,
+    pub vocab: Option<String>,
     pub runtime_backend: String,
     pub runtime_target: String,
     pub preprocessing_steps: usize,
@@ -69,6 +104,12 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
         schema_version: manifest.schema_version.clone(),
         name: manifest.name.clone(),
         model_format: manifest.model.format.clone(),
+        has_model_checksum: manifest.model.checksum.is_some(),
+        tokenizer: manifest
+            .tokenizer
+            .as_ref()
+            .map(|tokenizer| tokenizer.name.clone()),
+        vocab: manifest.vocab.as_ref().map(|vocab| vocab.name.clone()),
         runtime_backend: manifest.runtime.backend.clone(),
         runtime_target: manifest.runtime.target.clone(),
         preprocessing_steps: manifest.preprocessing.len(),
@@ -81,6 +122,12 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     let mut issues = Vec::new();
 
     push_required_issue(&mut issues, "schema_version", &manifest.schema_version);
+    if manifest.schema_version != "biors.package.v0" {
+        issues.push(format!(
+            "schema_version '{}' is not supported; expected 'biors.package.v0'",
+            manifest.schema_version
+        ));
+    }
     push_required_issue(&mut issues, "name", &manifest.name);
     push_required_issue(&mut issues, "model.format", &manifest.model.format);
     push_required_issue(&mut issues, "model.path", &manifest.model.path);
@@ -107,6 +154,14 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
             &format!("fixtures[{index}].expected_output"),
             &fixture.expected_output,
         );
+    }
+
+    if let Some(input) = &manifest.expected_input {
+        validate_shape(&mut issues, "expected_input", input);
+    }
+
+    if let Some(output) = &manifest.expected_output {
+        validate_shape(&mut issues, "expected_output", output);
     }
 
     PackageValidationReport {
@@ -148,4 +203,11 @@ fn push_required_issue(issues: &mut Vec<String>, field: &str, value: &str) {
     if value.trim().is_empty() {
         issues.push(format!("{field} is required"));
     }
+}
+
+fn validate_shape(issues: &mut Vec<String>, field: &str, shape: &DataShape) {
+    if shape.shape.is_empty() {
+        issues.push(format!("{field}.shape must include at least one dimension"));
+    }
+    push_required_issue(issues, &format!("{field}.dtype"), &shape.dtype);
 }

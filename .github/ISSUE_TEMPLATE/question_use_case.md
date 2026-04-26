@@ -16,5 +16,3 @@ assignees: ""
 
 
 ## Useful input/output examples
-
-

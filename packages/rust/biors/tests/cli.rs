@@ -21,8 +21,16 @@ fn tokenize_multi_fasta_outputs_json_array() {
     );
 
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
-    let records = value.as_array().expect("multi-FASTA output is an array");
+    let records = value["data"]
+        .as_array()
+        .expect("multi-FASTA output is an array");
 
+    assert_eq!(value["ok"], true);
+    assert_eq!(value["biors_version"], env!("CARGO_PKG_VERSION"));
+    assert!(value["input_hash"]
+        .as_str()
+        .expect("input hash")
+        .starts_with("fnv1a64:"));
     assert_eq!(records.len(), 2);
     assert_eq!(records[0]["id"], "seq1");
     assert_eq!(records[1]["id"], "seq2");
@@ -32,7 +40,9 @@ fn tokenize_multi_fasta_outputs_json_array() {
 fn tokenize_stdin_outputs_json_array() {
     let output = run_with_stdin("tokenize", ">seq1\nACDE\n");
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
-    let records = value.as_array().expect("tokenize output is an array");
+    let records = value["data"]
+        .as_array()
+        .expect("tokenize output is an array");
 
     assert_eq!(records.len(), 1);
     assert_eq!(records[0]["id"], "seq1");
@@ -44,11 +54,34 @@ fn inspect_stdin_outputs_json_summary() {
     let output = run_with_stdin("inspect", ">seq1\nACX\n>seq2\nM*\n");
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
 
-    assert_eq!(value["records"], 2);
-    assert_eq!(value["total_length"], 5);
-    assert_eq!(value["valid_records"], 0);
-    assert_eq!(value["warning_count"], 1);
-    assert_eq!(value["error_count"], 1);
+    assert_eq!(value["data"]["records"], 2);
+    assert_eq!(value["data"]["total_length"], 5);
+    assert_eq!(value["data"]["valid_records"], 0);
+    assert_eq!(value["data"]["warning_count"], 1);
+    assert_eq!(value["data"]["error_count"], 1);
+}
+
+#[test]
+fn fasta_validate_outputs_validation_report() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("fasta")
+        .arg("validate")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors fasta validate")
+        .tap_stdin(">seq1\nAX*\n");
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["ok"], true);
+    assert_eq!(value["data"]["records"], 1);
+    assert_eq!(value["data"]["warning_count"], 1);
+    assert_eq!(value["data"]["error_count"], 1);
 }
 
 #[test]
@@ -71,12 +104,13 @@ fn package_inspect_outputs_manifest_summary() {
 
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
 
-    assert_eq!(value["schema_version"], "biors.package.v0");
-    assert_eq!(value["name"], "protein-seed");
-    assert_eq!(value["model_format"], "onnx");
-    assert_eq!(value["runtime_backend"], "onnx-webgpu");
-    assert_eq!(value["runtime_target"], "browser-wasm-webgpu");
-    assert_eq!(value["fixtures"], 1);
+    assert_eq!(value["data"]["schema_version"], "biors.package.v0");
+    assert_eq!(value["data"]["name"], "protein-seed");
+    assert_eq!(value["data"]["model_format"], "onnx");
+    assert_eq!(value["data"]["has_model_checksum"], true);
+    assert_eq!(value["data"]["runtime_backend"], "onnx-webgpu");
+    assert_eq!(value["data"]["runtime_target"], "browser-wasm-webgpu");
+    assert_eq!(value["data"]["fixtures"], 1);
 }
 
 #[test]
@@ -84,6 +118,7 @@ fn package_validate_fails_invalid_manifest() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("package")
         .arg("validate")
+        .arg("--json")
         .arg("-")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -111,15 +146,17 @@ fn package_validate_fails_invalid_manifest() {
         String::from_utf8_lossy(&output.stdout)
     );
 
-    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert!(output.stderr.is_empty());
 
-    assert_eq!(value["valid"], false);
-    assert_eq!(value["issues"][0], "name is required");
-    assert_eq!(value["issues"][1], "model.path is required");
-    assert_eq!(
-        value["issues"][2],
-        "fixtures must include at least one fixture"
-    );
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+
+    assert_eq!(value["ok"], false);
+    assert_eq!(value["error"]["code"], "package.validation_failed");
+    assert_eq!(value["error"]["location"], "manifest");
+    assert!(value["error"]["message"]
+        .as_str()
+        .expect("message")
+        .contains("name is required"));
 }
 
 #[test]
@@ -142,12 +179,12 @@ fn package_bridge_outputs_runtime_plan() {
 
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
 
-    assert_eq!(value["ready"], true);
-    assert_eq!(value["backend"], "onnx-webgpu");
-    assert_eq!(value["target"], "browser-wasm-webgpu");
-    assert_eq!(value["execution_provider"], "webgpu");
+    assert_eq!(value["data"]["ready"], true);
+    assert_eq!(value["data"]["backend"], "onnx-webgpu");
+    assert_eq!(value["data"]["target"], "browser-wasm-webgpu");
+    assert_eq!(value["data"]["execution_provider"], "webgpu");
     assert_eq!(
-        value["blocking_issues"]
+        value["data"]["blocking_issues"]
             .as_array()
             .expect("issues array")
             .len(),
@@ -177,11 +214,71 @@ fn package_verify_outputs_fixture_report() {
 
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
 
-    assert_eq!(value["package"], "protein-seed");
-    assert_eq!(value["fixtures"], 1);
-    assert_eq!(value["passed"], 1);
-    assert_eq!(value["failed"], 0);
-    assert_eq!(value["results"][0]["status"], "passed");
+    assert_eq!(value["data"]["package"], "protein-seed");
+    assert_eq!(value["data"]["fixtures"], 1);
+    assert_eq!(value["data"]["passed"], 1);
+    assert_eq!(value["data"]["failed"], 0);
+    assert_eq!(value["data"]["results"][0]["status"], "passed");
+}
+
+#[test]
+fn json_error_mode_outputs_contract_shape() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("tokenize")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors tokenize")
+        .tap_stdin("ACDE\n");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["ok"], false);
+    assert_eq!(value["error"]["code"], "fasta.missing_header");
+    assert_eq!(value["error"]["location"]["line"], 1);
+}
+
+#[test]
+fn human_error_mode_uses_stderr_and_exit_code() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("tokenize")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors tokenize")
+        .tap_stdin("ACDE\n");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("error: FASTA input"));
+}
+
+#[test]
+fn public_behavior_snapshot_for_tokenize_stdout() {
+    let output = run_with_stdin("tokenize", ">seq1\nACDE\n");
+    let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
+
+    assert_eq!(
+        value["data"],
+        serde_json::json!([
+            {
+                "id": "seq1",
+                "length": 4,
+                "alphabet": "protein-20",
+                "valid": true,
+                "tokens": [0, 1, 2, 3],
+                "warnings": [],
+                "errors": []
+            }
+        ])
+    );
 }
 
 fn run_with_stdin(command: &str, input: &str) -> Vec<u8> {
