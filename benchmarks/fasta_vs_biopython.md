@@ -1,12 +1,13 @@
-# FASTA parse+tokenize benchmark (biors v0.8.1 vs Biopython)
+# FASTA benchmark baseline (biors v0.8.1 vs Biopython)
 
 This repository should not make unverified performance claims.
 
-This benchmark is intended as a reproducible baseline, not a final/permanent claim.
+This benchmark is intended as a reproducible baseline on a realistic proteome-scale
+dataset, not a final/permanent speed claim.
 
 ## Environment
 
-- Date: 2026-04-25 (UTC)
+- Date: 2026-04-26 (UTC)
 - Input: **UniProt human reference proteome**
   - Proteome ID: `UP000005640`
   - Taxonomy ID: `9606` (Homo sapiens)
@@ -17,8 +18,12 @@ This benchmark is intended as a reproducible baseline, not a final/permanent cla
   - Canonical protein-20 residues: 11,456,623
   - Ambiguous residues (`X/B/Z/J/U/O`): 79
   - Invalid residues: 0
-- biors path: `target/release/biors tokenize <input>`
-- Python path: Biopython `SeqIO.parse(..., "fasta")` + protein-20 membership loop
+- Biopython paths:
+  - parse only with `SeqIO.parse(..., "fasta")`
+  - parse + protein-20 membership loop
+- biors CLI paths:
+  - `target/release/biors inspect <input>` summary output
+  - `target/release/biors tokenize <input>` full pretty JSON output
 
 ## Reproduce
 
@@ -33,11 +38,20 @@ cat benchmarks/fasta_vs_biopython.json
 
 From `benchmarks/fasta_vs_biopython.json`:
 
-- Biopython parse+tokenize mean: **1.086s**
-- biors CLI tokenize mean: **1.093s**
+- Biopython parse only mean: **0.054s**
+- Biopython parse + protein-20 token/count loop mean: **0.442s**
+- biors CLI inspect summary output mean: **0.128s**
+- biors CLI tokenize full JSON output mean: **0.285s**
 
 Interpretation for v0.8.1:
 
-- On the UniProt human proteome benchmark above, `biors tokenize` and the Biopython baseline are in a similar throughput range.
-- This is still a single-machine run; avoid broad generalization until repeated runs and broader datasets are tracked.
-- One `biors` run showed a visible outlier (max 1.266s), so median and min should also be considered.
+- The baseline uses the UniProt human reference proteome, which is a realistic
+  protein dataset size for researcher workflows.
+- The split matters: Biopython parse-only timing is not comparable to `biors
+  tokenize`, because `biors tokenize` parses, tokenizes, launches a CLI process,
+  and writes full pretty JSON.
+- On this single-machine run, `biors inspect` gives the closest CLI-level summary
+  timing, while `biors tokenize` measures the additional cost of full JSON output.
+- Treat these numbers as a reproducible bottleneck map for FASTA parsing,
+  token/count work, CLI overhead, and JSON-output overhead. Do not use them as a
+  broad claim that bio-rs is faster than Biopython across FASTA workloads.
