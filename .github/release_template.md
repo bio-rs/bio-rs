@@ -28,5 +28,4 @@ One or two sentences describing what this release makes possible.
 
 ## Next
 
-One sentence describing the next release target without presenting roadmap work
-as current behavior.
+One sentence describing the next release target without presenting roadmap work as current behavior.
