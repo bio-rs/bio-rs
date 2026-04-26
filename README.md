@@ -56,6 +56,16 @@ Use this crate when you need shell-first workflows, scripting, or CI checks.
 
 `0.7.0` capability notes are kept only as release history above; all "current" descriptions in this README are aligned to **0.8.1**.
 
+### Not yet
+
+These are roadmap directions, not current capabilities:
+
+- hosted web workflows
+- Python bindings
+- model inference backends
+- package registry or plugin ecosystem
+- general-purpose chemistry or structure tooling
+
 ## Quickstart
 
 Inspect FASTA records:
@@ -107,6 +117,49 @@ cargo run -p biors -- package verify \
   examples/protein-package/manifest.json \
   examples/protein-package/observations.json
 ```
+
+## Proof asset
+
+This is the smallest reproducible package verification example in the repository.
+
+Command:
+
+```bash
+cargo run -p biors -- package verify \
+  examples/protein-package/manifest.json \
+  examples/protein-package/observations.json
+```
+
+Input:
+
+- package manifest: `examples/protein-package/manifest.json`
+- observed fixture map: `examples/protein-package/observations.json`
+- expected output fixture: `examples/protein-package/fixtures/tiny.output.json`
+
+Output shape:
+
+```json
+{
+  "package": "protein-seed",
+  "fixtures": 1,
+  "passed": 1,
+  "failed": 0,
+  "results": [
+    {
+      "name": "tiny-protein",
+      "input": "fixtures/tiny.fasta",
+      "expected_output": "fixtures/tiny.output.json",
+      "observed_output": "fixtures/tiny.output.json",
+      "status": "passed",
+      "issue": null
+    }
+  ]
+}
+```
+
+This proves that a portable package manifest can point to fixture inputs and
+expected JSON outputs, and that `biors` can check observed outputs against that
+contract. It is a small contract test, not a model inference benchmark.
 
 ## Evidence and benchmarks
 
