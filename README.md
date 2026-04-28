@@ -12,7 +12,7 @@ bio-rs turns biological sequences into validated, model-ready inputs for bio-AI 
 FASTA -> validated protein sequence -> token ids -> model-ready JSON
 ```
 
-> Status: **v0.9.6** — CLI and JSON contract freeze.
+> Status: **v0.9.7** — CLI and JSON contract freeze.
 
 ## Why bio-rs?
 
@@ -109,9 +109,10 @@ shape.
 
 `biors` provides the CLI surface.
 
-Current v0.9.6 capabilities:
+Current v0.9.7 capabilities:
 
 - FASTA parsing and normalization
+- buffered reader APIs for FASTA parse/validate/tokenize paths
 - FASTA validation with line and record-index diagnostics
 - FASTA record identifier validation
 - protein-20 tokenization
@@ -123,7 +124,9 @@ Current v0.9.6 capabilities:
 - padding/truncation policy
 - `model-input` CLI output
 - model-input safety checks for unresolved residues
+- explicit checked and unchecked model-input builders
 - package manifest inspect/validate
+- typed package validation issue codes
 - typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
 - runtime bridge planning reports
 - manifest-relative asset validation
@@ -214,7 +217,7 @@ Success output uses a stable envelope shape:
 ```json
 {
   "ok": true,
-  "biors_version": "0.9.6",
+  "biors_version": "0.9.7",
   "input_hash": "fnv1a64:846a502e5067bc21",
   "data": {}
 }
@@ -259,6 +262,7 @@ Public contract docs:
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
+- [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)
 
 ## Release history
@@ -268,6 +272,7 @@ Delivered:
 - `0.6.0`: package manifest inspect/validate
 - `0.7.0`: runtime bridge planning with `package bridge`
 - `0.8.0`: fixture verification with `package verify`
+- `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
 - `0.9.6`: FASTA identifier validation, model-input policy validation, package path escape rejection, and JSON vocab loading
 - `0.9.5`: core-throughput benchmark harness, matched-workload benchmark refresh, workflow/cache tightening, and git-hook install helper
 - `0.9.4`: tokenizer positional alignment preservation, FASTA single-pass tokenization/validation path, typed package manifest enums, and benchmark refresh

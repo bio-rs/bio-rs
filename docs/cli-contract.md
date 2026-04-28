@@ -1,6 +1,6 @@
 # CLI and JSON Contract
 
-This document records the frozen `0.9.6` CLI and JSON contract surface before
+This document records the frozen `0.9.7` CLI and JSON contract surface before
 `1.0.0`.
 
 ## Commands
@@ -18,6 +18,7 @@ This document records the frozen `0.9.6` CLI and JSON contract surface before
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
+FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 
 Manifest-relative paths are resolved against the manifest file's parent directory. If the manifest is read from stdin, relative paths are resolved against the current working directory.
 Absolute paths and `..` parent traversal are rejected so packages remain portable and self-contained.
@@ -34,7 +35,7 @@ All successful command output is written to stdout as pretty JSON:
 ```json
 {
   "ok": true,
-  "biors_version": "0.9.6",
+  "biors_version": "0.9.7",
   "input_hash": "fnv1a64:...",
   "data": {}
 }
@@ -44,6 +45,8 @@ All successful command output is written to stdout as pretty JSON:
 unless they directly hash a user input contract in a later release.
 
 The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Package manifest checksums and fixture hashes use `sha256:`.
+
+Package validation reports include both the legacy string `issues` list and a typed `structured_issues` list with stable issue codes.
 
 ## JSON Error Mode
 
