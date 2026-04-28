@@ -312,9 +312,17 @@ Run checks:
 scripts/check.sh
 ```
 
+Run the faster local commit gate:
+
+```bash
+scripts/check-fast.sh
+```
+
 The check suite runs:
 
 - `cargo fmt`
+- shell and Python syntax checks for repo scripts
+- benchmark Markdown regeneration check
 - Rust checks
 - `biors-core` `wasm32-unknown-unknown` build check
 - tests
@@ -330,6 +338,10 @@ pip install biopython
 python scripts/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
+
+The benchmark script updates both `benchmarks/fasta_vs_biopython.json` and
+`benchmarks/fasta_vs_biopython.md`. `scripts/check-benchmark-docs.sh` verifies
+that the Markdown report still matches the JSON artifact.
 
 Run the Rust library example:
 
