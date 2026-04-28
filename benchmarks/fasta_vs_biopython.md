@@ -85,26 +85,6 @@ cat benchmarks/fasta_vs_biopython.json
 | Parse + validation | **1.687s** | 4.490s | **2.66x** | **61.1M** | **69.9** |
 | Parse + tokenization | **1.625s** | 4.488s | **2.76x** | **63.4M** | **72.5** |
 
-## Visual comparison
-
-Human proteome throughput:
-
-| Workload | Relative bar |
-| --- | --- |
-| bio-rs parse + validation | `████████████████████` |
-| Biopython parse + validation | `███████` |
-| bio-rs parse + tokenization | `█████████████████████` |
-| Biopython parse + tokenization | `███████` |
-
-Large-scale FASTA throughput:
-
-| Workload | Relative bar |
-| --- | --- |
-| bio-rs parse + validation | `████████████████████` |
-| Biopython parse + validation | `███████` |
-| bio-rs parse + tokenization | `█████████████████████` |
-| Biopython parse + tokenization | `███████` |
-
 ## Raw result scope
 
 The JSON artifact includes all matched workloads, including `pure_parse`. On
