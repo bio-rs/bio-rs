@@ -2,7 +2,7 @@
 
 `biors-core` and `biors` currently ship in lockstep.
 
-This is intentional for the `0.x` stabilization line:
+This is intentional for the pre-1.0 stabilization line:
 
 - the CLI is a thin public wrapper over the core contracts
 - CLI JSON schemas expose core data structures directly
@@ -11,7 +11,7 @@ This is intentional for the `0.x` stabilization line:
 
 Documentation-only changes do not require a version bump or package release.
 
-After `1.0.0`, independent patch releases can be considered only if the change is isolated:
+After the first stable release, independent patch releases can be considered only if the change is isolated:
 
 - CLI-only release: command help text, packaging metadata, or human-readable formatting that does not change JSON contracts or core behavior
 - core-only release: internal library bug fix that does not affect CLI output, schemas, or package verification behavior

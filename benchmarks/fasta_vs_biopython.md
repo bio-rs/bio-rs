@@ -1,4 +1,4 @@
-# FASTA core-throughput benchmark (biors-core v0.9.5 vs Biopython)
+# FASTA core-throughput benchmark
 
 This repository should not make unverified performance claims.
 
@@ -13,6 +13,7 @@ FASTA throughput.
 - CPU: Apple M1 Pro
 - Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
 - Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
+- bio-rs: `biors-core v0.9.5`
 - Python: `3.14.3`
 - Biopython: `1.87`
 

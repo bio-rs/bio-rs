@@ -1,6 +1,6 @@
 # 1.0 Public Contract Candidates
 
-The following surfaces are candidates for stabilization before `1.0.0`.
+The following surfaces are candidates for stabilization before the first stable release.
 
 ## Rust API
 

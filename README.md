@@ -12,7 +12,7 @@ bio-rs turns biological sequences into validated, model-ready inputs for bio-AI 
 FASTA -> validated protein sequence -> token ids -> model-ready JSON
 ```
 
-> Status: **v0.9.7** — CLI and JSON contract freeze.
+> Status: pre-1.0 CLI and JSON contract stabilization.
 
 ## Why bio-rs?
 
@@ -109,7 +109,7 @@ shape.
 
 `biors` provides the CLI surface.
 
-Current v0.9.7 capabilities:
+Current capabilities:
 
 - FASTA parsing and normalization
 - buffered reader APIs for FASTA parse/validate/tokenize paths
@@ -217,7 +217,7 @@ Success output uses a stable envelope shape:
 ```json
 {
   "ok": true,
-  "biors_version": "0.9.7",
+  "biors_version": "0.x.y",
   "input_hash": "fnv1a64:846a502e5067bc21",
   "data": {}
 }
@@ -284,7 +284,7 @@ Delivered:
 
 Next:
 
-- `1.0.0`: stable public contracts and runtime-facing APIs after enough real-world package validation
+- first stable release: stable public contracts and runtime-facing APIs after enough real-world package validation
 
 ## Not yet
 
