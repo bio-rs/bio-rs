@@ -225,6 +225,20 @@ def command_output(command: list[str]) -> str | None:
     return completed.stdout.strip()
 
 
+def cargo_package_version(package_name: str) -> str | None:
+    output = command_output(["cargo", "metadata", "--no-deps", "--format-version", "1"])
+    if output is None:
+        return None
+    try:
+        metadata = json.loads(output)
+    except json.JSONDecodeError:
+        return None
+    for package in metadata.get("packages", []):
+        if package.get("name") == package_name:
+            return str(package.get("version"))
+    return None
+
+
 def benchmark_environment() -> dict[str, str | None]:
     return {
         "os": platform.platform(),
@@ -235,16 +249,16 @@ def benchmark_environment() -> dict[str, str | None]:
         "biopython": Bio.__version__,
         "rustc": command_output(["rustc", "--version"]),
         "cargo": command_output(["cargo", "--version"]),
+        "biors_core": cargo_package_version("biors-core"),
     }
 
 
 def ensure_benchmark_harness() -> Path:
     binary = Path("target") / "release" / "examples" / "benchmark_fasta"
-    if not binary.exists():
-        subprocess.run(
-            ["cargo", "build", "--release", "-p", "biors-core", "--example", "benchmark_fasta"],
-            check=True,
-        )
+    subprocess.run(
+        ["cargo", "build", "--release", "-p", "biors-core", "--example", "benchmark_fasta"],
+        check=True,
+    )
     return binary
 
 

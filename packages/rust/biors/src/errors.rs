@@ -17,6 +17,7 @@ pub(crate) enum CliError {
         source: std::io::Error,
     },
     Serialization(serde_json::Error),
+    Write(std::io::Error),
     Validation {
         code: &'static str,
         message: String,
@@ -45,6 +46,7 @@ impl CliError {
             Self::CurrentDir(_) => "io.read_failed",
             Self::Read { .. } => "io.read_failed",
             Self::Serialization(_) => "json.serialization_failed",
+            Self::Write(_) => "io.write_failed",
             Self::Validation { code, .. } => code,
         }
     }
@@ -58,7 +60,7 @@ impl CliError {
             }
             Self::Read { path, .. } => Some(ErrorLocationValue::Label(path.display().to_string())),
             Self::Validation { location, .. } => location.clone().map(ErrorLocationValue::Label),
-            Self::Json(_) | Self::CurrentDir(_) | Self::Serialization(_) => None,
+            Self::Json(_) | Self::CurrentDir(_) | Self::Serialization(_) | Self::Write(_) => None,
         }
     }
 
@@ -67,7 +69,7 @@ impl CliError {
             Self::Core(_) | Self::ModelInput(_) | Self::Json(_) | Self::Validation { .. } => {
                 exit_code::USER_INPUT_FAILURE
             }
-            Self::Read { .. } | Self::CurrentDir(_) | Self::Serialization(_) => {
+            Self::Read { .. } | Self::CurrentDir(_) | Self::Serialization(_) | Self::Write(_) => {
                 exit_code::IO_OR_INTERNAL_FAILURE
             }
         }
@@ -92,6 +94,7 @@ impl std::fmt::Display for CliError {
                 write!(f, "failed to read '{}': {source}", path.display())
             }
             Self::Serialization(error) => write!(f, "{error}"),
+            Self::Write(error) => write!(f, "failed to write output: {error}"),
             Self::Validation { message, .. } => write!(f, "{message}"),
         }
     }
