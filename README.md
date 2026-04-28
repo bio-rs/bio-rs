@@ -78,10 +78,10 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.192s** | 0.439s | **2.28x** |
-| Human proteome | Parse + tokenization | **0.185s** | 0.439s | **2.37x** |
-| 100MB+ FASTA | Parse + validation | **1.727s** | 4.021s | **2.33x** |
-| 100MB+ FASTA | Parse + tokenization | **1.658s** | 3.973s | **2.40x** |
+| Human proteome | Parse + validation | **0.191s** | 0.471s | **2.46x** |
+| Human proteome | Parse + tokenization | **0.186s** | 0.471s | **2.54x** |
+| 100MB+ FASTA | Parse + validation | **1.712s** | 4.232s | **2.47x** |
+| 100MB+ FASTA | Parse + tokenization | **1.659s** | 4.238s | **2.55x** |
 
 Benchmark details:
 
@@ -93,7 +93,7 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + tokenization: `62.0M residues/s`, `70.9 MB/s`
+  - human proteome parse + tokenization: `61.7M residues/s`, `70.6 MB/s`
   - 100MB+ FASTA parse + tokenization: `62.2M residues/s`, `71.1 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
