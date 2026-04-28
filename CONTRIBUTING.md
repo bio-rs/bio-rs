@@ -16,6 +16,7 @@ rustup target add wasm32-unknown-unknown
 ```bash
 git clone https://github.com/bio-rs/bio-rs.git
 cd bio-rs
+scripts/install-git-hooks.sh
 cargo build
 ```
 
@@ -72,7 +73,7 @@ Run lint only:
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-## Scope expectations (v0.8.1)
+## Scope expectations (v0.9.5)
 
 Current contribution priority areas:
 
@@ -81,6 +82,27 @@ Current contribution priority areas:
 - manifest validation/reporting clarity
 - fixture verification UX and reporting
 - reproducible benchmark coverage
+
+## Benchmarks
+
+For the reproducible FASTA benchmark:
+
+```bash
+python3 -m venv .venv-bench
+. .venv-bench/bin/activate
+pip install biopython
+python scripts/benchmark_fasta_vs_biopython.py
+```
+
+The benchmark script now compares matched workloads for `biors-core` and
+Biopython:
+
+- pure parse
+- parse plus validation
+- parse plus tokenization
+
+It measures core-library throughput only for bio-rs and excludes CLI startup and
+pretty JSON serialization overhead.
 
 If proposing larger roadmap work, open an issue first to align scope.
 

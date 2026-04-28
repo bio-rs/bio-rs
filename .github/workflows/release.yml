@@ -1,11 +1,16 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
     tags:
       - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -20,6 +25,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
       - name: Run checks
         run: scripts/check.sh
 
@@ -30,10 +37,12 @@ jobs:
     needs: release-readiness
     steps:
       - uses: actions/checkout@v6
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
       - name: Publish biors-core
-        run: cargo publish -p biors-core --token ${{ secrets.CRATES_IO_TOKEN }}
+        run: cargo publish --locked -p biors-core --token ${{ secrets.CRATES_IO_TOKEN }}
       - name: Publish biors
-        run: cargo publish -p biors --token ${{ secrets.CRATES_IO_TOKEN }}
+        run: cargo publish --locked -p biors --token ${{ secrets.CRATES_IO_TOKEN }}
 
   create-github-release:
     name: Create GitHub Release
