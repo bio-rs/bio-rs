@@ -13,7 +13,7 @@ FASTA throughput.
 - CPU: Apple M1 Pro
 - Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
 - Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
-- bio-rs: `biors-core v0.9.5`
+- bio-rs: `biors-core v0.9.8`
 - Python: `3.14.3`
 - Biopython: `1.87`
 
@@ -51,11 +51,15 @@ The benchmark compares the same work on both sides:
 - Parse + Tokenization: parse and produce position-preserving token IDs with an
   explicit unknown-token path for ambiguous or invalid residues
 
-For bio-rs, the script invokes:
+For bio-rs, the script rebuilds and invokes the release benchmark example:
 
 ```bash
-cargo run --release -p biors-core --example benchmark_fasta -- <mode> <input.fasta>
+cargo build --release -p biors-core --example benchmark_fasta
+target/release/examples/benchmark_fasta <mode> <input.fasta>
 ```
+
+The benchmark example uses `biors-core` buffered reader APIs, not the `biors`
+CLI. It excludes CLI startup and success-envelope JSON serialization.
 
 For Biopython, the script performs matched Python loops over `SeqIO.parse(...)`.
 
@@ -76,15 +80,15 @@ cat benchmarks/fasta_vs_biopython.json
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.192s** | 0.495s | **2.57x** | **59.5M** | **68.1** |
-| Parse + tokenization | **0.182s** | 0.499s | **2.74x** | **62.9M** | **71.9** |
+| Parse + validation | **0.179s** | 0.484s | **2.70x** | **64.0M** | **73.2** |
+| Parse + tokenization | **0.173s** | 0.487s | **2.81x** | **66.1M** | **75.6** |
 
 ### Large-scale FASTA
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **1.687s** | 4.490s | **2.66x** | **61.1M** | **69.9** |
-| Parse + tokenization | **1.625s** | 4.488s | **2.76x** | **63.4M** | **72.5** |
+| Parse + validation | **1.631s** | 4.445s | **2.73x** | **63.2M** | **72.3** |
+| Parse + tokenization | **1.538s** | 4.410s | **2.87x** | **67.0M** | **76.6** |
 
 ## Raw result scope
 

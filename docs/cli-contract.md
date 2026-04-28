@@ -93,6 +93,7 @@ The canonical CLI output policy is:
 - field order follows the public Rust response structs
 - stderr is empty for successful commands
 - `--json` errors use stdout and keep stderr empty
+- success envelopes are serialized directly to the stdout writer; the JSON shape is unchanged
 
 ## Package Verification Inputs
 

@@ -78,10 +78,10 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.192s** | 0.495s | **2.57x** |
-| Human proteome | Parse + tokenization | **0.182s** | 0.499s | **2.74x** |
-| 100MB+ FASTA | Parse + validation | **1.687s** | 4.490s | **2.66x** |
-| 100MB+ FASTA | Parse + tokenization | **1.625s** | 4.488s | **2.76x** |
+| Human proteome | Parse + validation | **0.179s** | 0.484s | **2.70x** |
+| Human proteome | Parse + tokenization | **0.173s** | 0.487s | **2.81x** |
+| 100MB+ FASTA | Parse + validation | **1.631s** | 4.445s | **2.73x** |
+| 100MB+ FASTA | Parse + tokenization | **1.538s** | 4.410s | **2.87x** |
 
 Benchmark details:
 
@@ -93,8 +93,8 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + tokenization: `62.9M residues/s`, `71.9 MB/s`
-  - 100MB+ FASTA parse + tokenization: `63.4M residues/s`, `72.5 MB/s`
+  - human proteome parse + tokenization: `66.1M residues/s`, `75.6 MB/s`
+  - 100MB+ FASTA parse + tokenization: `67.0M residues/s`, `76.6 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 
@@ -125,6 +125,7 @@ Current capabilities:
 - `model-input` CLI output
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
+- writer-based CLI success JSON serialization to reduce peak allocations for large outputs
 - package manifest inspect/validate
 - typed package validation issue codes
 - typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
@@ -272,6 +273,7 @@ Delivered:
 - `0.6.0`: package manifest inspect/validate
 - `0.7.0`: runtime bridge planning with `package bridge`
 - `0.8.0`: fixture verification with `package verify`
+- `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
 - `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
 - `0.9.6`: FASTA identifier validation, model-input policy validation, package path escape rejection, and JSON vocab loading
 - `0.9.5`: core-throughput benchmark harness, matched-workload benchmark refresh, workflow/cache tightening, and git-hook install helper

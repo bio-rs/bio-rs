@@ -22,6 +22,7 @@ Error codes are stable identifiers for CLI JSON error mode.
 ## I/O
 
 - `io.read_failed`: input path or stdin could not be read
+- `io.write_failed`: CLI output could not be written to stdout
 
 ## Package
 
