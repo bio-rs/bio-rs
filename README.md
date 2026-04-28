@@ -273,6 +273,7 @@ Public contract docs:
 
 Delivered:
 
+- `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
 - `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
 - `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
 - `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
