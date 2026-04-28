@@ -25,7 +25,8 @@ cargo build
 1. Create a branch from `main`.
 2. Keep changes focused (single concern per PR).
 3. Add or update tests before behavior changes when possible.
-4. Run the full check script before pushing.
+4. Run `scripts/check-fast.sh` while iterating.
+5. Run the full check script before pushing.
 
 ## Choosing an issue
 
@@ -53,6 +54,12 @@ Run the repository check suite:
 
 ```bash
 scripts/check.sh
+```
+
+Run the faster local gate used by `pre-commit`:
+
+```bash
+scripts/check-fast.sh
 ```
 
 Run tests only:
@@ -97,6 +104,13 @@ pip install biopython
 python scripts/benchmark_fasta_vs_biopython.py
 ```
 
+The benchmark script updates both the JSON result artifact and the Markdown
+report. To verify they are synchronized:
+
+```bash
+scripts/check-benchmark-docs.sh
+```
+
 The benchmark script now compares matched workloads for `biors-core` and
 Biopython:
 
@@ -115,6 +129,7 @@ Before opening a PR:
 
 - [ ] Tests added/updated for changed behavior
 - [ ] `scripts/check.sh` passes locally
+- [ ] Benchmark report is regenerated when benchmark JSON changes
 - [ ] README/docs updated when public behavior changed
 - [ ] Benchmarks updated when making performance claims
 - [ ] PR description explains **what changed** and **why**

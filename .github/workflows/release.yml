@@ -39,8 +39,27 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
+      - name: Dry-run publish biors-core
+        run: cargo publish --locked -p biors-core --dry-run
+      - name: Dry-run publish biors
+        run: cargo publish --locked -p biors --dry-run
       - name: Publish biors-core
         run: cargo publish --locked -p biors-core --token ${{ secrets.CRATES_IO_TOKEN }}
+      - name: Wait for biors-core index
+        run: |
+          version="$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"] == "biors-core"))')"
+
+          for attempt in $(seq 1 30); do
+            if cargo search biors-core --limit 1 | grep -q "biors-core = \"$version\""; then
+              exit 0
+            fi
+            echo "biors-core $version not visible in crates index yet; attempt $attempt/30"
+            sleep 10
+          done
+
+          echo "biors-core $version did not appear in crates index in time" >&2
+          exit 1
       - name: Publish biors
         run: cargo publish --locked -p biors --token ${{ secrets.CRATES_IO_TOKEN }}
 

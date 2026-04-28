@@ -13,9 +13,11 @@ FASTA throughput.
 - CPU: Apple M1 Pro
 - Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
 - Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
-- bio-rs: `biors-core v0.9.8`
+- bio-rs: `biors-core v0.10.0`
 - Python: `3.14.3`
 - Biopython: `1.87`
+- Git commit: `cea64fe41694535006eb4c2584547879d7462a75`
+- Benchmark schema: `biors.benchmark.fasta_vs_biopython.v1`
 
 ## Datasets
 
@@ -44,6 +46,8 @@ dataset's annotation quirks.
 
 ## Workload matching
 
+Scope: core library FASTA throughput, excluding CLI startup and success-envelope JSON serialization.
+
 The benchmark compares the same work on both sides:
 
 - Pure Parse: read FASTA records and count records/residues
@@ -63,6 +67,12 @@ CLI. It excludes CLI startup and success-envelope JSON serialization.
 
 For Biopython, the script performs matched Python loops over `SeqIO.parse(...)`.
 
+Each benchmark case records the input FASTA SHA-256, an output hash of the
+warmup result, timed iterations, throughput, and best-effort memory metadata.
+On macOS, memory uses `/usr/bin/time -l` peak RSS for separate bio-rs
+and Biopython subprocesses. Treat memory as run metadata, not a universal
+memory-efficiency claim across every FASTA workload.
+
 ## Reproduce
 
 ```bash
@@ -78,17 +88,17 @@ cat benchmarks/fasta_vs_biopython.json
 
 ### Human proteome
 
-| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.179s** | 0.484s | **2.70x** | **64.0M** | **73.2** |
-| Parse + tokenization | **0.173s** | 0.487s | **2.81x** | **66.1M** | **75.6** |
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **0.192s** | 0.439s | **2.28x** | **59.6M** | **68.1** | 56.1 MB | 43.8 MB |
+| Parse + tokenization | **0.185s** | 0.439s | **2.37x** | **62.0M** | **70.9** | 40.1 MB | 43.7 MB |
 
 ### Large-scale FASTA
 
-| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **1.631s** | 4.445s | **2.73x** | **63.2M** | **72.3** |
-| Parse + tokenization | **1.538s** | 4.410s | **2.87x** | **67.0M** | **76.6** |
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **1.727s** | 4.021s | **2.33x** | **59.7M** | **68.3** | 476.7 MB | 43.9 MB |
+| Parse + tokenization | **1.658s** | 3.973s | **2.40x** | **62.2M** | **71.1** | 334.5 MB | 43.8 MB |
 
 ## Raw result scope
 

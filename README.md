@@ -78,10 +78,10 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.179s** | 0.484s | **2.70x** |
-| Human proteome | Parse + tokenization | **0.173s** | 0.487s | **2.81x** |
-| 100MB+ FASTA | Parse + validation | **1.631s** | 4.445s | **2.73x** |
-| 100MB+ FASTA | Parse + tokenization | **1.538s** | 4.410s | **2.87x** |
+| Human proteome | Parse + validation | **0.192s** | 0.439s | **2.28x** |
+| Human proteome | Parse + tokenization | **0.185s** | 0.439s | **2.37x** |
+| 100MB+ FASTA | Parse + validation | **1.727s** | 4.021s | **2.33x** |
+| 100MB+ FASTA | Parse + tokenization | **1.658s** | 3.973s | **2.40x** |
 
 Benchmark details:
 
@@ -93,8 +93,8 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + tokenization: `66.1M residues/s`, `75.6 MB/s`
-  - 100MB+ FASTA parse + tokenization: `67.0M residues/s`, `76.6 MB/s`
+  - human proteome parse + tokenization: `62.0M residues/s`, `70.9 MB/s`
+  - 100MB+ FASTA parse + tokenization: `62.2M residues/s`, `71.1 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 
@@ -273,6 +273,7 @@ Public contract docs:
 
 Delivered:
 
+- `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
 - `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
 - `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
 - `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
@@ -312,9 +313,17 @@ Run checks:
 scripts/check.sh
 ```
 
+Run the faster local commit gate:
+
+```bash
+scripts/check-fast.sh
+```
+
 The check suite runs:
 
 - `cargo fmt`
+- shell and Python syntax checks for repo scripts
+- benchmark Markdown regeneration check
 - Rust checks
 - `biors-core` `wasm32-unknown-unknown` build check
 - tests
@@ -330,6 +339,10 @@ pip install biopython
 python scripts/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
+
+The benchmark script updates both `benchmarks/fasta_vs_biopython.json` and
+`benchmarks/fasta_vs_biopython.md`. `scripts/check-benchmark-docs.sh` verifies
+that the Markdown report still matches the JSON artifact.
 
 Run the Rust library example:
 
