@@ -2,8 +2,10 @@ use crate::sequence::{
     normalize_sequence, ProteinSequence, ResidueIssue, ValidatedSequence, AMBIGUOUS_RESIDUES,
     PROTEIN_20, PROTEIN_20_RESIDUES,
 };
+use crate::verification::StableInputHasher;
 use crate::BioRsError;
 use serde::{Deserialize, Serialize};
+use std::io::BufRead;
 
 pub trait Tokenizer {
     fn alphabet(&self) -> &'static str;
@@ -94,12 +96,32 @@ pub struct ProteinBatchSummary {
     pub error_count: usize,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TokenizedFastaInput {
+    pub input_hash: String,
+    pub records: Vec<TokenizedProtein>,
+}
+
 pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
     let analyzed = analyze_fasta_records(input)?;
     Ok(analyzed
         .into_iter()
         .map(|record| record.tokenized)
         .collect())
+}
+
+pub fn tokenize_fasta_records_reader<R: BufRead>(
+    reader: R,
+) -> Result<TokenizedFastaInput, crate::FastaReadError> {
+    let analyzed = analyze_fasta_records_reader(reader)?;
+    Ok(TokenizedFastaInput {
+        input_hash: analyzed.input_hash,
+        records: analyzed
+            .records
+            .into_iter()
+            .map(|record| record.tokenized)
+            .collect(),
+    })
 }
 
 pub fn summarize_tokenized_proteins(proteins: &[TokenizedProtein]) -> ProteinBatchSummary {
@@ -152,6 +174,12 @@ fn protein_20_token(residue: char) -> Option<u8> {
 pub(crate) struct AnalyzedProtein {
     pub protein: ProteinSequence,
     pub tokenized: TokenizedProtein,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct AnalyzedFastaInput {
+    pub input_hash: String,
+    pub records: Vec<AnalyzedProtein>,
 }
 
 pub(crate) fn analyze_fasta_records(input: &str) -> Result<Vec<AnalyzedProtein>, BioRsError> {
@@ -233,6 +261,101 @@ pub(crate) fn analyze_fasta_records(input: &str) -> Result<Vec<AnalyzedProtein>,
     )?;
 
     Ok(records)
+}
+
+pub(crate) fn analyze_fasta_records_reader<R: BufRead>(
+    mut reader: R,
+) -> Result<AnalyzedFastaInput, crate::FastaReadError> {
+    let mut records = Vec::new();
+    let mut current_id: Option<String> = None;
+    let mut current_sequence = String::new();
+    let mut current_tokens = Vec::new();
+    let mut current_warnings = Vec::new();
+    let mut current_errors = Vec::new();
+    let mut current_header_line = 0;
+    let mut current_record_index = 0;
+    let mut current_length = 0usize;
+    let mut line_number = 0usize;
+    let mut hasher = StableInputHasher::new();
+    let mut raw_line = String::new();
+
+    loop {
+        raw_line.clear();
+        let bytes = reader.read_line(&mut raw_line)?;
+        if bytes == 0 {
+            break;
+        }
+        line_number += 1;
+        hasher.update(raw_line.as_bytes());
+        let line = raw_line.trim();
+
+        if line.is_empty() {
+            continue;
+        }
+
+        if let Some(header) = line.strip_prefix('>') {
+            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
+                line: line_number,
+                record_index: current_record_index,
+            })?;
+            if let Some(id) = current_id.replace(next_id) {
+                push_analyzed_record(
+                    &mut records,
+                    id,
+                    &mut current_sequence,
+                    &mut current_tokens,
+                    &mut current_warnings,
+                    &mut current_errors,
+                    &mut current_length,
+                    current_header_line,
+                    current_record_index,
+                )?;
+                current_record_index += 1;
+            }
+            current_header_line = line_number;
+        } else {
+            if current_id.is_none() {
+                return Err(BioRsError::MissingHeader { line: line_number }.into());
+            }
+
+            for residue in normalize_sequence(line).chars() {
+                current_length += 1;
+                current_sequence.push(residue);
+                let position = current_length;
+                if let Some(token) = protein_20_token(residue) {
+                    current_tokens.push(token);
+                } else if AMBIGUOUS_RESIDUES.contains(&residue) {
+                    current_tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
+                    current_warnings.push(ResidueIssue { residue, position });
+                } else {
+                    current_tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
+                    current_errors.push(ResidueIssue { residue, position });
+                }
+            }
+        }
+    }
+
+    if line_number == 0 || records.is_empty() && current_id.is_none() {
+        return Err(BioRsError::EmptyInput.into());
+    }
+
+    let id = current_id.ok_or(BioRsError::MissingHeader { line: 1 })?;
+    push_analyzed_record(
+        &mut records,
+        id,
+        &mut current_sequence,
+        &mut current_tokens,
+        &mut current_warnings,
+        &mut current_errors,
+        &mut current_length,
+        current_header_line,
+        current_record_index,
+    )?;
+
+    Ok(AnalyzedFastaInput {
+        input_hash: hasher.finalize(),
+        records,
+    })
 }
 
 pub(crate) fn validated_sequences_from_analyzed(

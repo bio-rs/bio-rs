@@ -42,13 +42,24 @@ pub enum ModelInputBuildError {
     },
 }
 
-pub fn build_model_inputs(tokenized: &[TokenizedProtein], policy: ModelInputPolicy) -> ModelInput {
+pub fn build_model_inputs_unchecked(
+    tokenized: &[TokenizedProtein],
+    policy: ModelInputPolicy,
+) -> ModelInput {
     let records = tokenized
         .iter()
         .map(|record| model_input_from_tokenized(record, &policy))
         .collect();
 
     ModelInput { policy, records }
+}
+
+#[deprecated(
+    since = "0.9.7",
+    note = "use build_model_inputs_checked for safe output or build_model_inputs_unchecked when unresolved residues are intentional"
+)]
+pub fn build_model_inputs(tokenized: &[TokenizedProtein], policy: ModelInputPolicy) -> ModelInput {
+    build_model_inputs_unchecked(tokenized, policy)
 }
 
 pub fn build_model_inputs_checked(
@@ -67,7 +78,7 @@ pub fn build_model_inputs_checked(
         }
     }
 
-    Ok(build_model_inputs(tokenized, policy))
+    Ok(build_model_inputs_unchecked(tokenized, policy))
 }
 
 pub fn validate_model_input_policy(policy: &ModelInputPolicy) -> Result<(), ModelInputBuildError> {

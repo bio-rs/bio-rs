@@ -87,3 +87,41 @@ impl fmt::Display for BioRsError {
 }
 
 impl std::error::Error for BioRsError {}
+
+#[derive(Debug)]
+pub enum FastaReadError {
+    Parse(BioRsError),
+    Io(std::io::Error),
+}
+
+impl FastaReadError {
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::Parse(error) => error.code(),
+            Self::Io(_) => "io.read_failed",
+        }
+    }
+}
+
+impl fmt::Display for FastaReadError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Parse(error) => write!(f, "{error}"),
+            Self::Io(error) => write!(f, "{error}"),
+        }
+    }
+}
+
+impl std::error::Error for FastaReadError {}
+
+impl From<BioRsError> for FastaReadError {
+    fn from(error: BioRsError) -> Self {
+        Self::Parse(error)
+    }
+}
+
+impl From<std::io::Error> for FastaReadError {
+    fn from(error: std::io::Error) -> Self {
+        Self::Io(error)
+    }
+}

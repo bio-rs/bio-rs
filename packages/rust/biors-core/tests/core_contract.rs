@@ -1,9 +1,11 @@
 use biors_core::{
-    build_model_inputs, build_model_inputs_checked, load_vocab_json, parse_fasta_records,
-    tokenize_fasta_records, validate_fasta_input, BioRsError, ModelInputBuildError,
-    ModelInputPolicy, PaddingPolicy, ProteinSequence, ProteinTokenizer, Tokenizer,
-    UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
+    build_model_inputs_checked, build_model_inputs_unchecked, load_vocab_json, parse_fasta_records,
+    parse_fasta_records_reader, stable_input_hash, tokenize_fasta_records,
+    tokenize_fasta_records_reader, validate_fasta_input, validate_fasta_reader, BioRsError,
+    ModelInputBuildError, ModelInputPolicy, PaddingPolicy, ProteinSequence, ProteinTokenizer,
+    Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
+use std::io::Cursor;
 
 #[test]
 fn parses_crlf_and_ignores_empty_lines() {
@@ -15,6 +17,19 @@ fn parses_crlf_and_ignores_empty_lines() {
             id: "seq1".to_string(),
             sequence: "ACDE".to_string(),
         }]
+    );
+}
+
+#[test]
+fn parses_fasta_from_reader_without_preloading_input() {
+    let input = Cursor::new(">seq1\nAC\n>seq2\nDE\n");
+    let parsed = parse_fasta_records_reader(input).expect("valid FASTA from reader");
+
+    assert_eq!(parsed.records.len(), 2);
+    assert_eq!(parsed.records[0].id, "seq1");
+    assert_eq!(
+        parsed.input_hash,
+        stable_input_hash(">seq1\nAC\n>seq2\nDE\n")
     );
 }
 
@@ -53,6 +68,16 @@ fn validates_sequences_with_ambiguous_residue_policy() {
 
     assert_eq!(report.records, 1);
     assert_eq!(report.valid_records, 0);
+    assert_eq!(report.warning_count, 1);
+    assert_eq!(report.error_count, 1);
+}
+
+#[test]
+fn validates_fasta_from_reader_with_same_contract_as_string_api() {
+    let input = Cursor::new(">seq1\nAX*\n");
+    let report = validate_fasta_reader(input).expect("valid FASTA envelope");
+
+    assert_eq!(report.records, 1);
     assert_eq!(report.warning_count, 1);
     assert_eq!(report.error_count, 1);
 }
@@ -110,9 +135,18 @@ fn tokenizer_preserves_sequence_length_with_unknown_tokens() {
 }
 
 #[test]
+fn tokenizes_fasta_from_reader_and_reports_input_hash() {
+    let raw = ">seq1\nACDE\n";
+    let output = tokenize_fasta_records_reader(Cursor::new(raw)).expect("reader tokenization");
+
+    assert_eq!(output.input_hash, stable_input_hash(raw));
+    assert_eq!(output.records[0].tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
 fn builds_deterministic_model_input_with_attention_mask() {
     let tokenized = tokenize_fasta_records(">seq1\nACDEFG\n").expect("valid FASTA");
-    let model_input = build_model_inputs(
+    let model_input = build_model_inputs_unchecked(
         &tokenized,
         ModelInputPolicy {
             max_length: 4,
@@ -129,7 +163,7 @@ fn builds_deterministic_model_input_with_attention_mask() {
 #[test]
 fn pads_model_input_to_fixed_length() {
     let tokenized = tokenize_fasta_records(">seq1\nAC\n").expect("valid FASTA");
-    let model_input = build_model_inputs(
+    let model_input = build_model_inputs_unchecked(
         &tokenized,
         ModelInputPolicy {
             max_length: 4,
@@ -146,7 +180,7 @@ fn pads_model_input_to_fixed_length() {
 #[test]
 fn preserves_unpadded_model_input_when_no_padding_is_requested() {
     let tokenized = tokenize_fasta_records(">seq1\nAC\n").expect("valid FASTA");
-    let model_input = build_model_inputs(
+    let model_input = build_model_inputs_unchecked(
         &tokenized,
         ModelInputPolicy {
             max_length: 4,

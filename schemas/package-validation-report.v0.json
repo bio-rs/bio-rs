@@ -3,10 +3,33 @@
   "$id": "https://bio-rs.dev/schemas/package-validation-report.v0.json",
   "title": "bio-rs package validation report v0",
   "type": "object",
-  "required": ["valid", "issues"],
+  "required": ["valid", "issues", "structured_issues"],
   "properties": {
     "valid": { "type": "boolean" },
-    "issues": { "type": "array", "items": { "type": "string" } }
+    "issues": { "type": "array", "items": { "type": "string" } },
+    "structured_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "field", "message"],
+        "properties": {
+          "code": {
+            "enum": [
+              "required_field",
+              "missing_fixture",
+              "invalid_shape",
+              "invalid_checksum_format",
+              "checksum_mismatch",
+              "invalid_asset_path",
+              "asset_read_failed"
+            ]
+          },
+          "field": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
   },
   "additionalProperties": false
 }

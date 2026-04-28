@@ -1,7 +1,7 @@
 use biors_core::{
     inspect_package_manifest, plan_runtime_bridge, validate_package_manifest,
-    validate_package_relative_path, ModelFormat, PackageManifest, RuntimeBackend,
-    RuntimeTargetPlatform, SchemaVersion,
+    validate_package_relative_path, ModelFormat, PackageManifest, PackageValidationIssueCode,
+    RuntimeBackend, RuntimeTargetPlatform, SchemaVersion,
 };
 use std::path::Path;
 
@@ -157,6 +157,10 @@ fn rejects_asset_paths_outside_package_root() {
         .issues
         .iter()
         .any(|issue| issue.contains("must stay inside the package root")));
+    assert_eq!(
+        report.structured_issues[0].code,
+        PackageValidationIssueCode::InvalidAssetPath
+    );
 }
 
 #[test]

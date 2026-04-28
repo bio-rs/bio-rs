@@ -92,6 +92,26 @@ pub struct PackageManifestSummary {
 pub struct PackageValidationReport {
     pub valid: bool,
     pub issues: Vec<String>,
+    pub structured_issues: Vec<PackageValidationIssue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PackageValidationIssue {
+    pub code: PackageValidationIssueCode,
+    pub field: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PackageValidationIssueCode {
+    RequiredField,
+    MissingFixture,
+    InvalidShape,
+    InvalidChecksumFormat,
+    ChecksumMismatch,
+    InvalidAssetPath,
+    AssetReadFailed,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -155,45 +175,47 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
 }
 
 pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidationReport {
-    let mut issues = Vec::new();
+    let mut report = PackageValidationReport::default();
 
-    push_required_issue(&mut issues, "name", &manifest.name);
-    push_required_issue(&mut issues, "model.path", &manifest.model.path);
+    push_required_issue(&mut report, "name", &manifest.name);
+    push_required_issue(&mut report, "model.path", &manifest.model.path);
 
     if manifest.fixtures.is_empty() {
-        issues.push("fixtures must include at least one fixture".to_string());
+        report.push_issue(
+            PackageValidationIssueCode::MissingFixture,
+            "fixtures",
+            "fixtures must include at least one fixture",
+        );
     }
 
     for (index, fixture) in manifest.fixtures.iter().enumerate() {
         push_required_issue(
-            &mut issues,
+            &mut report,
             &format!("fixtures[{index}].name"),
             &fixture.name,
         );
         push_required_issue(
-            &mut issues,
+            &mut report,
             &format!("fixtures[{index}].input"),
             &fixture.input,
         );
         push_required_issue(
-            &mut issues,
+            &mut report,
             &format!("fixtures[{index}].expected_output"),
             &fixture.expected_output,
         );
     }
 
     if let Some(input) = &manifest.expected_input {
-        validate_shape(&mut issues, "expected_input", input);
+        validate_shape(&mut report, "expected_input", input);
     }
 
     if let Some(output) = &manifest.expected_output {
-        validate_shape(&mut issues, "expected_output", output);
+        validate_shape(&mut report, "expected_output", output);
     }
 
-    PackageValidationReport {
-        valid: issues.is_empty(),
-        issues,
-    }
+    report.valid = report.structured_issues.is_empty();
+    report
 }
 
 pub fn validate_package_manifest_artifacts(
@@ -202,7 +224,7 @@ pub fn validate_package_manifest_artifacts(
 ) -> PackageValidationReport {
     let mut report = validate_package_manifest(manifest);
     validate_artifact(
-        &mut report.issues,
+        &mut report,
         "model",
         &manifest.model.path,
         manifest.model.checksum.as_deref(),
@@ -211,7 +233,7 @@ pub fn validate_package_manifest_artifacts(
 
     if let Some(tokenizer) = &manifest.tokenizer {
         validate_artifact(
-            &mut report.issues,
+            &mut report,
             "tokenizer",
             &tokenizer.path,
             tokenizer.checksum.as_deref(),
@@ -221,7 +243,7 @@ pub fn validate_package_manifest_artifacts(
 
     if let Some(vocab) = &manifest.vocab {
         validate_artifact(
-            &mut report.issues,
+            &mut report,
             "vocab",
             &vocab.path,
             vocab.checksum.as_deref(),
@@ -231,14 +253,14 @@ pub fn validate_package_manifest_artifacts(
 
     for (index, fixture) in manifest.fixtures.iter().enumerate() {
         validate_artifact(
-            &mut report.issues,
+            &mut report,
             &format!("fixtures[{index}].input"),
             &fixture.input,
             fixture.input_hash.as_deref(),
             base_dir,
         );
         validate_artifact(
-            &mut report.issues,
+            &mut report,
             &format!("fixtures[{index}].expected_output"),
             &fixture.expected_output,
             fixture.expected_output_hash.as_deref(),
@@ -246,7 +268,7 @@ pub fn validate_package_manifest_artifacts(
         );
     }
 
-    report.valid = report.issues.is_empty();
+    report.valid = report.structured_issues.is_empty();
     report
 }
 
@@ -262,15 +284,23 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
     }
 }
 
-fn push_required_issue(issues: &mut Vec<String>, field: &str, value: &str) {
+fn push_required_issue(report: &mut PackageValidationReport, field: &str, value: &str) {
     if value.trim().is_empty() {
-        issues.push(format!("{field} is required"));
+        report.push_issue(
+            PackageValidationIssueCode::RequiredField,
+            field,
+            &format!("{field} is required"),
+        );
     }
 }
 
-fn validate_shape(issues: &mut Vec<String>, field: &str, shape: &DataShape) {
+fn validate_shape(report: &mut PackageValidationReport, field: &str, shape: &DataShape) {
     if shape.shape.is_empty() {
-        issues.push(format!("{field}.shape must include at least one dimension"));
+        report.push_issue(
+            PackageValidationIssueCode::InvalidShape,
+            &format!("{field}.shape"),
+            &format!("{field}.shape must include at least one dimension"),
+        );
     }
 }
 
@@ -334,7 +364,7 @@ pub fn is_sha256_checksum(checksum: &str) -> bool {
 }
 
 fn validate_artifact(
-    issues: &mut Vec<String>,
+    report: &mut PackageValidationReport,
     field: &str,
     path: &str,
     checksum: Option<&str>,
@@ -346,8 +376,17 @@ fn validate_artifact(
 
     if let Some(checksum) = checksum {
         if !is_sha256_checksum(checksum) {
-            issues.push(format!("{field}.checksum must use sha256:<64 hex>"));
+            report.push_issue(
+                PackageValidationIssueCode::InvalidChecksumFormat,
+                &format!("{field}.checksum"),
+                &format!("{field}.checksum must use sha256:<64 hex>"),
+            );
         }
+    }
+
+    if let Err(error) = validate_package_relative_path(path) {
+        report.push_issue(PackageValidationIssueCode::InvalidAssetPath, field, &error);
+        return;
     }
 
     match read_package_file(base_dir, path) {
@@ -356,14 +395,43 @@ fn validate_artifact(
                 if is_sha256_checksum(checksum) {
                     let actual = sha256_digest(&bytes);
                     if actual != checksum {
-                        issues.push(format!(
-                            "{field}.checksum mismatch: expected '{checksum}' but computed '{actual}'"
-                        ));
+                        report.push_issue(
+                            PackageValidationIssueCode::ChecksumMismatch,
+                            &format!("{field}.checksum"),
+                            &format!(
+                                "{field}.checksum mismatch: expected '{checksum}' but computed '{actual}'"
+                            ),
+                        );
                     }
                 }
             }
         }
-        Err(error) => issues.push(format!("{field}: {error}")),
+        Err(error) => report.push_issue(
+            PackageValidationIssueCode::AssetReadFailed,
+            field,
+            &format!("{field}: {error}"),
+        ),
+    }
+}
+
+impl PackageValidationReport {
+    fn push_issue(&mut self, code: PackageValidationIssueCode, field: &str, message: &str) {
+        self.issues.push(message.to_string());
+        self.structured_issues.push(PackageValidationIssue {
+            code,
+            field: field.to_string(),
+            message: message.to_string(),
+        });
+    }
+}
+
+impl Default for PackageValidationReport {
+    fn default() -> Self {
+        Self {
+            valid: true,
+            issues: Vec::new(),
+            structured_issues: Vec::new(),
+        }
     }
 }
 

@@ -5,13 +5,19 @@ The following surfaces are candidates for stabilization before `1.0.0`.
 ## Rust API
 
 - `parse_fasta_records`
+- `parse_fasta_records_reader`
 - `validate_fasta_input`
+- `validate_fasta_reader`
+- `validate_fasta_reader_with_hash`
 - `tokenize_fasta_records`
+- `tokenize_fasta_records_reader`
 - `load_vocab_json`
 - `ProteinTokenizer` and `Tokenizer`
 - `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
+- `build_model_inputs_checked`
+- `build_model_inputs_unchecked`
 - `validate_package_manifest_artifacts`
-- `PackageManifest`, `PackageValidationReport`, `RuntimeBridgeReport`
+- `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `PackageVerificationReport`, `FixtureObservation`
 - `BioRsError::code`
 
