@@ -28,6 +28,7 @@ from pathlib import Path
 
 import Bio
 from Bio import SeqIO
+from render_benchmark_report import render_report
 
 ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 TOKEN_SET = set(ALPHABET)
@@ -367,10 +368,16 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
             **provenance,
             **stats,
             "fasta_sha256": sha256_of_file(fasta_path),
-            "path": str(fasta_path),
+            "path": recorded_dataset_path(fasta_path, provenance),
         },
         "benchmarks": benchmarks,
     }
+
+
+def recorded_dataset_path(fasta_path: Path, provenance: dict) -> str:
+    if provenance.get("source") == "user-provided FASTA":
+        return str(fasta_path)
+    return fasta_path.name
 
 
 def main() -> int:
@@ -418,8 +425,11 @@ def main() -> int:
         }
 
     output_path = Path("benchmarks") / "fasta_vs_biopython.json"
+    report_path = Path("benchmarks") / "fasta_vs_biopython.md"
     output_path.write_text(json.dumps(result, indent=2))
+    report_path.write_text(render_report(result))
     print(f"Wrote benchmark results to {output_path}")
+    print(f"Wrote benchmark report to {report_path}")
     return 0
 
 

@@ -28,7 +28,7 @@
         "invalid_residues": 0,
         "file_size_bytes": 13735476,
         "fasta_sha256": "7272526c282498e7229eefedeb34173a52e9d3c19a046102d93c02c72d20dbef",
-        "path": "/var/folders/qt/qy0nps5d25qftrfx_06xwkpm0000gn/T/tmp10q89nvz/UP000005640_9606.fasta"
+        "path": "UP000005640_9606.fasta"
       },
       "benchmarks": {
         "pure_parse": {
@@ -221,7 +221,7 @@
         "invalid_residues": 0,
         "file_size_bytes": 123619284,
         "fasta_sha256": "1aee653542929e4d8052600c48fe11863584cfb93bfbbaee3de8e7b0231bb410",
-        "path": "/var/folders/qt/qy0nps5d25qftrfx_06xwkpm0000gn/T/tmp10q89nvz/human_proteome_x110.fasta"
+        "path": "human_proteome_x110.fasta"
       },
       "benchmarks": {
         "pure_parse": {
