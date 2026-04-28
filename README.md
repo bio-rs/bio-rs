@@ -78,10 +78,10 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.192s** | 0.439s | **2.28x** |
-| Human proteome | Parse + tokenization | **0.185s** | 0.439s | **2.37x** |
-| 100MB+ FASTA | Parse + validation | **1.727s** | 4.021s | **2.33x** |
-| 100MB+ FASTA | Parse + tokenization | **1.658s** | 3.973s | **2.40x** |
+| Human proteome | Parse + validation | **0.191s** | 0.471s | **2.46x** |
+| Human proteome | Parse + tokenization | **0.186s** | 0.471s | **2.54x** |
+| 100MB+ FASTA | Parse + validation | **1.712s** | 4.232s | **2.47x** |
+| 100MB+ FASTA | Parse + tokenization | **1.659s** | 4.238s | **2.55x** |
 
 Benchmark details:
 
@@ -93,7 +93,7 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + tokenization: `62.0M residues/s`, `70.9 MB/s`
+  - human proteome parse + tokenization: `61.7M residues/s`, `70.6 MB/s`
   - 100MB+ FASTA parse + tokenization: `62.2M residues/s`, `71.1 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
@@ -263,16 +263,23 @@ Tokenization output is record-oriented:
 
 Public contract docs:
 
+- [Quickstart](docs/quickstart.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
+- [1.0 release candidate path](docs/release-candidate-1.0.md)
+- [API and schema review](docs/api-review.md)
+- [MSRV policy draft](docs/msrv.md)
 - [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)
+- [Changelog](CHANGELOG.md)
+- [Citation metadata](CITATION.cff)
 
 ## Release history
 
 Delivered:
 
+- `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and changelog
 - `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
 - `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
 - `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
@@ -398,4 +405,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, checks, and PR expectati
 
 ## License
 
-Dual licensed under MIT OR Apache-2.0.
+Dual licensed under MIT OR Apache-2.0. If you use bio-rs in research software
+or publications, cite the repository and version via [CITATION.cff](CITATION.cff).

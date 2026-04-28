@@ -13,10 +13,10 @@ FASTA throughput.
 - CPU: Apple M1 Pro
 - Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
 - Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
-- bio-rs: `biors-core v0.10.0`
+- bio-rs: `biors-core v0.12.0`
 - Python: `3.14.3`
 - Biopython: `1.87`
-- Git commit: `cea64fe41694535006eb4c2584547879d7462a75`
+- Git commit: `9acf7a1cdd09180da97d62f4ee46c018b661b475`
 - Benchmark schema: `biors.benchmark.fasta_vs_biopython.v1`
 
 ## Datasets
@@ -90,15 +90,15 @@ cat benchmarks/fasta_vs_biopython.json
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.192s** | 0.439s | **2.28x** | **59.6M** | **68.1** | 56.1 MB | 43.8 MB |
-| Parse + tokenization | **0.185s** | 0.439s | **2.37x** | **62.0M** | **70.9** | 40.1 MB | 43.7 MB |
+| Parse + validation | **0.191s** | 0.471s | **2.46x** | **59.8M** | **68.4** | 56.1 MB | 43.8 MB |
+| Parse + tokenization | **0.186s** | 0.471s | **2.54x** | **61.7M** | **70.6** | 40.0 MB | 43.8 MB |
 
 ### Large-scale FASTA
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **1.727s** | 4.021s | **2.33x** | **59.7M** | **68.3** | 476.7 MB | 43.9 MB |
-| Parse + tokenization | **1.658s** | 3.973s | **2.40x** | **62.2M** | **71.1** | 334.5 MB | 43.8 MB |
+| Parse + validation | **1.712s** | 4.232s | **2.47x** | **60.2M** | **68.9** | 476.6 MB | 43.8 MB |
+| Parse + tokenization | **1.659s** | 4.238s | **2.55x** | **62.1M** | **71.1** | 334.4 MB | 43.8 MB |
 
 ## Raw result scope
 

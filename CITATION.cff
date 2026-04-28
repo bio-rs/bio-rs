@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use bio-rs in research software or publications, please cite the repository and the version you used."
+title: "bio-rs"
+type: software
+authors:
+  - name: "Bio.rs contributors"
+repository-code: "https://github.com/bio-rs/bio-rs"
+license: "MIT OR Apache-2.0"
+version: "0.12.0"
