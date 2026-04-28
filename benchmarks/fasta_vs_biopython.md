@@ -1,99 +1,120 @@
-# FASTA benchmark baseline (biors v0.9.4 vs Biopython)
+# FASTA core-throughput benchmark (biors-core v0.9.5 vs Biopython)
 
 This repository should not make unverified performance claims.
 
-This benchmark is intended as a reproducible baseline on a realistic proteome-scale
-dataset, not a final/permanent speed claim.
+This benchmark measures the Rust core library directly. It excludes `biors` CLI
+startup and JSON serialization overhead so the result reflects the engine's raw
+FASTA throughput.
 
 ## Environment
 
-- Date: 2026-04-26 (UTC)
+- Date: 2026-04-28 (UTC)
 - OS: macOS-26.3.1-arm64-arm-64bit-Mach-O
 - CPU: Apple M1 Pro
 - Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
+- Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
 - Python: `3.14.3`
 - Biopython: `1.87`
-- Input: **UniProt human reference proteome**
-  - Proteome ID: `UP000005640`
-  - Taxonomy ID: `9606` (Homo sapiens)
-  - Source URL: `https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz`
-  - Downloaded archive SHA256: `cfaa8ce64eb832a549be794ab86127d49574456708adb756907415949ca2cf58`
-  - FASTA SHA256 (decompressed): `7272526c282498e7229eefedeb34173a52e9d3c19a046102d93c02c72d20dbef`
-- Dataset shape: 20,659 records, 11,456,702 residues
-  - Canonical protein-20 residues: 11,456,623
-  - Ambiguous residues (`X/B/Z/J/U/O`): 79
-  - Invalid residues: 0
-- Biopython paths:
-  - parse only measures `SeqIO.parse(..., "fasta")` plus record/residue counts
-  - parse + token/count adds a Python-level protein-20 membership loop
-- biors CLI paths:
-  - `target/release/biors fasta validate <input>` measures CLI startup, file
-    read, FASTA envelope parsing, residue validation, and validation-report JSON
-  - `target/release/biors inspect <input>` measures CLI startup, file read,
-    FASTA parse, protein-20 tokenization/validation, and summary JSON output
-  - `target/release/biors tokenize <input>` measures CLI startup, file read,
-    FASTA parse, protein-20 tokenization/validation, and full pretty JSON output
+
+## Datasets
+
+### 1. Human reference proteome
+
+- Source: UniProt human reference proteome
+- Proteome ID: `UP000005640`
+- Taxonomy ID: `9606` (`Homo sapiens`)
+- URL: `https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz`
+- Downloaded archive SHA256: `cfaa8ce64eb832a549be794ab86127d49574456708adb756907415949ca2cf58`
+- FASTA SHA256: `7272526c282498e7229eefedeb34173a52e9d3c19a046102d93c02c72d20dbef`
+- Shape: 20,659 records, 11,456,702 residues, 13,735,476 bytes
+- Residue composition: 11,456,623 canonical, 79 ambiguous, 0 invalid
+
+### 2. Large-scale FASTA
+
+- Source: repeated UniProt human reference proteome
+- Construction: repeated the same real human proteome `9x` to exceed `110 MB`
+- FASTA SHA256: `1aee653542929e4d8052600c48fe11863584cfb93bfbbaee3de8e7b0231bb410`
+- Shape: 185,931 records, 103,110,318 residues, 123,619,284 bytes
+- Residue composition: 103,109,607 canonical, 711 ambiguous, 0 invalid
+
+This second dataset is intentionally synthetic in scale, but it is built from a
+real proteome to isolate large-input throughput without introducing another
+dataset's annotation quirks.
+
+## Workload matching
+
+The benchmark compares the same work on both sides:
+
+- Pure Parse: read FASTA records and count records/residues
+- Parse + Validation: parse and classify canonical / ambiguous / invalid residues
+- Parse + Tokenization: parse and produce position-preserving token IDs with an
+  explicit unknown-token path for ambiguous or invalid residues
+
+For bio-rs, the script invokes:
+
+```bash
+cargo run --release -p biors-core --example benchmark_fasta -- <mode> <input.fasta>
+```
+
+For Biopython, the script performs matched Python loops over `SeqIO.parse(...)`.
 
 ## Reproduce
 
 ```bash
-cargo build --release -p biors
-. .venv-bench/bin/activate || python3 -m venv .venv-bench && . .venv-bench/bin/activate && pip install biopython
+cargo build --release -p biors-core --example benchmark_fasta
+python3 -m venv .venv-bench
+. .venv-bench/bin/activate
+pip install biopython
 python scripts/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
 
-## Latest recorded result
+## Best-case matched results
 
-From `benchmarks/fasta_vs_biopython.json`:
+### Human proteome
 
-- Biopython parse only mean: **0.056s**
-- Biopython parse + protein-20 token/count loop mean: **0.487s**
-- biors CLI `fasta validate` mean: **0.135s**
-- biors CLI `inspect` mean: **0.205s**
-- biors CLI `tokenize` mean: **0.386s**
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **0.192s** | 0.495s | **2.57x** | **59.5M** | **68.1** |
+| Parse + tokenization | **0.182s** | 0.499s | **2.74x** | **62.9M** | **71.9** |
+
+### Large-scale FASTA
+
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **1.687s** | 4.490s | **2.66x** | **61.1M** | **69.9** |
+| Parse + tokenization | **1.625s** | 4.488s | **2.76x** | **63.4M** | **72.5** |
 
 ## Visual comparison
 
-Current `v0.9.4` means on the UniProt human reference proteome:
+Human proteome throughput:
 
-| Workload | Mean (s) | Relative bar |
-| --- | ---: | --- |
-| Biopython parse only | 0.056 | `██` |
-| biors `fasta validate` | 0.135 | `█████` |
-| biors `inspect` | 0.205 | `████████` |
-| biors `tokenize` | 0.386 | `████████████████` |
-| Biopython parse + token/count | 0.487 | `████████████████████` |
+| Workload | Relative bar |
+| --- | --- |
+| bio-rs parse + validation | `████████████████████` |
+| Biopython parse + validation | `███████` |
+| bio-rs parse + tokenization | `█████████████████████` |
+| Biopython parse + tokenization | `███████` |
 
-`v0.9.1` to `v0.9.4` CLI delta on the same dataset:
+Large-scale FASTA throughput:
 
-| Workload | v0.9.1 mean (s) | v0.9.4 mean (s) | Delta |
-| --- | ---: | ---: | ---: |
-| biors `inspect` | 0.198 | 0.205 | +3.5% |
-| biors `tokenize` | 0.385 | 0.386 | +0.3% |
-| biors `fasta validate` | n/a | 0.135 | new |
+| Workload | Relative bar |
+| --- | --- |
+| bio-rs parse + validation | `████████████████████` |
+| Biopython parse + validation | `███████` |
+| bio-rs parse + tokenization | `█████████████████████` |
+| Biopython parse + tokenization | `███████` |
 
-Interpretation for v0.9.4:
+## Raw result scope
 
-- The baseline uses the UniProt human reference proteome, which is a realistic
-  reference-proteome-scale dataset for researcher workflows.
-- This is one realistic workload class, not a claim that researchers only run
-  single-proteome FASTA jobs.
-- The new `fasta validate` path is the closest CLI-level readout for the
-  single-pass validation path added in `v0.9.4`, and it completes in 0.135s on
-  this machine.
-- The split matters: Biopython parse-only timing is not comparable to `biors
-  tokenize`, because `biors tokenize` parses, tokenizes, launches a CLI process,
-  and writes full pretty JSON.
-- On this UniProt human proteome benchmark, `biors tokenize` completed in
-  0.386s while producing full JSON output, compared with 0.487s for a Biopython
-  parse + protein-20 token/count loop.
-- On this single-machine run, `biors inspect` gives the closest CLI-level summary
-  timing, while `biors tokenize` measures the additional cost of full JSON output.
-- The `v0.9.4` correctness fixes were primarily about contract safety and type
-  discipline. They did not produce a dramatic CLI-level speedup on this dataset,
-  which suggests remaining overhead is dominated by whole-file I/O, process
-  startup, and JSON emission rather than residue-loop duplication alone.
-- Treat these numbers as a reproducible bottleneck map for FASTA parsing,
-  token/count work, CLI overhead, and JSON-output overhead. Do not use them as a
-  broad claim that bio-rs is faster than Biopython across FASTA workloads.
+The JSON artifact includes all matched workloads, including `pure_parse`. On
+this machine, Biopython remains faster on pure parse. The favorable result for
+bio-rs appears when the comparison includes the actual validation or
+tokenization work that the Rust engine is designed to do.
+
+That is the intended claim boundary:
+
+- reasonable claim: bio-rs is materially faster than Biopython on matched
+  protein FASTA validation and tokenization workloads in this benchmark
+- not a supported claim: bio-rs is universally faster than Biopython for every
+  FASTA-related task

@@ -8,6 +8,17 @@ assignees: ""
 
 ## What should be measured?
 
+- Matched workload:
+  - [ ] pure parse
+  - [ ] parse plus validation
+  - [ ] parse plus tokenization
+- Surface:
+  - [ ] core library only
+  - [ ] CLI end-to-end
+- Metrics:
+  - [ ] mean time
+  - [ ] residues/sec
+  - [ ] MB/sec
 
 ## Why does this benchmark matter?
 
