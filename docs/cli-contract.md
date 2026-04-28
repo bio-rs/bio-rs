@@ -1,6 +1,6 @@
 # CLI and JSON Contract
 
-This document records the frozen `0.9.5` CLI and JSON contract surface before
+This document records the frozen `0.9.6` CLI and JSON contract surface before
 `1.0.0`.
 
 ## Commands
@@ -34,7 +34,7 @@ All successful command output is written to stdout as pretty JSON:
 ```json
 {
   "ok": true,
-  "biors_version": "0.9.5",
+  "biors_version": "0.9.6",
   "input_hash": "fnv1a64:...",
   "data": {}
 }
