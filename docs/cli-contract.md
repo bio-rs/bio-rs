@@ -48,6 +48,16 @@ The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Packag
 
 Package validation reports include both the legacy string `issues` list and a typed `structured_issues` list with stable issue codes.
 
+`structured_issues` entries use this shape:
+
+```json
+{
+  "code": "invalid_asset_path",
+  "field": "fixtures[0].input",
+  "message": "asset path '../outside.fasta' must stay inside the package root"
+}
+```
+
 ## JSON Error Mode
 
 Passing `--json` writes errors to stdout as:

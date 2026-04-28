@@ -25,6 +25,8 @@ Error codes are stable identifiers for CLI JSON error mode.
 
 ## Package
 
+Package validation also emits typed `structured_issues[*].code` values in validation reports. CLI JSON error codes remain the top-level command failure category.
+
 - `package.invalid_checksum_format`: a package checksum field does not use `sha256:<64hex>`
 - `package.checksum_mismatch`: a manifest or verification checksum does not match the file on disk
 - `package.invalid_asset_path`: a manifest or observation path is absolute or escapes the package root

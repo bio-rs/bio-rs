@@ -24,7 +24,7 @@ cargo build
 
 1. Create a branch from `main`.
 2. Keep changes focused (single concern per PR).
-3. Add/update tests with behavior changes.
+3. Add or update tests before behavior changes when possible.
 4. Run the full check script before pushing.
 
 ## Choosing an issue
@@ -73,14 +73,17 @@ Run lint only:
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-## Scope expectations (v0.9.5)
+## Scope expectations (v0.9.7)
 
 Current contribution priority areas:
 
 - FASTA parser correctness and edge cases
+- buffered FASTA reader APIs for large inputs
 - protein-20 tokenizer behavior and diagnostics
 - manifest validation/reporting clarity
+- typed package validation issue codes
 - fixture verification UX and reporting
+- CLI and JSON contract coverage
 - reproducible benchmark coverage
 
 ## Benchmarks

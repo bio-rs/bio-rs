@@ -48,3 +48,4 @@ The following surfaces are candidates for stabilization before `1.0.0`.
 - runtime bridge provider expansion beyond `onnx-webgpu`
 - larger fixture verification formats
 - benchmark claims beyond the recorded baseline workload
+- independent `biors-core` and `biors` versioning outside isolated post-1.0 patch releases
