@@ -263,16 +263,23 @@ Tokenization output is record-oriented:
 
 Public contract docs:
 
+- [Quickstart](docs/quickstart.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
+- [1.0 release candidate path](docs/release-candidate-1.0.md)
+- [API and schema review](docs/api-review.md)
+- [MSRV policy draft](docs/msrv.md)
 - [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)
+- [Changelog](CHANGELOG.md)
+- [Citation metadata](CITATION.cff)
 
 ## Release history
 
 Delivered:
 
+- `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and changelog
 - `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
 - `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
 - `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
@@ -398,4 +405,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, checks, and PR expectati
 
 ## License
 
-Dual licensed under MIT OR Apache-2.0.
+Dual licensed under MIT OR Apache-2.0. If you use bio-rs in research software
+or publications, cite the repository and version via [CITATION.cff](CITATION.cff).
