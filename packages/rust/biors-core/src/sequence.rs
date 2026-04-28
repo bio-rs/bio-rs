@@ -46,6 +46,15 @@ pub fn normalize_sequence(sequence: &str) -> String {
 
 pub(crate) fn append_normalized_sequence(sequence: &str, output: &mut String) {
     output.reserve(sequence.len());
+    if sequence.is_ascii() {
+        for byte in sequence.bytes() {
+            if !byte.is_ascii_whitespace() {
+                output.push(byte.to_ascii_uppercase() as char);
+            }
+        }
+        return;
+    }
+
     output.extend(normalized_residues(sequence));
 }
 

@@ -1,0 +1,19 @@
+{
+  "schema_version": "biors.package.v0",
+  "name": "",
+  "model": {
+    "format": "onnx",
+    "path": ""
+  },
+  "preprocessing": [],
+  "postprocessing": [],
+  "runtime": {
+    "backend": "onnx-webgpu",
+    "target": "browser-wasm-webgpu"
+  },
+  "expected_input": {
+    "shape": [],
+    "dtype": "uint8"
+  },
+  "fixtures": []
+}

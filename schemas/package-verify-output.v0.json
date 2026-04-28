@@ -31,6 +31,45 @@
           "status": { "enum": ["failed", "missing", "passed"] },
           "checksum_mismatch": { "type": "boolean" },
           "content_mismatch": { "type": "boolean" },
+          "issue_code": {
+            "enum": [
+              "expected_output_checksum_mismatch",
+              "expected_output_read_failed",
+              "fixture_input_checksum_mismatch",
+              "fixture_input_read_failed",
+              "observation_missing",
+              "observation_path_invalid",
+              "observed_output_read_failed",
+              "output_checksum_mismatch",
+              "output_content_mismatch"
+            ]
+          },
+          "content_diff": {
+            "type": "object",
+            "required": [
+              "expected_path",
+              "observed_path",
+              "expected_len",
+              "observed_len"
+            ],
+            "properties": {
+              "expected_path": { "type": "string" },
+              "observed_path": { "type": "string" },
+              "expected_len": { "type": "integer", "minimum": 0 },
+              "observed_len": { "type": "integer", "minimum": 0 },
+              "first_difference": {
+                "type": "object",
+                "required": ["byte_offset"],
+                "properties": {
+                  "byte_offset": { "type": "integer", "minimum": 0 },
+                  "expected_byte": { "type": "integer", "minimum": 0, "maximum": 255 },
+                  "observed_byte": { "type": "integer", "minimum": 0, "maximum": 255 }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
           "issue": { "type": ["string", "null"] }
         },
         "additionalProperties": false

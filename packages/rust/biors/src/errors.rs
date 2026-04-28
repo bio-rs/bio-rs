@@ -1,7 +1,7 @@
 use crate::exit_code;
 use biors_core::{
     BioRsError, ErrorLocation, FastaReadError, ModelInputBuildError, PackageValidationIssueCode,
-    PackageValidationReport, PackageVerificationReport, VerificationStatus,
+    PackageValidationReport, PackageVerificationReport, VerificationIssueCode, VerificationStatus,
 };
 use serde::Serialize;
 use std::path::PathBuf;
@@ -154,13 +154,24 @@ pub(crate) fn classify_verification_code(report: &PackageVerificationReport) -> 
     if report
         .results
         .iter()
-        .any(|result| matches!(result.status, VerificationStatus::Missing))
+        .any(|result| result.issue_code == Some(VerificationIssueCode::ObservationMissing))
     {
         "package.observed_output_missing"
-    } else if report.results.iter().any(|result| result.checksum_mismatch) {
-        "package.checksum_mismatch"
+    } else if report
+        .results
+        .iter()
+        .any(|result| result.issue_code == Some(VerificationIssueCode::ObservationPathInvalid))
+    {
+        "package.invalid_asset_path"
+    } else if report.results.iter().any(|result| {
+        result.issue_code == Some(VerificationIssueCode::ObservedOutputReadFailed)
+            || matches!(result.status, VerificationStatus::Missing)
+    }) {
+        "package.observed_output_missing"
     } else if report.results.iter().any(|result| result.content_mismatch) {
         "package.output_content_mismatch"
+    } else if report.results.iter().any(|result| result.checksum_mismatch) {
+        "package.checksum_mismatch"
     } else {
         "package.verification_failed"
     }

@@ -1,7 +1,7 @@
 use crate::error::BioRsError;
+use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{append_normalized_sequence, summarize_validated_sequences};
 use crate::tokenizer::{analyze_fasta_records, validated_sequences_from_analyzed};
-use crate::verification::StableInputHasher;
 use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
@@ -19,126 +19,20 @@ pub struct ValidatedFastaInput {
 }
 
 pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsError> {
-    if input.trim().is_empty() {
-        return Err(BioRsError::EmptyInput);
-    }
-
-    let mut records = Vec::new();
-    let mut current_id: Option<String> = None;
-    let mut sequence = String::new();
-    let mut current_header_line = 0;
-    let mut current_record_index = 0;
-
-    for (line_index, raw_line) in input.lines().enumerate() {
-        let line_number = line_index + 1;
-        let line = raw_line.trim();
-
-        if line.is_empty() {
-            continue;
-        }
-
-        if let Some(header) = line.strip_prefix('>') {
-            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
-                line: line_number,
-                record_index: current_record_index,
-            })?;
-            if let Some(id) = current_id.replace(next_id) {
-                push_fasta_record(
-                    &mut records,
-                    id,
-                    &mut sequence,
-                    current_header_line,
-                    current_record_index,
-                )?;
-                current_record_index += 1;
-            }
-            current_header_line = line_number;
-        } else {
-            if current_id.is_none() {
-                return Err(BioRsError::MissingHeader { line: line_number });
-            }
-            append_normalized_sequence(line, &mut sequence);
-        }
-    }
-
-    let id = current_id.ok_or(BioRsError::MissingHeader { line: 1 })?;
-    push_fasta_record(
-        &mut records,
-        id,
-        &mut sequence,
-        current_header_line,
-        current_record_index,
-    )?;
-
-    Ok(records)
+    let mut sink = ParsedRecordSink::default();
+    scan_fasta_str(input, &mut sink)?;
+    Ok(sink.records)
 }
 
 pub fn parse_fasta_records_reader<R: BufRead>(
-    mut reader: R,
+    reader: R,
 ) -> Result<ParsedFastaInput, FastaReadError> {
-    let mut records = Vec::new();
-    let mut current_id: Option<String> = None;
-    let mut sequence = String::new();
-    let mut current_header_line = 0;
-    let mut current_record_index = 0;
-    let mut line_number = 0usize;
-    let mut hasher = StableInputHasher::new();
-    let mut raw_line = String::new();
-
-    loop {
-        raw_line.clear();
-        let bytes = reader.read_line(&mut raw_line)?;
-        if bytes == 0 {
-            break;
-        }
-        line_number += 1;
-        hasher.update(raw_line.as_bytes());
-        let line = raw_line.trim();
-
-        if line.is_empty() {
-            continue;
-        }
-
-        if let Some(header) = line.strip_prefix('>') {
-            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
-                line: line_number,
-                record_index: current_record_index,
-            })?;
-            if let Some(id) = current_id.replace(next_id) {
-                push_fasta_record(
-                    &mut records,
-                    id,
-                    &mut sequence,
-                    current_header_line,
-                    current_record_index,
-                )?;
-                current_record_index += 1;
-            }
-            current_header_line = line_number;
-        } else {
-            if current_id.is_none() {
-                return Err(BioRsError::MissingHeader { line: line_number }.into());
-            }
-            append_normalized_sequence(line, &mut sequence);
-        }
-    }
-
-    if line_number == 0 || records.is_empty() && current_id.is_none() {
-        return Err(BioRsError::EmptyInput.into());
-    }
-
-    let id = current_id.ok_or(BioRsError::MissingHeader { line: 1 })?;
-    push_fasta_record(
-        &mut records,
-        id,
-        &mut sequence,
-        current_header_line,
-        current_record_index,
-    )?;
+    let mut sink = ParsedRecordSink::default();
+    let input_hash = scan_fasta_reader(reader, &mut sink)?;
 
     Ok(ParsedFastaInput {
-        input_hash: hasher.finalize(),
-        records,
+        input_hash,
+        records: sink.records,
     })
 }
 
@@ -165,28 +59,35 @@ pub fn validate_fasta_reader_with_hash<R: BufRead>(
     })
 }
 
-fn fasta_id(header: &str) -> Option<String> {
-    header.split_whitespace().next().map(str::to_string)
+#[derive(Default)]
+struct ParsedRecordSink {
+    records: Vec<ProteinSequence>,
+    sequence: String,
 }
 
-fn push_fasta_record(
-    records: &mut Vec<ProteinSequence>,
-    id: String,
-    sequence: &mut String,
-    line: usize,
-    record_index: usize,
-) -> Result<(), BioRsError> {
-    if sequence.is_empty() {
-        return Err(BioRsError::MissingSequence {
-            id,
-            line,
-            record_index,
-        });
+impl FastaRecordSink for ParsedRecordSink {
+    fn push_sequence_line(&mut self, line: &str) {
+        append_normalized_sequence(line, &mut self.sequence);
     }
 
-    records.push(ProteinSequence {
-        id,
-        sequence: std::mem::take(sequence),
-    });
-    Ok(())
+    fn finish_record(
+        &mut self,
+        id: String,
+        line: usize,
+        record_index: usize,
+    ) -> Result<(), BioRsError> {
+        if self.sequence.is_empty() {
+            return Err(BioRsError::MissingSequence {
+                id,
+                line,
+                record_index,
+            });
+        }
+
+        self.records.push(ProteinSequence {
+            id,
+            sequence: std::mem::take(&mut self.sequence),
+        });
+        Ok(())
+    }
 }

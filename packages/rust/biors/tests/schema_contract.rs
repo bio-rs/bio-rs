@@ -105,6 +105,40 @@ fn cli_outputs_match_declared_payload_schemas() {
         &[manifest.as_os_str(), observations.as_os_str()],
     );
     assert_payload_matches_schema(&package_verify, "schemas/package-verify-output.v0.json");
+
+    let mismatch_report = serde_json::json!({
+        "package": "protein-seed",
+        "fixtures": 1,
+        "passed": 0,
+        "failed": 1,
+        "results": [
+            {
+                "name": "tiny-protein",
+                "input_path": "fixtures/tiny.fasta",
+                "expected_output_path": "fixtures/tiny.output.json",
+                "observed_output_path": "observed/tiny.bad.json",
+                "expected_output_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "observed_output_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "status": "failed",
+                "checksum_mismatch": true,
+                "content_mismatch": true,
+                "issue_code": "output_content_mismatch",
+                "content_diff": {
+                    "expected_path": "fixtures/tiny.output.json",
+                    "observed_path": "observed/tiny.bad.json",
+                    "expected_len": 32,
+                    "observed_len": 28,
+                    "first_difference": {
+                        "byte_offset": 10,
+                        "expected_byte": 34,
+                        "observed_byte": 48
+                    }
+                },
+                "issue": "output content mismatch between 'fixtures/tiny.output.json' and 'observed/tiny.bad.json'"
+            }
+        ]
+    });
+    assert_json_value_matches_schema(&mismatch_report, "schemas/package-verify-output.v0.json");
 }
 
 #[test]

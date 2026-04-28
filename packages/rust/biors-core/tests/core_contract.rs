@@ -6,6 +6,7 @@ use biors_core::{
     Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 use std::io::Cursor;
+use std::path::Path;
 
 #[test]
 fn parses_crlf_and_ignores_empty_lines() {
@@ -141,6 +142,164 @@ fn tokenizes_fasta_from_reader_and_reports_input_hash() {
 
     assert_eq!(output.input_hash, stable_input_hash(raw));
     assert_eq!(output.records[0].tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
+fn fixture_corpus_covers_valid_and_invalid_fasta_contracts() {
+    let fixture_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/fasta");
+    let valid = fixture_dir.join("valid/mixed_case_whitespace.fasta");
+    let missing_header = fixture_dir.join("invalid/missing_header.fasta");
+    let missing_sequence = fixture_dir.join("invalid/missing_sequence.fasta");
+    let empty_identifier = fixture_dir.join("invalid/empty_identifier.fasta");
+
+    for path in [
+        &valid,
+        &missing_header,
+        &missing_sequence,
+        &empty_identifier,
+    ] {
+        assert!(path.exists(), "missing FASTA fixture: {}", path.display());
+    }
+
+    let valid_input = std::fs::read_to_string(valid).expect("read valid FASTA fixture");
+    let records = parse_fasta_records(&valid_input).expect("valid fixture parses");
+    assert_eq!(records[0].id, "seq-valid");
+    assert_eq!(records[0].sequence, "ACDEXBZJUO");
+
+    let missing_header_input =
+        std::fs::read_to_string(missing_header).expect("read missing-header fixture");
+    assert_eq!(
+        parse_fasta_records(&missing_header_input).expect_err("missing header fails"),
+        BioRsError::MissingHeader { line: 1 }
+    );
+
+    let missing_sequence_input =
+        std::fs::read_to_string(missing_sequence).expect("read missing-sequence fixture");
+    assert_eq!(
+        parse_fasta_records(&missing_sequence_input).expect_err("missing sequence fails"),
+        BioRsError::MissingSequence {
+            id: "seq-empty".to_string(),
+            line: 1,
+            record_index: 0,
+        }
+    );
+
+    let empty_identifier_input =
+        std::fs::read_to_string(empty_identifier).expect("read empty-identifier fixture");
+    assert_eq!(
+        parse_fasta_records(&empty_identifier_input).expect_err("empty identifier fails"),
+        BioRsError::MissingIdentifier {
+            line: 1,
+            record_index: 0,
+        }
+    );
+}
+
+#[test]
+fn tokenizer_expected_output_fixture_matches_public_contract() {
+    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/tokenizer/protein_20_expected.json");
+
+    assert!(
+        fixture.exists(),
+        "missing tokenizer fixture: {}",
+        fixture.display()
+    );
+
+    let actual = tokenize_fasta_records(">seq-valid\nACDEXBZJUO*\n").expect("tokenize fixture");
+    let expected: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(fixture).expect("read tokenizer fixture"))
+            .expect("valid tokenizer fixture JSON");
+    let actual = serde_json::to_value(actual).expect("serialize tokenization");
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn deterministic_invalid_fasta_corpus_keeps_error_codes_stable() {
+    let cases = [
+        ("", BioRsError::EmptyInput),
+        ("   \n\t\n", BioRsError::EmptyInput),
+        ("ACDE\n", BioRsError::MissingHeader { line: 1 }),
+        (
+            ">\nACDE\n",
+            BioRsError::MissingIdentifier {
+                line: 1,
+                record_index: 0,
+            },
+        ),
+        (
+            ">seq1\n>seq2\nACDE\n",
+            BioRsError::MissingSequence {
+                id: "seq1".to_string(),
+                line: 1,
+                record_index: 0,
+            },
+        ),
+        (
+            ">seq1\nACDE\n>seq2\n",
+            BioRsError::MissingSequence {
+                id: "seq2".to_string(),
+                line: 3,
+                record_index: 1,
+            },
+        ),
+    ];
+
+    for (input, expected) in cases {
+        let error = parse_fasta_records(input).expect_err("invalid FASTA must fail");
+        assert_eq!(error, expected);
+        assert_eq!(error.code(), expected.code());
+    }
+}
+
+#[test]
+fn string_and_reader_fasta_paths_stay_behaviorally_identical() {
+    let inputs = [
+        ">seq1\nACDE\n",
+        "  >seq1 description\r\n ac de \r\n\r\n>seq2\nxbzjuo*\n",
+        ">seq1\nACDE\n>seq2\n",
+        "ACDE\n",
+        ">\nACDE\n",
+    ];
+
+    for input in inputs {
+        let string_parse = parse_fasta_records(input);
+        let reader_parse =
+            parse_fasta_records_reader(Cursor::new(input)).map(|parsed| parsed.records);
+        assert_eq!(
+            reader_parse.map_err(|error| error.code()),
+            string_parse.map_err(|error| error.code())
+        );
+
+        let string_tokens = tokenize_fasta_records(input);
+        let reader_tokens =
+            tokenize_fasta_records_reader(Cursor::new(input)).map(|parsed| parsed.records);
+        assert_eq!(
+            reader_tokens.map_err(|error| error.code()),
+            string_tokens.map_err(|error| error.code())
+        );
+    }
+}
+
+#[test]
+fn tokenizer_invariants_hold_for_ascii_residue_corpus() {
+    let records = tokenize_fasta_records(">seq1\nACDEFGHIKLMNPQRSTVWYXBZJUO*\n")
+        .expect("valid FASTA envelope");
+    let record = &records[0];
+
+    assert_eq!(record.length, record.tokens.len());
+    assert_eq!(record.warnings.len(), 6);
+    assert_eq!(record.errors.len(), 1);
+
+    for issue in record.warnings.iter().chain(record.errors.iter()) {
+        assert_eq!(
+            record.tokens[issue.position - 1],
+            PROTEIN_20_UNKNOWN_TOKEN_ID
+        );
+    }
+
+    assert_eq!(&record.tokens[..20], &(0u8..20).collect::<Vec<_>>());
 }
 
 #[test]

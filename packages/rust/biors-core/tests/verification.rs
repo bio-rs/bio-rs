@@ -1,7 +1,7 @@
 use biors_core::{
     verify_package_outputs, FixtureObservation, ModelArtifact, ModelFormat, PackageFixture,
     PackageManifest, RuntimeBackend, RuntimeTarget, RuntimeTargetPlatform, SchemaVersion,
-    VerificationStatus,
+    VerificationIssueCode, VerificationStatus,
 };
 
 fn manifest() -> PackageManifest {
@@ -80,6 +80,17 @@ fn reports_mismatched_fixture_outputs() {
     assert_eq!(report.failed, 1);
     assert_eq!(report.results[0].status, VerificationStatus::Failed);
     assert!(report.results[0].content_mismatch);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::OutputContentMismatch)
+    );
+    let diff = report.results[0]
+        .content_diff
+        .as_ref()
+        .expect("content mismatch includes first difference");
+    assert_eq!(diff.expected_path, "fixtures/tiny.output.json");
+    assert_eq!(diff.observed_path, "fixtures/tiny.fasta");
+    assert!(diff.first_difference.is_some());
 }
 
 #[test]

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "seq-valid",
+    "length": 11,
+    "alphabet": "protein-20",
+    "valid": false,
+    "tokens": [0, 1, 2, 3, 20, 20, 20, 20, 20, 20, 20],
+    "warnings": [
+      {
+        "residue": "X",
+        "position": 5
+      },
+      {
+        "residue": "B",
+        "position": 6
+      },
+      {
+        "residue": "Z",
+        "position": 7
+      },
+      {
+        "residue": "J",
+        "position": 8
+      },
+      {
+        "residue": "U",
+        "position": 9
+      },
+      {
+        "residue": "O",
+        "position": 10
+      }
+    ],
+    "errors": [
+      {
+        "residue": "*",
+        "position": 11
+      }
+    ]
+  }
+]

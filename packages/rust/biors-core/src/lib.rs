@@ -1,5 +1,6 @@
 pub mod error;
 pub mod fasta;
+mod fasta_scan;
 pub mod model_input;
 pub mod package;
 pub mod sequence;
@@ -32,12 +33,13 @@ pub use sequence::{
 };
 pub use tokenizer::{
     load_protein_20_vocab, load_vocab_json, protein_20_unknown_token_policy,
-    summarize_tokenized_proteins, tokenize_fasta_records, tokenize_fasta_records_reader,
-    tokenize_protein, ProteinBatchSummary, ProteinTokenizer, TokenizedFastaInput, TokenizedProtein,
-    Tokenizer, UnknownTokenPolicy, VocabToken, Vocabulary, PROTEIN_20_UNKNOWN_TOKEN_ID,
+    protein_20_vocab_tokens, summarize_tokenized_proteins, tokenize_fasta_records,
+    tokenize_fasta_records_reader, tokenize_protein, ProteinBatchSummary, ProteinTokenizer,
+    TokenizedFastaInput, TokenizedProtein, Tokenizer, UnknownTokenPolicy, VocabToken, Vocabulary,
+    PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 pub use verification::{
     stable_input_hash, verify_package_outputs, verify_package_outputs_with_observation_base,
-    FixtureObservation, FixtureVerificationResult, PackageVerificationReport, StableInputHasher,
-    VerificationStatus,
+    ContentMismatchDiff, FirstDifference, FixtureObservation, FixtureVerificationResult,
+    PackageVerificationReport, StableInputHasher, VerificationIssueCode, VerificationStatus,
 };

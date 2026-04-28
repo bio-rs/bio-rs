@@ -201,3 +201,30 @@ fn rejects_unsupported_runtime_values_at_deserialization_time() {
 
     assert!(error.to_string().contains("unknown variant"));
 }
+
+#[test]
+fn manifest_validation_fixture_covers_multiple_structured_failures() {
+    let fixture =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/manifest/invalid_manifest.json");
+
+    assert!(
+        fixture.exists(),
+        "missing manifest fixture: {}",
+        fixture.display()
+    );
+
+    let manifest: PackageManifest =
+        serde_json::from_str(&std::fs::read_to_string(fixture).expect("read manifest fixture"))
+            .expect("fixture remains structurally deserializable");
+    let report = validate_package_manifest(&manifest);
+    let codes: Vec<_> = report
+        .structured_issues
+        .iter()
+        .map(|issue| issue.code)
+        .collect();
+
+    assert!(!report.valid);
+    assert!(codes.contains(&PackageValidationIssueCode::RequiredField));
+    assert!(codes.contains(&PackageValidationIssueCode::MissingFixture));
+    assert!(codes.contains(&PackageValidationIssueCode::InvalidShape));
+}
