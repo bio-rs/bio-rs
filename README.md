@@ -112,6 +112,7 @@ shape.
 Current capabilities:
 
 - FASTA parsing and normalization
+- shared FASTA parser/tokenizer scanner with an ASCII fast path and Unicode fallback
 - buffered reader APIs for FASTA parse/validate/tokenize paths
 - FASTA validation with line and record-index diagnostics
 - FASTA record identifier validation
@@ -134,6 +135,8 @@ Current capabilities:
 - package path escape rejection for manifest and observation assets
 - SHA-256 package and fixture checksum verification
 - package fixture verification from observed artifact paths
+- structured package fixture mismatch issue codes and first-difference reports
+- committed FASTA, tokenizer, manifest, and verification fixtures
 - JSON success/error envelopes
 
 ## CLI examples
@@ -270,9 +273,7 @@ Public contract docs:
 
 Delivered:
 
-- `0.6.0`: package manifest inspect/validate
-- `0.7.0`: runtime bridge planning with `package bridge`
-- `0.8.0`: fixture verification with `package verify`
+- `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
 - `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
 - `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
 - `0.9.6`: FASTA identifier validation, model-input policy validation, package path escape rejection, and JSON vocab loading
@@ -283,6 +284,9 @@ Delivered:
 - `0.9.1`: model-input CLI, checksum-backed package validation, benchmark refresh, and contract hardening
 - `0.9.0`: CLI and JSON contract freeze baseline
 - `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
+- `0.8.0`: fixture verification with `package verify`
+- `0.7.0`: runtime bridge planning with `package bridge`
+- `0.6.0`: package manifest inspect/validate
 
 Next:
 

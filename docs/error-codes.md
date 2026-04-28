@@ -38,6 +38,11 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.bridge_not_ready`: package runtime bridge planning found blocking issues
 - `package.verification_failed`: fixture observations did not match expected outputs
 
+Package verification reports also expose per-fixture `issue_code` values such
+as `observation_missing`, `output_checksum_mismatch`, and
+`output_content_mismatch` so callers can inspect fixture-level failures without
+parsing the human-readable `issue` field.
+
 ## Taxonomy
 
 - `fasta.*`: sequence file envelope and record parsing errors

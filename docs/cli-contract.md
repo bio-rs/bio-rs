@@ -57,6 +57,11 @@ Package validation reports include both the legacy string `issues` list and a ty
 }
 ```
 
+Package verification reports include stable `issue_code` values when a fixture
+does not pass. Content mismatches also include a `content_diff` object with the
+expected path, observed path, canonical byte lengths, and first differing byte
+offset when one exists.
+
 ## JSON Error Mode
 
 Passing `--json` writes errors to stdout as:

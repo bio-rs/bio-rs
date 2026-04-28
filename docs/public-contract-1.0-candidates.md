@@ -12,13 +12,14 @@ The following surfaces are candidates for stabilization before the first stable 
 - `tokenize_fasta_records`
 - `tokenize_fasta_records_reader`
 - `load_vocab_json`
+- `protein_20_vocab_tokens`
 - `ProteinTokenizer` and `Tokenizer`
 - `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
 - `build_model_inputs_checked`
 - `build_model_inputs_unchecked`
 - `validate_package_manifest_artifacts`
 - `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
-- `PackageVerificationReport`, `FixtureObservation`
+- `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
 - `BioRsError::code`
 
 ## CLI

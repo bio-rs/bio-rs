@@ -34,6 +34,10 @@ pub struct FixtureVerificationResult {
     pub checksum_mismatch: bool,
     pub content_mismatch: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub issue_code: Option<VerificationIssueCode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_diff: Option<ContentMismatchDiff>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub issue: Option<String>,
 }
 
@@ -43,6 +47,39 @@ pub enum VerificationStatus {
     Failed,
     Missing,
     Passed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VerificationIssueCode {
+    ExpectedOutputChecksumMismatch,
+    ExpectedOutputReadFailed,
+    FixtureInputChecksumMismatch,
+    FixtureInputReadFailed,
+    ObservationMissing,
+    ObservationPathInvalid,
+    ObservedOutputReadFailed,
+    OutputChecksumMismatch,
+    OutputContentMismatch,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContentMismatchDiff {
+    pub expected_path: String,
+    pub observed_path: String,
+    pub expected_len: usize,
+    pub observed_len: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_difference: Option<FirstDifference>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FirstDifference {
+    pub byte_offset: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expected_byte: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub observed_byte: Option<u8>,
 }
 
 pub fn verify_package_outputs(
@@ -82,6 +119,8 @@ pub fn verify_package_outputs_with_observation_base(
                 status: VerificationStatus::Passed,
                 checksum_mismatch: false,
                 content_mismatch: false,
+                issue_code: None,
+                content_diff: None,
                 issue: None,
             };
 
@@ -89,6 +128,7 @@ pub fn verify_package_outputs_with_observation_base(
                 Ok(bytes) => bytes,
                 Err(error) => {
                     result.status = VerificationStatus::Failed;
+                    result.issue_code = Some(VerificationIssueCode::FixtureInputReadFailed);
                     result.issue = Some(error);
                     return result;
                 }
@@ -99,6 +139,7 @@ pub fn verify_package_outputs_with_observation_base(
                 if &input_hash != expected_input_hash {
                     result.status = VerificationStatus::Failed;
                     result.checksum_mismatch = true;
+                    result.issue_code = Some(VerificationIssueCode::FixtureInputChecksumMismatch);
                     result.issue = Some(format!(
                         "fixture input hash mismatch for '{}': expected '{}' but computed '{}'",
                         fixture.input, expected_input_hash, input_hash
@@ -112,6 +153,7 @@ pub fn verify_package_outputs_with_observation_base(
                     Ok(bytes) => bytes,
                     Err(error) => {
                         result.status = VerificationStatus::Failed;
+                        result.issue_code = Some(VerificationIssueCode::ExpectedOutputReadFailed);
                         result.issue = Some(error);
                         return result;
                     }
@@ -124,6 +166,7 @@ pub fn verify_package_outputs_with_observation_base(
                 if &expected_output_hash != declared_output_hash {
                     result.status = VerificationStatus::Failed;
                     result.checksum_mismatch = true;
+                    result.issue_code = Some(VerificationIssueCode::ExpectedOutputChecksumMismatch);
                     result.issue = Some(format!(
                         "expected output hash mismatch for '{}': expected '{}' but computed '{}'",
                         fixture.expected_output, declared_output_hash, expected_output_hash
@@ -134,6 +177,7 @@ pub fn verify_package_outputs_with_observation_base(
 
             let Some(observation) = observation else {
                 result.status = VerificationStatus::Missing;
+                result.issue_code = Some(VerificationIssueCode::ObservationMissing);
                 result.issue = Some(format!(
                     "missing observation for fixture '{}'",
                     fixture.name
@@ -146,6 +190,7 @@ pub fn verify_package_outputs_with_observation_base(
                     Ok(path) => path,
                     Err(error) => {
                         result.status = VerificationStatus::Missing;
+                        result.issue_code = Some(VerificationIssueCode::ObservationPathInvalid);
                         result.issue = Some(error);
                         return result;
                     }
@@ -154,6 +199,7 @@ pub fn verify_package_outputs_with_observation_base(
                 Ok(bytes) => bytes,
                 Err(error) => {
                     result.status = VerificationStatus::Missing;
+                    result.issue_code = Some(VerificationIssueCode::ObservedOutputReadFailed);
                     result.issue = Some(format!(
                         "failed to read observed output '{}' at '{}': {error}",
                         observation.path,
@@ -169,11 +215,19 @@ pub fn verify_package_outputs_with_observation_base(
             if observed_hash != expected_output_hash {
                 result.status = VerificationStatus::Failed;
                 result.checksum_mismatch = true;
+                result.issue_code = Some(VerificationIssueCode::OutputChecksumMismatch);
             }
 
             if !contents_match(&expected_bytes, &observed_bytes) {
                 result.status = VerificationStatus::Failed;
                 result.content_mismatch = true;
+                result.issue_code = Some(VerificationIssueCode::OutputContentMismatch);
+                result.content_diff = Some(content_mismatch_diff(
+                    &fixture.expected_output,
+                    &observation.path,
+                    &expected_bytes,
+                    &observed_bytes,
+                ));
             }
 
             if result.status == VerificationStatus::Failed {
@@ -256,4 +310,51 @@ fn contents_match(expected: &[u8], observed: &[u8]) -> bool {
         (Ok(expected), Ok(observed)) => expected == observed,
         _ => expected == observed,
     }
+}
+
+fn content_mismatch_diff(
+    expected_path: &str,
+    observed_path: &str,
+    expected: &[u8],
+    observed: &[u8],
+) -> ContentMismatchDiff {
+    let expected = canonical_content_bytes(expected);
+    let observed = canonical_content_bytes(observed);
+    ContentMismatchDiff {
+        expected_path: expected_path.to_string(),
+        observed_path: observed_path.to_string(),
+        expected_len: expected.len(),
+        observed_len: observed.len(),
+        first_difference: first_difference(&expected, &observed),
+    }
+}
+
+fn canonical_content_bytes(bytes: &[u8]) -> Vec<u8> {
+    match serde_json::from_slice::<serde_json::Value>(bytes) {
+        Ok(json) => serde_json::to_vec(&json).unwrap_or_else(|_| bytes.to_vec()),
+        Err(_) => bytes.to_vec(),
+    }
+}
+
+fn first_difference(expected: &[u8], observed: &[u8]) -> Option<FirstDifference> {
+    let shared_len = expected.len().min(observed.len());
+    for index in 0..shared_len {
+        if expected[index] != observed[index] {
+            return Some(FirstDifference {
+                byte_offset: index,
+                expected_byte: Some(expected[index]),
+                observed_byte: Some(observed[index]),
+            });
+        }
+    }
+
+    if expected.len() != observed.len() {
+        return Some(FirstDifference {
+            byte_offset: shared_len,
+            expected_byte: expected.get(shared_len).copied(),
+            observed_byte: observed.get(shared_len).copied(),
+        });
+    }
+
+    None
 }

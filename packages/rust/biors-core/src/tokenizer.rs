@@ -1,8 +1,8 @@
+use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
     is_ambiguous_residue, normalized_residues, ProteinSequence, ResidueIssue, ValidatedSequence,
-    PROTEIN_20, PROTEIN_20_RESIDUES,
+    PROTEIN_20,
 };
-use crate::verification::StableInputHasher;
 use crate::BioRsError;
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
@@ -53,14 +53,7 @@ pub enum UnknownTokenPolicy {
 pub fn load_protein_20_vocab() -> Vocabulary {
     Vocabulary {
         name: PROTEIN_20.to_string(),
-        tokens: PROTEIN_20_RESIDUES
-            .iter()
-            .enumerate()
-            .map(|(token_id, residue)| VocabToken {
-                residue: *residue,
-                token_id: token_id as u8,
-            })
-            .collect(),
+        tokens: protein_20_vocab_tokens().to_vec(),
         unknown_token_id: PROTEIN_20_UNKNOWN_TOKEN_ID,
         unknown_token_policy: protein_20_unknown_token_policy(),
     }
@@ -75,6 +68,93 @@ pub const fn protein_20_unknown_token_policy() -> UnknownTokenPolicy {
 }
 
 pub const PROTEIN_20_UNKNOWN_TOKEN_ID: u8 = 20;
+
+pub fn protein_20_vocab_tokens() -> &'static [VocabToken; 20] {
+    &PROTEIN_20_VOCAB_TOKENS
+}
+
+const PROTEIN_20_VOCAB_TOKENS: [VocabToken; 20] = [
+    VocabToken {
+        residue: 'A',
+        token_id: 0,
+    },
+    VocabToken {
+        residue: 'C',
+        token_id: 1,
+    },
+    VocabToken {
+        residue: 'D',
+        token_id: 2,
+    },
+    VocabToken {
+        residue: 'E',
+        token_id: 3,
+    },
+    VocabToken {
+        residue: 'F',
+        token_id: 4,
+    },
+    VocabToken {
+        residue: 'G',
+        token_id: 5,
+    },
+    VocabToken {
+        residue: 'H',
+        token_id: 6,
+    },
+    VocabToken {
+        residue: 'I',
+        token_id: 7,
+    },
+    VocabToken {
+        residue: 'K',
+        token_id: 8,
+    },
+    VocabToken {
+        residue: 'L',
+        token_id: 9,
+    },
+    VocabToken {
+        residue: 'M',
+        token_id: 10,
+    },
+    VocabToken {
+        residue: 'N',
+        token_id: 11,
+    },
+    VocabToken {
+        residue: 'P',
+        token_id: 12,
+    },
+    VocabToken {
+        residue: 'Q',
+        token_id: 13,
+    },
+    VocabToken {
+        residue: 'R',
+        token_id: 14,
+    },
+    VocabToken {
+        residue: 'S',
+        token_id: 15,
+    },
+    VocabToken {
+        residue: 'T',
+        token_id: 16,
+    },
+    VocabToken {
+        residue: 'V',
+        token_id: 17,
+    },
+    VocabToken {
+        residue: 'W',
+        token_id: 18,
+    },
+    VocabToken {
+        residue: 'Y',
+        token_id: 19,
+    },
+];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenizedProtein {
@@ -139,8 +219,14 @@ pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
-    for (index, residue) in protein.sequence.chars().enumerate() {
-        push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
+    if protein.sequence.is_ascii() {
+        for (index, byte) in protein.sequence.bytes().enumerate() {
+            push_tokenized_residue_byte(byte, index + 1, &mut tokens, &mut warnings, &mut errors);
+        }
+    } else {
+        for (index, residue) in protein.sequence.chars().enumerate() {
+            push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
+        }
     }
 
     TokenizedProtein {
@@ -172,6 +258,31 @@ fn push_tokenized_residue(
     }
 }
 
+fn push_tokenized_residue_byte(
+    residue: u8,
+    position: usize,
+    tokens: &mut Vec<u8>,
+    warnings: &mut Vec<ResidueIssue>,
+    errors: &mut Vec<ResidueIssue>,
+) {
+    let residue = residue.to_ascii_uppercase();
+    if let Some(token) = protein_20_token_id_byte(residue) {
+        tokens.push(token);
+    } else if is_ambiguous_residue_byte(residue) {
+        tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
+        warnings.push(ResidueIssue {
+            residue: residue as char,
+            position,
+        });
+    } else {
+        tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
+        errors.push(ResidueIssue {
+            residue: residue as char,
+            position,
+        });
+    }
+}
+
 fn protein_20_token_id(residue: char) -> Option<u8> {
     match residue {
         'A' => Some(0),
@@ -198,6 +309,36 @@ fn protein_20_token_id(residue: char) -> Option<u8> {
     }
 }
 
+fn protein_20_token_id_byte(residue: u8) -> Option<u8> {
+    match residue {
+        b'A' => Some(0),
+        b'C' => Some(1),
+        b'D' => Some(2),
+        b'E' => Some(3),
+        b'F' => Some(4),
+        b'G' => Some(5),
+        b'H' => Some(6),
+        b'I' => Some(7),
+        b'K' => Some(8),
+        b'L' => Some(9),
+        b'M' => Some(10),
+        b'N' => Some(11),
+        b'P' => Some(12),
+        b'Q' => Some(13),
+        b'R' => Some(14),
+        b'S' => Some(15),
+        b'T' => Some(16),
+        b'V' => Some(17),
+        b'W' => Some(18),
+        b'Y' => Some(19),
+        _ => None,
+    }
+}
+
+fn is_ambiguous_residue_byte(residue: u8) -> bool {
+    matches!(residue, b'X' | b'B' | b'Z' | b'J' | b'U' | b'O')
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct AnalyzedProtein {
     pub protein: ProteinSequence,
@@ -211,172 +352,20 @@ pub(crate) struct AnalyzedFastaInput {
 }
 
 pub(crate) fn analyze_fasta_records(input: &str) -> Result<Vec<AnalyzedProtein>, BioRsError> {
-    if input.trim().is_empty() {
-        return Err(BioRsError::EmptyInput);
-    }
-
-    let mut records = Vec::new();
-    let mut current_id: Option<String> = None;
-    let mut current_sequence = String::new();
-    let mut current_tokens = Vec::new();
-    let mut current_warnings = Vec::new();
-    let mut current_errors = Vec::new();
-    let mut current_header_line = 0;
-    let mut current_record_index = 0;
-    let mut current_length = 0usize;
-
-    for (line_index, raw_line) in input.lines().enumerate() {
-        let line_number = line_index + 1;
-        let line = raw_line.trim();
-
-        if line.is_empty() {
-            continue;
-        }
-
-        if let Some(header) = line.strip_prefix('>') {
-            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
-                line: line_number,
-                record_index: current_record_index,
-            })?;
-            if let Some(id) = current_id.replace(next_id) {
-                push_analyzed_record(
-                    &mut records,
-                    id,
-                    &mut current_sequence,
-                    &mut current_tokens,
-                    &mut current_warnings,
-                    &mut current_errors,
-                    &mut current_length,
-                    current_header_line,
-                    current_record_index,
-                )?;
-                current_record_index += 1;
-            }
-            current_header_line = line_number;
-        } else {
-            if current_id.is_none() {
-                return Err(BioRsError::MissingHeader { line: line_number });
-            }
-
-            for residue in normalized_residues(line) {
-                current_length += 1;
-                current_sequence.push(residue);
-                push_tokenized_residue(
-                    residue,
-                    current_length,
-                    &mut current_tokens,
-                    &mut current_warnings,
-                    &mut current_errors,
-                );
-            }
-        }
-    }
-
-    let id = current_id.ok_or(BioRsError::MissingHeader { line: 1 })?;
-    push_analyzed_record(
-        &mut records,
-        id,
-        &mut current_sequence,
-        &mut current_tokens,
-        &mut current_warnings,
-        &mut current_errors,
-        &mut current_length,
-        current_header_line,
-        current_record_index,
-    )?;
-
-    Ok(records)
+    let mut sink = AnalyzedRecordSink::default();
+    scan_fasta_str(input, &mut sink)?;
+    Ok(sink.records)
 }
 
 pub(crate) fn analyze_fasta_records_reader<R: BufRead>(
-    mut reader: R,
+    reader: R,
 ) -> Result<AnalyzedFastaInput, crate::FastaReadError> {
-    let mut records = Vec::new();
-    let mut current_id: Option<String> = None;
-    let mut current_sequence = String::new();
-    let mut current_tokens = Vec::new();
-    let mut current_warnings = Vec::new();
-    let mut current_errors = Vec::new();
-    let mut current_header_line = 0;
-    let mut current_record_index = 0;
-    let mut current_length = 0usize;
-    let mut line_number = 0usize;
-    let mut hasher = StableInputHasher::new();
-    let mut raw_line = String::new();
-
-    loop {
-        raw_line.clear();
-        let bytes = reader.read_line(&mut raw_line)?;
-        if bytes == 0 {
-            break;
-        }
-        line_number += 1;
-        hasher.update(raw_line.as_bytes());
-        let line = raw_line.trim();
-
-        if line.is_empty() {
-            continue;
-        }
-
-        if let Some(header) = line.strip_prefix('>') {
-            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
-                line: line_number,
-                record_index: current_record_index,
-            })?;
-            if let Some(id) = current_id.replace(next_id) {
-                push_analyzed_record(
-                    &mut records,
-                    id,
-                    &mut current_sequence,
-                    &mut current_tokens,
-                    &mut current_warnings,
-                    &mut current_errors,
-                    &mut current_length,
-                    current_header_line,
-                    current_record_index,
-                )?;
-                current_record_index += 1;
-            }
-            current_header_line = line_number;
-        } else {
-            if current_id.is_none() {
-                return Err(BioRsError::MissingHeader { line: line_number }.into());
-            }
-
-            for residue in normalized_residues(line) {
-                current_length += 1;
-                current_sequence.push(residue);
-                push_tokenized_residue(
-                    residue,
-                    current_length,
-                    &mut current_tokens,
-                    &mut current_warnings,
-                    &mut current_errors,
-                );
-            }
-        }
-    }
-
-    if line_number == 0 || records.is_empty() && current_id.is_none() {
-        return Err(BioRsError::EmptyInput.into());
-    }
-
-    let id = current_id.ok_or(BioRsError::MissingHeader { line: 1 })?;
-    push_analyzed_record(
-        &mut records,
-        id,
-        &mut current_sequence,
-        &mut current_tokens,
-        &mut current_warnings,
-        &mut current_errors,
-        &mut current_length,
-        current_header_line,
-        current_record_index,
-    )?;
+    let mut sink = AnalyzedRecordSink::default();
+    let input_hash = scan_fasta_reader(reader, &mut sink)?;
 
     Ok(AnalyzedFastaInput {
-        input_hash: hasher.finalize(),
-        records,
+        input_hash,
+        records: sink.records,
     })
 }
 
@@ -396,45 +385,90 @@ pub(crate) fn validated_sequences_from_analyzed(
         .collect()
 }
 
-fn fasta_id(header: &str) -> Option<String> {
-    header.split_whitespace().next().map(str::to_string)
+#[derive(Default)]
+struct AnalyzedRecordSink {
+    records: Vec<AnalyzedProtein>,
+    current_sequence: String,
+    current_tokens: Vec<u8>,
+    current_warnings: Vec<ResidueIssue>,
+    current_errors: Vec<ResidueIssue>,
+    current_length: usize,
 }
 
-#[allow(clippy::too_many_arguments)]
-fn push_analyzed_record(
-    records: &mut Vec<AnalyzedProtein>,
-    id: String,
-    sequence: &mut String,
-    tokens: &mut Vec<u8>,
-    warnings: &mut Vec<ResidueIssue>,
-    errors: &mut Vec<ResidueIssue>,
-    length: &mut usize,
-    line: usize,
-    record_index: usize,
-) -> Result<(), BioRsError> {
-    if sequence.is_empty() {
-        return Err(BioRsError::MissingSequence {
-            id,
-            line,
-            record_index,
-        });
+impl FastaRecordSink for AnalyzedRecordSink {
+    fn push_sequence_line(&mut self, line: &str) {
+        if line.is_ascii() {
+            for byte in line.bytes() {
+                if byte.is_ascii_whitespace() {
+                    continue;
+                }
+                self.push_residue_byte(byte);
+            }
+            return;
+        }
+
+        for residue in normalized_residues(line) {
+            self.push_residue(residue);
+        }
     }
 
-    let protein = ProteinSequence {
-        id: id.clone(),
-        sequence: std::mem::take(sequence),
-    };
-    let tokenized = TokenizedProtein {
-        id,
-        length: std::mem::take(length),
-        alphabet: PROTEIN_20.to_string(),
-        valid: warnings.is_empty() && errors.is_empty(),
-        tokens: std::mem::take(tokens),
-        warnings: std::mem::take(warnings),
-        errors: std::mem::take(errors),
-    };
-    records.push(AnalyzedProtein { protein, tokenized });
-    Ok(())
+    fn finish_record(
+        &mut self,
+        id: String,
+        line: usize,
+        record_index: usize,
+    ) -> Result<(), BioRsError> {
+        if self.current_sequence.is_empty() {
+            return Err(BioRsError::MissingSequence {
+                id,
+                line,
+                record_index,
+            });
+        }
+
+        let protein = ProteinSequence {
+            id: id.clone(),
+            sequence: std::mem::take(&mut self.current_sequence),
+        };
+        let tokenized = TokenizedProtein {
+            id,
+            length: std::mem::take(&mut self.current_length),
+            alphabet: PROTEIN_20.to_string(),
+            valid: self.current_warnings.is_empty() && self.current_errors.is_empty(),
+            tokens: std::mem::take(&mut self.current_tokens),
+            warnings: std::mem::take(&mut self.current_warnings),
+            errors: std::mem::take(&mut self.current_errors),
+        };
+        self.records.push(AnalyzedProtein { protein, tokenized });
+        Ok(())
+    }
+}
+
+impl AnalyzedRecordSink {
+    fn push_residue(&mut self, residue: char) {
+        self.current_length += 1;
+        self.current_sequence.push(residue);
+        push_tokenized_residue(
+            residue,
+            self.current_length,
+            &mut self.current_tokens,
+            &mut self.current_warnings,
+            &mut self.current_errors,
+        );
+    }
+
+    fn push_residue_byte(&mut self, residue: u8) {
+        let residue = residue.to_ascii_uppercase();
+        self.current_length += 1;
+        self.current_sequence.push(residue as char);
+        push_tokenized_residue_byte(
+            residue,
+            self.current_length,
+            &mut self.current_tokens,
+            &mut self.current_warnings,
+            &mut self.current_errors,
+        );
+    }
 }
 
 #[cfg(test)]
@@ -443,12 +477,18 @@ mod tests {
 
     #[test]
     fn protein_20_token_id_matches_vocab_order() {
-        for (expected, residue) in PROTEIN_20_RESIDUES.iter().enumerate() {
+        for (expected, residue) in crate::sequence::PROTEIN_20_RESIDUES.iter().enumerate() {
             assert_eq!(protein_20_token_id(*residue), Some(expected as u8));
+            assert_eq!(
+                protein_20_token_id_byte(*residue as u8),
+                Some(expected as u8)
+            );
         }
 
         assert_eq!(protein_20_token_id('X'), None);
+        assert_eq!(protein_20_token_id_byte(b'X'), None);
         assert_eq!(protein_20_token_id('*'), None);
+        assert_eq!(protein_20_token_id_byte(b'*'), None);
     }
 
     #[test]

@@ -354,6 +354,30 @@ fn package_verify_reports_missing_observed_output_code() {
 }
 
 #[test]
+fn package_verify_reports_content_mismatch_code() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");
+    let observations =
+        manifest_dir.join("../../../examples/protein-package/observations.mismatch.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("verify")
+        .arg(manifest)
+        .arg(observations)
+        .output()
+        .expect("run biors package verify");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.output_content_mismatch");
+    assert_eq!(value["error"]["location"], "fixtures");
+}
+
+#[test]
 fn json_error_mode_outputs_contract_shape() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("--json")
