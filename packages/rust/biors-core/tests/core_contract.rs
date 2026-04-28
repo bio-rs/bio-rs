@@ -1,7 +1,8 @@
 use biors_core::{
-    build_model_inputs, build_model_inputs_checked, parse_fasta_records, tokenize_fasta_records,
-    validate_fasta_input, BioRsError, ModelInputBuildError, ModelInputPolicy, PaddingPolicy,
-    ProteinSequence, ProteinTokenizer, Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
+    build_model_inputs, build_model_inputs_checked, load_vocab_json, parse_fasta_records,
+    tokenize_fasta_records, validate_fasta_input, BioRsError, ModelInputBuildError,
+    ModelInputPolicy, PaddingPolicy, ProteinSequence, ProteinTokenizer, Tokenizer,
+    UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 
 #[test]
@@ -33,6 +34,20 @@ fn reports_line_and_record_index_for_invalid_fasta() {
 }
 
 #[test]
+fn rejects_empty_fasta_identifier() {
+    let error = parse_fasta_records(">\nACDE\n").expect_err("empty FASTA id fails");
+
+    assert_eq!(
+        error,
+        BioRsError::MissingIdentifier {
+            line: 1,
+            record_index: 0,
+        }
+    );
+    assert_eq!(error.code(), "fasta.missing_identifier");
+}
+
+#[test]
 fn validates_sequences_with_ambiguous_residue_policy() {
     let report = validate_fasta_input(">seq1\nAX*\n").expect("valid FASTA envelope");
 
@@ -53,10 +68,31 @@ fn protein_tokenizer_trait_matches_public_tokenize_function() {
     assert_eq!(tokenizer.alphabet(), "protein-20");
     assert_eq!(tokenizer.vocabulary().tokens.len(), 20);
     assert_eq!(
+        tokenizer.vocabulary().unknown_token_id,
+        PROTEIN_20_UNKNOWN_TOKEN_ID
+    );
+    assert_eq!(
         tokenizer.vocabulary().unknown_token_policy,
         UnknownTokenPolicy::WarnOrErrorWithUnknownToken
     );
     assert_eq!(tokenizer.tokenize(&record).tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
+fn loads_vocab_from_json_contract() {
+    let vocab = load_vocab_json(
+        r#"{
+          "name": "protein-20",
+          "tokens": [{ "residue": "A", "token_id": 0 }],
+          "unknown_token_id": 20,
+          "unknown_token_policy": "warn_or_error_with_unknown_token"
+        }"#,
+    )
+    .expect("valid vocab JSON");
+
+    assert_eq!(vocab.name, "protein-20");
+    assert_eq!(vocab.tokens[0].residue, 'A');
+    assert_eq!(vocab.unknown_token_id, PROTEIN_20_UNKNOWN_TOKEN_ID);
 }
 
 #[test]
@@ -143,6 +179,27 @@ fn rejects_model_input_for_sequences_with_ambiguous_or_invalid_residues() {
             id: "seq1".to_string(),
             warning_count: 1,
             error_count: 1,
+        }
+    );
+}
+
+#[test]
+fn rejects_zero_length_model_input_policy() {
+    let tokenized = tokenize_fasta_records(">seq1\nACDE\n").expect("valid FASTA");
+    let error = build_model_inputs_checked(
+        &tokenized,
+        ModelInputPolicy {
+            max_length: 0,
+            pad_token_id: 0,
+            padding: PaddingPolicy::FixedLength,
+        },
+    )
+    .expect_err("zero max_length should fail");
+
+    assert_eq!(
+        error,
+        ModelInputBuildError::InvalidPolicy {
+            message: "max_length must be greater than zero".to_string(),
         }
     );
 }

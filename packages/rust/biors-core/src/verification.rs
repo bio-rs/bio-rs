@@ -1,4 +1,6 @@
-use crate::package::{read_package_file, resolve_package_path, sha256_digest, PackageManifest};
+use crate::package::{
+    read_package_file, resolve_package_asset_path, sha256_digest, PackageManifest,
+};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -139,7 +141,15 @@ pub fn verify_package_outputs_with_observation_base(
                 return result;
             };
 
-            let observed_path = resolve_package_path(observations_base_dir, &observation.path);
+            let observed_path =
+                match resolve_package_asset_path(observations_base_dir, &observation.path) {
+                    Ok(path) => path,
+                    Err(error) => {
+                        result.status = VerificationStatus::Missing;
+                        result.issue = Some(error);
+                        return result;
+                    }
+                };
             let observed_bytes = match std::fs::read(&observed_path) {
                 Ok(bytes) => bytes,
                 Err(error) => {

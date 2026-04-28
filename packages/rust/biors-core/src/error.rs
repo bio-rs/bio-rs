@@ -26,6 +26,10 @@ impl ErrorLocation {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BioRsError {
     EmptyInput,
+    MissingIdentifier {
+        line: usize,
+        record_index: usize,
+    },
     MissingHeader {
         line: usize,
     },
@@ -40,6 +44,7 @@ impl BioRsError {
     pub const fn code(&self) -> &'static str {
         match self {
             Self::EmptyInput => "fasta.empty_input",
+            Self::MissingIdentifier { .. } => "fasta.missing_identifier",
             Self::MissingHeader { .. } => "fasta.missing_header",
             Self::MissingSequence { .. } => "fasta.missing_sequence",
         }
@@ -48,6 +53,9 @@ impl BioRsError {
     pub const fn location(&self) -> Option<ErrorLocation> {
         match self {
             Self::EmptyInput => None,
+            Self::MissingIdentifier { line, record_index } => {
+                Some(ErrorLocation::record(*line, *record_index))
+            }
             Self::MissingHeader { line } => Some(ErrorLocation::line(*line)),
             Self::MissingSequence {
                 line, record_index, ..
@@ -60,6 +68,10 @@ impl fmt::Display for BioRsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptyInput => write!(f, "FASTA input is empty"),
+            Self::MissingIdentifier { record_index, .. } => write!(
+                f,
+                "FASTA record at index {record_index} has an empty identifier"
+            ),
             Self::MissingHeader { line } => write!(
                 f,
                 "FASTA input must start with a header line beginning with '>' at line {line}"

@@ -7,6 +7,7 @@ The following surfaces are candidates for stabilization before `1.0.0`.
 - `parse_fasta_records`
 - `validate_fasta_input`
 - `tokenize_fasta_records`
+- `load_vocab_json`
 - `ProteinTokenizer` and `Tokenizer`
 - `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
 - `validate_package_manifest_artifacts`

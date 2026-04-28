@@ -337,7 +337,12 @@ impl CliError {
     const fn code(&self) -> &'static str {
         match self {
             Self::Core(error) => error.code(),
-            Self::ModelInput(_) => "model_input.invalid_sequence",
+            Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => {
+                "model_input.invalid_policy"
+            }
+            Self::ModelInput(ModelInputBuildError::InvalidTokenizedSequence { .. }) => {
+                "model_input.invalid_sequence"
+            }
             Self::Json(_) => "json.invalid",
             Self::CurrentDir(_) => "io.read_failed",
             Self::Read { .. } => "io.read_failed",
@@ -349,6 +354,7 @@ impl CliError {
     fn location(&self) -> Option<ErrorLocationValue> {
         match self {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
+            Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => None,
             Self::ModelInput(ModelInputBuildError::InvalidTokenizedSequence { id, .. }) => {
                 Some(ErrorLocationValue::Label(id.clone()))
             }
@@ -413,6 +419,11 @@ fn classify_validation_code(issues: &[String]) -> &'static str {
         .any(|issue| issue.contains("checksum mismatch"))
     {
         "package.checksum_mismatch"
+    } else if issues
+        .iter()
+        .any(|issue| issue.contains("must be relative") || issue.contains("must stay inside"))
+    {
+        "package.invalid_asset_path"
     } else if issues
         .iter()
         .any(|issue| issue.contains("failed to read asset"))

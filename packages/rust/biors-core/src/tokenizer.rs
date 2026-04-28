@@ -32,6 +32,7 @@ impl Tokenizer for ProteinTokenizer {
 pub struct Vocabulary {
     pub name: String,
     pub tokens: Vec<VocabToken>,
+    pub unknown_token_id: u8,
     pub unknown_token_policy: UnknownTokenPolicy,
 }
 
@@ -58,8 +59,13 @@ pub fn load_protein_20_vocab() -> Vocabulary {
                 token_id: token_id as u8,
             })
             .collect(),
+        unknown_token_id: PROTEIN_20_UNKNOWN_TOKEN_ID,
         unknown_token_policy: protein_20_unknown_token_policy(),
     }
+}
+
+pub fn load_vocab_json(input: &str) -> Result<Vocabulary, serde_json::Error> {
+    serde_json::from_str(input)
 }
 
 pub const fn protein_20_unknown_token_policy() -> UnknownTokenPolicy {
@@ -172,7 +178,11 @@ pub(crate) fn analyze_fasta_records(input: &str) -> Result<Vec<AnalyzedProtein>,
         }
 
         if let Some(header) = line.strip_prefix('>') {
-            if let Some(id) = current_id.replace(fasta_id(header)) {
+            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
+                line: line_number,
+                record_index: current_record_index,
+            })?;
+            if let Some(id) = current_id.replace(next_id) {
                 push_analyzed_record(
                     &mut records,
                     id,
@@ -241,12 +251,8 @@ pub(crate) fn validated_sequences_from_analyzed(
         .collect()
 }
 
-fn fasta_id(header: &str) -> String {
-    header
-        .split_whitespace()
-        .next()
-        .unwrap_or_default()
-        .to_string()
+fn fasta_id(header: &str) -> Option<String> {
+    header.split_whitespace().next().map(str::to_string)
 }
 
 #[allow(clippy::too_many_arguments)]

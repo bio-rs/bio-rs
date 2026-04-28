@@ -1,6 +1,7 @@
 use biors_core::{
-    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, ModelFormat,
-    PackageManifest, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion,
+    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest,
+    validate_package_relative_path, ModelFormat, PackageManifest, RuntimeBackend,
+    RuntimeTargetPlatform, SchemaVersion,
 };
 use std::path::Path;
 
@@ -138,6 +139,24 @@ fn rejects_missing_manifest_relative_artifact() {
         .issues
         .iter()
         .any(|issue| issue.contains("failed to read asset 'vocabs/missing.json'")));
+}
+
+#[test]
+fn rejects_asset_paths_outside_package_root() {
+    assert!(validate_package_relative_path("fixtures/tiny.fasta").is_ok());
+    assert!(validate_package_relative_path("../outside.fasta").is_err());
+    assert!(validate_package_relative_path("/tmp/outside.fasta").is_err());
+
+    let mut manifest = example_manifest();
+    manifest.fixtures[0].input = "../outside.fasta".to_string();
+
+    let report = biors_core::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report
+        .issues
+        .iter()
+        .any(|issue| issue.contains("must stay inside the package root")));
 }
 
 #[test]

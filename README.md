@@ -113,7 +113,9 @@ Current v0.9.5 capabilities:
 
 - FASTA parsing and normalization
 - FASTA validation with line and record-index diagnostics
+- FASTA record identifier validation
 - protein-20 tokenization
+- JSON vocab loading for tokenizer contracts
 - positional token alignment preserved with explicit unknown-token IDs for unresolved residues
 - residue warning/error reporting
 - model-ready input records
@@ -125,6 +127,7 @@ Current v0.9.5 capabilities:
 - typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
 - runtime bridge planning reports
 - manifest-relative asset validation
+- package path escape rejection for manifest and observation assets
 - SHA-256 package and fixture checksum verification
 - package fixture verification from observed artifact paths
 - JSON success/error envelopes

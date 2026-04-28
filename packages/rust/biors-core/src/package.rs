@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fmt;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PackageManifest {
@@ -278,8 +278,13 @@ pub fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
     base_dir.join(relative_path)
 }
 
+pub fn resolve_package_asset_path(base_dir: &Path, relative_path: &str) -> Result<PathBuf, String> {
+    validate_package_relative_path(relative_path)?;
+    Ok(resolve_package_path(base_dir, relative_path))
+}
+
 pub fn read_package_file(base_dir: &Path, relative_path: &str) -> Result<Vec<u8>, String> {
-    let resolved = resolve_package_path(base_dir, relative_path);
+    let resolved = resolve_package_asset_path(base_dir, relative_path)?;
     fs::read(&resolved).map_err(|error| {
         format!(
             "failed to read asset '{}' at '{}': {error}",
@@ -287,6 +292,32 @@ pub fn read_package_file(base_dir: &Path, relative_path: &str) -> Result<Vec<u8>
             resolved.display()
         )
     })
+}
+
+pub fn validate_package_relative_path(relative_path: &str) -> Result<(), String> {
+    let path = Path::new(relative_path);
+    if relative_path.trim().is_empty() {
+        return Err("asset path is required".to_string());
+    }
+
+    if path.is_absolute() {
+        return Err(format!(
+            "asset path '{relative_path}' must be relative to the package root"
+        ));
+    }
+
+    if path.components().any(|component| {
+        matches!(
+            component,
+            Component::ParentDir | Component::RootDir | Component::Prefix(_)
+        )
+    }) {
+        return Err(format!(
+            "asset path '{relative_path}' must stay inside the package root"
+        ));
+    }
+
+    Ok(())
 }
 
 pub fn sha256_digest(bytes: &[u8]) -> String {

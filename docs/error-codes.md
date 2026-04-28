@@ -5,6 +5,7 @@ Error codes are stable identifiers for CLI JSON error mode.
 ## FASTA
 
 - `fasta.empty_input`: input is blank after whitespace trimming
+- `fasta.missing_identifier`: a FASTA header did not include a non-empty record identifier
 - `fasta.missing_header`: non-empty FASTA input did not start with `>`
 - `fasta.missing_sequence`: a FASTA record header had no sequence body
 
@@ -16,6 +17,7 @@ Error codes are stable identifiers for CLI JSON error mode.
 ## Model Input
 
 - `model_input.invalid_sequence`: a tokenized sequence still contains warnings or errors and cannot be emitted as model-ready input safely
+- `model_input.invalid_policy`: model input policy values are invalid, such as `max_length=0`
 
 ## I/O
 
@@ -25,6 +27,7 @@ Error codes are stable identifiers for CLI JSON error mode.
 
 - `package.invalid_checksum_format`: a package checksum field does not use `sha256:<64hex>`
 - `package.checksum_mismatch`: a manifest or verification checksum does not match the file on disk
+- `package.invalid_asset_path`: a manifest or observation path is absolute or escapes the package root
 - `package.asset_read_failed`: a manifest-relative asset path could not be read
 - `package.observed_output_missing`: a verification observation is missing or its output artifact could not be read
 - `package.output_content_mismatch`: observed output content does not match the expected output artifact

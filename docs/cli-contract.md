@@ -16,11 +16,14 @@ This document records the frozen `0.9.5` CLI and JSON contract surface before
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
+`--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 
 Manifest-relative paths are resolved against the manifest file's parent directory. If the manifest is read from stdin, relative paths are resolved against the current working directory.
+Absolute paths and `..` parent traversal are rejected so packages remain portable and self-contained.
 
 Observation paths in `package verify` are resolved against the observations file's parent directory. If the observations file is read from stdin, relative paths are resolved against the current working directory.
+Absolute observation paths and `..` parent traversal are rejected for the same reason.
 
 The package manifest contract is closed over enumerated values for `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and tensor `dtype` fields. Unsupported values fail JSON deserialization instead of being accepted as loose strings.
 

@@ -32,6 +32,9 @@ pub struct ModelInputRecord {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ModelInputBuildError {
+    InvalidPolicy {
+        message: String,
+    },
     InvalidTokenizedSequence {
         id: String,
         warning_count: usize,
@@ -52,6 +55,8 @@ pub fn build_model_inputs_checked(
     tokenized: &[TokenizedProtein],
     policy: ModelInputPolicy,
 ) -> Result<ModelInput, ModelInputBuildError> {
+    validate_model_input_policy(&policy)?;
+
     for record in tokenized {
         if !record.warnings.is_empty() || !record.errors.is_empty() {
             return Err(ModelInputBuildError::InvalidTokenizedSequence {
@@ -63,6 +68,16 @@ pub fn build_model_inputs_checked(
     }
 
     Ok(build_model_inputs(tokenized, policy))
+}
+
+pub fn validate_model_input_policy(policy: &ModelInputPolicy) -> Result<(), ModelInputBuildError> {
+    if policy.max_length == 0 {
+        return Err(ModelInputBuildError::InvalidPolicy {
+            message: "max_length must be greater than zero".to_string(),
+        });
+    }
+
+    Ok(())
 }
 
 fn model_input_from_tokenized(
@@ -96,6 +111,7 @@ fn model_input_from_tokenized(
 impl fmt::Display for ModelInputBuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidPolicy { message } => write!(f, "invalid model input policy: {message}"),
             Self::InvalidTokenizedSequence {
                 id,
                 warning_count,

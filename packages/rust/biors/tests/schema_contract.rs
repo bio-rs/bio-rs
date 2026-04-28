@@ -74,6 +74,16 @@ fn cli_outputs_match_declared_payload_schemas() {
     let model_input = run_with_stdin(["model-input", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
     assert_payload_matches_schema(&model_input, "schemas/model-input-output.v0.json");
 
+    let zero_model_input = serde_json::json!({
+        "policy": {
+            "max_length": 0,
+            "pad_token_id": 0,
+            "padding": "fixed_length"
+        },
+        "records": []
+    });
+    assert_payload_rejected_by_schema(&zero_model_input, "schemas/model-input-output.v0.json");
+
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let manifest = repo.join("examples/protein-package/manifest.json");
     let observations = repo.join("examples/protein-package/observations.json");
@@ -105,6 +115,20 @@ fn assert_payload_matches_schema(output: &[u8], schema_path: &str) {
         let messages: Vec<_> = errors.map(|error| error.to_string()).collect();
         panic!("payload did not match schema {schema_path}: {messages:?}");
     }
+}
+
+fn assert_payload_rejected_by_schema(payload: &Value, schema_path: &str) {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let schema: Value = serde_json::from_str(
+        &fs::read_to_string(repo.join(schema_path)).expect("read payload schema"),
+    )
+    .expect("schema JSON");
+    let compiled = JSONSchema::compile(&schema).expect("compile schema");
+
+    assert!(
+        compiled.validate(payload).is_err(),
+        "payload unexpectedly matched schema {schema_path}"
+    );
 }
 
 fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {

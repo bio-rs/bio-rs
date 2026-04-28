@@ -23,7 +23,11 @@ pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsErr
         }
 
         if let Some(header) = line.strip_prefix('>') {
-            if let Some(id) = current_id.replace(fasta_id(header)) {
+            let next_id = fasta_id(header).ok_or(BioRsError::MissingIdentifier {
+                line: line_number,
+                record_index: current_record_index,
+            })?;
+            if let Some(id) = current_id.replace(next_id) {
                 push_fasta_record(
                     &mut records,
                     id,
@@ -60,12 +64,8 @@ pub fn validate_fasta_input(input: &str) -> Result<SequenceValidationReport, Bio
     Ok(summarize_validated_sequences(validated))
 }
 
-fn fasta_id(header: &str) -> String {
-    header
-        .split_whitespace()
-        .next()
-        .unwrap_or_default()
-        .to_string()
+fn fasta_id(header: &str) -> Option<String> {
+    header.split_whitespace().next().map(str::to_string)
 }
 
 fn push_fasta_record(

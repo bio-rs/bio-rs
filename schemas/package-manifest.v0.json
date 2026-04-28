@@ -32,7 +32,7 @@
       "required": ["format", "path"],
       "properties": {
         "format": { "const": "onnx" },
-        "path": { "type": "string" },
+        "path": { "type": "string", "minLength": 1 },
         "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
       "additionalProperties": false
@@ -42,7 +42,7 @@
       "required": ["name", "path"],
       "properties": {
         "name": { "type": "string" },
-        "path": { "type": "string" },
+        "path": { "type": "string", "minLength": 1 },
         "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "contract_version": { "type": "string" }
       },
@@ -73,8 +73,8 @@
       "required": ["name", "input", "expected_output"],
       "properties": {
         "name": { "type": "string" },
-        "input": { "type": "string" },
-        "expected_output": { "type": "string" },
+        "input": { "type": "string", "minLength": 1 },
+        "expected_output": { "type": "string", "minLength": 1 },
         "input_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "expected_output_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
