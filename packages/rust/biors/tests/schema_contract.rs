@@ -91,6 +91,12 @@ fn cli_outputs_match_declared_payload_schemas() {
     let package_inspect = run_command(["package", "inspect"], &[manifest.as_os_str()]);
     assert_payload_matches_schema(&package_inspect, "schemas/package-inspect-output.v0.json");
 
+    let package_validate = run_command(["package", "validate"], &[manifest.as_os_str()]);
+    assert_payload_matches_schema(
+        &package_validate,
+        "schemas/package-validation-report.v0.json",
+    );
+
     let package_bridge = run_command(["package", "bridge"], &[manifest.as_os_str()]);
     assert_payload_matches_schema(&package_bridge, "schemas/package-bridge-output.v0.json");
 
@@ -101,19 +107,38 @@ fn cli_outputs_match_declared_payload_schemas() {
     assert_payload_matches_schema(&package_verify, "schemas/package-verify-output.v0.json");
 }
 
+#[test]
+fn cli_outputs_match_success_and_error_envelope_schemas() {
+    let success = run_with_stdin(["tokenize", "-"], ">seq1\nACDE\n");
+    assert_json_matches_schema(&success, "schemas/cli-success.v0.json");
+
+    let error = run_with_stdin_expect_failure(["--json", "tokenize", "-"], "ACDE\n");
+    assert_json_matches_schema(&error, "schemas/cli-error.v0.json");
+}
+
 fn assert_payload_matches_schema(output: &[u8], schema_path: &str) {
-    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let envelope: Value = serde_json::from_slice(output).expect("valid CLI JSON");
     let payload = envelope["data"].clone();
+    assert_json_value_matches_schema(&envelope, "schemas/cli-success.v0.json");
+    assert_json_value_matches_schema(&payload, schema_path);
+}
+
+fn assert_json_matches_schema(output: &[u8], schema_path: &str) {
+    let value: Value = serde_json::from_slice(output).expect("valid CLI JSON");
+    assert_json_value_matches_schema(&value, schema_path);
+}
+
+fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let schema: Value = serde_json::from_str(
         &fs::read_to_string(repo.join(schema_path)).expect("read payload schema"),
     )
     .expect("schema JSON");
     let compiled = JSONSchema::compile(&schema).expect("compile schema");
-    let validation = compiled.validate(&payload);
+    let validation = compiled.validate(value);
     if let Err(errors) = validation {
         let messages: Vec<_> = errors.map(|error| error.to_string()).collect();
-        panic!("payload did not match schema {schema_path}: {messages:?}");
+        panic!("JSON did not match schema {schema_path}: {messages:?}");
     }
 }
 
@@ -153,6 +178,28 @@ fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
         "stderr: {}",
         String::from_utf8_lossy(&output.stderr)
     );
+    output.stdout
+}
+
+fn run_with_stdin_expect_failure<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors");
+
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin pipe")
+        .write_all(input.as_bytes())
+        .expect("write stdin");
+
+    let output = child.wait_with_output().expect("wait for biors");
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
     output.stdout
 }
 
