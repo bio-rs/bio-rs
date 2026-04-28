@@ -1,5 +1,5 @@
 use crate::sequence::{
-    normalize_sequence, ProteinSequence, ResidueIssue, ValidatedSequence, AMBIGUOUS_RESIDUES,
+    is_ambiguous_residue, normalized_residues, ProteinSequence, ResidueIssue, ValidatedSequence,
     PROTEIN_20, PROTEIN_20_RESIDUES,
 };
 use crate::verification::StableInputHasher;
@@ -135,26 +135,17 @@ pub fn summarize_tokenized_proteins(proteins: &[TokenizedProtein]) -> ProteinBat
 }
 
 pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
-    let mut tokens = Vec::new();
+    let mut tokens = Vec::with_capacity(protein.sequence.len());
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
     for (index, residue) in protein.sequence.chars().enumerate() {
-        let position = index + 1;
-        if let Some(token) = protein_20_token(residue) {
-            tokens.push(token);
-        } else if AMBIGUOUS_RESIDUES.contains(&residue) {
-            tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
-            warnings.push(ResidueIssue { residue, position });
-        } else {
-            tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
-            errors.push(ResidueIssue { residue, position });
-        }
+        push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
     }
 
     TokenizedProtein {
         id: protein.id.clone(),
-        length: protein.sequence.chars().count(),
+        length: tokens.len(),
         alphabet: PROTEIN_20.to_string(),
         valid: warnings.is_empty() && errors.is_empty(),
         tokens,
@@ -163,11 +154,48 @@ pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     }
 }
 
-fn protein_20_token(residue: char) -> Option<u8> {
-    PROTEIN_20_RESIDUES
-        .iter()
-        .position(|candidate| *candidate == residue)
-        .map(|position| position as u8)
+fn push_tokenized_residue(
+    residue: char,
+    position: usize,
+    tokens: &mut Vec<u8>,
+    warnings: &mut Vec<ResidueIssue>,
+    errors: &mut Vec<ResidueIssue>,
+) {
+    if let Some(token) = protein_20_token_id(residue) {
+        tokens.push(token);
+    } else if is_ambiguous_residue(residue) {
+        tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
+        warnings.push(ResidueIssue { residue, position });
+    } else {
+        tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
+        errors.push(ResidueIssue { residue, position });
+    }
+}
+
+fn protein_20_token_id(residue: char) -> Option<u8> {
+    match residue {
+        'A' => Some(0),
+        'C' => Some(1),
+        'D' => Some(2),
+        'E' => Some(3),
+        'F' => Some(4),
+        'G' => Some(5),
+        'H' => Some(6),
+        'I' => Some(7),
+        'K' => Some(8),
+        'L' => Some(9),
+        'M' => Some(10),
+        'N' => Some(11),
+        'P' => Some(12),
+        'Q' => Some(13),
+        'R' => Some(14),
+        'S' => Some(15),
+        'T' => Some(16),
+        'V' => Some(17),
+        'W' => Some(18),
+        'Y' => Some(19),
+        _ => None,
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -230,19 +258,16 @@ pub(crate) fn analyze_fasta_records(input: &str) -> Result<Vec<AnalyzedProtein>,
                 return Err(BioRsError::MissingHeader { line: line_number });
             }
 
-            for residue in normalize_sequence(line).chars() {
+            for residue in normalized_residues(line) {
                 current_length += 1;
                 current_sequence.push(residue);
-                let position = current_length;
-                if let Some(token) = protein_20_token(residue) {
-                    current_tokens.push(token);
-                } else if AMBIGUOUS_RESIDUES.contains(&residue) {
-                    current_tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
-                    current_warnings.push(ResidueIssue { residue, position });
-                } else {
-                    current_tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
-                    current_errors.push(ResidueIssue { residue, position });
-                }
+                push_tokenized_residue(
+                    residue,
+                    current_length,
+                    &mut current_tokens,
+                    &mut current_warnings,
+                    &mut current_errors,
+                );
             }
         }
     }
@@ -318,19 +343,16 @@ pub(crate) fn analyze_fasta_records_reader<R: BufRead>(
                 return Err(BioRsError::MissingHeader { line: line_number }.into());
             }
 
-            for residue in normalize_sequence(line).chars() {
+            for residue in normalized_residues(line) {
                 current_length += 1;
                 current_sequence.push(residue);
-                let position = current_length;
-                if let Some(token) = protein_20_token(residue) {
-                    current_tokens.push(token);
-                } else if AMBIGUOUS_RESIDUES.contains(&residue) {
-                    current_tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
-                    current_warnings.push(ResidueIssue { residue, position });
-                } else {
-                    current_tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
-                    current_errors.push(ResidueIssue { residue, position });
-                }
+                push_tokenized_residue(
+                    residue,
+                    current_length,
+                    &mut current_tokens,
+                    &mut current_warnings,
+                    &mut current_errors,
+                );
             }
         }
     }
@@ -413,4 +435,29 @@ fn push_analyzed_record(
     };
     records.push(AnalyzedProtein { protein, tokenized });
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn protein_20_token_id_matches_vocab_order() {
+        for (expected, residue) in PROTEIN_20_RESIDUES.iter().enumerate() {
+            assert_eq!(protein_20_token_id(*residue), Some(expected as u8));
+        }
+
+        assert_eq!(protein_20_token_id('X'), None);
+        assert_eq!(protein_20_token_id('*'), None);
+    }
+
+    #[test]
+    fn ambiguous_residue_lookup_matches_policy_residues() {
+        for residue in crate::sequence::AMBIGUOUS_RESIDUES {
+            assert!(is_ambiguous_residue(residue));
+        }
+
+        assert!(!is_ambiguous_residue('A'));
+        assert!(!is_ambiguous_residue('*'));
+    }
 }

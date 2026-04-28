@@ -1,5 +1,5 @@
 use crate::error::BioRsError;
-use crate::sequence::{normalize_sequence, summarize_validated_sequences};
+use crate::sequence::{append_normalized_sequence, summarize_validated_sequences};
 use crate::tokenizer::{analyze_fasta_records, validated_sequences_from_analyzed};
 use crate::verification::StableInputHasher;
 use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
@@ -57,7 +57,7 @@ pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsErr
             if current_id.is_none() {
                 return Err(BioRsError::MissingHeader { line: line_number });
             }
-            sequence.push_str(&normalize_sequence(line));
+            append_normalized_sequence(line, &mut sequence);
         }
     }
 
@@ -119,7 +119,7 @@ pub fn parse_fasta_records_reader<R: BufRead>(
             if current_id.is_none() {
                 return Err(BioRsError::MissingHeader { line: line_number }.into());
             }
-            sequence.push_str(&normalize_sequence(line));
+            append_normalized_sequence(line, &mut sequence);
         }
     }
 

@@ -39,11 +39,50 @@ pub struct SequenceValidationReport {
 }
 
 pub fn normalize_sequence(sequence: &str) -> String {
+    let mut normalized = String::with_capacity(sequence.len());
+    append_normalized_sequence(sequence, &mut normalized);
+    normalized
+}
+
+pub(crate) fn append_normalized_sequence(sequence: &str, output: &mut String) {
+    output.reserve(sequence.len());
+    output.extend(normalized_residues(sequence));
+}
+
+pub(crate) fn normalized_residues(sequence: &str) -> impl Iterator<Item = char> + '_ {
     sequence
         .chars()
         .filter(|residue| !residue.is_whitespace())
-        .collect::<String>()
-        .to_ascii_uppercase()
+        .map(|residue| residue.to_ascii_uppercase())
+}
+
+pub(crate) fn is_protein_20_residue(residue: char) -> bool {
+    matches!(
+        residue,
+        'A' | 'C'
+            | 'D'
+            | 'E'
+            | 'F'
+            | 'G'
+            | 'H'
+            | 'I'
+            | 'K'
+            | 'L'
+            | 'M'
+            | 'N'
+            | 'P'
+            | 'Q'
+            | 'R'
+            | 'S'
+            | 'T'
+            | 'V'
+            | 'W'
+            | 'Y'
+    )
+}
+
+pub(crate) fn is_ambiguous_residue(residue: char) -> bool {
+    matches!(residue, 'X' | 'B' | 'Z' | 'J' | 'U' | 'O')
 }
 
 pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence {
@@ -52,11 +91,11 @@ pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence
 
     for (index, residue) in protein.sequence.chars().enumerate() {
         let position = index + 1;
-        if PROTEIN_20_RESIDUES.contains(&residue) {
+        if is_protein_20_residue(residue) {
             continue;
         }
 
-        if AMBIGUOUS_RESIDUES.contains(&residue) {
+        if is_ambiguous_residue(residue) {
             warnings.push(ResidueIssue { residue, position });
         } else {
             errors.push(ResidueIssue { residue, position });
@@ -85,5 +124,19 @@ pub fn summarize_validated_sequences(
             .sum(),
         error_count: sequences.iter().map(|sequence| sequence.errors.len()).sum(),
         sequences,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn append_normalized_sequence_extends_existing_buffer() {
+        let mut output = String::from("AC");
+
+        append_normalized_sequence(" d e\tf g ", &mut output);
+
+        assert_eq!(output, "ACDEFG");
     }
 }
