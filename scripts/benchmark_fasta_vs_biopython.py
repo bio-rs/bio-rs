@@ -20,6 +20,7 @@ import platform
 import shutil
 import statistics
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.request
@@ -34,6 +35,7 @@ ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 TOKEN_SET = set(ALPHABET)
 AMBIGUOUS_SET = set("XBZJUO")
 UNKNOWN_TOKEN_ID = 20
+BENCHMARK_SCHEMA_VERSION = "biors.benchmark.fasta_vs_biopython.v1"
 UNIPROT_HUMAN_PROTEOME_GZ_URL = (
     "https://ftp.uniprot.org/pub/databases/uniprot/current_release/"
     "knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz"
@@ -75,6 +77,11 @@ def sha256_of_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def sha256_of_json(value: object) -> str:
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    return f"sha256:{hashlib.sha256(payload).hexdigest()}"
 
 
 def download_uniprot_human_proteome(destination_fasta: Path) -> dict[str, str]:
@@ -251,6 +258,7 @@ def benchmark_environment() -> dict[str, str | None]:
         "rustc": command_output(["rustc", "--version"]),
         "cargo": command_output(["cargo", "--version"]),
         "biors_core": cargo_package_version("biors-core"),
+        "git_commit": command_output(["git", "rev-parse", "HEAD"]),
     }
 
 
@@ -274,6 +282,52 @@ def biors_core_benchmark(binary: Path, mode: str, fasta_path: Path) -> dict[str,
     return json.loads(completed.stdout)
 
 
+def peak_memory_bytes(command: list[str]) -> int | None:
+    time_binary = Path("/usr/bin/time")
+    if not time_binary.exists():
+        return None
+
+    if platform.system() == "Darwin":
+        completed = subprocess.run(
+            [str(time_binary), "-l", *command],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for line in completed.stderr.splitlines():
+            if "maximum resident set size" in line:
+                return int(line.split()[0])
+        return None
+
+    completed = subprocess.run(
+        [str(time_binary), "-f", "%M", *command],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    last_line = completed.stderr.splitlines()[-1] if completed.stderr.splitlines() else ""
+    if last_line.isdigit():
+        return int(last_line) * 1024
+    return None
+
+
+def biors_core_peak_memory_bytes(binary: Path, mode: str, fasta_path: Path) -> int | None:
+    return peak_memory_bytes([str(binary), mode, str(fasta_path)])
+
+
+def biopython_peak_memory_bytes(function_name: str, fasta_path: Path) -> int | None:
+    code = (
+        "import sys; "
+        "from pathlib import Path; "
+        "sys.path.insert(0, 'scripts'); "
+        "import benchmark_fasta_vs_biopython as b; "
+        f"b.{function_name}(Path(sys.argv[1]))"
+    )
+    return peak_memory_bytes([sys.executable, "-c", code, str(fasta_path)])
+
+
 def timed_runs(fn, loops: int) -> list[float]:
     values = []
     for _ in range(loops):
@@ -283,7 +337,13 @@ def timed_runs(fn, loops: int) -> list[float]:
     return values
 
 
-def summarize(seconds: list[float], *, residues: int, file_size_bytes: int) -> dict[str, float]:
+def summarize(
+    seconds: list[float],
+    *,
+    residues: int,
+    file_size_bytes: int,
+    peak_memory_bytes: int | None,
+) -> dict[str, float | int | None]:
     mean_s = statistics.mean(seconds)
     return {
         "mean_s": mean_s,
@@ -292,17 +352,35 @@ def summarize(seconds: list[float], *, residues: int, file_size_bytes: int) -> d
         "max_s": max(seconds),
         "residues_per_sec": residues / mean_s,
         "mb_per_sec": (file_size_bytes / (1024 * 1024)) / mean_s,
+        "peak_memory_bytes": peak_memory_bytes,
     }
 
 
-def benchmark_case(name: str, fn, loops: int, *, residues: int, file_size_bytes: int) -> dict:
+def benchmark_case(
+    name: str,
+    fn,
+    loops: int,
+    *,
+    residues: int,
+    file_size_bytes: int,
+    input_hash: str,
+    memory_fn=None,
+) -> dict:
     warmup_result = fn()
     seconds = timed_runs(fn, loops=loops)
+    peak_memory_bytes = memory_fn() if memory_fn is not None else None
     return {
         "name": name,
+        "input_hash": input_hash,
+        "output_hash": sha256_of_json(warmup_result),
         "warmup_result": warmup_result,
         "seconds": seconds,
-        "summary": summarize(seconds, residues=residues, file_size_bytes=file_size_bytes),
+        "summary": summarize(
+            seconds,
+            residues=residues,
+            file_size_bytes=file_size_bytes,
+            peak_memory_bytes=peak_memory_bytes,
+        ),
     }
 
 
@@ -310,6 +388,8 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
     stats = dataset_stats(fasta_path)
     size_bytes = stats["file_size_bytes"]
     residues = stats["total_residues"]
+    fasta_sha256 = sha256_of_file(fasta_path)
+    input_hash = f"sha256:{fasta_sha256}"
 
     benchmarks = {
         "pure_parse": {
@@ -319,6 +399,8 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
+                input_hash=input_hash,
+                memory_fn=lambda: biopython_peak_memory_bytes("biopython_parse_only", fasta_path),
             ),
             "biors_core": benchmark_case(
                 "biors-core pure parse",
@@ -326,6 +408,8 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
+                input_hash=input_hash,
+                memory_fn=lambda: biors_core_peak_memory_bytes(harness, "parse", fasta_path),
             ),
         },
         "parse_plus_validation": {
@@ -335,6 +419,10 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
+                input_hash=input_hash,
+                memory_fn=lambda: biopython_peak_memory_bytes(
+                    "biopython_parse_validate", fasta_path
+                ),
             ),
             "biors_core": benchmark_case(
                 "biors-core parse plus validation",
@@ -342,6 +430,8 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
+                input_hash=input_hash,
+                memory_fn=lambda: biors_core_peak_memory_bytes(harness, "validate", fasta_path),
             ),
         },
         "parse_plus_tokenization": {
@@ -351,6 +441,10 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
+                input_hash=input_hash,
+                memory_fn=lambda: biopython_peak_memory_bytes(
+                    "biopython_parse_tokenize", fasta_path
+                ),
             ),
             "biors_core": benchmark_case(
                 "biors-core parse plus tokenization",
@@ -358,6 +452,8 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
+                input_hash=input_hash,
+                memory_fn=lambda: biors_core_peak_memory_bytes(harness, "tokenize", fasta_path),
             ),
         },
     }
@@ -367,7 +463,7 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
         "dataset": {
             **provenance,
             **stats,
-            "fasta_sha256": sha256_of_file(fasta_path),
+            "fasta_sha256": fasta_sha256,
             "path": recorded_dataset_path(fasta_path, provenance),
         },
         "benchmarks": benchmarks,
@@ -415,12 +511,34 @@ def main() -> int:
         harness = ensure_benchmark_harness()
 
         result = {
+            "schema_version": BENCHMARK_SCHEMA_VERSION,
             "generated_at_utc": datetime.now(UTC).isoformat(),
             "loops": args.loops,
+            "methodology": {
+                "scope": "core library FASTA throughput, excluding CLI startup and success-envelope JSON serialization",
+                "workloads": [
+                    "pure_parse",
+                    "parse_plus_validation",
+                    "parse_plus_tokenization",
+                ],
+                "memory": "best-effort peak RSS from /usr/bin/time for biors-core and Biopython subprocesses",
+            },
             "environment": benchmark_environment(),
             "datasets": [
-                dataset_report("human_reference_proteome", human_fasta, human_provenance, args.loops, harness),
-                dataset_report("large_scale_fasta", large_fasta, large_provenance, args.loops, harness),
+                dataset_report(
+                    "human_reference_proteome",
+                    human_fasta,
+                    human_provenance,
+                    args.loops,
+                    harness,
+                ),
+                dataset_report(
+                    "large_scale_fasta",
+                    large_fasta,
+                    large_provenance,
+                    args.loops,
+                    harness,
+                ),
             ],
         }
 

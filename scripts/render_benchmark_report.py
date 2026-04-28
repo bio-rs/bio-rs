@@ -43,6 +43,8 @@ def render_report(result: dict) -> str:
             f"- bio-rs: `biors-core v{env['biors_core']}`",
             f"- Python: `{env['python']}`",
             f"- Biopython: `{env['biopython']}`",
+            f"- Git commit: `{env['git_commit']}`",
+            f"- Benchmark schema: `{result['schema_version']}`",
             "",
             "## Datasets",
             "",
@@ -71,6 +73,8 @@ def render_report(result: dict) -> str:
             "",
             "## Workload matching",
             "",
+            f"Scope: {result['methodology']['scope']}.",
+            "",
             "The benchmark compares the same work on both sides:",
             "",
             "- Pure Parse: read FASTA records and count records/residues",
@@ -89,6 +93,12 @@ def render_report(result: dict) -> str:
             "CLI. It excludes CLI startup and success-envelope JSON serialization.",
             "",
             "For Biopython, the script performs matched Python loops over `SeqIO.parse(...)`.",
+            "",
+            "Each benchmark case records the input FASTA SHA-256, an output hash of the",
+            "warmup result, timed iterations, throughput, and best-effort memory metadata.",
+            "On macOS, memory uses `/usr/bin/time -l` peak RSS for separate bio-rs",
+            "and Biopython subprocesses. Treat memory as run metadata, not a universal",
+            "memory-efficiency claim across every FASTA workload.",
             "",
             "## Reproduce",
             "",
@@ -147,8 +157,8 @@ def composition(dataset: dict) -> str:
 
 def results_table(dataset: dict) -> str:
     rows = [
-        "| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for key, label in [
         ("parse_plus_validation", "Parse + validation"),
@@ -165,9 +175,17 @@ def results_table(dataset: dict) -> str:
             f"{biopython['mean_s']:.3f}s | "
             f"**{speedup:.2f}x** | "
             f"**{biors['residues_per_sec'] / 1_000_000:.1f}M** | "
-            f"**{biors['mb_per_sec']:.1f}** |"
+            f"**{biors['mb_per_sec']:.1f}** | "
+            f"{memory(biors['peak_memory_bytes'])} | "
+            f"{memory(biopython['peak_memory_bytes'])} |"
         )
     return "\n".join(rows)
+
+
+def memory(value: int | None) -> str:
+    if value is None:
+        return "not captured"
+    return f"{value / (1024 * 1024):.1f} MB"
 
 
 if __name__ == "__main__":

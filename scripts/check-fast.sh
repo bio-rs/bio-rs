@@ -14,7 +14,10 @@ find scripts .githooks -type f -print | while IFS= read -r file; do
 done
 
 echo "==> python syntax"
-python3 -m py_compile scripts/benchmark_fasta_vs_biopython.py scripts/render_benchmark_report.py
+python3 -m py_compile \
+  scripts/benchmark_fasta_vs_biopython.py \
+  scripts/check-benchmark-artifact.py \
+  scripts/render_benchmark_report.py
 
 echo "==> benchmark docs"
 scripts/check-benchmark-docs.sh
