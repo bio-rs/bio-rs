@@ -12,7 +12,7 @@ declaring 1.0.
 - Benchmarks include provenance, input/output hashes, speed, and memory
   metadata.
 - Quickstart, CLI contract, API/schema review, MSRV draft, license, citation,
-  and changelog surfaces are linked from the README.
+  and release-history surfaces are linked from the README.
 
 ## Before 1.0
 

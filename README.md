@@ -288,7 +288,6 @@ Public contract docs:
 - [MSRV policy draft](docs/msrv.md)
 - [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)
-- [Changelog](CHANGELOG.md)
 - [Citation metadata](CITATION.cff)
 
 ## Release history
@@ -298,7 +297,7 @@ Delivered:
 - `0.12.3`: byte-buffered FASTA reader scanning, static residue/token lookup tables, and expanded shape-profile benchmark proof assets
 - `0.12.2`: published CLI `--version` support and version-verification docs for reproducible installs
 - `0.12.1`: release workflow publish-order guard, published CLI quickstart, professional-readiness audit, and summary-only FASTA inspect path
-- `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and changelog
+- `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and release notes
 - `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
 - `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
 - `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
