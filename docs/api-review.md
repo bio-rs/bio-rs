@@ -8,10 +8,12 @@ path. It is not a promise that every listed surface is stable today.
 Current candidate surfaces are listed in
 [`public-contract-1.0-candidates.md`](public-contract-1.0-candidates.md).
 
-Reviewed for 0.12.0:
+Reviewed through 0.12.7:
 
 - FASTA parse and reader APIs keep line and record-index diagnostics.
 - Tokenization preserves sequence length with explicit unknown-token IDs.
+- Protein-20 vocabulary can be borrowed through `protein_20_vocabulary` and
+  `ProteinTokenizer::vocabulary_ref` without changing the owned vocabulary API.
 - FASTA inspect summaries can be produced from reader input without
   materializing token vectors.
 - Model-input builders separate checked and unchecked paths.
@@ -23,11 +25,12 @@ Reviewed for 0.12.0:
 Schemas under [`../schemas`](../schemas) are validated by
 `packages/rust/biors/tests/schema_contract.rs`.
 
-Reviewed for 0.12.0:
+Reviewed through 0.12.7:
 
 - CLI success and error envelopes.
 - FASTA validation, inspect, tokenize, and model-input payloads.
 - Package manifest, inspect, validate, bridge, and verify payloads.
+- 0.12.7 changed internal module boundaries only; no JSON schema shape changed.
 
 ## Breaking-Change Cleanup
 
