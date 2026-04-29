@@ -87,6 +87,19 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
             "readiness doc missing marker: {marker}"
         );
     }
+
+    let quickstart = fs::read_to_string(repo.join("docs/quickstart.md")).expect("read quickstart");
+    let cli_contract =
+        fs::read_to_string(repo.join("docs/cli-contract.md")).expect("read CLI contract");
+    for (name, contents) in [
+        ("quickstart", quickstart.as_str()),
+        ("CLI contract", cli_contract.as_str()),
+    ] {
+        assert!(
+            contents.contains("biors --version"),
+            "{name} does not document version verification"
+        );
+    }
 }
 
 fn repo_root() -> PathBuf {

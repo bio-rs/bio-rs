@@ -7,6 +7,7 @@ fresh checkout.
 
 ```bash
 cargo install biors --version 0.12.1
+biors --version
 ```
 
 When working inside a source checkout, replace `biors` with

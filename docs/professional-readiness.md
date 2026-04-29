@@ -14,6 +14,7 @@ bio-rs is ready for local and CI use when the workflow is:
 - package manifest inspection and portable asset validation
 - package fixture verification against observed output artifacts
 - reproducible FASTA validation/tokenization benchmarking
+- installed CLI version verification with `biors --version`
 
 The strongest fit today is preprocessing and verification around biological AI
 model inputs. The project should be presented as input-contract infrastructure,
@@ -50,6 +51,8 @@ not as a model inference engine or broad bioinformatics suite.
 - `biors inspect` uses a summary-only reader path so large FASTA inspection no
   longer materializes token vectors just to count records, residues, warnings,
   and errors.
+- The published CLI exposes `biors --version`, which makes installed binary
+  provenance explicit in lab notebooks, CI logs, and benchmark runs.
 - Vocabulary token definitions are static; callers that need only the canonical
   token list can use `protein_20_vocab_tokens()` without rebuilding a `Vec`.
 
