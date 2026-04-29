@@ -167,7 +167,7 @@ pub struct TokenizedProtein {
     pub errors: Vec<ResidueIssue>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProteinBatchSummary {
     pub records: usize,
     pub total_length: usize,
@@ -180,6 +180,12 @@ pub struct ProteinBatchSummary {
 pub struct TokenizedFastaInput {
     pub input_hash: String,
     pub records: Vec<TokenizedProtein>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SummarizedFastaInput {
+    pub input_hash: String,
+    pub summary: ProteinBatchSummary,
 }
 
 pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
@@ -201,6 +207,18 @@ pub fn tokenize_fasta_records_reader<R: BufRead>(
             .into_iter()
             .map(|record| record.tokenized)
             .collect(),
+    })
+}
+
+pub fn summarize_fasta_records_reader<R: BufRead>(
+    reader: R,
+) -> Result<SummarizedFastaInput, crate::FastaReadError> {
+    let mut sink = SummaryRecordSink::default();
+    let input_hash = scan_fasta_reader(reader, &mut sink)?;
+
+    Ok(SummarizedFastaInput {
+        input_hash,
+        summary: sink.summary,
     })
 }
 
@@ -441,6 +459,89 @@ impl FastaRecordSink for AnalyzedRecordSink {
         };
         self.records.push(AnalyzedProtein { protein, tokenized });
         Ok(())
+    }
+}
+
+#[derive(Default)]
+struct SummaryRecordSink {
+    summary: ProteinBatchSummary,
+    current_length: usize,
+    current_warning_count: usize,
+    current_error_count: usize,
+}
+
+impl FastaRecordSink for SummaryRecordSink {
+    fn push_sequence_line(&mut self, line: &str) {
+        if line.is_ascii() {
+            for byte in line.bytes() {
+                if byte.is_ascii_whitespace() {
+                    continue;
+                }
+                self.push_residue_byte(byte);
+            }
+            return;
+        }
+
+        for residue in normalized_residues(line) {
+            self.push_residue(residue);
+        }
+    }
+
+    fn finish_record(
+        &mut self,
+        id: String,
+        line: usize,
+        record_index: usize,
+    ) -> Result<(), BioRsError> {
+        if self.current_length == 0 {
+            return Err(BioRsError::MissingSequence {
+                id,
+                line,
+                record_index,
+            });
+        }
+
+        self.summary.records += 1;
+        self.summary.total_length += self.current_length;
+        self.summary.warning_count += self.current_warning_count;
+        self.summary.error_count += self.current_error_count;
+        if self.current_warning_count == 0 && self.current_error_count == 0 {
+            self.summary.valid_records += 1;
+        }
+
+        self.current_length = 0;
+        self.current_warning_count = 0;
+        self.current_error_count = 0;
+        Ok(())
+    }
+}
+
+impl SummaryRecordSink {
+    fn push_residue(&mut self, residue: char) {
+        self.current_length += 1;
+        if protein_20_token_id(residue).is_some() {
+            return;
+        }
+
+        if is_ambiguous_residue(residue) {
+            self.current_warning_count += 1;
+        } else {
+            self.current_error_count += 1;
+        }
+    }
+
+    fn push_residue_byte(&mut self, residue: u8) {
+        let residue = residue.to_ascii_uppercase();
+        self.current_length += 1;
+        if protein_20_token_id_byte(residue).is_some() {
+            return;
+        }
+
+        if is_ambiguous_residue_byte(residue) {
+            self.current_warning_count += 1;
+        } else {
+            self.current_error_count += 1;
+        }
     }
 }
 

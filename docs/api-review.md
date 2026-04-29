@@ -1,6 +1,6 @@
 # API and Schema Review
 
-This document records the 0.12.0 review state for the 1.0 release-candidate
+This document records the 0.12.x review state for the 1.0 release-candidate
 path. It is not a promise that every listed surface is stable today.
 
 ## Rust API
@@ -12,6 +12,8 @@ Reviewed for 0.12.0:
 
 - FASTA parse and reader APIs keep line and record-index diagnostics.
 - Tokenization preserves sequence length with explicit unknown-token IDs.
+- FASTA inspect summaries can be produced from reader input without
+  materializing token vectors.
 - Model-input builders separate checked and unchecked paths.
 - Package verification reports include stable issue codes plus content diff
   metadata for mismatches.
