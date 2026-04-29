@@ -3,45 +3,68 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Policy for converting tokenized proteins into model-ready arrays.
 pub struct ModelInputPolicy {
+    /// Maximum token length per record.
     pub max_length: usize,
+    /// Token ID used when fixed-length padding is requested.
     pub pad_token_id: u8,
+    /// Padding behavior.
     pub padding: PaddingPolicy,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+/// Padding strategy for model input records.
 pub enum PaddingPolicy {
+    /// Pad every record to `max_length`.
     FixedLength,
+    /// Preserve each record's truncated length without padding.
     NoPadding,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Batch of model-ready input records.
 pub struct ModelInput {
+    /// Policy used to build the records.
     pub policy: ModelInputPolicy,
+    /// Per-sequence model input records.
     pub records: Vec<ModelInputRecord>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Model-ready representation of one tokenized protein.
 pub struct ModelInputRecord {
+    /// Sequence identifier.
     pub id: String,
+    /// Token IDs after truncation and optional padding.
     pub input_ids: Vec<u8>,
+    /// Attention mask with `1` for real tokens and `0` for padding.
     pub attention_mask: Vec<u8>,
+    /// True when input tokens were truncated to `max_length`.
     pub truncated: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// Errors returned by checked model-input builders.
 pub enum ModelInputBuildError {
+    /// The model input policy is internally invalid.
     InvalidPolicy {
+        /// Human-readable validation message.
         message: String,
     },
+    /// A tokenized sequence still contains unresolved warnings or errors.
     InvalidTokenizedSequence {
+        /// Sequence identifier.
         id: String,
+        /// Number of tokenization warnings.
         warning_count: usize,
+        /// Number of tokenization errors.
         error_count: usize,
     },
 }
 
+/// Build model input without rejecting unresolved tokenization warnings or errors.
 pub fn build_model_inputs_unchecked(
     tokenized: &[TokenizedProtein],
     policy: ModelInputPolicy,
@@ -58,10 +81,12 @@ pub fn build_model_inputs_unchecked(
     since = "0.9.7",
     note = "use build_model_inputs_checked for safe output or build_model_inputs_unchecked when unresolved residues are intentional"
 )]
+/// Deprecated unchecked model-input builder retained for pre-1.0 compatibility.
 pub fn build_model_inputs(tokenized: &[TokenizedProtein], policy: ModelInputPolicy) -> ModelInput {
     build_model_inputs_unchecked(tokenized, policy)
 }
 
+/// Build model input after rejecting invalid policies and unresolved residue issues.
 pub fn build_model_inputs_checked(
     tokenized: &[TokenizedProtein],
     policy: ModelInputPolicy,
@@ -81,6 +106,7 @@ pub fn build_model_inputs_checked(
     Ok(build_model_inputs_unchecked(tokenized, policy))
 }
 
+/// Validate a model-input policy without building records.
 pub fn validate_model_input_policy(policy: &ModelInputPolicy) -> Result<(), ModelInputBuildError> {
     if policy.max_length == 0 {
         return Err(ModelInputBuildError::InvalidPolicy {

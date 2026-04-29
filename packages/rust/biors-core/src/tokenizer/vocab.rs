@@ -3,29 +3,41 @@ use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Token vocabulary and unknown-token policy.
 pub struct Vocabulary {
+    /// Vocabulary name.
     pub name: String,
+    /// Ordered token definitions.
     pub tokens: Vec<VocabToken>,
+    /// Token ID emitted for unresolved residues.
     pub unknown_token_id: u8,
+    /// Policy for unknown or unsupported residues.
     pub unknown_token_policy: UnknownTokenPolicy,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Mapping from one residue to one token ID.
 pub struct VocabToken {
+    /// Residue symbol.
     pub residue: char,
+    /// Token ID.
     pub token_id: u8,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+/// Policy used when tokenization encounters ambiguous or invalid residues.
 pub enum UnknownTokenPolicy {
+    /// Emit the unknown token and record the residue as a warning or error.
     WarnOrErrorWithUnknownToken,
 }
 
+/// Return an owned copy of the built-in `protein-20` vocabulary.
 pub fn load_protein_20_vocab() -> Vocabulary {
     protein_20_vocabulary().clone()
 }
 
+/// Borrow the cached built-in `protein-20` vocabulary.
 pub fn protein_20_vocabulary() -> &'static Vocabulary {
     static VOCABULARY: OnceLock<Vocabulary> = OnceLock::new();
     VOCABULARY.get_or_init(|| Vocabulary {
@@ -36,17 +48,21 @@ pub fn protein_20_vocabulary() -> &'static Vocabulary {
     })
 }
 
+/// Load a vocabulary from its JSON representation.
 pub fn load_vocab_json(input: &str) -> Result<Vocabulary, serde_json::Error> {
     serde_json::from_str(input)
 }
 
+/// Return the unknown-token policy used by the built-in `protein-20` vocabulary.
 pub const fn protein_20_unknown_token_policy() -> UnknownTokenPolicy {
     UnknownTokenPolicy::WarnOrErrorWithUnknownToken
 }
 
+/// Unknown token ID emitted for unresolved residues in the built-in vocabulary.
 pub const PROTEIN_20_UNKNOWN_TOKEN_ID: u8 = 20;
 pub(crate) const TOKEN_LOOKUP_MISSING: u8 = u8::MAX;
 
+/// Borrow the static built-in `protein-20` token definitions.
 pub fn protein_20_vocab_tokens() -> &'static [VocabToken; 20] {
     &PROTEIN_20_VOCAB_TOKENS
 }

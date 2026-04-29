@@ -1,10 +1,24 @@
+//! Core Rust APIs for bio-rs protein FASTA validation, tokenization, model input
+//! construction, package manifests, and package fixture verification.
+//!
+//! FASTA reader paths prefer an ASCII byte-level scanner for the common protein
+//! FASTA case. Non-ASCII sequence lines fall back to UTF-8 validation so public
+//! Unicode behavior remains explicit and test-covered.
+
+/// Structured error types used by parsing and reader APIs.
 pub mod error;
+/// FASTA parsing and validation entry points.
 pub mod fasta;
 mod fasta_scan;
+/// Model-ready tensor input builders.
 pub mod model_input;
+/// Portable package manifest contracts and validation helpers.
 pub mod package;
+/// Protein sequence normalization and validation helpers.
 pub mod sequence;
+/// Protein tokenization and vocabulary helpers.
 pub mod tokenizer;
+/// Package fixture verification and stable hashing helpers.
 pub mod verification;
 
 pub use error::{BioRsError, ErrorLocation, FastaReadError};

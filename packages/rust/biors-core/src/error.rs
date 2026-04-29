@@ -2,12 +2,16 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Machine-readable location metadata for a parse or validation error.
 pub struct ErrorLocation {
+    /// One-based source line when the error can be located in input text.
     pub line: Option<usize>,
+    /// Zero-based FASTA record index when the error belongs to a record.
     pub record_index: Option<usize>,
 }
 
 impl ErrorLocation {
+    /// Construct a location that points only to a source line.
     pub const fn line(line: usize) -> Self {
         Self {
             line: Some(line),
@@ -15,6 +19,7 @@ impl ErrorLocation {
         }
     }
 
+    /// Construct a location that points to a source line and FASTA record index.
     pub const fn record(line: usize, record_index: usize) -> Self {
         Self {
             line: Some(line),
@@ -24,23 +29,35 @@ impl ErrorLocation {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// Public parse errors produced by FASTA string APIs.
 pub enum BioRsError {
+    /// Input contained no non-whitespace FASTA content.
     EmptyInput,
+    /// A FASTA header line did not contain an identifier.
     MissingIdentifier {
+        /// One-based line number of the header.
         line: usize,
+        /// Zero-based record index being parsed.
         record_index: usize,
     },
+    /// Sequence content appeared before any FASTA header.
     MissingHeader {
+        /// One-based line number where sequence content was seen.
         line: usize,
     },
+    /// A FASTA record had a header but no sequence residues.
     MissingSequence {
+        /// FASTA identifier for the empty record.
         id: String,
+        /// One-based line number of the record header.
         line: usize,
+        /// Zero-based record index.
         record_index: usize,
     },
 }
 
 impl BioRsError {
+    /// Stable machine-readable error code used by CLI JSON envelopes.
     pub const fn code(&self) -> &'static str {
         match self {
             Self::EmptyInput => "fasta.empty_input",
@@ -50,6 +67,7 @@ impl BioRsError {
         }
     }
 
+    /// Optional structured source location for this error.
     pub const fn location(&self) -> Option<ErrorLocation> {
         match self {
             Self::EmptyInput => None,
@@ -89,12 +107,16 @@ impl fmt::Display for BioRsError {
 impl std::error::Error for BioRsError {}
 
 #[derive(Debug)]
+/// Error type for streaming FASTA reader APIs.
 pub enum FastaReadError {
+    /// FASTA syntax or record validation error.
     Parse(BioRsError),
+    /// Underlying I/O or UTF-8 read failure.
     Io(std::io::Error),
 }
 
 impl FastaReadError {
+    /// Stable machine-readable error code used by CLI JSON envelopes.
     pub const fn code(&self) -> &'static str {
         match self {
             Self::Parse(error) => error.code(),

@@ -9,23 +9,31 @@ use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Parsed FASTA records plus a stable hash of the raw reader input.
 pub struct ParsedFastaInput {
+    /// Stable hash of the exact bytes read from the input stream.
     pub input_hash: String,
+    /// Parsed and normalized FASTA records.
     pub records: Vec<ProteinSequence>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// FASTA validation report plus a stable hash of the raw reader input.
 pub struct ValidatedFastaInput {
+    /// Stable hash of the exact bytes read from the input stream.
     pub input_hash: String,
+    /// Aggregate sequence validation report.
     pub report: SequenceValidationReport,
 }
 
+/// Parse FASTA text into normalized protein sequence records.
 pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsError> {
     let mut sink = ParsedRecordSink::default();
     scan_fasta_str(input, &mut sink)?;
     Ok(sink.records)
 }
 
+/// Parse FASTA records from a buffered reader without preloading the full input.
 pub fn parse_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<ParsedFastaInput, FastaReadError> {
@@ -38,18 +46,21 @@ pub fn parse_fasta_records_reader<R: BufRead>(
     })
 }
 
+/// Validate FASTA text and return aggregate sequence validation details.
 pub fn validate_fasta_input(input: &str) -> Result<SequenceValidationReport, BioRsError> {
     let mut sink = ValidatedRecordSink::default();
     scan_fasta_str(input, &mut sink)?;
     Ok(sink.report)
 }
 
+/// Validate FASTA from a buffered reader and discard the raw input hash.
 pub fn validate_fasta_reader<R: BufRead>(
     reader: R,
 ) -> Result<SequenceValidationReport, FastaReadError> {
     Ok(validate_fasta_reader_with_hash(reader)?.report)
 }
 
+/// Validate FASTA from a buffered reader and include a stable raw input hash.
 pub fn validate_fasta_reader_with_hash<R: BufRead>(
     reader: R,
 ) -> Result<ValidatedFastaInput, FastaReadError> {
