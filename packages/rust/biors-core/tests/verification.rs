@@ -117,6 +117,43 @@ fn reports_missing_fixture_outputs() {
     assert_eq!(report.failed, 1);
     assert_eq!(report.results[0].status, VerificationStatus::Missing);
     assert_eq!(report.results[0].observed_output_path, None);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::ObservationMissing)
+    );
+    assert_eq!(
+        report.results[0].issue.as_deref(),
+        Some("missing observation for fixture 'tiny-protein'")
+    );
+}
+
+#[test]
+fn reports_expected_output_checksum_mismatch_before_observation_compare() {
+    let mut manifest = manifest();
+    manifest.fixtures[0].expected_output_hash =
+        Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string());
+
+    let report = verify_package_outputs(
+        &manifest,
+        &[FixtureObservation {
+            name: "tiny-protein".to_string(),
+            path: "observed/tiny.output.json".to_string(),
+        }],
+        &example_base_dir(),
+    );
+
+    assert_eq!(report.passed, 0);
+    assert_eq!(report.failed, 1);
+    assert_eq!(report.results[0].status, VerificationStatus::Failed);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::ExpectedOutputChecksumMismatch)
+    );
+    assert!(report.results[0]
+        .issue
+        .as_deref()
+        .expect("issue")
+        .contains("expected output hash mismatch"));
 }
 
 #[test]
