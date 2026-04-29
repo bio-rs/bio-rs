@@ -56,6 +56,12 @@ Keep reusable domain logic separate from CLI, bindings, packaging, runtime, and 
 
 Keep core behavior deterministic, testable, and dependency-light.
 
+Write code with Clean Code and SOLID discipline, especially single responsibility.
+
+Each file, module, type, and function should have one clear reason to change.
+
+Split code by logical responsibility before files become hard to scan; external contributors should be able to infer the design from module names and small, focused files.
+
 Make heavy, platform-specific, experimental, or integration-oriented capabilities optional or isolated.
 
 Prefer clear module boundaries before adding crates.

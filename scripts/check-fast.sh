@@ -17,8 +17,12 @@ echo "==> python syntax"
 python3 -m py_compile \
   scripts/benchmark_fasta_vs_biopython.py \
   scripts/check-benchmark-artifact.py \
+  scripts/check-module-size.py \
   scripts/check-release-workflow.py \
   scripts/render_benchmark_report.py
+
+echo "==> module size"
+python3 scripts/check-module-size.py
 
 echo "==> benchmark docs"
 scripts/check-benchmark-docs.sh

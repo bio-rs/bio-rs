@@ -1,86 +1,14 @@
 use crate::package::{
     read_package_file, resolve_package_asset_path, sha256_digest, PackageManifest,
 };
-use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FixtureObservation {
-    pub name: String,
-    pub path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PackageVerificationReport {
-    pub package: String,
-    pub fixtures: usize,
-    pub passed: usize,
-    pub failed: usize,
-    pub results: Vec<FixtureVerificationResult>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FixtureVerificationResult {
-    pub name: String,
-    pub input_path: String,
-    pub expected_output_path: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub observed_output_path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub expected_output_hash: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub observed_output_hash: Option<String>,
-    pub status: VerificationStatus,
-    pub checksum_mismatch: bool,
-    pub content_mismatch: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub issue_code: Option<VerificationIssueCode>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content_diff: Option<ContentMismatchDiff>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub issue: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum VerificationStatus {
-    Failed,
-    Missing,
-    Passed,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum VerificationIssueCode {
-    ExpectedOutputChecksumMismatch,
-    ExpectedOutputReadFailed,
-    FixtureInputChecksumMismatch,
-    FixtureInputReadFailed,
-    ObservationMissing,
-    ObservationPathInvalid,
-    ObservedOutputReadFailed,
-    OutputChecksumMismatch,
-    OutputContentMismatch,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ContentMismatchDiff {
-    pub expected_path: String,
-    pub observed_path: String,
-    pub expected_len: usize,
-    pub observed_len: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub first_difference: Option<FirstDifference>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FirstDifference {
-    pub byte_offset: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub expected_byte: Option<u8>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub observed_byte: Option<u8>,
-}
+mod diff;
+mod hash;
+mod types;
+use diff::{content_mismatch_diff, contents_match};
+pub use hash::{stable_input_hash, StableInputHasher};
+pub use types::*;
 
 pub fn verify_package_outputs(
     manifest: &PackageManifest,
@@ -263,98 +191,4 @@ pub fn verify_package_outputs_with_observation_base(
         failed: manifest.fixtures.len() - passed,
         results,
     }
-}
-
-pub fn stable_input_hash(input: &str) -> String {
-    let mut hasher = StableInputHasher::new();
-    hasher.update(input.as_bytes());
-    hasher.finalize()
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct StableInputHasher {
-    hash: u64,
-}
-
-impl StableInputHasher {
-    pub const fn new() -> Self {
-        Self {
-            hash: 0xcbf29ce484222325,
-        }
-    }
-
-    pub fn update(&mut self, bytes: &[u8]) {
-        for byte in bytes {
-            self.hash ^= u64::from(*byte);
-            self.hash = self.hash.wrapping_mul(0x100000001b3);
-        }
-    }
-
-    pub fn finalize(self) -> String {
-        let hash = self.hash;
-        format!("fnv1a64:{hash:016x}")
-    }
-}
-
-impl Default for StableInputHasher {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-fn contents_match(expected: &[u8], observed: &[u8]) -> bool {
-    match (
-        serde_json::from_slice::<serde_json::Value>(expected),
-        serde_json::from_slice::<serde_json::Value>(observed),
-    ) {
-        (Ok(expected), Ok(observed)) => expected == observed,
-        _ => expected == observed,
-    }
-}
-
-fn content_mismatch_diff(
-    expected_path: &str,
-    observed_path: &str,
-    expected: &[u8],
-    observed: &[u8],
-) -> ContentMismatchDiff {
-    let expected = canonical_content_bytes(expected);
-    let observed = canonical_content_bytes(observed);
-    ContentMismatchDiff {
-        expected_path: expected_path.to_string(),
-        observed_path: observed_path.to_string(),
-        expected_len: expected.len(),
-        observed_len: observed.len(),
-        first_difference: first_difference(&expected, &observed),
-    }
-}
-
-fn canonical_content_bytes(bytes: &[u8]) -> Vec<u8> {
-    match serde_json::from_slice::<serde_json::Value>(bytes) {
-        Ok(json) => serde_json::to_vec(&json).unwrap_or_else(|_| bytes.to_vec()),
-        Err(_) => bytes.to_vec(),
-    }
-}
-
-fn first_difference(expected: &[u8], observed: &[u8]) -> Option<FirstDifference> {
-    let shared_len = expected.len().min(observed.len());
-    for index in 0..shared_len {
-        if expected[index] != observed[index] {
-            return Some(FirstDifference {
-                byte_offset: index,
-                expected_byte: Some(expected[index]),
-                observed_byte: Some(observed[index]),
-            });
-        }
-    }
-
-    if expected.len() != observed.len() {
-        return Some(FirstDifference {
-            byte_offset: shared_len,
-            expected_byte: expected.get(shared_len).copied(),
-            observed_byte: observed.get(shared_len).copied(),
-        });
-    }
-
-    None
 }
