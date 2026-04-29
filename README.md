@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.12.4
+cargo install biors --version 0.12.5
 biors --version
 ```
 
@@ -85,14 +85,14 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.040s** | 0.446s | **11.26x** |
-| Human proteome | Parse + tokenization | **0.063s** | 0.456s | **7.18x** |
-| 100MB+ FASTA | Parse + validation | **0.319s** | 4.147s | **12.99x** |
-| 100MB+ FASTA | Parse + tokenization | **0.544s** | 4.171s | **7.67x** |
-| Many short records | Parse + validation | **0.007s** | 0.057s | **7.91x** |
-| Many short records | Parse + tokenization | **0.011s** | 0.057s | **5.42x** |
-| Single long sequence | Parse + validation | **0.006s** | 0.034s | **6.05x** |
-| Single long sequence | Parse + tokenization | **0.007s** | 0.034s | **4.91x** |
+| Human proteome | Parse + validation | **0.039s** | 0.449s | **11.57x** |
+| Human proteome | Parse + tokenization | **0.066s** | 0.453s | **6.90x** |
+| 100MB+ FASTA | Parse + validation | **0.311s** | 4.040s | **13.01x** |
+| 100MB+ FASTA | Parse + tokenization | **0.540s** | 4.036s | **7.47x** |
+| Many short records | Parse + validation | **0.009s** | 0.057s | **6.24x** |
+| Many short records | Parse + tokenization | **0.013s** | 0.057s | **4.56x** |
+| Single long sequence | Parse + validation | **0.006s** | 0.035s | **6.14x** |
+| Single long sequence | Parse + tokenization | **0.008s** | 0.035s | **4.37x** |
 
 Benchmark details:
 
@@ -106,10 +106,10 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + validation: `289.0M residues/s`, `330.4 MB/s`
-  - 100MB+ FASTA parse + validation: `323.0M residues/s`, `369.3 MB/s`
-  - human proteome parse + tokenization: `180.5M residues/s`, `206.4 MB/s`
-  - 100MB+ FASTA parse + tokenization: `189.6M residues/s`, `216.8 MB/s`
+  - human proteome parse + validation: `295.6M residues/s`, `338.0 MB/s`
+  - 100MB+ FASTA parse + validation: `331.9M residues/s`, `379.5 MB/s`
+  - human proteome parse + tokenization: `174.3M residues/s`, `199.2 MB/s`
+  - 100MB+ FASTA parse + tokenization: `190.9M residues/s`, `218.3 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 
@@ -294,6 +294,7 @@ Public contract docs:
 
 Delivered:
 
+- `0.12.5`: validation-only FASTA reader path, dead analysis-path cleanup, benchmark artifact comparison helper, and refreshed proof assets
 - `0.12.4`: byte-sink FASTA scanner dispatch, tokenization-only sink path, install smoke gate, and refreshed benchmark proof assets
 - `0.12.3`: byte-buffered FASTA reader scanning, static residue/token lookup tables, and expanded shape-profile benchmark proof assets
 - `0.12.2`: published CLI `--version` support and version-verification docs for reproducible installs
@@ -370,6 +371,12 @@ cat benchmarks/fasta_vs_biopython.json
 The benchmark script updates both `benchmarks/fasta_vs_biopython.json` and
 `benchmarks/fasta_vs_biopython.md`. `scripts/check-benchmark-docs.sh` verifies
 that the Markdown report still matches the JSON artifact.
+
+Compare two benchmark artifacts:
+
+```bash
+python scripts/compare-benchmark-artifacts.py before.json after.json
+```
 
 Run the Rust library example:
 

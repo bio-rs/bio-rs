@@ -55,6 +55,8 @@ not as a model inference engine or broad bioinformatics suite.
 - Tokenization-only FASTA APIs avoid materializing normalized sequence strings
   when callers only need token IDs, reducing parse + tokenization time and peak
   memory on large FASTA inputs.
+- Validation APIs use a dedicated reader sink for full validation reports, so
+  `biors fasta validate` no longer routes through token-vector construction.
 - `biors inspect` uses a summary-only reader path so large FASTA inspection no
   longer materializes token vectors just to count records, residues, warnings,
   and errors.
