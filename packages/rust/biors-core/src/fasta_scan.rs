@@ -5,6 +5,11 @@ use std::io::{BufRead, ErrorKind};
 pub(crate) trait FastaRecordSink {
     fn push_sequence_line(&mut self, line: &str);
 
+    fn push_sequence_line_bytes(&mut self, line: &[u8]) {
+        // SAFETY: callers only use this hook for ASCII lines.
+        self.push_sequence_line(unsafe { std::str::from_utf8_unchecked(line) });
+    }
+
     fn finish_record(
         &mut self,
         id: String,
@@ -96,8 +101,7 @@ impl FastaScanState {
         }
 
         if raw_line.is_ascii() {
-            // SAFETY: `is_ascii` guarantees valid UTF-8.
-            sink.push_sequence_line(unsafe { std::str::from_utf8_unchecked(raw_line) });
+            sink.push_sequence_line_bytes(raw_line);
         } else {
             let line = std::str::from_utf8(raw_line)
                 .map_err(|error| invalid_utf8_error(line_number, error))?;
@@ -264,4 +268,45 @@ fn fasta_id_ascii_bytes(header: &[u8]) -> Option<String> {
 
     // SAFETY: ASCII identifier slices are valid UTF-8.
     Some(unsafe { std::str::from_utf8_unchecked(&header[start..end]) }.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[derive(Default)]
+    struct ByteCountingSink {
+        byte_lines: usize,
+        text_lines: usize,
+    }
+
+    impl FastaRecordSink for ByteCountingSink {
+        fn push_sequence_line(&mut self, _line: &str) {
+            self.text_lines += 1;
+        }
+
+        fn push_sequence_line_bytes(&mut self, _line: &[u8]) {
+            self.byte_lines += 1;
+        }
+
+        fn finish_record(
+            &mut self,
+            _id: String,
+            _header_line: usize,
+            _record_index: usize,
+        ) -> Result<(), BioRsError> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn reader_scanner_uses_byte_sink_for_ascii_sequence_lines() {
+        let mut sink = ByteCountingSink::default();
+
+        scan_fasta_reader(Cursor::new(b">seq1\nACDE\nFGHI\n"), &mut sink).expect("valid FASTA");
+
+        assert_eq!(sink.byte_lines, 2);
+        assert_eq!(sink.text_lines, 0);
+    }
 }

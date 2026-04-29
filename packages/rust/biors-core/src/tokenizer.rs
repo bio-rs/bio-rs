@@ -190,24 +190,19 @@ pub struct SummarizedFastaInput {
 }
 
 pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
-    let analyzed = analyze_fasta_records(input)?;
-    Ok(analyzed
-        .into_iter()
-        .map(|record| record.tokenized)
-        .collect())
+    let mut sink = TokenizedRecordSink::default();
+    scan_fasta_str(input, &mut sink)?;
+    Ok(sink.records)
 }
 
 pub fn tokenize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<TokenizedFastaInput, crate::FastaReadError> {
-    let analyzed = analyze_fasta_records_reader(reader)?;
+    let mut sink = TokenizedRecordSink::default();
+    let input_hash = scan_fasta_reader(reader, &mut sink)?;
     Ok(TokenizedFastaInput {
-        input_hash: analyzed.input_hash,
-        records: analyzed
-            .records
-            .into_iter()
-            .map(|record| record.tokenized)
-            .collect(),
+        input_hash,
+        records: sink.records,
     })
 }
 
@@ -437,20 +432,84 @@ struct AnalyzedRecordSink {
     current_length: usize,
 }
 
-impl FastaRecordSink for AnalyzedRecordSink {
+#[derive(Default)]
+struct TokenizedRecordSink {
+    records: Vec<TokenizedProtein>,
+    current_tokens: Vec<u8>,
+    current_warnings: Vec<ResidueIssue>,
+    current_errors: Vec<ResidueIssue>,
+    current_length: usize,
+}
+
+impl FastaRecordSink for TokenizedRecordSink {
     fn push_sequence_line(&mut self, line: &str) {
         if line.is_ascii() {
-            for byte in line.bytes() {
-                if byte.is_ascii_whitespace() {
-                    continue;
-                }
-                self.push_residue_byte(byte);
-            }
+            self.push_sequence_line_bytes(line.as_bytes());
             return;
         }
 
         for residue in normalized_residues(line) {
             self.push_residue(residue);
+        }
+    }
+
+    fn push_sequence_line_bytes(&mut self, line: &[u8]) {
+        self.current_tokens.reserve(line.len());
+        for &byte in line {
+            if byte.is_ascii_whitespace() {
+                continue;
+            }
+            self.push_residue_byte(byte);
+        }
+    }
+
+    fn finish_record(
+        &mut self,
+        id: String,
+        line: usize,
+        record_index: usize,
+    ) -> Result<(), BioRsError> {
+        if self.current_length == 0 {
+            return Err(BioRsError::MissingSequence {
+                id,
+                line,
+                record_index,
+            });
+        }
+
+        self.records.push(TokenizedProtein {
+            id,
+            length: std::mem::take(&mut self.current_length),
+            alphabet: PROTEIN_20.to_string(),
+            valid: self.current_warnings.is_empty() && self.current_errors.is_empty(),
+            tokens: std::mem::take(&mut self.current_tokens),
+            warnings: std::mem::take(&mut self.current_warnings),
+            errors: std::mem::take(&mut self.current_errors),
+        });
+        Ok(())
+    }
+}
+
+impl FastaRecordSink for AnalyzedRecordSink {
+    fn push_sequence_line(&mut self, line: &str) {
+        if line.is_ascii() {
+            self.push_sequence_line_bytes(line.as_bytes());
+            return;
+        }
+
+        for residue in normalized_residues(line) {
+            self.push_residue(residue);
+        }
+    }
+
+    fn push_sequence_line_bytes(&mut self, line: &[u8]) {
+        self.current_sequence.reserve(line.len());
+        self.current_tokens.reserve(line.len());
+        for &byte in line {
+            if byte.is_ascii_whitespace() {
+                continue;
+            }
+            self.push_residue_byte(byte);
         }
     }
 
@@ -497,17 +556,21 @@ struct SummaryRecordSink {
 impl FastaRecordSink for SummaryRecordSink {
     fn push_sequence_line(&mut self, line: &str) {
         if line.is_ascii() {
-            for byte in line.bytes() {
-                if byte.is_ascii_whitespace() {
-                    continue;
-                }
-                self.push_residue_byte(byte);
-            }
+            self.push_sequence_line_bytes(line.as_bytes());
             return;
         }
 
         for residue in normalized_residues(line) {
             self.push_residue(residue);
+        }
+    }
+
+    fn push_sequence_line_bytes(&mut self, line: &[u8]) {
+        for &byte in line {
+            if byte.is_ascii_whitespace() {
+                continue;
+            }
+            self.push_residue_byte(byte);
         }
     }
 
@@ -586,6 +649,31 @@ impl AnalyzedRecordSink {
         let residue = residue.to_ascii_uppercase();
         self.current_length += 1;
         self.current_sequence.push(residue as char);
+        push_tokenized_residue_byte(
+            residue,
+            self.current_length,
+            &mut self.current_tokens,
+            &mut self.current_warnings,
+            &mut self.current_errors,
+        );
+    }
+}
+
+impl TokenizedRecordSink {
+    fn push_residue(&mut self, residue: char) {
+        self.current_length += 1;
+        push_tokenized_residue(
+            residue,
+            self.current_length,
+            &mut self.current_tokens,
+            &mut self.current_warnings,
+            &mut self.current_errors,
+        );
+    }
+
+    fn push_residue_byte(&mut self, residue: u8) {
+        let residue = residue.to_ascii_uppercase();
+        self.current_length += 1;
         push_tokenized_residue_byte(
             residue,
             self.current_length,

@@ -47,15 +47,20 @@ pub fn normalize_sequence(sequence: &str) -> String {
 pub(crate) fn append_normalized_sequence(sequence: &str, output: &mut String) {
     output.reserve(sequence.len());
     if sequence.is_ascii() {
-        for byte in sequence.bytes() {
-            if !byte.is_ascii_whitespace() {
-                output.push(byte.to_ascii_uppercase() as char);
-            }
-        }
+        append_normalized_sequence_bytes(sequence.as_bytes(), output);
         return;
     }
 
     output.extend(normalized_residues(sequence));
+}
+
+pub(crate) fn append_normalized_sequence_bytes(sequence: &[u8], output: &mut String) {
+    output.reserve(sequence.len());
+    for &byte in sequence {
+        if !byte.is_ascii_whitespace() {
+            output.push(byte.to_ascii_uppercase() as char);
+        }
+    }
 }
 
 pub(crate) fn normalized_residues(sequence: &str) -> impl Iterator<Item = char> + '_ {
@@ -189,6 +194,15 @@ mod tests {
         let mut output = String::from("AC");
 
         append_normalized_sequence(" d e\tf g ", &mut output);
+
+        assert_eq!(output, "ACDEFG");
+    }
+
+    #[test]
+    fn append_normalized_sequence_bytes_extends_existing_buffer() {
+        let mut output = String::from("AC");
+
+        append_normalized_sequence_bytes(b" d e\tf g ", &mut output);
 
         assert_eq!(output, "ACDEFG");
     }
