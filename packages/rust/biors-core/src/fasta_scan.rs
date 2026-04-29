@@ -6,8 +6,7 @@ pub(crate) trait FastaRecordSink {
     fn push_sequence_line(&mut self, line: &str);
 
     fn push_sequence_line_bytes(&mut self, line: &[u8]) {
-        // SAFETY: callers only use this hook for ASCII lines.
-        self.push_sequence_line(unsafe { std::str::from_utf8_unchecked(line) });
+        self.push_sequence_line(ascii_utf8_unchecked(line));
     }
 
     fn finish_record(
@@ -101,6 +100,9 @@ impl FastaScanState {
         }
 
         if raw_line.is_ascii() {
+            // ASCII FASTA sequence lines stay on the byte-level path so tokenization
+            // and validation do not pay Unicode decoding overhead. Non-ASCII lines
+            // intentionally fall back to UTF-8 validation below.
             sink.push_sequence_line_bytes(raw_line);
         } else {
             let line = std::str::from_utf8(raw_line)
@@ -266,47 +268,15 @@ fn fasta_id_ascii_bytes(header: &[u8]) -> Option<String> {
         end += 1;
     }
 
-    // SAFETY: ASCII identifier slices are valid UTF-8.
-    Some(unsafe { std::str::from_utf8_unchecked(&header[start..end]) }.to_string())
+    Some(ascii_utf8_unchecked(&header[start..end]).to_string())
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Cursor;
+mod tests;
 
-    #[derive(Default)]
-    struct ByteCountingSink {
-        byte_lines: usize,
-        text_lines: usize,
-    }
-
-    impl FastaRecordSink for ByteCountingSink {
-        fn push_sequence_line(&mut self, _line: &str) {
-            self.text_lines += 1;
-        }
-
-        fn push_sequence_line_bytes(&mut self, _line: &[u8]) {
-            self.byte_lines += 1;
-        }
-
-        fn finish_record(
-            &mut self,
-            _id: String,
-            _header_line: usize,
-            _record_index: usize,
-        ) -> Result<(), BioRsError> {
-            Ok(())
-        }
-    }
-
-    #[test]
-    fn reader_scanner_uses_byte_sink_for_ascii_sequence_lines() {
-        let mut sink = ByteCountingSink::default();
-
-        scan_fasta_reader(Cursor::new(b">seq1\nACDE\nFGHI\n"), &mut sink).expect("valid FASTA");
-
-        assert_eq!(sink.byte_lines, 2);
-        assert_eq!(sink.text_lines, 0);
-    }
+fn ascii_utf8_unchecked(bytes: &[u8]) -> &str {
+    debug_assert!(bytes.is_ascii());
+    // SAFETY: every caller reaches this helper only after an ASCII check or after
+    // slicing a byte range from an already-ASCII line. ASCII is valid UTF-8.
+    unsafe { std::str::from_utf8_unchecked(bytes) }
 }
