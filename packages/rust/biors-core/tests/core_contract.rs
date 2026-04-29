@@ -156,6 +156,27 @@ fn tokenizes_fasta_from_reader_and_reports_input_hash() {
 }
 
 #[test]
+fn tokenizes_lowercase_reader_input_without_changing_public_issue_residues() {
+    let raw = ">seq1\nacx?\n";
+    let output = tokenize_fasta_records_reader(Cursor::new(raw)).expect("reader tokenization");
+    let record = &output.records[0];
+
+    assert_eq!(
+        record.tokens,
+        vec![
+            0,
+            1,
+            PROTEIN_20_UNKNOWN_TOKEN_ID,
+            PROTEIN_20_UNKNOWN_TOKEN_ID
+        ]
+    );
+    assert_eq!(record.warnings[0].residue, 'X');
+    assert_eq!(record.warnings[0].position, 3);
+    assert_eq!(record.errors[0].residue, '?');
+    assert_eq!(record.errors[0].position, 4);
+}
+
+#[test]
 fn reader_fasta_path_preserves_unicode_fallback_behavior() {
     let raw = ">seq1\nACΩ\n";
     let output =
