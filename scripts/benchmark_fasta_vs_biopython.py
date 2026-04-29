@@ -68,6 +68,18 @@ def parse_args() -> argparse.Namespace:
         default=110,
         help="Minimum size in MB for the generated large FASTA when --large-input is omitted.",
     )
+    parser.add_argument(
+        "--shape-profile-records",
+        type=int,
+        default=20000,
+        help="Number of synthetic records for record-shape stress datasets.",
+    )
+    parser.add_argument(
+        "--short-record-length",
+        type=int,
+        default=48,
+        help="Residues per record for the many-short-records benchmark dataset.",
+    )
     return parser.parse_args()
 
 
@@ -116,6 +128,65 @@ def ensure_large_fasta(source_fasta: Path, destination_fasta: Path, min_mb: int)
         "base_proteome_id": "UP000005640",
         "repeat_count": repeats,
         "min_target_mb": min_mb,
+    }
+
+
+def read_residue_stream(source_fasta: Path) -> str:
+    residues: list[str] = []
+    with source_fasta.open("r", encoding="utf-8") as handle:
+        for record in SeqIO.parse(handle, "fasta"):
+            residues.append(str(record.seq).upper())
+    return "".join(residues)
+
+
+def ensure_many_short_fasta(
+    source_fasta: Path,
+    destination_fasta: Path,
+    *,
+    records: int,
+    record_length: int,
+) -> dict[str, int | str]:
+    residues = read_residue_stream(source_fasta)
+    required = records * record_length
+    repeated = (residues * ((required // len(residues)) + 1))[:required]
+
+    with destination_fasta.open("w", encoding="utf-8") as handle:
+        for index in range(records):
+            start = index * record_length
+            end = start + record_length
+            handle.write(f">short_{index}\n")
+            handle.write(repeated[start:end])
+            handle.write("\n")
+
+    return {
+        "source": "synthetic_many_short_records_from_uniprot_human_proteome",
+        "base_proteome_id": "UP000005640",
+        "shape_profile": "many_short_records",
+        "record_count": records,
+        "record_length": record_length,
+    }
+
+
+def ensure_single_long_fasta(
+    source_fasta: Path,
+    destination_fasta: Path,
+    *,
+    min_residues: int,
+) -> dict[str, int | str]:
+    residues = read_residue_stream(source_fasta)
+    sequence = (residues * ((min_residues // len(residues)) + 1))[:min_residues]
+
+    with destination_fasta.open("w", encoding="utf-8") as handle:
+        handle.write(">single_long\n")
+        for start in range(0, len(sequence), 80):
+            handle.write(sequence[start : start + 80])
+            handle.write("\n")
+
+    return {
+        "source": "synthetic_single_long_sequence_from_uniprot_human_proteome",
+        "base_proteome_id": "UP000005640",
+        "shape_profile": "single_long_sequence",
+        "target_residues": min_residues,
     }
 
 
@@ -462,6 +533,7 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
         "label": label,
         "dataset": {
             **provenance,
+            "shape_profile": provenance.get("shape_profile", label),
             **stats,
             "fasta_sha256": fasta_sha256,
             "path": recorded_dataset_path(fasta_path, provenance),
@@ -498,15 +570,32 @@ def main() -> int:
         if args.large_input is None:
             large_fasta = tmp_path / f"human_proteome_x{args.large_min_mb}.fasta"
             large_provenance = ensure_large_fasta(human_fasta, large_fasta, args.large_min_mb)
+            large_provenance["shape_profile"] = "large_repeated_proteome"
         else:
             large_fasta = args.large_input
             large_provenance = {
                 "source": "user-provided FASTA",
                 "path_hint": str(large_fasta),
+                "shape_profile": "user_provided_large",
             }
 
         if not large_fasta.exists():
             raise FileNotFoundError(f"Large FASTA not found: {large_fasta}")
+
+        many_short_fasta = tmp_path / "many_short_records.fasta"
+        many_short_provenance = ensure_many_short_fasta(
+            human_fasta,
+            many_short_fasta,
+            records=args.shape_profile_records,
+            record_length=args.short_record_length,
+        )
+
+        single_long_fasta = tmp_path / "single_long_sequence.fasta"
+        single_long_provenance = ensure_single_long_fasta(
+            human_fasta,
+            single_long_fasta,
+            min_residues=args.shape_profile_records * args.short_record_length,
+        )
 
         harness = ensure_benchmark_harness()
 
@@ -520,6 +609,12 @@ def main() -> int:
                     "pure_parse",
                     "parse_plus_validation",
                     "parse_plus_tokenization",
+                ],
+                "shape_profiles": [
+                    "human_reference_proteome",
+                    "large_repeated_proteome",
+                    "many_short_records",
+                    "single_long_sequence",
                 ],
                 "memory": "best-effort peak RSS from /usr/bin/time for biors-core and Biopython subprocesses",
             },
@@ -536,6 +631,20 @@ def main() -> int:
                     "large_scale_fasta",
                     large_fasta,
                     large_provenance,
+                    args.loops,
+                    harness,
+                ),
+                dataset_report(
+                    "many_short_records",
+                    many_short_fasta,
+                    many_short_provenance,
+                    args.loops,
+                    harness,
+                ),
+                dataset_report(
+                    "single_long_sequence",
+                    single_long_fasta,
+                    single_long_provenance,
                     args.loops,
                     harness,
                 ),

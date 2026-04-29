@@ -18,59 +18,40 @@ def main() -> int:
 
 def render_report(result: dict) -> str:
     env = result["environment"]
-    human = result["datasets"][0]
-    large = result["datasets"][1]
     generated_at = datetime.fromisoformat(result["generated_at_utc"])
     generated_date = generated_at.date().isoformat()
 
-    return "\n".join(
+    lines = [
+        "# FASTA core-throughput benchmark",
+        "",
+        "This repository should not make unverified performance claims.",
+        "",
+        "This benchmark measures the Rust core library directly. It excludes `biors` CLI",
+        "startup and JSON serialization overhead so the result reflects the engine's raw",
+        "FASTA throughput.",
+        "",
+        "## Environment",
+        "",
+        f"- Date: {generated_date} (UTC)",
+        f"- OS: {env['os']}",
+        f"- CPU: {env['cpu_brand']}",
+        f"- Rust: `{env['rustc']}`",
+        f"- Cargo: `{env['cargo']}`",
+        f"- bio-rs: `biors-core v{env['biors_core']}`",
+        f"- Python: `{env['python']}`",
+        f"- Biopython: `{env['biopython']}`",
+        f"- Git commit: `{env['git_commit']}`",
+        f"- Benchmark schema: `{result['schema_version']}`",
+        "",
+        "## Datasets",
+        "",
+    ]
+
+    for index, dataset in enumerate(result["datasets"], start=1):
+        lines.extend(dataset_section(index, dataset))
+
+    lines.extend(
         [
-            "# FASTA core-throughput benchmark",
-            "",
-            "This repository should not make unverified performance claims.",
-            "",
-            "This benchmark measures the Rust core library directly. It excludes `biors` CLI",
-            "startup and JSON serialization overhead so the result reflects the engine's raw",
-            "FASTA throughput.",
-            "",
-            "## Environment",
-            "",
-            f"- Date: {generated_date} (UTC)",
-            f"- OS: {env['os']}",
-            f"- CPU: {env['cpu_brand']}",
-            f"- Rust: `{env['rustc']}`",
-            f"- Cargo: `{env['cargo']}`",
-            f"- bio-rs: `biors-core v{env['biors_core']}`",
-            f"- Python: `{env['python']}`",
-            f"- Biopython: `{env['biopython']}`",
-            f"- Git commit: `{env['git_commit']}`",
-            f"- Benchmark schema: `{result['schema_version']}`",
-            "",
-            "## Datasets",
-            "",
-            "### 1. Human reference proteome",
-            "",
-            "- Source: UniProt human reference proteome",
-            f"- Proteome ID: `{human['dataset']['proteome_id']}`",
-            f"- Taxonomy ID: `{human['dataset']['taxonomy_id']}` (`Homo sapiens`)",
-            f"- URL: `{human['dataset']['download_url']}`",
-            f"- Downloaded archive SHA256: `{human['dataset']['downloaded_gz_sha256']}`",
-            f"- FASTA SHA256: `{human['dataset']['fasta_sha256']}`",
-            f"- Shape: {shape(human)}",
-            f"- Residue composition: {composition(human)}",
-            "",
-            "### 2. Large-scale FASTA",
-            "",
-            "- Source: repeated UniProt human reference proteome",
-            f"- Construction: repeated the same real human proteome `{large['dataset']['repeat_count']}x` to exceed `{large['dataset']['min_target_mb']} MB`",
-            f"- FASTA SHA256: `{large['dataset']['fasta_sha256']}`",
-            f"- Shape: {shape(large)}",
-            f"- Residue composition: {composition(large)}",
-            "",
-            "This second dataset is intentionally synthetic in scale, but it is built from a",
-            "real proteome to isolate large-input throughput without introducing another",
-            "dataset's annotation quirks.",
-            "",
             "## Workload matching",
             "",
             f"Scope: {result['methodology']['scope']}.",
@@ -100,6 +81,23 @@ def render_report(result: dict) -> str:
             "and Biopython subprocesses. Treat memory as run metadata, not a universal",
             "memory-efficiency claim across every FASTA workload.",
             "",
+            "## Matched results",
+            "",
+        ]
+    )
+
+    for dataset in result["datasets"]:
+        lines.extend(
+            [
+                f"### {dataset_title(dataset)}",
+                "",
+                results_table(dataset),
+                "",
+            ]
+        )
+
+    lines.extend(
+        [
             "## Reproduce",
             "",
             "```bash",
@@ -111,24 +109,10 @@ def render_report(result: dict) -> str:
             "cat benchmarks/fasta_vs_biopython.json",
             "```",
             "",
-            "## Best-case matched results",
-            "",
-            "### Human proteome",
-            "",
-            results_table(human),
-            "",
-            "### Large-scale FASTA",
-            "",
-            results_table(large),
-            "",
             "## Raw result scope",
             "",
-            "The JSON artifact includes all matched workloads, including `pure_parse`. On",
-            "this machine, Biopython remains faster on pure parse. The favorable result for",
-            "bio-rs appears when the comparison includes the actual validation or",
-            "tokenization work that the Rust engine is designed to do.",
-            "",
-            "That is the intended claim boundary:",
+            "The JSON artifact includes all matched workloads, including `pure_parse`.",
+            "The intended claim boundary is workload-specific:",
             "",
             "- reasonable claim: bio-rs is materially faster than Biopython on matched",
             "  protein FASTA validation and tokenization workloads in this benchmark",
@@ -137,6 +121,51 @@ def render_report(result: dict) -> str:
             "",
         ]
     )
+
+    return "\n".join(lines)
+
+
+def dataset_section(index: int, dataset: dict) -> list[str]:
+    info = dataset["dataset"]
+    lines = [
+        f"### {index}. {dataset_title(dataset)}",
+        "",
+        f"- Source: {info['source']}",
+        f"- Shape profile: `{info['shape_profile']}`",
+    ]
+    if "proteome_id" in info:
+        lines.append(f"- Proteome ID: `{info['proteome_id']}`")
+    if "taxonomy_id" in info:
+        lines.append(f"- Taxonomy ID: `{info['taxonomy_id']}` (`Homo sapiens`)")
+    if "download_url" in info:
+        lines.append(f"- URL: `{info['download_url']}`")
+    if "downloaded_gz_sha256" in info:
+        lines.append(f"- Downloaded archive SHA256: `{info['downloaded_gz_sha256']}`")
+    if "repeat_count" in info:
+        lines.append(
+            f"- Construction: repeated the same real human proteome `{info['repeat_count']}x` "
+            f"to exceed `{info['min_target_mb']} MB`"
+        )
+    if "record_count" in info:
+        lines.append(
+            f"- Construction: `{info['record_count']:,}` records of "
+            f"`{info['record_length']}` residues"
+        )
+    if "target_residues" in info:
+        lines.append(f"- Construction: one sequence with `{info['target_residues']:,}` residues")
+    lines.extend(
+        [
+            f"- FASTA SHA256: `{info['fasta_sha256']}`",
+            f"- Shape: {shape(dataset)}",
+            f"- Residue composition: {composition(dataset)}",
+            "",
+        ]
+    )
+    return lines
+
+
+def dataset_title(dataset: dict) -> str:
+    return dataset["label"].replace("_", " ").title()
 
 
 def shape(dataset: dict) -> str:

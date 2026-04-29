@@ -35,6 +35,7 @@ def main() -> int:
         require(dataset, "label")
         require(dataset, "dataset")
         require(dataset, "benchmarks")
+        require(dataset["dataset"], "shape_profile")
         require(dataset["dataset"], "fasta_sha256")
         require(dataset["dataset"], "file_size_bytes")
         for workload in dataset["benchmarks"].values():
@@ -48,6 +49,16 @@ def main() -> int:
                 require(implementation["summary"], "peak_memory_bytes")
                 assert implementation["input_hash"].startswith("sha256:")
                 assert implementation["output_hash"].startswith("sha256:")
+
+    labels = {dataset["label"] for dataset in result["datasets"]}
+    for label in {
+        "human_reference_proteome",
+        "large_scale_fasta",
+        "many_short_records",
+        "single_long_sequence",
+    }:
+        if label not in labels:
+            raise AssertionError(f"missing benchmark dataset: {label}")
 
     return 0
 
