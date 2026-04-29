@@ -41,8 +41,6 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Dry-run publish biors-core
         run: cargo publish --locked -p biors-core --dry-run
-      - name: Dry-run publish biors
-        run: cargo publish --locked -p biors --dry-run
       - name: Publish biors-core
         run: cargo publish --locked -p biors-core --token ${{ secrets.CRATES_IO_TOKEN }}
       - name: Wait for biors-core index
@@ -60,6 +58,8 @@ jobs:
 
           echo "biors-core $version did not appear in crates index in time" >&2
           exit 1
+      - name: Dry-run publish biors
+        run: cargo publish --locked -p biors --dry-run
       - name: Publish biors
         run: cargo publish --locked -p biors --token ${{ secrets.CRATES_IO_TOKEN }}
 
