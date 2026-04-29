@@ -29,7 +29,7 @@ pub struct ValidatedSequence {
     pub errors: Vec<ResidueIssue>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceValidationReport {
     pub records: usize,
     pub valid_records: usize,
