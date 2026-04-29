@@ -6,7 +6,8 @@ fresh checkout.
 ## Install
 
 ```bash
-cargo install biors --version 0.12.1
+cargo install biors --version 0.12.2
+biors --version
 ```
 
 When working inside a source checkout, replace `biors` with

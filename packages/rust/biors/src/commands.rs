@@ -13,6 +13,7 @@ use std::path::PathBuf;
 #[derive(Debug, Parser)]
 #[command(name = "biors")]
 #[command(about = "Rust/WASM tools for biological AI models.")]
+#[command(version)]
 pub(crate) struct Cli {
     #[arg(long, global = true, help = "Emit machine-readable JSON errors")]
     pub(crate) json: bool,

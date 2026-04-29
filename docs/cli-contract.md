@@ -4,6 +4,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 
 ## Commands
 
+- `biors --version`
 - `biors tokenize <path|->`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
@@ -14,6 +15,8 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package verify <manifest> <observations>`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
+`biors --version` prints the installed CLI package version so workflow logs and
+benchmark records can be tied back to the exact released binary.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
