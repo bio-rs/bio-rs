@@ -3,6 +3,13 @@
 All notable pre-1.0 changes are summarized here. GitHub Releases remain the
 source for exact commit lists after tags are published.
 
+## 0.12.2
+
+- Added `biors --version` so installed CLI binaries can be tied back to the
+  exact published package version in notebooks, CI logs, and benchmark records.
+- Documented version verification in the quickstart, CLI contract, and
+  professional-readiness guide.
+
 ## 0.12.1
 
 - Added a release workflow invariant check and fixed crates.io publish ordering

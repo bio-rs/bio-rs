@@ -41,7 +41,8 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.12.1
+cargo install biors --version 0.12.2
+biors --version
 ```
 
 Tokenize a FASTA file:
@@ -286,6 +287,7 @@ Public contract docs:
 
 Delivered:
 
+- `0.12.2`: published CLI `--version` support and version-verification docs for reproducible installs
 - `0.12.1`: release workflow publish-order guard, published CLI quickstart, professional-readiness audit, and summary-only FASTA inspect path
 - `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and changelog
 - `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
