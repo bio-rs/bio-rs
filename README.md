@@ -38,28 +38,34 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 
 ## Quickstart
 
+Install the published CLI:
+
+```bash
+cargo install biors --version 0.12.1
+```
+
 Tokenize a FASTA file:
 
 ```bash
-cargo run -p biors -- tokenize examples/protein.fasta
+biors tokenize examples/protein.fasta
 ```
 
 Pipe FASTA through stdin:
 
 ```bash
-printf '>tiny\nACDE\n' | cargo run -p biors -- tokenize -
+printf '>tiny\nACDE\n' | biors tokenize -
 ```
 
 Validate FASTA:
 
 ```bash
-cargo run -p biors -- fasta validate examples/protein.fasta
+biors fasta validate examples/protein.fasta
 ```
 
 Verify package fixture outputs:
 
 ```bash
-cargo run -p biors -- package verify \
+biors package verify \
   examples/protein-package/manifest.json \
   examples/protein-package/observations.json
 ```
@@ -67,7 +73,7 @@ cargo run -p biors -- package verify \
 Build model-ready input records:
 
 ```bash
-cargo run -p biors -- model-input --max-length 8 examples/protein.fasta
+biors model-input --max-length 8 examples/protein.fasta
 ```
 
 ## Proof
@@ -264,6 +270,7 @@ Tokenization output is record-oriented:
 Public contract docs:
 
 - [Quickstart](docs/quickstart.md)
+- [Professional readiness](docs/professional-readiness.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
@@ -279,6 +286,7 @@ Public contract docs:
 
 Delivered:
 
+- `0.12.1`: release workflow publish-order guard, published CLI quickstart, professional-readiness audit, and summary-only FASTA inspect path
 - `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and changelog
 - `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
 - `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
@@ -331,6 +339,7 @@ The check suite runs:
 - `cargo fmt`
 - shell and Python syntax checks for repo scripts
 - benchmark Markdown regeneration check
+- release workflow publish-order invariant check
 - Rust checks
 - `biors-core` `wasm32-unknown-unknown` build check
 - tests

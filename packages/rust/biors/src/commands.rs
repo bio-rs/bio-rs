@@ -3,7 +3,7 @@ use crate::input::{open_fasta_input, read_fixture_observations, read_package_man
 use crate::output::print_success;
 use biors_core::{
     build_model_inputs_checked, inspect_package_manifest, plan_runtime_bridge,
-    summarize_tokenized_proteins, tokenize_fasta_records_reader, validate_fasta_reader_with_hash,
+    summarize_fasta_records_reader, tokenize_fasta_records_reader, validate_fasta_reader_with_hash,
     validate_package_manifest_artifacts, verify_package_outputs_with_observation_base,
     ModelInputPolicy, PaddingPolicy,
 };
@@ -97,10 +97,9 @@ pub(crate) fn run(command: Command) -> Result<(), CliError> {
         },
         Command::Inspect { path } => {
             let reader = open_fasta_input(&path)?;
-            let output = tokenize_fasta_records_reader(reader)
+            let output = summarize_fasta_records_reader(reader)
                 .map_err(|error| CliError::from_fasta_read(path, error))?;
-            let summary = summarize_tokenized_proteins(&output.records);
-            print_success(Some(output.input_hash), summary)?;
+            print_success(Some(output.input_hash), output.summary)?;
         }
         Command::ModelInput {
             max_length,

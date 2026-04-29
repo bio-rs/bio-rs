@@ -49,6 +49,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "CITATION.cff",
         "docs/api-review.md",
         "docs/quickstart.md",
+        "docs/professional-readiness.md",
         "docs/release-candidate-1.0.md",
         "docs/msrv.md",
     ];
@@ -63,6 +64,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
     let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
     for link in [
         "docs/quickstart.md",
+        "docs/professional-readiness.md",
         "docs/api-review.md",
         "docs/release-candidate-1.0.md",
         "docs/msrv.md",
@@ -70,6 +72,20 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
+    }
+
+    let readiness =
+        fs::read_to_string(repo.join("docs/professional-readiness.md")).expect("read readiness");
+    for marker in [
+        "Phase 1",
+        "Phase 2",
+        "Researcher-Ready Scope",
+        "Known Limits",
+    ] {
+        assert!(
+            readiness.contains(marker),
+            "readiness doc missing marker: {marker}"
+        );
     }
 }
 

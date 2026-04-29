@@ -18,6 +18,8 @@ It rejects sequences that still contain residue warnings or errors, so model-rea
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
+`inspect` uses a summary-only reader path and does not materialize token vectors
+when it only needs record, residue, warning, and error counts.
 
 Manifest-relative paths are resolved against the manifest file's parent directory. If the manifest is read from stdin, relative paths are resolved against the current working directory.
 Absolute paths and `..` parent traversal are rejected so packages remain portable and self-contained.

@@ -145,6 +145,20 @@ fn tokenizes_fasta_from_reader_and_reports_input_hash() {
 }
 
 #[test]
+fn summarizes_fasta_from_reader_without_materializing_tokens() {
+    let raw = ">valid\nACDE\n>warn\nXBZ\n>invalid\nA?\n";
+    let output =
+        biors_core::summarize_fasta_records_reader(Cursor::new(raw)).expect("reader summary");
+
+    assert_eq!(output.input_hash, stable_input_hash(raw));
+    assert_eq!(output.summary.records, 3);
+    assert_eq!(output.summary.total_length, 9);
+    assert_eq!(output.summary.valid_records, 1);
+    assert_eq!(output.summary.warning_count, 3);
+    assert_eq!(output.summary.error_count, 1);
+}
+
+#[test]
 fn fixture_corpus_covers_valid_and_invalid_fasta_contracts() {
     let fixture_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/fasta");
     let valid = fixture_dir.join("valid/mixed_case_whitespace.fasta");
