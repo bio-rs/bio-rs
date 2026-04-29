@@ -6,6 +6,14 @@ use crate::BioRsError;
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 
+mod vocab;
+use vocab::TOKEN_LOOKUP_MISSING;
+pub use vocab::{
+    load_protein_20_vocab, load_vocab_json, protein_20_unknown_token_policy,
+    protein_20_vocab_tokens, protein_20_vocabulary, UnknownTokenPolicy, VocabToken, Vocabulary,
+    PROTEIN_20_UNKNOWN_TOKEN_ID,
+};
+
 pub trait Tokenizer {
     fn alphabet(&self) -> &'static str;
     fn vocabulary(&self) -> Vocabulary;
@@ -29,132 +37,11 @@ impl Tokenizer for ProteinTokenizer {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Vocabulary {
-    pub name: String,
-    pub tokens: Vec<VocabToken>,
-    pub unknown_token_id: u8,
-    pub unknown_token_policy: UnknownTokenPolicy,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct VocabToken {
-    pub residue: char,
-    pub token_id: u8,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum UnknownTokenPolicy {
-    WarnOrErrorWithUnknownToken,
-}
-
-pub fn load_protein_20_vocab() -> Vocabulary {
-    Vocabulary {
-        name: PROTEIN_20.to_string(),
-        tokens: protein_20_vocab_tokens().to_vec(),
-        unknown_token_id: PROTEIN_20_UNKNOWN_TOKEN_ID,
-        unknown_token_policy: protein_20_unknown_token_policy(),
+impl ProteinTokenizer {
+    pub fn vocabulary_ref(&self) -> &'static Vocabulary {
+        protein_20_vocabulary()
     }
 }
-
-pub fn load_vocab_json(input: &str) -> Result<Vocabulary, serde_json::Error> {
-    serde_json::from_str(input)
-}
-
-pub const fn protein_20_unknown_token_policy() -> UnknownTokenPolicy {
-    UnknownTokenPolicy::WarnOrErrorWithUnknownToken
-}
-
-pub const PROTEIN_20_UNKNOWN_TOKEN_ID: u8 = 20;
-const TOKEN_LOOKUP_MISSING: u8 = u8::MAX;
-
-pub fn protein_20_vocab_tokens() -> &'static [VocabToken; 20] {
-    &PROTEIN_20_VOCAB_TOKENS
-}
-
-const PROTEIN_20_VOCAB_TOKENS: [VocabToken; 20] = [
-    VocabToken {
-        residue: 'A',
-        token_id: 0,
-    },
-    VocabToken {
-        residue: 'C',
-        token_id: 1,
-    },
-    VocabToken {
-        residue: 'D',
-        token_id: 2,
-    },
-    VocabToken {
-        residue: 'E',
-        token_id: 3,
-    },
-    VocabToken {
-        residue: 'F',
-        token_id: 4,
-    },
-    VocabToken {
-        residue: 'G',
-        token_id: 5,
-    },
-    VocabToken {
-        residue: 'H',
-        token_id: 6,
-    },
-    VocabToken {
-        residue: 'I',
-        token_id: 7,
-    },
-    VocabToken {
-        residue: 'K',
-        token_id: 8,
-    },
-    VocabToken {
-        residue: 'L',
-        token_id: 9,
-    },
-    VocabToken {
-        residue: 'M',
-        token_id: 10,
-    },
-    VocabToken {
-        residue: 'N',
-        token_id: 11,
-    },
-    VocabToken {
-        residue: 'P',
-        token_id: 12,
-    },
-    VocabToken {
-        residue: 'Q',
-        token_id: 13,
-    },
-    VocabToken {
-        residue: 'R',
-        token_id: 14,
-    },
-    VocabToken {
-        residue: 'S',
-        token_id: 15,
-    },
-    VocabToken {
-        residue: 'T',
-        token_id: 16,
-    },
-    VocabToken {
-        residue: 'V',
-        token_id: 17,
-    },
-    VocabToken {
-        residue: 'W',
-        token_id: 18,
-    },
-    VocabToken {
-        residue: 'Y',
-        token_id: 19,
-    },
-];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenizedProtein {
@@ -278,19 +165,18 @@ fn push_tokenized_residue_byte(
     warnings: &mut Vec<ResidueIssue>,
     errors: &mut Vec<ResidueIssue>,
 ) {
-    let residue = residue.to_ascii_uppercase();
     if let Some(token) = protein_20_token_id_byte(residue) {
         tokens.push(token);
     } else if is_ambiguous_residue_byte(residue) {
         tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
         warnings.push(ResidueIssue {
-            residue: residue as char,
+            residue: residue.to_ascii_uppercase() as char,
             position,
         });
     } else {
         tokens.push(PROTEIN_20_UNKNOWN_TOKEN_ID);
         errors.push(ResidueIssue {
-            residue: residue as char,
+            residue: residue.to_ascii_uppercase() as char,
             position,
         });
     }
@@ -361,6 +247,26 @@ const PROTEIN_20_TOKEN_LOOKUP: [u8; 256] = {
     lookup[b'V' as usize] = 17;
     lookup[b'W' as usize] = 18;
     lookup[b'Y' as usize] = 19;
+    lookup[b'a' as usize] = 0;
+    lookup[b'c' as usize] = 1;
+    lookup[b'd' as usize] = 2;
+    lookup[b'e' as usize] = 3;
+    lookup[b'f' as usize] = 4;
+    lookup[b'g' as usize] = 5;
+    lookup[b'h' as usize] = 6;
+    lookup[b'i' as usize] = 7;
+    lookup[b'k' as usize] = 8;
+    lookup[b'l' as usize] = 9;
+    lookup[b'm' as usize] = 10;
+    lookup[b'n' as usize] = 11;
+    lookup[b'p' as usize] = 12;
+    lookup[b'q' as usize] = 13;
+    lookup[b'r' as usize] = 14;
+    lookup[b's' as usize] = 15;
+    lookup[b't' as usize] = 16;
+    lookup[b'v' as usize] = 17;
+    lookup[b'w' as usize] = 18;
+    lookup[b'y' as usize] = 19;
     lookup
 };
 
@@ -372,6 +278,12 @@ const AMBIGUOUS_RESIDUE_LOOKUP: [bool; 256] = {
     lookup[b'J' as usize] = true;
     lookup[b'U' as usize] = true;
     lookup[b'O' as usize] = true;
+    lookup[b'x' as usize] = true;
+    lookup[b'b' as usize] = true;
+    lookup[b'z' as usize] = true;
+    lookup[b'j' as usize] = true;
+    lookup[b'u' as usize] = true;
+    lookup[b'o' as usize] = true;
     lookup
 };
 
@@ -506,7 +418,6 @@ impl SummaryRecordSink {
     }
 
     fn push_residue_byte(&mut self, residue: u8) {
-        let residue = residue.to_ascii_uppercase();
         self.current_length += 1;
         if protein_20_token_id_byte(residue).is_some() {
             return;
@@ -555,6 +466,10 @@ mod tests {
             assert_eq!(protein_20_token_id(*residue), Some(expected as u8));
             assert_eq!(
                 protein_20_token_id_byte(*residue as u8),
+                Some(expected as u8)
+            );
+            assert_eq!(
+                protein_20_token_id_byte((*residue as u8).to_ascii_lowercase()),
                 Some(expected as u8)
             );
         }

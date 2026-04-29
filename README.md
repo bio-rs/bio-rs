@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.12.5
+cargo install biors --version 0.12.6
 biors --version
 ```
 
@@ -295,6 +295,7 @@ Public contract docs:
 Delivered:
 
 - `0.12.5`: validation-only FASTA reader path, dead analysis-path cleanup, benchmark artifact comparison helper, and refreshed proof assets
+- `0.12.6`: borrowed protein-20 vocabulary API, lowercase-aware token lookup fast path, tokenizer module split, and refreshed benchmark proof assets
 - `0.12.4`: byte-sink FASTA scanner dispatch, tokenization-only sink path, install smoke gate, and refreshed benchmark proof assets
 - `0.12.3`: byte-buffered FASTA reader scanning, static residue/token lookup tables, and expanded shape-profile benchmark proof assets
 - `0.12.2`: published CLI `--version` support and version-verification docs for reproducible installs

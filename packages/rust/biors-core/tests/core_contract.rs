@@ -1,6 +1,6 @@
 use biors_core::{
     build_model_inputs_checked, build_model_inputs_unchecked, load_vocab_json, parse_fasta_records,
-    parse_fasta_records_reader, stable_input_hash, tokenize_fasta_records,
+    parse_fasta_records_reader, protein_20_vocabulary, stable_input_hash, tokenize_fasta_records,
     tokenize_fasta_records_reader, validate_fasta_input, validate_fasta_reader, BioRsError,
     FastaReadError, ModelInputBuildError, ModelInputPolicy, PaddingPolicy, ProteinSequence,
     ProteinTokenizer, Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
@@ -102,6 +102,17 @@ fn protein_tokenizer_trait_matches_public_tokenize_function() {
         UnknownTokenPolicy::WarnOrErrorWithUnknownToken
     );
     assert_eq!(tokenizer.tokenize(&record).tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
+fn protein_20_vocabulary_can_be_borrowed_without_rebuilding_tokens() {
+    let first = protein_20_vocabulary();
+    let second = ProteinTokenizer.vocabulary_ref();
+
+    assert!(std::ptr::eq(first, second));
+    assert_eq!(first.tokens.len(), 20);
+    assert_eq!(first.tokens.as_ptr(), second.tokens.as_ptr());
+    assert_eq!(first.unknown_token_id, PROTEIN_20_UNKNOWN_TOKEN_ID);
 }
 
 #[test]
