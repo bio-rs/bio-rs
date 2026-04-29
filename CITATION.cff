@@ -6,4 +6,4 @@ authors:
   - name: "Bio.rs contributors"
 repository-code: "https://github.com/bio-rs/bio-rs"
 license: "MIT OR Apache-2.0"
-version: "0.12.7"
+version: "0.12.8"
