@@ -1,7 +1,6 @@
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
-    is_ambiguous_residue, normalized_residues, ProteinSequence, ResidueIssue, ValidatedSequence,
-    PROTEIN_20,
+    is_ambiguous_residue, normalized_residues, ProteinSequence, ResidueIssue, PROTEIN_20,
 };
 use crate::BioRsError;
 use serde::{Deserialize, Serialize};
@@ -376,62 +375,6 @@ const AMBIGUOUS_RESIDUE_LOOKUP: [bool; 256] = {
     lookup
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct AnalyzedProtein {
-    pub protein: ProteinSequence,
-    pub tokenized: TokenizedProtein,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct AnalyzedFastaInput {
-    pub input_hash: String,
-    pub records: Vec<AnalyzedProtein>,
-}
-
-pub(crate) fn analyze_fasta_records(input: &str) -> Result<Vec<AnalyzedProtein>, BioRsError> {
-    let mut sink = AnalyzedRecordSink::default();
-    scan_fasta_str(input, &mut sink)?;
-    Ok(sink.records)
-}
-
-pub(crate) fn analyze_fasta_records_reader<R: BufRead>(
-    reader: R,
-) -> Result<AnalyzedFastaInput, crate::FastaReadError> {
-    let mut sink = AnalyzedRecordSink::default();
-    let input_hash = scan_fasta_reader(reader, &mut sink)?;
-
-    Ok(AnalyzedFastaInput {
-        input_hash,
-        records: sink.records,
-    })
-}
-
-pub(crate) fn validated_sequences_from_analyzed(
-    records: &[AnalyzedProtein],
-) -> Vec<ValidatedSequence> {
-    records
-        .iter()
-        .map(|record| ValidatedSequence {
-            id: record.protein.id.clone(),
-            sequence: record.protein.sequence.clone(),
-            alphabet: record.tokenized.alphabet.clone(),
-            valid: record.tokenized.valid,
-            warnings: record.tokenized.warnings.clone(),
-            errors: record.tokenized.errors.clone(),
-        })
-        .collect()
-}
-
-#[derive(Default)]
-struct AnalyzedRecordSink {
-    records: Vec<AnalyzedProtein>,
-    current_sequence: String,
-    current_tokens: Vec<u8>,
-    current_warnings: Vec<ResidueIssue>,
-    current_errors: Vec<ResidueIssue>,
-    current_length: usize,
-}
-
 #[derive(Default)]
 struct TokenizedRecordSink {
     records: Vec<TokenizedProtein>,
@@ -486,61 +429,6 @@ impl FastaRecordSink for TokenizedRecordSink {
             warnings: std::mem::take(&mut self.current_warnings),
             errors: std::mem::take(&mut self.current_errors),
         });
-        Ok(())
-    }
-}
-
-impl FastaRecordSink for AnalyzedRecordSink {
-    fn push_sequence_line(&mut self, line: &str) {
-        if line.is_ascii() {
-            self.push_sequence_line_bytes(line.as_bytes());
-            return;
-        }
-
-        for residue in normalized_residues(line) {
-            self.push_residue(residue);
-        }
-    }
-
-    fn push_sequence_line_bytes(&mut self, line: &[u8]) {
-        self.current_sequence.reserve(line.len());
-        self.current_tokens.reserve(line.len());
-        for &byte in line {
-            if byte.is_ascii_whitespace() {
-                continue;
-            }
-            self.push_residue_byte(byte);
-        }
-    }
-
-    fn finish_record(
-        &mut self,
-        id: String,
-        line: usize,
-        record_index: usize,
-    ) -> Result<(), BioRsError> {
-        if self.current_sequence.is_empty() {
-            return Err(BioRsError::MissingSequence {
-                id,
-                line,
-                record_index,
-            });
-        }
-
-        let protein = ProteinSequence {
-            id: id.clone(),
-            sequence: std::mem::take(&mut self.current_sequence),
-        };
-        let tokenized = TokenizedProtein {
-            id,
-            length: std::mem::take(&mut self.current_length),
-            alphabet: PROTEIN_20.to_string(),
-            valid: self.current_warnings.is_empty() && self.current_errors.is_empty(),
-            tokens: std::mem::take(&mut self.current_tokens),
-            warnings: std::mem::take(&mut self.current_warnings),
-            errors: std::mem::take(&mut self.current_errors),
-        };
-        self.records.push(AnalyzedProtein { protein, tokenized });
         Ok(())
     }
 }
@@ -629,33 +517,6 @@ impl SummaryRecordSink {
         } else {
             self.current_error_count += 1;
         }
-    }
-}
-
-impl AnalyzedRecordSink {
-    fn push_residue(&mut self, residue: char) {
-        self.current_length += 1;
-        self.current_sequence.push(residue);
-        push_tokenized_residue(
-            residue,
-            self.current_length,
-            &mut self.current_tokens,
-            &mut self.current_warnings,
-            &mut self.current_errors,
-        );
-    }
-
-    fn push_residue_byte(&mut self, residue: u8) {
-        let residue = residue.to_ascii_uppercase();
-        self.current_length += 1;
-        self.current_sequence.push(residue as char);
-        push_tokenized_residue_byte(
-            residue,
-            self.current_length,
-            &mut self.current_tokens,
-            &mut self.current_warnings,
-            &mut self.current_errors,
-        );
     }
 }
 

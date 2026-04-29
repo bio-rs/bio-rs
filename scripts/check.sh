@@ -19,12 +19,16 @@ done
 echo "==> python syntax"
 python3 -m py_compile \
   scripts/benchmark_fasta_vs_biopython.py \
+  scripts/compare-benchmark-artifacts.py \
   scripts/check-benchmark-artifact.py \
   scripts/check-release-workflow.py \
   scripts/render_benchmark_report.py
 
 echo "==> benchmark docs"
 scripts/check-benchmark-docs.sh
+python3 scripts/compare-benchmark-artifacts.py \
+  benchmarks/fasta_vs_biopython.json \
+  benchmarks/fasta_vs_biopython.json >/dev/null
 
 echo "==> release workflow"
 python3 scripts/check-release-workflow.py
