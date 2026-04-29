@@ -110,6 +110,11 @@ fn rejects_invalid_checksum_format() {
         .issues
         .iter()
         .any(|issue| issue.contains("model.checksum")));
+    assert_eq!(
+        report.structured_issues[0].code,
+        PackageValidationIssueCode::InvalidChecksumFormat
+    );
+    assert_eq!(report.structured_issues[0].field, "model.checksum");
 }
 
 #[test]
@@ -125,6 +130,11 @@ fn rejects_checksum_mismatch_against_real_artifact() {
         .issues
         .iter()
         .any(|issue| issue.contains("model.checksum mismatch")));
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::ChecksumMismatch
+            && issue.field == "model.checksum"
+            && issue.message.contains("computed")
+    }));
 }
 
 #[test]

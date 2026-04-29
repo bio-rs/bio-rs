@@ -19,6 +19,12 @@ Reviewed through 0.12.7:
 - Model-input builders separate checked and unchecked paths.
 - Package verification reports include stable issue codes plus content diff
   metadata for mismatches.
+- `biors-core` SRP review keeps `package`, `sequence`, `verification`, and
+  FASTA scanner changes internal-only: public re-exports and JSON payloads are
+  unchanged.
+- Requested `pssm`, `fmindex`, and `from_fm_index_unchecked` audit items do
+  not exist in `bio-rs` 0.12.x; they are external rust-bio concepts and were
+  not added as new modules.
 
 ## JSON Schemas
 

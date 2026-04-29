@@ -17,12 +17,14 @@ pub use vocab::{
     PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 
+/// Parse FASTA text and tokenize each protein sequence.
 pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError> {
     let mut sink = TokenizedRecordSink::default();
     scan_fasta_str(input, &mut sink)?;
     Ok(sink.records)
 }
 
+/// Tokenize FASTA records from a buffered reader and include a stable input hash.
 pub fn tokenize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<TokenizedFastaInput, crate::FastaReadError> {
@@ -34,6 +36,7 @@ pub fn tokenize_fasta_records_reader<R: BufRead>(
     })
 }
 
+/// Summarize FASTA records from a buffered reader without materializing token vectors.
 pub fn summarize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<SummarizedFastaInput, crate::FastaReadError> {
@@ -46,6 +49,7 @@ pub fn summarize_fasta_records_reader<R: BufRead>(
     })
 }
 
+/// Summarize a slice of tokenized proteins.
 pub fn summarize_tokenized_proteins(proteins: &[TokenizedProtein]) -> ProteinBatchSummary {
     ProteinBatchSummary {
         records: proteins.len(),
