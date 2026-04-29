@@ -3,6 +3,16 @@
 All notable pre-1.0 changes are summarized here. GitHub Releases remain the
 source for exact commit lists after tags are published.
 
+## 0.12.1
+
+- Added a release workflow invariant check and fixed crates.io publish ordering
+  so `biors-core` is published before `biors` dry-run validation.
+- Added a professional-readiness audit document covering Phase 1 and Phase 2
+  implementation status, researcher-ready scope, and known limits.
+- Switched `biors inspect` to a summary-only FASTA reader path to avoid
+  materializing token vectors for large-input summaries.
+- Updated quickstart documentation for the published CLI install path.
+
 ## 0.12.0
 
 - Added full CLI workflow coverage for FASTA validation, tokenization,

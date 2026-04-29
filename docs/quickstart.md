@@ -3,10 +3,19 @@
 This guide uses the repository examples so each command is reproducible from a
 fresh checkout.
 
+## Install
+
+```bash
+cargo install biors --version 0.12.1
+```
+
+When working inside a source checkout, replace `biors` with
+`cargo run -p biors --`.
+
 ## Validate FASTA
 
 ```bash
-cargo run -p biors -- fasta validate examples/protein.fasta
+biors fasta validate examples/protein.fasta
 ```
 
 Use this first when you need structured diagnostics for record counts,
@@ -15,7 +24,7 @@ ambiguous residues, and invalid residues.
 ## Tokenize FASTA
 
 ```bash
-cargo run -p biors -- tokenize examples/protein.fasta
+biors tokenize examples/protein.fasta
 ```
 
 `tokenize` emits stable `protein-20` token IDs. Ambiguous or invalid residues
@@ -24,7 +33,7 @@ keep positional alignment by using the explicit unknown token ID.
 ## Build Model Input
 
 ```bash
-cargo run -p biors -- model-input --max-length 8 examples/protein.fasta
+biors model-input --max-length 8 examples/protein.fasta
 ```
 
 `model-input` emits `input_ids`, `attention_mask`, and truncation metadata. It
@@ -33,8 +42,8 @@ rejects sequences with unresolved residue warnings or errors.
 ## Verify Package Fixtures
 
 ```bash
-cargo run -p biors -- package validate examples/protein-package/manifest.json
-cargo run -p biors -- package verify \
+biors package validate examples/protein-package/manifest.json
+biors package verify \
   examples/protein-package/manifest.json \
   examples/protein-package/observations.json
 ```
