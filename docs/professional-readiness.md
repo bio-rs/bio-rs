@@ -52,6 +52,9 @@ not as a model inference engine or broad bioinformatics suite.
 - Residue validation and tokenization use static ASCII lookup tables for
   canonical and ambiguous residues instead of repeated branch-heavy matches on
   the hot path.
+- Tokenization-only FASTA APIs avoid materializing normalized sequence strings
+  when callers only need token IDs, reducing parse + tokenization time and peak
+  memory on large FASTA inputs.
 - `biors inspect` uses a summary-only reader path so large FASTA inspection no
   longer materializes token vectors just to count records, residues, warnings,
   and errors.
