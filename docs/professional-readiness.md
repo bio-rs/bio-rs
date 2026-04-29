@@ -40,7 +40,7 @@ not as a model inference engine or broad bioinformatics suite.
 | 0.9.0 | CLI and JSON contract freeze, error taxonomy, snapshots, contract candidates | Implemented in CLI/schema/error docs and public behavior tests. |
 | 0.10.0 | fixture and verification hardening, invalid FASTA invariants, tokenizer invariants | Implemented with expanded fixtures, deterministic invalid FASTA tests, and structured mismatch reports. |
 | 0.11.0 | benchmark and reproducibility pass, Biopython comparison, speed/memory proof assets | Implemented with reproducible benchmark JSON/Markdown and artifact validation. |
-| 0.12.0 | documentation and 1.0 release candidate, full workflow e2e, policies, changelog | Implemented with e2e CLI workflow tests, quickstart, API/schema review, MSRV, citation, and changelog. |
+| 0.12.0 | documentation and 1.0 release candidate, full workflow e2e, policies, release notes | Implemented with e2e CLI workflow tests, quickstart, API/schema review, MSRV, citation, and README release history. |
 
 ## Refactor And Performance Review
 

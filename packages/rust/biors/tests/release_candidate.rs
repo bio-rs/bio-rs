@@ -45,7 +45,6 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
 fn release_candidate_documentation_surfaces_are_present_and_linked() {
     let repo = repo_root();
     let required = [
-        "CHANGELOG.md",
         "CITATION.cff",
         "docs/api-review.md",
         "docs/quickstart.md",
@@ -68,11 +67,14 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "docs/api-review.md",
         "docs/release-candidate-1.0.md",
         "docs/msrv.md",
-        "CHANGELOG.md",
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
     }
+    assert!(
+        readme.contains("## Release history"),
+        "README does not expose release history"
+    );
 
     let readiness =
         fs::read_to_string(repo.join("docs/professional-readiness.md")).expect("read readiness");
