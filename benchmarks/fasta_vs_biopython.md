@@ -8,22 +8,23 @@ FASTA throughput.
 
 ## Environment
 
-- Date: 2026-04-28 (UTC)
+- Date: 2026-04-29 (UTC)
 - OS: macOS-26.3.1-arm64-arm-64bit-Mach-O
 - CPU: Apple M1 Pro
 - Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
 - Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
-- bio-rs: `biors-core v0.12.0`
+- bio-rs: `biors-core v0.12.3`
 - Python: `3.14.3`
 - Biopython: `1.87`
-- Git commit: `9acf7a1cdd09180da97d62f4ee46c018b661b475`
+- Git commit: `b24c55e8ed92f33472348b1c9134ca16b04f6f9c`
 - Benchmark schema: `biors.benchmark.fasta_vs_biopython.v1`
 
 ## Datasets
 
-### 1. Human reference proteome
+### 1. Human Reference Proteome
 
-- Source: UniProt human reference proteome
+- Source: UniProt reference proteome
+- Shape profile: `human_reference_proteome`
 - Proteome ID: `UP000005640`
 - Taxonomy ID: `9606` (`Homo sapiens`)
 - URL: `https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz`
@@ -32,17 +33,32 @@ FASTA throughput.
 - Shape: 20,659 records, 11,456,702 residues, 13,735,476 bytes
 - Residue composition: 11,456,623 canonical, 79 ambiguous, 0 invalid
 
-### 2. Large-scale FASTA
+### 2. Large Scale Fasta
 
-- Source: repeated UniProt human reference proteome
+- Source: repeated_uniprot_human_proteome
+- Shape profile: `large_repeated_proteome`
 - Construction: repeated the same real human proteome `9x` to exceed `110 MB`
 - FASTA SHA256: `1aee653542929e4d8052600c48fe11863584cfb93bfbbaee3de8e7b0231bb410`
 - Shape: 185,931 records, 103,110,318 residues, 123,619,284 bytes
 - Residue composition: 103,109,607 canonical, 711 ambiguous, 0 invalid
 
-This second dataset is intentionally synthetic in scale, but it is built from a
-real proteome to isolate large-input throughput without introducing another
-dataset's annotation quirks.
+### 3. Many Short Records
+
+- Source: synthetic_many_short_records_from_uniprot_human_proteome
+- Shape profile: `many_short_records`
+- Construction: `20,000` records of `48` residues
+- FASTA SHA256: `2a8622814c7de2a912f9bb95d9f6c8ae90bc0882381453c4f6eee67cd716d64a`
+- Shape: 20,000 records, 960,000 residues, 1,228,890 bytes
+- Residue composition: 959,996 canonical, 4 ambiguous, 0 invalid
+
+### 4. Single Long Sequence
+
+- Source: synthetic_single_long_sequence_from_uniprot_human_proteome
+- Shape profile: `single_long_sequence`
+- Construction: one sequence with `960,000` residues
+- FASTA SHA256: `be3d011cba58794fb1e2d9b567910a704472f415152f055804533304f8313599`
+- Shape: 1 records, 960,000 residues, 972,013 bytes
+- Residue composition: 959,996 canonical, 4 ambiguous, 0 invalid
 
 ## Workload matching
 
@@ -73,6 +89,36 @@ On macOS, memory uses `/usr/bin/time -l` peak RSS for separate bio-rs
 and Biopython subprocesses. Treat memory as run metadata, not a universal
 memory-efficiency claim across every FASTA workload.
 
+## Matched results
+
+### Human Reference Proteome
+
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **0.041s** | 0.460s | **11.33x** | **282.4M** | **322.9** | 1.5 MB | 44.0 MB |
+| Parse + tokenization | **0.085s** | 0.459s | **5.42x** | **135.3M** | **154.7** | 40.1 MB | 44.1 MB |
+
+### Large Scale Fasta
+
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **0.323s** | 4.134s | **12.81x** | **319.6M** | **365.4** | 1.5 MB | 44.3 MB |
+| Parse + tokenization | **0.741s** | 4.145s | **5.59x** | **139.1M** | **159.0** | 334.8 MB | 44.0 MB |
+
+### Many Short Records
+
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **0.009s** | 0.058s | **6.73x** | **110.9M** | **135.4** | 1.5 MB | 44.0 MB |
+| Parse + tokenization | **0.018s** | 0.059s | **3.32x** | **54.3M** | **66.3** | 10.1 MB | 44.1 MB |
+
+### Single Long Sequence
+
+| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Parse + validation | **0.007s** | 0.035s | **4.97x** | **136.9M** | **132.2** | 1.5 MB | 47.7 MB |
+| Parse + tokenization | **0.009s** | 0.035s | **3.76x** | **103.0M** | **99.5** | 3.9 MB | 47.5 MB |
+
 ## Reproduce
 
 ```bash
@@ -84,30 +130,10 @@ python scripts/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
 
-## Best-case matched results
-
-### Human proteome
-
-| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.191s** | 0.471s | **2.46x** | **59.8M** | **68.4** | 56.1 MB | 43.8 MB |
-| Parse + tokenization | **0.186s** | 0.471s | **2.54x** | **61.7M** | **70.6** | 40.0 MB | 43.8 MB |
-
-### Large-scale FASTA
-
-| Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **1.712s** | 4.232s | **2.47x** | **60.2M** | **68.9** | 476.6 MB | 43.8 MB |
-| Parse + tokenization | **1.659s** | 4.238s | **2.55x** | **62.1M** | **71.1** | 334.4 MB | 43.8 MB |
-
 ## Raw result scope
 
-The JSON artifact includes all matched workloads, including `pure_parse`. On
-this machine, Biopython remains faster on pure parse. The favorable result for
-bio-rs appears when the comparison includes the actual validation or
-tokenization work that the Rust engine is designed to do.
-
-That is the intended claim boundary:
+The JSON artifact includes all matched workloads, including `pure_parse`.
+The intended claim boundary is workload-specific:
 
 - reasonable claim: bio-rs is materially faster than Biopython on matched
   protein FASTA validation and tokenization workloads in this benchmark

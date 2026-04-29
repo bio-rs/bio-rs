@@ -3,6 +3,19 @@
 All notable pre-1.0 changes are summarized here. GitHub Releases remain the
 source for exact commit lists after tags are published.
 
+## 0.12.3
+
+- Improved reader-based FASTA throughput with byte-buffered line scanning on
+  ASCII inputs while preserving Unicode fallback behavior and invalid UTF-8
+  read-failure classification.
+- Replaced hot-path protein residue and tokenizer classification matches with
+  static ASCII lookup tables.
+- Expanded the FASTA vs Biopython benchmark proof assets to cover human
+  reference proteome, 100MB+ repeated proteome, many-short-record, and
+  single-long-sequence shape profiles.
+- Refreshed README and professional-readiness performance documentation with
+  benchmark results measured on the committed reproducibility harness.
+
 ## 0.12.2
 
 - Added `biors --version` so installed CLI binaries can be tied back to the

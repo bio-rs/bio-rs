@@ -68,6 +68,7 @@ pub const fn protein_20_unknown_token_policy() -> UnknownTokenPolicy {
 }
 
 pub const PROTEIN_20_UNKNOWN_TOKEN_ID: u8 = 20;
+const TOKEN_LOOKUP_MISSING: u8 = u8::MAX;
 
 pub fn protein_20_vocab_tokens() -> &'static [VocabToken; 20] {
     &PROTEIN_20_VOCAB_TOKENS
@@ -302,6 +303,10 @@ fn push_tokenized_residue_byte(
 }
 
 fn protein_20_token_id(residue: char) -> Option<u8> {
+    if residue.is_ascii() {
+        return protein_20_token_id_byte(residue as u8);
+    }
+
     match residue {
         'A' => Some(0),
         'C' => Some(1),
@@ -328,34 +333,53 @@ fn protein_20_token_id(residue: char) -> Option<u8> {
 }
 
 fn protein_20_token_id_byte(residue: u8) -> Option<u8> {
-    match residue {
-        b'A' => Some(0),
-        b'C' => Some(1),
-        b'D' => Some(2),
-        b'E' => Some(3),
-        b'F' => Some(4),
-        b'G' => Some(5),
-        b'H' => Some(6),
-        b'I' => Some(7),
-        b'K' => Some(8),
-        b'L' => Some(9),
-        b'M' => Some(10),
-        b'N' => Some(11),
-        b'P' => Some(12),
-        b'Q' => Some(13),
-        b'R' => Some(14),
-        b'S' => Some(15),
-        b'T' => Some(16),
-        b'V' => Some(17),
-        b'W' => Some(18),
-        b'Y' => Some(19),
-        _ => None,
+    let token = PROTEIN_20_TOKEN_LOOKUP[residue as usize];
+    if token == TOKEN_LOOKUP_MISSING {
+        None
+    } else {
+        Some(token)
     }
 }
 
 fn is_ambiguous_residue_byte(residue: u8) -> bool {
-    matches!(residue, b'X' | b'B' | b'Z' | b'J' | b'U' | b'O')
+    AMBIGUOUS_RESIDUE_LOOKUP[residue as usize]
 }
+
+const PROTEIN_20_TOKEN_LOOKUP: [u8; 256] = {
+    let mut lookup = [TOKEN_LOOKUP_MISSING; 256];
+    lookup[b'A' as usize] = 0;
+    lookup[b'C' as usize] = 1;
+    lookup[b'D' as usize] = 2;
+    lookup[b'E' as usize] = 3;
+    lookup[b'F' as usize] = 4;
+    lookup[b'G' as usize] = 5;
+    lookup[b'H' as usize] = 6;
+    lookup[b'I' as usize] = 7;
+    lookup[b'K' as usize] = 8;
+    lookup[b'L' as usize] = 9;
+    lookup[b'M' as usize] = 10;
+    lookup[b'N' as usize] = 11;
+    lookup[b'P' as usize] = 12;
+    lookup[b'Q' as usize] = 13;
+    lookup[b'R' as usize] = 14;
+    lookup[b'S' as usize] = 15;
+    lookup[b'T' as usize] = 16;
+    lookup[b'V' as usize] = 17;
+    lookup[b'W' as usize] = 18;
+    lookup[b'Y' as usize] = 19;
+    lookup
+};
+
+const AMBIGUOUS_RESIDUE_LOOKUP: [bool; 256] = {
+    let mut lookup = [false; 256];
+    lookup[b'X' as usize] = true;
+    lookup[b'B' as usize] = true;
+    lookup[b'Z' as usize] = true;
+    lookup[b'J' as usize] = true;
+    lookup[b'U' as usize] = true;
+    lookup[b'O' as usize] = true;
+    lookup
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct AnalyzedProtein {

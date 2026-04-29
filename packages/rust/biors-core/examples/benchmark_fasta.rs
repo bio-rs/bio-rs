@@ -1,5 +1,5 @@
 use biors_core::{
-    parse_fasta_records_reader, tokenize_fasta_records_reader, validate_fasta_reader_with_hash,
+    parse_fasta_records_reader, summarize_fasta_records_reader, tokenize_fasta_records_reader,
     FastaReadError,
 };
 use serde::Serialize;
@@ -67,24 +67,14 @@ fn benchmark_parse(input_path: &str) -> Result<BenchmarkResult, String> {
 }
 
 fn benchmark_validate(input_path: &str) -> Result<BenchmarkResult, String> {
-    let report = validate_fasta_reader_with_hash(open_reader(input_path)?)
+    let report = summarize_fasta_records_reader(open_reader(input_path)?)
         .map_err(render_fasta_read_error)?
-        .report;
+        .summary;
     Ok(BenchmarkResult {
         mode: "validate".to_string(),
         records: report.records,
-        residues: report
-            .sequences
-            .iter()
-            .map(|record| record.sequence.chars().count())
-            .sum(),
-        canonical_tokens: report
-            .sequences
-            .iter()
-            .map(|record| {
-                record.sequence.chars().count() - record.warnings.len() - record.errors.len()
-            })
-            .sum(),
+        residues: report.total_length,
+        canonical_tokens: report.total_length - report.warning_count - report.error_count,
         unknown_tokens: report.warning_count + report.error_count,
         warning_count: report.warning_count,
         error_count: report.error_count,

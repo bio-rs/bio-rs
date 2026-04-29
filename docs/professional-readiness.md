@@ -46,8 +46,12 @@ not as a model inference engine or broad bioinformatics suite.
 
 - FASTA parsing now uses a shared scanner for string and reader paths, reducing
   duplicated state-machine logic.
-- ASCII FASTA paths avoid Unicode scalar iteration where byte-level handling is
-  safe, while retaining Unicode fallback behavior for compatibility.
+- Reader-based FASTA parsing uses a byte-buffered scanner on ASCII inputs,
+  while retaining UTF-8 Unicode fallback behavior and invalid UTF-8 read
+  failure classification.
+- Residue validation and tokenization use static ASCII lookup tables for
+  canonical and ambiguous residues instead of repeated branch-heavy matches on
+  the hot path.
 - `biors inspect` uses a summary-only reader path so large FASTA inspection no
   longer materializes token vectors just to count records, residues, warnings,
   and errors.
@@ -55,6 +59,9 @@ not as a model inference engine or broad bioinformatics suite.
   provenance explicit in lab notebooks, CI logs, and benchmark runs.
 - Vocabulary token definitions are static; callers that need only the canonical
   token list can use `protein_20_vocab_tokens()` without rebuilding a `Vec`.
+- Benchmark proof assets now cover the human reference proteome, 100MB+
+  repeated-proteome input, many short records, and a single long sequence so
+  throughput claims are less dependent on one FASTA shape.
 
 ## Known Limits
 
