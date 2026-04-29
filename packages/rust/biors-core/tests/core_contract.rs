@@ -2,10 +2,10 @@ use biors_core::{
     build_model_inputs_checked, build_model_inputs_unchecked, load_vocab_json, parse_fasta_records,
     parse_fasta_records_reader, stable_input_hash, tokenize_fasta_records,
     tokenize_fasta_records_reader, validate_fasta_input, validate_fasta_reader, BioRsError,
-    ModelInputBuildError, ModelInputPolicy, PaddingPolicy, ProteinSequence, ProteinTokenizer,
-    Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
+    FastaReadError, ModelInputBuildError, ModelInputPolicy, PaddingPolicy, ProteinSequence,
+    ProteinTokenizer, Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
-use std::io::Cursor;
+use std::io::{Cursor, ErrorKind};
 use std::path::Path;
 
 #[test]
@@ -142,6 +142,34 @@ fn tokenizes_fasta_from_reader_and_reports_input_hash() {
 
     assert_eq!(output.input_hash, stable_input_hash(raw));
     assert_eq!(output.records[0].tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
+fn reader_fasta_path_preserves_unicode_fallback_behavior() {
+    let raw = ">seq1\nACΩ\n";
+    let output =
+        tokenize_fasta_records_reader(Cursor::new(raw)).expect("reader handles UTF-8 FASTA");
+
+    assert_eq!(output.input_hash, stable_input_hash(raw));
+    assert_eq!(output.records[0].length, 3);
+    assert_eq!(
+        output.records[0].tokens,
+        vec![0, 1, PROTEIN_20_UNKNOWN_TOKEN_ID]
+    );
+    assert_eq!(output.records[0].errors[0].residue, 'Ω');
+    assert_eq!(output.records[0].errors[0].position, 3);
+}
+
+#[test]
+fn reader_fasta_path_reports_invalid_utf8_as_read_failure() {
+    let raw = b">seq1\nAC\xff\n";
+    let error = parse_fasta_records_reader(Cursor::new(raw))
+        .expect_err("invalid UTF-8 should remain an I/O-style read failure");
+
+    match error {
+        FastaReadError::Io(error) => assert_eq!(error.kind(), ErrorKind::InvalidData),
+        other => panic!("expected invalid UTF-8 read failure, got {other:?}"),
+    }
 }
 
 #[test]
