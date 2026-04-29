@@ -51,6 +51,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "docs/professional-readiness.md",
         "docs/release-candidate-1.0.md",
         "docs/msrv.md",
+        "scripts/check-install-smoke.sh",
     ];
 
     for path in required {

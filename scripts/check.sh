@@ -41,5 +41,8 @@ cargo check --locked -p biors-core --target wasm32-unknown-unknown --all-feature
 echo "==> cargo test --workspace --all-targets --all-features"
 cargo test --locked --workspace --all-targets --all-features
 
+echo "==> install smoke"
+scripts/check-install-smoke.sh
+
 echo "==> cargo clippy --workspace --all-targets --all-features -- -D warnings"
 cargo clippy --locked --workspace --all-targets --all-features -- -D warnings

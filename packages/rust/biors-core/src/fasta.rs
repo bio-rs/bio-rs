@@ -1,6 +1,8 @@
 use crate::error::BioRsError;
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
-use crate::sequence::{append_normalized_sequence, summarize_validated_sequences};
+use crate::sequence::{
+    append_normalized_sequence, append_normalized_sequence_bytes, summarize_validated_sequences,
+};
 use crate::tokenizer::{analyze_fasta_records, validated_sequences_from_analyzed};
 use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
 use serde::{Deserialize, Serialize};
@@ -68,6 +70,10 @@ struct ParsedRecordSink {
 impl FastaRecordSink for ParsedRecordSink {
     fn push_sequence_line(&mut self, line: &str) {
         append_normalized_sequence(line, &mut self.sequence);
+    }
+
+    fn push_sequence_line_bytes(&mut self, line: &[u8]) {
+        append_normalized_sequence_bytes(line, &mut self.sequence);
     }
 
     fn finish_record(
