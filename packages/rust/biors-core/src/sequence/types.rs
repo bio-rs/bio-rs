@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+use super::kind::SequenceKind;
+use crate::Diagnostic;
+
 /// A named protein sequence parsed from FASTA or supplied by callers.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProteinSequence {
@@ -48,4 +51,121 @@ pub struct SequenceValidationReport {
     pub error_count: usize,
     /// Per-record validation details.
     pub sequences: Vec<ValidatedSequence>,
+}
+
+/// A normalized biological sequence with an assigned sequence kind.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SequenceRecord {
+    /// Sequence identifier.
+    pub id: String,
+    /// Normalized sequence symbols with whitespace removed and ASCII letters uppercased.
+    pub sequence: String,
+    /// Biological sequence kind used for validation.
+    pub kind: SequenceKind,
+}
+
+impl SequenceRecord {
+    /// Build a normalized sequence record for kind-aware validation.
+    pub fn new(id: impl Into<String>, sequence: impl AsRef<str>, kind: SequenceKind) -> Self {
+        Self {
+            id: id.into(),
+            sequence: super::normalize_sequence(sequence.as_ref()),
+            kind,
+        }
+    }
+}
+
+/// Stable diagnostic code for kind-aware sequence validation issues.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SequenceValidationIssueCode {
+    /// Supported ambiguous IUPAC symbol.
+    AmbiguousSymbol,
+    /// Unsupported symbol for the selected kind.
+    InvalidSymbol,
+}
+
+impl SequenceValidationIssueCode {
+    /// Return the stable diagnostic code string.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::AmbiguousSymbol => "sequence.ambiguous_symbol",
+            Self::InvalidSymbol => "sequence.invalid_symbol",
+        }
+    }
+}
+
+/// Kind-aware sequence validation warning or error.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SequenceValidationIssue {
+    /// Normalized symbol that caused the issue.
+    pub symbol: char,
+    /// One-based position in the normalized sequence.
+    pub position: usize,
+    /// Sequence kind used when classifying this symbol.
+    pub kind: SequenceKind,
+    /// Stable machine-readable issue code.
+    pub code: SequenceValidationIssueCode,
+    /// Human-readable issue message.
+    pub message: String,
+}
+
+impl SequenceValidationIssue {
+    /// Create an ambiguous-symbol warning.
+    pub fn ambiguous(symbol: char, position: usize, kind: SequenceKind) -> Self {
+        Self {
+            symbol,
+            position,
+            kind,
+            code: SequenceValidationIssueCode::AmbiguousSymbol,
+            message: format!(
+                "{} symbol '{symbol}' at position {position} is ambiguous IUPAC code",
+                kind.display_name()
+            ),
+        }
+    }
+
+    /// Create an invalid-symbol error.
+    pub fn invalid(symbol: char, position: usize, kind: SequenceKind) -> Self {
+        Self {
+            symbol,
+            position,
+            kind,
+            code: SequenceValidationIssueCode::InvalidSymbol,
+            message: format!(
+                "{} symbol '{symbol}' at position {position} is not supported by {}",
+                kind.display_name(),
+                kind.alphabet_name()
+            ),
+        }
+    }
+}
+
+impl Diagnostic for SequenceValidationIssue {
+    fn code(&self) -> &'static str {
+        self.code.as_str()
+    }
+
+    fn message(&self) -> String {
+        self.message.clone()
+    }
+}
+
+/// Validation result for one kind-aware biological sequence.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ValidatedSequenceRecord {
+    /// Sequence identifier.
+    pub id: String,
+    /// Normalized sequence that was validated.
+    pub sequence: String,
+    /// Biological sequence kind used for validation.
+    pub kind: SequenceKind,
+    /// Alphabet policy used for validation.
+    pub alphabet: String,
+    /// True when the sequence has no warnings and no errors.
+    pub valid: bool,
+    /// Ambiguous but recognized symbols for the selected kind.
+    pub warnings: Vec<SequenceValidationIssue>,
+    /// Symbols outside the selected kind's alphabet and ambiguity policy.
+    pub errors: Vec<SequenceValidationIssue>,
 }

@@ -1,6 +1,20 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+/// Common interface for errors and validation issues that expose stable CLI/API diagnostics.
+pub trait Diagnostic {
+    /// Stable machine-readable diagnostic code.
+    fn code(&self) -> &'static str;
+
+    /// Human-readable diagnostic message.
+    fn message(&self) -> String;
+
+    /// Optional structured location for the diagnostic.
+    fn location(&self) -> Option<ErrorLocation> {
+        None
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Machine-readable location metadata for a parse or validation error.
 pub struct ErrorLocation {
@@ -106,6 +120,20 @@ impl fmt::Display for BioRsError {
 
 impl std::error::Error for BioRsError {}
 
+impl Diagnostic for BioRsError {
+    fn code(&self) -> &'static str {
+        BioRsError::code(self)
+    }
+
+    fn message(&self) -> String {
+        self.to_string()
+    }
+
+    fn location(&self) -> Option<ErrorLocation> {
+        BioRsError::location(self)
+    }
+}
+
 #[derive(Debug)]
 /// Error type for streaming FASTA reader APIs.
 pub enum FastaReadError {
@@ -135,6 +163,23 @@ impl fmt::Display for FastaReadError {
 }
 
 impl std::error::Error for FastaReadError {}
+
+impl Diagnostic for FastaReadError {
+    fn code(&self) -> &'static str {
+        FastaReadError::code(self)
+    }
+
+    fn message(&self) -> String {
+        self.to_string()
+    }
+
+    fn location(&self) -> Option<ErrorLocation> {
+        match self {
+            Self::Parse(error) => error.location(),
+            Self::Io(_) => None,
+        }
+    }
+}
 
 impl From<BioRsError> for FastaReadError {
     fn from(error: BioRsError) -> Self {
