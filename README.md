@@ -9,7 +9,7 @@
 bio-rs turns biological sequences into validated, model-ready inputs for bio-AI workflows.
 
 ```txt
-FASTA -> validated protein sequence -> token ids -> model-ready JSON
+FASTA -> validated protein/DNA/RNA sequence -> protein token ids -> model-ready JSON
 ```
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.14.0
+cargo install biors --version 0.15.0
 biors --version
 ```
 
@@ -61,6 +61,12 @@ Validate FASTA:
 
 ```bash
 biors fasta validate examples/protein.fasta
+```
+
+Validate mixed biological FASTA with per-record kind detection:
+
+```bash
+biors seq validate examples/protein.fasta
 ```
 
 Verify package fixture outputs:
@@ -294,6 +300,7 @@ Public contract docs:
 
 Delivered:
 
+- `0.15.0`: biological sequence UX polish with `biors seq validate`, auto-detect-by-default validation, kind-specific messages, and refreshed docs
 - `0.14.0`: multi-alphabet FASTA validation with per-record kind assignment, `--kind` CLI override, mixed-kind summaries, and updated FASTA validation schema
 - `0.13.0`: biors-core DNA/RNA validation draft with `SequenceKind`, IUPAC nucleotide policies, auto-detection, and diagnostic sequence issues
 - `0.12.8`: biors-core SRP refactor for package, sequence, verification, and FASTA scanner internals with public API docs refreshed

@@ -44,6 +44,10 @@ pub(crate) enum Command {
         #[command(subcommand)]
         command: PackageCommand,
     },
+    Seq {
+        #[command(subcommand)]
+        command: SeqCommand,
+    },
     Tokenize {
         path: PathBuf,
     },
@@ -53,6 +57,15 @@ pub(crate) enum Command {
 pub(crate) enum FastaCommand {
     Validate {
         #[arg(long, default_value_t = KindArg::Protein, value_enum)]
+        kind: KindArg,
+        path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub(crate) enum SeqCommand {
+    Validate {
+        #[arg(long, default_value_t = KindArg::Auto, value_enum)]
         kind: KindArg,
         path: PathBuf,
     },
@@ -115,10 +128,7 @@ pub(crate) fn run(command: Command) -> Result<(), CliError> {
     match command {
         Command::Fasta { command } => match command {
             FastaCommand::Validate { kind, path } => {
-                let reader = open_fasta_input(&path)?;
-                let output = validate_fasta_reader_with_kind_and_hash(reader, kind.into())
-                    .map_err(|error| CliError::from_fasta_read(path, error))?;
-                print_success(Some(output.input_hash), output.report)?;
+                run_sequence_validation(path, kind)?;
             }
         },
         Command::Inspect { path } => {
@@ -214,6 +224,11 @@ pub(crate) fn run(command: Command) -> Result<(), CliError> {
                 print_success(None, report)?;
             }
         },
+        Command::Seq { command } => match command {
+            SeqCommand::Validate { kind, path } => {
+                run_sequence_validation(path, kind)?;
+            }
+        },
         Command::Tokenize { path } => {
             let reader = open_fasta_input(&path)?;
             let output = tokenize_fasta_records_reader(reader)
@@ -223,4 +238,11 @@ pub(crate) fn run(command: Command) -> Result<(), CliError> {
     }
 
     Ok(())
+}
+
+fn run_sequence_validation(path: PathBuf, kind: KindArg) -> Result<(), CliError> {
+    let reader = open_fasta_input(&path)?;
+    let output = validate_fasta_reader_with_kind_and_hash(reader, kind.into())
+        .map_err(|error| CliError::from_fasta_read(path, error))?;
+    print_success(Some(output.input_hash), output.report)
 }

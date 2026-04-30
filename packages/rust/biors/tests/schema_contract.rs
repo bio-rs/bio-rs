@@ -71,6 +71,9 @@ fn cli_outputs_match_declared_payload_schemas() {
     let fasta_validate = run_with_stdin(["fasta", "validate", "-"], ">seq1\nAX*\n");
     assert_payload_matches_schema(&fasta_validate, "schemas/fasta-validation-output.v0.json");
 
+    let seq_validate = run_with_stdin(["seq", "validate", "-"], ">seq1\nACGN\n");
+    assert_payload_matches_schema(&seq_validate, "schemas/fasta-validation-output.v0.json");
+
     let model_input = run_with_stdin(["model-input", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
     assert_payload_matches_schema(&model_input, "schemas/model-input-output.v0.json");
 

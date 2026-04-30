@@ -42,6 +42,14 @@ not as a model inference engine or broad bioinformatics suite.
 | 0.11.0 | benchmark and reproducibility pass, Biopython comparison, speed/memory proof assets | Implemented with reproducible benchmark JSON/Markdown and artifact validation. |
 | 0.12.0 | documentation and 1.0 release candidate, full workflow e2e, policies, release notes | Implemented with e2e CLI workflow tests, quickstart, API/schema review, MSRV, citation, and README release history. |
 
+## Phase 3 Coverage
+
+| Version | Planned area | Current status |
+|---|---|---|
+| 0.13.0 | DNA/RNA validation draft, sequence kind enum, unified alphabet policy | Implemented with `SequenceKind`, DNA/RNA IUPAC policies, auto-detection, and stable sequence diagnostics. |
+| 0.14.0 | multi-alphabet FASTA support, per-record kind assignment, `--kind` CLI flag | Implemented with kind-aware FASTA reader validation, mixed-kind summaries, schema coverage, and explicit override support. |
+| 0.15.0 | biological sequence UX polish, `seq validate`, kind-specific messages | Implemented with `biors seq validate`, auto-detect-by-default validation, kind-specific issue messages, and e2e coverage. |
+
 ## Refactor And Performance Review
 
 - FASTA parsing now uses a shared scanner for string and reader paths, reducing
@@ -70,9 +78,9 @@ not as a model inference engine or broad bioinformatics suite.
 
 ## Known Limits
 
-- Only protein FASTA and the `protein-20` tokenizer are supported.
-- Non-protein alphabets, nucleotide workflows, structure tooling, chemistry
-  tooling, and Python bindings are not implemented.
+- Protein, DNA, and RNA FASTA validation are supported; tokenization and
+  model-ready input remain protein-only through the `protein-20` tokenizer.
+- Structure tooling, chemistry tooling, and Python bindings are not implemented.
 - Package verification compares local artifacts; bio-rs does not run model
   inference backends.
 - Benchmark claims are limited to the committed FASTA validation/tokenization

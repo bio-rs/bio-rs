@@ -6,7 +6,7 @@ fresh checkout.
 ## Install
 
 ```bash
-cargo install biors --version 0.14.0
+cargo install biors --version 0.15.0
 biors --version
 ```
 
@@ -19,8 +19,19 @@ When working inside a source checkout, replace `biors` with
 biors fasta validate examples/protein.fasta
 ```
 
-Use this first when you need structured diagnostics for record counts,
-ambiguous residues, and invalid residues.
+Use this for protein-first FASTA validation. It defaults to the `protein-20`
+policy for compatibility and accepts `--kind protein|dna|rna|auto` when you
+want a specific policy.
+
+## Validate Biological Sequences
+
+```bash
+biors seq validate examples/protein.fasta
+```
+
+Use this for mixed biological FASTA. It defaults to `--kind auto`, assigns
+Protein, DNA, or RNA per record, and reports `kind_counts` plus kind-specific
+warnings and errors.
 
 ## Tokenize FASTA
 
