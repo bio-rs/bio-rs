@@ -7,8 +7,13 @@ The following surfaces are candidates for stabilization before the first stable 
 - `parse_fasta_records`
 - `parse_fasta_records_reader`
 - `validate_fasta_input`
+- `validate_fasta_input_with_kind`
 - `validate_fasta_reader`
 - `validate_fasta_reader_with_hash`
+- `validate_fasta_reader_with_kind`
+- `validate_fasta_reader_with_kind_and_hash`
+- `SequenceKind`, `SequenceKindSelection`, `AlphabetPolicy`
+- `KindAwareSequenceValidationReport`, `ValidatedSequenceRecord`, `SequenceValidationIssue`
 - `tokenize_fasta_records`
 - `tokenize_fasta_records_reader`
 - `load_vocab_json`

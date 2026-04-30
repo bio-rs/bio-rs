@@ -1,6 +1,6 @@
 # API and Schema Review
 
-This document records the 0.12.x review state for the 1.0 release-candidate
+This document records the pre-1.0 review state for the 1.0 release-candidate
 path. It is not a promise that every listed surface is stable today.
 
 ## Rust API
@@ -8,7 +8,7 @@ path. It is not a promise that every listed surface is stable today.
 Current candidate surfaces are listed in
 [`public-contract-1.0-candidates.md`](public-contract-1.0-candidates.md).
 
-Reviewed through 0.14.0:
+Reviewed through 0.15.0:
 
 - FASTA parse and reader APIs keep line and record-index diagnostics.
 - Tokenization preserves sequence length with explicit unknown-token IDs.
@@ -17,6 +17,8 @@ Reviewed through 0.14.0:
   sequence diagnostics.
 - FASTA validation can assign sequence kind per record with auto-detection or an
   explicit override while preserving the buffered reader hash path.
+- `biors seq validate` exposes the auto-detect-by-default biological sequence
+  validation UX while `biors fasta validate` keeps protein-first compatibility.
 - Protein-20 vocabulary can be borrowed through `protein_20_vocabulary` and
   `ProteinTokenizer::vocabulary_ref` without changing the owned vocabulary API.
 - FASTA inspect summaries can be produced from reader input without
@@ -36,14 +38,16 @@ Reviewed through 0.14.0:
 Schemas under [`../schemas`](../schemas) are validated by
 `packages/rust/biors/tests/schema_contract.rs`.
 
-Reviewed through 0.14.0:
+Reviewed through 0.15.0:
 
 - CLI success and error envelopes.
 - FASTA validation, inspect, tokenize, and model-input payloads.
 - FASTA validation schema includes per-record `kind`, `alphabet`, `kind_counts`,
   and typed sequence issue objects.
+- `biors seq validate` uses the FASTA validation payload schema.
 - Package manifest, inspect, validate, bridge, and verify payloads.
-- 0.12.8 changed internal module boundaries only; no JSON schema shape changed.
+- 0.15.0 keeps the JSON envelope shape unchanged while sharing the FASTA
+  validation schema across `fasta validate` and `seq validate`.
 
 ## Breaking-Change Cleanup
 
