@@ -8,10 +8,13 @@ path. It is not a promise that every listed surface is stable today.
 Current candidate surfaces are listed in
 [`public-contract-1.0-candidates.md`](public-contract-1.0-candidates.md).
 
-Reviewed through 0.12.8:
+Reviewed through 0.13.0:
 
 - FASTA parse and reader APIs keep line and record-index diagnostics.
 - Tokenization preserves sequence length with explicit unknown-token IDs.
+- `biors-core` exposes kind-aware sequence validation for Protein, DNA, and RNA
+  through `SequenceKind`, IUPAC nucleotide alphabet policies, and stable
+  sequence diagnostics.
 - Protein-20 vocabulary can be borrowed through `protein_20_vocabulary` and
   `ProteinTokenizer::vocabulary_ref` without changing the owned vocabulary API.
 - FASTA inspect summaries can be produced from reader input without
@@ -31,7 +34,7 @@ Reviewed through 0.12.8:
 Schemas under [`../schemas`](../schemas) are validated by
 `packages/rust/biors/tests/schema_contract.rs`.
 
-Reviewed through 0.12.8:
+Reviewed through 0.13.0:
 
 - CLI success and error envelopes.
 - FASTA validation, inspect, tokenize, and model-input payloads.
