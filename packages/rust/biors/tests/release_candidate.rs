@@ -14,6 +14,10 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
     assert_eq!(validation["data"]["records"], 1);
     assert_eq!(validation["data"]["error_count"], 0);
 
+    let sequence_validation = run_biors(&["seq", "validate"], &[&fasta]);
+    assert_eq!(sequence_validation["data"]["records"], 1);
+    assert_eq!(sequence_validation["data"]["kind_counts"]["protein"], 1);
+
     let tokenized = run_biors(&["tokenize"], &[&fasta]);
     assert_eq!(tokenized["data"][0]["alphabet"], "protein-20");
     assert!(

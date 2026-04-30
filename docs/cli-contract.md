@@ -9,6 +9,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
+- `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
 - `biors package bridge <manifest>`
@@ -24,6 +25,8 @@ FASTA validation defaults to the protein policy for pre-0.14 compatibility.
 Passing `--kind dna`, `--kind rna`, or `--kind protein` applies one policy to
 all records; `--kind auto` assigns `protein`, `dna`, or `rna` per record and
 defaults ambiguous nucleotide-only ties such as `ACGN` to DNA.
+`seq validate` uses the same output contract but defaults to `--kind auto` for
+mixed biological sequence batches.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.

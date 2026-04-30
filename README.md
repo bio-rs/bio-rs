@@ -9,7 +9,7 @@
 bio-rs turns biological sequences into validated, model-ready inputs for bio-AI workflows.
 
 ```txt
-FASTA -> validated protein sequence -> token ids -> model-ready JSON
+FASTA -> validated protein/DNA/RNA sequence -> protein token ids -> model-ready JSON
 ```
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
@@ -61,6 +61,12 @@ Validate FASTA:
 
 ```bash
 biors fasta validate examples/protein.fasta
+```
+
+Validate mixed biological FASTA with per-record kind detection:
+
+```bash
+biors seq validate examples/protein.fasta
 ```
 
 Verify package fixture outputs:
