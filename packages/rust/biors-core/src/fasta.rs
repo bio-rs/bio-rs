@@ -8,6 +8,13 @@ use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 
+mod kind_validation;
+
+pub use kind_validation::{
+    validate_fasta_input_with_kind, validate_fasta_reader_with_kind,
+    validate_fasta_reader_with_kind_and_hash, ValidatedKindAwareFastaInput,
+};
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Parsed FASTA records plus a stable hash of the raw reader input.
 pub struct ParsedFastaInput {

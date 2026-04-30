@@ -151,6 +151,65 @@ fn fasta_validate_outputs_validation_report() {
 }
 
 #[test]
+fn fasta_validate_kind_flag_outputs_kind_aware_report() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("fasta")
+        .arg("validate")
+        .arg("--kind")
+        .arg("dna")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors fasta validate")
+        .tap_stdin(">seq1\nACGNU\n");
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["data"]["kind_counts"]["dna"], 1);
+    assert_eq!(value["data"]["sequences"][0]["kind"], "dna");
+    assert_eq!(value["data"]["sequences"][0]["alphabet"], "dna-iupac");
+    assert_eq!(
+        value["data"]["sequences"][0]["warnings"][0]["code"],
+        "ambiguous_symbol"
+    );
+    assert_eq!(
+        value["data"]["sequences"][0]["errors"][0]["code"],
+        "invalid_symbol"
+    );
+}
+
+#[test]
+fn fasta_validate_auto_detects_mixed_sequence_kinds() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("fasta")
+        .arg("validate")
+        .arg("--kind")
+        .arg("auto")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors fasta validate")
+        .tap_stdin(">dna\nACGN\n>rna\nACGU\n>protein\nMEEPQSDPSV\n");
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["data"]["kind_counts"]["dna"], 1);
+    assert_eq!(value["data"]["kind_counts"]["rna"], 1);
+    assert_eq!(value["data"]["kind_counts"]["protein"], 1);
+    assert_eq!(value["data"]["sequences"][0]["kind"], "dna");
+    assert_eq!(value["data"]["sequences"][1]["kind"], "rna");
+    assert_eq!(value["data"]["sequences"][2]["kind"], "protein");
+}
+
+#[test]
 fn package_inspect_outputs_manifest_summary() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let manifest = manifest_dir.join("../../../examples/protein-package/manifest.json");

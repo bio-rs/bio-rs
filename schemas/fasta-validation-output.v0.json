@@ -3,38 +3,59 @@
   "$id": "https://bio-rs.dev/schemas/fasta-validation-output.v0.json",
   "title": "bio-rs FASTA validation data payload",
   "type": "object",
-  "required": ["records", "valid_records", "warning_count", "error_count", "sequences"],
+  "required": [
+    "records",
+    "valid_records",
+    "warning_count",
+    "error_count",
+    "kind_counts",
+    "sequences"
+  ],
   "properties": {
     "records": { "type": "integer", "minimum": 0 },
     "valid_records": { "type": "integer", "minimum": 0 },
     "warning_count": { "type": "integer", "minimum": 0 },
     "error_count": { "type": "integer", "minimum": 0 },
+    "kind_counts": {
+      "type": "object",
+      "required": ["protein", "dna", "rna"],
+      "properties": {
+        "protein": { "type": "integer", "minimum": 0 },
+        "dna": { "type": "integer", "minimum": 0 },
+        "rna": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
     "sequences": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "sequence", "alphabet", "valid", "warnings", "errors"],
+        "required": ["id", "sequence", "kind", "alphabet", "valid", "warnings", "errors"],
         "properties": {
           "id": { "type": "string" },
           "sequence": { "type": "string" },
-          "alphabet": { "const": "protein-20" },
+          "kind": { "enum": ["protein", "dna", "rna"] },
+          "alphabet": { "enum": ["protein-20", "dna-iupac", "rna-iupac"] },
           "valid": { "type": "boolean" },
-          "warnings": { "$ref": "#/$defs/residueIssues" },
-          "errors": { "$ref": "#/$defs/residueIssues" }
+          "warnings": { "$ref": "#/$defs/sequenceIssues" },
+          "errors": { "$ref": "#/$defs/sequenceIssues" }
         },
         "additionalProperties": false
       }
     }
   },
   "$defs": {
-    "residueIssues": {
+    "sequenceIssues": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["residue", "position"],
+        "required": ["symbol", "position", "kind", "code", "message"],
         "properties": {
-          "residue": { "type": "string", "minLength": 1, "maxLength": 1 },
-          "position": { "type": "integer", "minimum": 1 }
+          "symbol": { "type": "string", "minLength": 1, "maxLength": 1 },
+          "position": { "type": "integer", "minimum": 1 },
+          "kind": { "enum": ["protein", "dna", "rna"] },
+          "code": { "enum": ["ambiguous_symbol", "invalid_symbol"] },
+          "message": { "type": "string", "minLength": 1 }
         },
         "additionalProperties": false
       }

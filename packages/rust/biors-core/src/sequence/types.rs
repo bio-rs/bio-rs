@@ -169,3 +169,42 @@ pub struct ValidatedSequenceRecord {
     /// Symbols outside the selected kind's alphabet and ambiguity policy.
     pub errors: Vec<SequenceValidationIssue>,
 }
+
+/// Per-kind record counts for a mixed biological sequence validation batch.
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SequenceKindCounts {
+    /// Number of protein records.
+    pub protein: usize,
+    /// Number of DNA records.
+    pub dna: usize,
+    /// Number of RNA records.
+    pub rna: usize,
+}
+
+impl SequenceKindCounts {
+    /// Add one record to the count for `kind`.
+    pub fn increment(&mut self, kind: SequenceKind) {
+        match kind {
+            SequenceKind::Protein => self.protein += 1,
+            SequenceKind::Dna => self.dna += 1,
+            SequenceKind::Rna => self.rna += 1,
+        }
+    }
+}
+
+/// Aggregate validation report for mixed biological sequence batches.
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct KindAwareSequenceValidationReport {
+    /// Number of input records.
+    pub records: usize,
+    /// Number of records with no warnings and no errors.
+    pub valid_records: usize,
+    /// Total number of ambiguous-symbol warnings.
+    pub warning_count: usize,
+    /// Total number of invalid-symbol errors.
+    pub error_count: usize,
+    /// Per-kind record counts.
+    pub kind_counts: SequenceKindCounts,
+    /// Per-record validation details.
+    pub sequences: Vec<ValidatedSequenceRecord>,
+}
