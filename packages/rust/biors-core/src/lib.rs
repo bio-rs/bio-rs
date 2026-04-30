@@ -1,8 +1,8 @@
-//! Core Rust APIs for bio-rs protein FASTA validation, tokenization, model input
+//! Core Rust APIs for bio-rs biological sequence validation, protein tokenization, model input
 //! construction, package manifests, and package fixture verification.
 //!
-//! FASTA reader paths prefer an ASCII byte-level scanner for the common protein
-//! FASTA case. Non-ASCII sequence lines fall back to UTF-8 validation so public
+//! FASTA reader paths prefer an ASCII byte-level scanner for common biological
+//! FASTA input. Non-ASCII sequence lines fall back to UTF-8 validation so public
 //! Unicode behavior remains explicit and test-covered.
 
 /// Structured error types used by parsing and reader APIs.
@@ -21,7 +21,7 @@ pub mod tokenizer;
 /// Package fixture verification and stable hashing helpers.
 pub mod verification;
 
-pub use error::{BioRsError, ErrorLocation, FastaReadError};
+pub use error::{BioRsError, Diagnostic, ErrorLocation, FastaReadError};
 pub use fasta::{
     parse_fasta_records, parse_fasta_records_reader, validate_fasta_input, validate_fasta_reader,
     validate_fasta_reader_with_hash, ParsedFastaInput, ValidatedFastaInput,
@@ -42,8 +42,10 @@ pub use package::{
     TokenAsset,
 };
 pub use sequence::{
-    normalize_sequence, validate_protein_sequence, ProteinSequence, ResidueIssue,
-    SequenceValidationReport, ValidatedSequence,
+    detect_sequence_kind, normalize_sequence, validate_protein_sequence, validate_sequence_record,
+    AlphabetPolicy, ProteinSequence, ResidueIssue, SequenceKind, SequenceKindSelection,
+    SequenceRecord, SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
+    SymbolClass, ValidatedSequence, ValidatedSequenceRecord,
 };
 pub use tokenizer::{
     load_protein_20_vocab, load_vocab_json, protein_20_unknown_token_policy,
