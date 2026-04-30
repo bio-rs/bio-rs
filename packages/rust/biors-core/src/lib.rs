@@ -23,8 +23,10 @@ pub mod verification;
 
 pub use error::{BioRsError, Diagnostic, ErrorLocation, FastaReadError};
 pub use fasta::{
-    parse_fasta_records, parse_fasta_records_reader, validate_fasta_input, validate_fasta_reader,
-    validate_fasta_reader_with_hash, ParsedFastaInput, ValidatedFastaInput,
+    parse_fasta_records, parse_fasta_records_reader, validate_fasta_input,
+    validate_fasta_input_with_kind, validate_fasta_reader, validate_fasta_reader_with_hash,
+    validate_fasta_reader_with_kind, validate_fasta_reader_with_kind_and_hash, ParsedFastaInput,
+    ValidatedFastaInput, ValidatedKindAwareFastaInput,
 };
 #[allow(deprecated)]
 pub use model_input::build_model_inputs;
@@ -43,9 +45,10 @@ pub use package::{
 };
 pub use sequence::{
     detect_sequence_kind, normalize_sequence, validate_protein_sequence, validate_sequence_record,
-    AlphabetPolicy, ProteinSequence, ResidueIssue, SequenceKind, SequenceKindSelection,
-    SequenceRecord, SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
-    SymbolClass, ValidatedSequence, ValidatedSequenceRecord,
+    AlphabetPolicy, KindAwareSequenceValidationReport, ProteinSequence, ResidueIssue, SequenceKind,
+    SequenceKindCounts, SequenceKindSelection, SequenceRecord, SequenceValidationIssue,
+    SequenceValidationIssueCode, SequenceValidationReport, SymbolClass, ValidatedSequence,
+    ValidatedSequenceRecord,
 };
 pub use tokenizer::{
     load_protein_20_vocab, load_vocab_json, protein_20_unknown_token_policy,

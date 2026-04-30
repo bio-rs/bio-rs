@@ -16,12 +16,12 @@ pub use normalization::normalize_sequence;
 pub(crate) use normalization::{
     append_normalized_sequence, append_normalized_sequence_bytes, normalized_residues,
 };
-pub use report::summarize_validated_sequences;
+pub use report::{summarize_validated_sequence_records, summarize_validated_sequences};
 pub(crate) use residue::{is_ambiguous_residue, is_protein_20_residue};
 pub use residue::{AMBIGUOUS_RESIDUES, PROTEIN_20, PROTEIN_20_RESIDUES};
 pub use types::{
-    ProteinSequence, ResidueIssue, SequenceRecord, SequenceValidationIssue,
-    SequenceValidationIssueCode, SequenceValidationReport, ValidatedSequence,
-    ValidatedSequenceRecord,
+    KindAwareSequenceValidationReport, ProteinSequence, ResidueIssue, SequenceKindCounts,
+    SequenceRecord, SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
+    ValidatedSequence, ValidatedSequenceRecord,
 };
 pub use validation::{validate_protein_sequence, validate_sequence_record};

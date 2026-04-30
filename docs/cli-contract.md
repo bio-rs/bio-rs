@@ -8,7 +8,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors tokenize <path|->`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
-- `biors fasta validate <path|->`
+- `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
 - `biors package bridge <manifest>`
@@ -20,6 +20,10 @@ benchmark records can be tied back to the exact released binary.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
+FASTA validation defaults to the protein policy for pre-0.14 compatibility.
+Passing `--kind dna`, `--kind rna`, or `--kind protein` applies one policy to
+all records; `--kind auto` assigns `protein`, `dna`, or `rna` per record and
+defaults ambiguous nucleotide-only ties such as `ACGN` to DNA.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.
@@ -51,6 +55,10 @@ unless they directly hash a user input contract in a later release.
 The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Package manifest checksums and fixture hashes use `sha256:`.
 
 Package validation reports include both the legacy string `issues` list and a typed `structured_issues` list with stable issue codes.
+
+FASTA validation reports include `kind_counts` and per-record `kind` /
+`alphabet` fields. Sequence warnings and errors expose stable issue codes such
+as `ambiguous_symbol` and `invalid_symbol` plus human-readable messages.
 
 `structured_issues` entries use this shape:
 
