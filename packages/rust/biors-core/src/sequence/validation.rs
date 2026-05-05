@@ -119,3 +119,87 @@ fn push_kind_issue(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::sequence::ProteinSequence;
+
+    #[test]
+    fn validate_protein_sequence_accepts_all_standard_residues() {
+        let protein = ProteinSequence {
+            id: "std20".into(),
+            sequence: b"ACDEFGHIKLMNPQRSTVWY".to_vec(),
+        };
+        let result = validate_protein_sequence(&protein);
+        assert!(result.valid);
+        assert!(result.warnings.is_empty());
+        assert!(result.errors.is_empty());
+        assert_eq!(result.sequence, "ACDEFGHIKLMNPQRSTVWY");
+        assert_eq!(result.alphabet, "protein-20");
+    }
+
+    #[test]
+    fn validate_protein_sequence_warns_for_ambiguous_residues() {
+        let protein = ProteinSequence {
+            id: "ambig".into(),
+            sequence: b"ACXBZJ".to_vec(),
+        };
+        let result = validate_protein_sequence(&protein);
+        assert!(!result.valid);
+        assert_eq!(result.warnings.len(), 4);
+        assert!(result.errors.is_empty());
+
+        let warning_residues: Vec<char> = result.warnings.iter().map(|w| w.residue).collect();
+        assert_eq!(warning_residues, vec!['X', 'B', 'Z', 'J']);
+
+        let positions: Vec<usize> = result.warnings.iter().map(|w| w.position).collect();
+        assert_eq!(positions, vec![3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn validate_protein_sequence_errors_for_invalid_residues() {
+        let protein = ProteinSequence {
+            id: "bad".into(),
+            sequence: b"AC*1D".to_vec(),
+        };
+        let result = validate_protein_sequence(&protein);
+        assert!(!result.valid);
+        assert!(result.warnings.is_empty());
+        assert_eq!(result.errors.len(), 2);
+
+        assert_eq!(result.errors[0].residue, '*');
+        assert_eq!(result.errors[0].position, 3);
+        assert_eq!(result.errors[1].residue, '1');
+        assert_eq!(result.errors[1].position, 4);
+    }
+
+    #[test]
+    fn validate_protein_sequence_mixed_warnings_and_errors() {
+        let protein = ProteinSequence {
+            id: "mixed".into(),
+            sequence: b"AX*C".to_vec(),
+        };
+        let result = validate_protein_sequence(&protein);
+        assert!(!result.valid);
+        assert_eq!(result.warnings.len(), 1);
+        assert_eq!(result.errors.len(), 1);
+        assert_eq!(result.warnings[0].residue, 'X');
+        assert_eq!(result.warnings[0].position, 2);
+        assert_eq!(result.errors[0].residue, '*');
+        assert_eq!(result.errors[0].position, 3);
+    }
+
+    #[test]
+    fn validate_protein_sequence_empty_is_valid() {
+        let protein = ProteinSequence {
+            id: "empty".into(),
+            sequence: b"".to_vec(),
+        };
+        let result = validate_protein_sequence(&protein);
+        assert!(result.valid);
+        assert!(result.warnings.is_empty());
+        assert!(result.errors.is_empty());
+        assert_eq!(result.sequence, "");
+    }
+}

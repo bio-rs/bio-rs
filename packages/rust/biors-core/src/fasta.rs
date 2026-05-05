@@ -149,7 +149,7 @@ impl FastaRecordSink for ValidatedRecordSink {
         }
 
         let validated =
-            validate_protein_sequence_owned(id, std::mem::take(&mut self.current_sequence));
+            validate_protein_sequence_owned(id.clone(), std::mem::take(&mut self.current_sequence));
         let valid = validated.valid;
         if valid {
             self.report.valid_records += 1;
@@ -159,5 +159,94 @@ impl FastaRecordSink for ValidatedRecordSink {
         self.report.error_count += validated.errors.len();
         self.report.sequences.push(validated);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fasta_scan::scan_fasta_str;
+
+    #[test]
+    fn parsed_record_sink_collects_normalized_records() {
+        let mut sink = ParsedRecordSink::default();
+        scan_fasta_str(">seq1\nACDE\nFGHI\n>seq2\nKLMN\n",
+            &mut sink,
+        )
+        .expect("valid FASTA");
+
+        assert_eq!(sink.records.len(), 2);
+        assert_eq!(sink.records[0].id, "seq1");
+        assert_eq!(sink.records[0].sequence, b"ACDEFGHI");
+        assert_eq!(sink.records[1].id, "seq2");
+        assert_eq!(sink.records[1].sequence, b"KLMN");
+    }
+
+    #[test]
+    fn parsed_record_sink_rejects_empty_sequence() {
+        let mut sink = ParsedRecordSink::default();
+        let err = scan_fasta_str(">seq1\n>seq2\nACDE\n", &mut sink)
+            .expect_err("empty record should error");
+
+        assert!(matches!(
+            err,
+            BioRsError::MissingSequence { id, line: 1, record_index: 0 }
+            if id == "seq1"
+        ));
+    }
+
+    #[test]
+    fn validated_record_sink_reports_valid_sequence() {
+        let mut sink = ValidatedRecordSink::default();
+        scan_fasta_str(">seq1\nACDE\n", &mut sink).expect("valid FASTA");
+
+        assert_eq!(sink.report.records, 1);
+        assert_eq!(sink.report.valid_records, 1);
+        assert_eq!(sink.report.warning_count, 0);
+        assert_eq!(sink.report.error_count, 0);
+        assert_eq!(sink.report.sequences.len(), 1);
+        assert!(sink.report.sequences[0].valid);
+        assert_eq!(sink.report.sequences[0].sequence, "ACDE");
+    }
+
+    #[test]
+    fn validated_record_sink_reports_warning_for_ambiguous_residue() {
+        let mut sink = ValidatedRecordSink::default();
+        scan_fasta_str(">seq1\nACXDE\n", &mut sink).expect("valid FASTA");
+
+        assert_eq!(sink.report.records, 1);
+        assert_eq!(sink.report.valid_records, 0);
+        assert_eq!(sink.report.warning_count, 1);
+        assert_eq!(sink.report.error_count, 0);
+        assert!(!sink.report.sequences[0].valid);
+        assert_eq!(sink.report.sequences[0].warnings[0].residue, 'X');
+        assert_eq!(sink.report.sequences[0].warnings[0].position, 3);
+    }
+
+    #[test]
+    fn validated_record_sink_reports_error_for_invalid_residue() {
+        let mut sink = ValidatedRecordSink::default();
+        scan_fasta_str(">seq1\nAC*DE\n", &mut sink).expect("valid FASTA");
+
+        assert_eq!(sink.report.records, 1);
+        assert_eq!(sink.report.valid_records, 0);
+        assert_eq!(sink.report.warning_count, 0);
+        assert_eq!(sink.report.error_count, 1);
+        assert!(!sink.report.sequences[0].valid);
+        assert_eq!(sink.report.sequences[0].errors[0].residue, '*');
+        assert_eq!(sink.report.sequences[0].errors[0].position, 3);
+    }
+
+    #[test]
+    fn validated_record_sink_rejects_empty_sequence() {
+        let mut sink = ValidatedRecordSink::default();
+        let err = scan_fasta_str(">seq1\n>seq2\nACDE\n", &mut sink)
+            .expect_err("empty record should error");
+
+        assert!(matches!(
+            err,
+            BioRsError::MissingSequence { id, line: 1, record_index: 0 }
+            if id == "seq1"
+        ));
     }
 }
