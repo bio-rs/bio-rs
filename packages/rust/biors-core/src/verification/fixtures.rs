@@ -69,7 +69,10 @@ fn verify_fixture(
     let input_bytes = match read_package_file(manifest_base_dir, &fixture.input) {
         Ok(bytes) => bytes,
         Err(error) => {
-            return result.failed(VerificationIssueCode::FixtureInputReadFailed, error);
+            return result.failed(
+                VerificationIssueCode::FixtureInputReadFailed,
+                error.to_string(),
+            );
         }
     };
 
@@ -86,7 +89,10 @@ fn verify_fixture(
     let expected_bytes = match read_package_file(manifest_base_dir, &fixture.expected_output) {
         Ok(bytes) => bytes,
         Err(error) => {
-            return result.failed(VerificationIssueCode::ExpectedOutputReadFailed, error);
+            return result.failed(
+                VerificationIssueCode::ExpectedOutputReadFailed,
+                error.to_string(),
+            );
         }
     };
 
@@ -149,7 +155,12 @@ fn read_observed_output(
     observations_base_dir: &Path,
 ) -> Result<Vec<u8>, (VerificationIssueCode, String)> {
     let observed_path = resolve_package_asset_path(observations_base_dir, &observation.path)
-        .map_err(|error| (VerificationIssueCode::ObservationPathInvalid, error))?;
+        .map_err(|error| {
+            (
+                VerificationIssueCode::ObservationPathInvalid,
+                error.to_string(),
+            )
+        })?;
 
     std::fs::read(&observed_path).map_err(|error| {
         (
