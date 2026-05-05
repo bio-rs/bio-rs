@@ -1,7 +1,8 @@
 use crate::error::BioRsError;
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
-    append_normalized_sequence, append_normalized_sequence_bytes, validate_protein_sequence_owned,
+    append_normalized_sequence_bytes_to_vec, append_normalized_sequence_to_vec,
+    validate_protein_sequence_owned,
 };
 use crate::verification::StableInputHasher;
 use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
@@ -84,16 +85,16 @@ pub fn validate_fasta_reader_with_hash<R: BufRead>(
 #[derive(Default)]
 struct ParsedRecordSink {
     records: Vec<ProteinSequence>,
-    sequence: String,
+    sequence: Vec<u8>,
 }
 
 impl FastaRecordSink for ParsedRecordSink {
     fn push_sequence_line(&mut self, line: &str) {
-        append_normalized_sequence(line, &mut self.sequence);
+        append_normalized_sequence_to_vec(line, &mut self.sequence);
     }
 
     fn push_sequence_line_bytes(&mut self, line: &[u8]) {
-        append_normalized_sequence_bytes(line, &mut self.sequence);
+        append_normalized_sequence_bytes_to_vec(line, &mut self.sequence);
     }
 
     fn finish_record(
@@ -121,16 +122,16 @@ impl FastaRecordSink for ParsedRecordSink {
 #[derive(Default)]
 struct ValidatedRecordSink {
     report: SequenceValidationReport,
-    current_sequence: String,
+    current_sequence: Vec<u8>,
 }
 
 impl FastaRecordSink for ValidatedRecordSink {
     fn push_sequence_line(&mut self, line: &str) {
-        append_normalized_sequence(line, &mut self.current_sequence);
+        append_normalized_sequence_to_vec(line, &mut self.current_sequence);
     }
 
     fn push_sequence_line_bytes(&mut self, line: &[u8]) {
-        append_normalized_sequence_bytes(line, &mut self.current_sequence);
+        append_normalized_sequence_bytes_to_vec(line, &mut self.current_sequence);
     }
 
     fn finish_record(
@@ -147,10 +148,8 @@ impl FastaRecordSink for ValidatedRecordSink {
             });
         }
 
-        let validated = validate_protein_sequence_owned(
-            id,
-            std::mem::take(&mut self.current_sequence),
-        );
+        let validated =
+            validate_protein_sequence_owned(id, std::mem::take(&mut self.current_sequence));
         let valid = validated.valid;
         if valid {
             self.report.valid_records += 1;

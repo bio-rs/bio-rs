@@ -12,7 +12,7 @@ fn parses_crlf_and_ignores_empty_lines() {
         records,
         vec![ProteinSequence {
             id: "seq1".to_string(),
-            sequence: "ACDE".to_string(),
+            sequence: b"ACDE".to_vec(),
         }]
     );
 }

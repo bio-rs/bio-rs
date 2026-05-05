@@ -10,7 +10,7 @@ fn protein_tokenizer_trait_matches_public_tokenize_function() {
     let tokenizer = ProteinTokenizer;
     let record = ProteinSequence {
         id: "seq1".to_string(),
-        sequence: "ACDE".to_string(),
+        sequence: b"ACDE".to_vec(),
     };
 
     assert_eq!(tokenizer.alphabet(), "protein-20");

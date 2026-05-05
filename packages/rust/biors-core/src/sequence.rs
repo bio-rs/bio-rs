@@ -14,7 +14,9 @@ pub use detection::detect_sequence_kind;
 pub use kind::{SequenceKind, SequenceKindSelection};
 pub use normalization::normalize_sequence;
 pub(crate) use normalization::{
-    append_normalized_sequence, append_normalized_sequence_bytes, normalized_residues,
+    append_normalized_sequence, append_normalized_sequence_bytes,
+    append_normalized_sequence_bytes_to_vec, append_normalized_sequence_to_vec,
+    normalized_residues,
 };
 pub use report::{summarize_validated_sequence_records, summarize_validated_sequences};
 pub(crate) use residue::{
@@ -27,5 +29,5 @@ pub use types::{
     SequenceRecord, SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
     ValidatedSequence, ValidatedSequenceRecord,
 };
-pub use validation::{validate_protein_sequence, validate_sequence_record};
 pub(crate) use validation::validate_protein_sequence_owned;
+pub use validation::{validate_protein_sequence, validate_sequence_record};

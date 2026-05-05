@@ -21,7 +21,7 @@ fn fixture_corpus_covers_valid_and_invalid_fasta_contracts() {
     let valid_input = std::fs::read_to_string(valid).expect("read valid FASTA fixture");
     let records = parse_fasta_records(&valid_input).expect("valid fixture parses");
     assert_eq!(records[0].id, "seq-valid");
-    assert_eq!(records[0].sequence, "ACDEXBZJUO");
+    assert_eq!(records[0].sequence, b"ACDEXBZJUO");
 
     let missing_header_input =
         std::fs::read_to_string(missing_header).expect("read missing-header fixture");

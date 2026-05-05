@@ -12,29 +12,27 @@ pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence
     validate_protein_sequence_owned(protein.id.clone(), protein.sequence.clone())
 }
 
-pub(crate) fn validate_protein_sequence_owned(
-    id: String,
-    sequence: String,
-) -> ValidatedSequence {
+pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> ValidatedSequence {
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
     if sequence.is_ascii() {
-        for (index, byte) in sequence.bytes().enumerate() {
+        for (index, byte) in sequence.iter().enumerate() {
             let position = index + 1;
-            if is_protein_20_residue_byte(byte) {
+            if is_protein_20_residue_byte(*byte) {
                 continue;
             }
 
-            let residue = byte as char;
-            if is_ambiguous_residue_byte(byte) {
+            let residue = *byte as char;
+            if is_ambiguous_residue_byte(*byte) {
                 warnings.push(ResidueIssue { residue, position });
             } else {
                 errors.push(ResidueIssue { residue, position });
             }
         }
     } else {
-        for (index, residue) in sequence.chars().enumerate() {
+        let s = std::str::from_utf8(&sequence).expect("normalized sequence is valid UTF-8");
+        for (index, residue) in s.chars().enumerate() {
             let position = index + 1;
             if is_protein_20_residue(residue) {
                 continue;
@@ -47,6 +45,8 @@ pub(crate) fn validate_protein_sequence_owned(
             }
         }
     }
+
+    let sequence = String::from_utf8(sequence).expect("normalized sequence is valid UTF-8");
 
     ValidatedSequence {
         id,
