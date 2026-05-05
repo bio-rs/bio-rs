@@ -16,6 +16,8 @@ pub(crate) fn open_fasta_input(path: &PathBuf) -> Result<Box<dyn BufRead>, CliEr
     Ok(Box::new(BufReader::new(file)))
 }
 
+/// Read and deserialize a package manifest from `path`, returning the manifest
+/// together with its base directory.
 pub(crate) fn read_package_manifest(path: PathBuf) -> Result<(PackageManifest, PathBuf), CliError> {
     let (input, base_dir) = read_input_with_base_dir(path)?;
     Ok((
@@ -24,6 +26,8 @@ pub(crate) fn read_package_manifest(path: PathBuf) -> Result<(PackageManifest, P
     ))
 }
 
+/// Read and deserialize fixture observations from `path`, returning the observations
+/// together with their base directory.
 pub(crate) fn read_fixture_observations(
     path: PathBuf,
 ) -> Result<(Vec<FixtureObservation>, PathBuf), CliError> {
