@@ -22,7 +22,7 @@ impl Tokenizer for ProteinTokenizer {
     }
 
     fn vocabulary(&self) -> Vocabulary {
-        load_protein_20_vocab()
+        load_protein_20_vocab().clone()
     }
 
     fn tokenize(&self, protein: &ProteinSequence) -> TokenizedProtein {

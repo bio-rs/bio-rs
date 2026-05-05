@@ -4,6 +4,7 @@ use crate::sequence::{
     append_normalized_sequence, append_normalized_sequence_bytes, is_ambiguous_residue,
     is_protein_20_residue, ResidueIssue, ValidatedSequence, PROTEIN_20,
 };
+use crate::verification::StableInputHasher;
 use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
@@ -45,10 +46,11 @@ pub fn parse_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<ParsedFastaInput, FastaReadError> {
     let mut sink = ParsedRecordSink::default();
-    let input_hash = scan_fasta_reader(reader, &mut sink)?;
+    let mut hasher = StableInputHasher::new();
+    scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
 
     Ok(ParsedFastaInput {
-        input_hash,
+        input_hash: hasher.finalize(),
         records: sink.records,
     })
 }
@@ -72,9 +74,10 @@ pub fn validate_fasta_reader_with_hash<R: BufRead>(
     reader: R,
 ) -> Result<ValidatedFastaInput, FastaReadError> {
     let mut sink = ValidatedRecordSink::default();
-    let input_hash = scan_fasta_reader(reader, &mut sink)?;
+    let mut hasher = StableInputHasher::new();
+    scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
     Ok(ValidatedFastaInput {
-        input_hash,
+        input_hash: hasher.finalize(),
         report: sink.report,
     })
 }
