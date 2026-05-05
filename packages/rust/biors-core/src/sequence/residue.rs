@@ -47,6 +47,14 @@ pub(crate) fn is_ambiguous_residue(residue: char) -> bool {
     matches!(residue, 'X' | 'B' | 'Z' | 'J' | 'U' | 'O')
 }
 
+pub(crate) fn is_protein_20_residue_byte(residue: u8) -> bool {
+    PROTEIN_20_RESIDUE_LOOKUP[residue as usize]
+}
+
+pub(crate) fn is_ambiguous_residue_byte(residue: u8) -> bool {
+    AMBIGUOUS_RESIDUE_LOOKUP[residue as usize]
+}
+
 const PROTEIN_20_RESIDUE_LOOKUP: [bool; 256] = {
     let mut lookup = [false; 256];
     lookup[b'A' as usize] = true;

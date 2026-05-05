@@ -1,8 +1,7 @@
 use crate::error::BioRsError;
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
-    append_normalized_sequence, append_normalized_sequence_bytes, is_ambiguous_residue,
-    is_protein_20_residue, ResidueIssue, ValidatedSequence, PROTEIN_20,
+    append_normalized_sequence, append_normalized_sequence_bytes, validate_protein_sequence_owned,
 };
 use crate::verification::StableInputHasher;
 use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
@@ -123,35 +122,15 @@ impl FastaRecordSink for ParsedRecordSink {
 struct ValidatedRecordSink {
     report: SequenceValidationReport,
     current_sequence: String,
-    current_warnings: Vec<ResidueIssue>,
-    current_errors: Vec<ResidueIssue>,
-    current_length: usize,
 }
 
 impl FastaRecordSink for ValidatedRecordSink {
     fn push_sequence_line(&mut self, line: &str) {
-        if line.is_ascii() {
-            self.push_sequence_line_bytes(line.as_bytes());
-            return;
-        }
-
-        for residue in line
-            .chars()
-            .filter(|residue| !residue.is_whitespace())
-            .map(|residue| residue.to_ascii_uppercase())
-        {
-            self.push_residue(residue);
-        }
+        append_normalized_sequence(line, &mut self.current_sequence);
     }
 
     fn push_sequence_line_bytes(&mut self, line: &[u8]) {
-        self.current_sequence.reserve(line.len());
-        for &byte in line {
-            if byte.is_ascii_whitespace() {
-                continue;
-            }
-            self.push_residue_byte(byte);
-        }
+        append_normalized_sequence_bytes(line, &mut self.current_sequence);
     }
 
     fn finish_record(
@@ -160,7 +139,7 @@ impl FastaRecordSink for ValidatedRecordSink {
         line: usize,
         record_index: usize,
     ) -> Result<(), BioRsError> {
-        if self.current_length == 0 {
+        if self.current_sequence.is_empty() {
             return Err(BioRsError::MissingSequence {
                 id,
                 line,
@@ -168,48 +147,18 @@ impl FastaRecordSink for ValidatedRecordSink {
             });
         }
 
-        let warnings = std::mem::take(&mut self.current_warnings);
-        let errors = std::mem::take(&mut self.current_errors);
-        let valid = warnings.is_empty() && errors.is_empty();
+        let validated = validate_protein_sequence_owned(
+            id,
+            std::mem::take(&mut self.current_sequence),
+        );
+        let valid = validated.valid;
         if valid {
             self.report.valid_records += 1;
         }
         self.report.records += 1;
-        self.report.warning_count += warnings.len();
-        self.report.error_count += errors.len();
-        self.report.sequences.push(ValidatedSequence {
-            id,
-            sequence: std::mem::take(&mut self.current_sequence),
-            alphabet: PROTEIN_20.to_string(),
-            valid,
-            warnings,
-            errors,
-        });
-        self.current_length = 0;
+        self.report.warning_count += validated.warnings.len();
+        self.report.error_count += validated.errors.len();
+        self.report.sequences.push(validated);
         Ok(())
-    }
-}
-
-impl ValidatedRecordSink {
-    fn push_residue(&mut self, residue: char) {
-        self.current_length += 1;
-        self.current_sequence.push(residue);
-        if is_protein_20_residue(residue) {
-            return;
-        }
-
-        let issue = ResidueIssue {
-            residue,
-            position: self.current_length,
-        };
-        if is_ambiguous_residue(residue) {
-            self.current_warnings.push(issue);
-        } else {
-            self.current_errors.push(issue);
-        }
-    }
-
-    fn push_residue_byte(&mut self, residue: u8) {
-        self.push_residue(residue.to_ascii_uppercase() as char);
     }
 }

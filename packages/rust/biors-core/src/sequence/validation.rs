@@ -1,4 +1,7 @@
-use super::{is_ambiguous_residue, is_protein_20_residue};
+use super::{
+    is_ambiguous_residue, is_ambiguous_residue_byte, is_protein_20_residue,
+    is_protein_20_residue_byte,
+};
 use super::{
     AlphabetPolicy, ProteinSequence, ResidueIssue, SequenceRecord, SequenceValidationIssue,
     SymbolClass, ValidatedSequence, ValidatedSequenceRecord, PROTEIN_20,
@@ -6,25 +9,48 @@ use super::{
 
 /// Validate one normalized protein sequence against the `protein-20` policy.
 pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence {
+    validate_protein_sequence_owned(protein.id.clone(), protein.sequence.clone())
+}
+
+pub(crate) fn validate_protein_sequence_owned(
+    id: String,
+    sequence: String,
+) -> ValidatedSequence {
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
-    for (index, residue) in protein.sequence.chars().enumerate() {
-        let position = index + 1;
-        if is_protein_20_residue(residue) {
-            continue;
-        }
+    if sequence.is_ascii() {
+        for (index, byte) in sequence.bytes().enumerate() {
+            let position = index + 1;
+            if is_protein_20_residue_byte(byte) {
+                continue;
+            }
 
-        if is_ambiguous_residue(residue) {
-            warnings.push(ResidueIssue { residue, position });
-        } else {
-            errors.push(ResidueIssue { residue, position });
+            let residue = byte as char;
+            if is_ambiguous_residue_byte(byte) {
+                warnings.push(ResidueIssue { residue, position });
+            } else {
+                errors.push(ResidueIssue { residue, position });
+            }
+        }
+    } else {
+        for (index, residue) in sequence.chars().enumerate() {
+            let position = index + 1;
+            if is_protein_20_residue(residue) {
+                continue;
+            }
+
+            if is_ambiguous_residue(residue) {
+                warnings.push(ResidueIssue { residue, position });
+            } else {
+                errors.push(ResidueIssue { residue, position });
+            }
         }
     }
 
     ValidatedSequence {
-        id: protein.id.clone(),
-        sequence: protein.sequence.clone(),
+        id,
+        sequence,
         alphabet: PROTEIN_20.to_string(),
         valid: warnings.is_empty() && errors.is_empty(),
         warnings,
