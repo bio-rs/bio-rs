@@ -170,10 +170,7 @@ mod tests {
     #[test]
     fn parsed_record_sink_collects_normalized_records() {
         let mut sink = ParsedRecordSink::default();
-        scan_fasta_str(">seq1\nACDE\nFGHI\n>seq2\nKLMN\n",
-            &mut sink,
-        )
-        .expect("valid FASTA");
+        scan_fasta_str(">seq1\nACDE\nFGHI\n>seq2\nKLMN\n", &mut sink).expect("valid FASTA");
 
         assert_eq!(sink.records.len(), 2);
         assert_eq!(sink.records[0].id, "seq1");

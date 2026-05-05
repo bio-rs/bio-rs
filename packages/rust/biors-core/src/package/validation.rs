@@ -125,7 +125,10 @@ mod tests {
         let report = validate_package_manifest(&manifest);
         assert!(!report.valid);
         assert_eq!(report.structured_issues.len(), 1);
-        assert_eq!(report.structured_issues[0].code, PackageValidationIssueCode::RequiredField);
+        assert_eq!(
+            report.structured_issues[0].code,
+            PackageValidationIssueCode::RequiredField
+        );
         assert_eq!(report.structured_issues[0].field, "name");
     }
 
@@ -150,7 +153,10 @@ mod tests {
         let report = validate_package_manifest(&manifest);
         assert!(!report.valid);
         assert_eq!(report.structured_issues.len(), 1);
-        assert_eq!(report.structured_issues[0].code, PackageValidationIssueCode::MissingFixture);
+        assert_eq!(
+            report.structured_issues[0].code,
+            PackageValidationIssueCode::MissingFixture
+        );
         assert_eq!(report.structured_issues[0].field, "fixtures");
     }
 

@@ -13,3 +13,10 @@ categories = ["science"]
 serde.workspace = true
 serde_json.workspace = true
 sha2 = "0.10.8"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "fasta_workloads"
+harness = false

@@ -185,12 +185,8 @@ mod tests {
     #[test]
     fn tokenized_record_sink_tokenizes_ascii_sequence_via_bytes() {
         let mut sink = TokenizedRecordSink::default();
-        scan_fasta_reader(
-            Cursor::new(b">seq1\nACDE\n"),
-            &mut sink,
-            |_line| {},
-        )
-        .expect("valid FASTA");
+        scan_fasta_reader(Cursor::new(b">seq1\nACDE\n"), &mut sink, |_line| {})
+            .expect("valid FASTA");
 
         assert_eq!(sink.records.len(), 1);
         assert_eq!(sink.records[0].id, "seq1");
@@ -215,14 +211,13 @@ mod tests {
     #[test]
     fn tokenized_record_sink_warns_for_ambiguous_residue() {
         let mut sink = TokenizedRecordSink::default();
-        scan_fasta_reader(
-            Cursor::new(b">seq1\nACXDE\n"),
-            &mut sink,
-            |_line| {},
-        )
-        .expect("valid FASTA");
+        scan_fasta_reader(Cursor::new(b">seq1\nACXDE\n"), &mut sink, |_line| {})
+            .expect("valid FASTA");
 
-        assert_eq!(sink.records[0].tokens, vec![0, 1, PROTEIN_20_UNKNOWN_TOKEN_ID, 2, 3]);
+        assert_eq!(
+            sink.records[0].tokens,
+            vec![0, 1, PROTEIN_20_UNKNOWN_TOKEN_ID, 2, 3]
+        );
         assert!(!sink.records[0].valid);
         assert_eq!(sink.records[0].warnings.len(), 1);
         assert_eq!(sink.records[0].warnings[0].residue, 'X');
@@ -233,14 +228,13 @@ mod tests {
     #[test]
     fn tokenized_record_sink_errors_for_invalid_residue() {
         let mut sink = TokenizedRecordSink::default();
-        scan_fasta_reader(
-            Cursor::new(b">seq1\nAC*DE\n"),
-            &mut sink,
-            |_line| {},
-        )
-        .expect("valid FASTA");
+        scan_fasta_reader(Cursor::new(b">seq1\nAC*DE\n"), &mut sink, |_line| {})
+            .expect("valid FASTA");
 
-        assert_eq!(sink.records[0].tokens, vec![0, 1, PROTEIN_20_UNKNOWN_TOKEN_ID, 2, 3]);
+        assert_eq!(
+            sink.records[0].tokens,
+            vec![0, 1, PROTEIN_20_UNKNOWN_TOKEN_ID, 2, 3]
+        );
         assert!(!sink.records[0].valid);
         assert!(sink.records[0].warnings.is_empty());
         assert_eq!(sink.records[0].errors.len(), 1);
@@ -251,12 +245,8 @@ mod tests {
     #[test]
     fn tokenized_record_sink_rejects_empty_sequence() {
         let mut sink = TokenizedRecordSink::default();
-        let err = scan_fasta_reader(
-            Cursor::new(b">seq1\n>seq2\nACDE\n"),
-            &mut sink,
-            |_line| {},
-        )
-        .expect_err("empty record should error");
+        let err = scan_fasta_reader(Cursor::new(b">seq1\n>seq2\nACDE\n"), &mut sink, |_line| {})
+            .expect_err("empty record should error");
 
         assert!(matches!(
             err,
@@ -302,12 +292,8 @@ mod tests {
     #[test]
     fn summary_record_sink_rejects_empty_sequence() {
         let mut sink = SummaryRecordSink::default();
-        let err = scan_fasta_reader(
-            Cursor::new(b">seq1\n>seq2\nACDE\n"),
-            &mut sink,
-            |_line| {},
-        )
-        .expect_err("empty record should error");
+        let err = scan_fasta_reader(Cursor::new(b">seq1\n>seq2\nACDE\n"), &mut sink, |_line| {})
+            .expect_err("empty record should error");
 
         assert!(matches!(
             err,
