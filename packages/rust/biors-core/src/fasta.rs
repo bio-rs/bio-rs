@@ -149,7 +149,7 @@ impl FastaRecordSink for ValidatedRecordSink {
         }
 
         let validated =
-            validate_protein_sequence_owned(id.clone(), std::mem::take(&mut self.current_sequence));
+            validate_protein_sequence_owned(id, std::mem::take(&mut self.current_sequence));
         let valid = validated.valid;
         if valid {
             self.report.valid_records += 1;
