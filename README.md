@@ -14,6 +14,31 @@ FASTA -> validated protein/DNA/RNA sequence -> protein token ids -> model-ready 
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
+## First 60 Seconds
+
+From a checkout, the shortest credible demo is:
+
+```bash
+sh scripts/launch-demo.sh --cargo
+```
+
+With the published CLI installed, the same flow is:
+
+```bash
+cargo install biors --version 0.18.0
+biors doctor
+sh scripts/launch-demo.sh
+```
+
+For a terminal recording or animated CLI capture, run:
+
+```bash
+sh scripts/record-cli-demo.sh --cargo
+```
+
+That path validates the launch FASTA, tokenizes it, builds model-ready JSON,
+and verifies a portable package fixture without a separate demo app.
+
 ## Why bio-rs?
 
 Most bio-AI models are born in Python, but the tooling around them often needs to run somewhere else:
@@ -74,6 +99,12 @@ Run the launch demo dataset:
 
 ```bash
 sh scripts/launch-demo.sh
+```
+
+Generate a terminal-friendly CLI demo transcript:
+
+```bash
+sh scripts/record-cli-demo.sh
 ```
 
 Verify package fixture outputs:

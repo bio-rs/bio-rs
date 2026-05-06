@@ -96,6 +96,15 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
             "{name} does not document version verification"
         );
     }
+
+    assert!(
+        readme.contains("First 60 Seconds"),
+        "README does not expose first-impression copy"
+    );
+    assert!(
+        quickstart.contains("First 60 Seconds"),
+        "quickstart does not expose first-impression commands"
+    );
 }
 
 #[test]
@@ -103,10 +112,15 @@ fn launch_demo_assets_cover_first_impression_workflow() {
     let repo = repo_root();
     let dataset = repo.join("examples/launch-demo.fasta");
     let script = repo.join("scripts/launch-demo.sh");
+    let recorded_script = repo.join("scripts/record-cli-demo.sh");
     let demo = fs::read_to_string(repo.join("docs/demo.md")).expect("read demo doc");
+    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+    let benchmark =
+        fs::read_to_string(repo.join("benchmarks/fasta_vs_biopython.md")).expect("read benchmark");
     let fasta = fs::read_to_string(&dataset).expect("read launch demo FASTA");
 
     assert!(script.exists(), "missing launch demo script");
+    assert!(recorded_script.exists(), "missing recorded CLI demo script");
     assert!(fasta.contains(">brca1_human_fragment"));
     assert!(fasta.contains(">cftr_human_fragment"));
     assert!(fasta.contains(">tp53_human_fragment"));
@@ -114,11 +128,28 @@ fn launch_demo_assets_cover_first_impression_workflow() {
     for expected in [
         "Website Demo Script",
         "Contributor Demo",
+        "CLI Recorded Demo Script",
+        "scripts/record-cli-demo.sh",
         "Benchmark Visual Draft",
         "Browser Playground Concept",
-        "Upload or paste FASTA",
+        "Browser implementation is intentionally deferred",
     ] {
         assert!(demo.contains(expected), "demo doc missing {expected}");
+    }
+    assert!(
+        readme.contains("sh scripts/record-cli-demo.sh"),
+        "README does not link the recorded CLI demo"
+    );
+    for expected in [
+        "## Visual summary",
+        "## Short narrative",
+        "## Claim boundary",
+        "scripts/render_benchmark_report.py",
+    ] {
+        assert!(
+            benchmark.contains(expected),
+            "benchmark doc missing {expected}"
+        );
     }
 
     let validation = run_biors(&["seq", "validate"], &[&dataset]);

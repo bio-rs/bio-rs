@@ -31,6 +31,25 @@ biors --version
 sh scripts/launch-demo.sh
 ```
 
+## CLI Recorded Demo Script
+
+Use `scripts/record-cli-demo.sh` when the output needs to be captured as a
+terminal recording, GIF, or animated documentation asset:
+
+```bash
+sh scripts/record-cli-demo.sh --cargo
+```
+
+The script prints each command before running it, then emits the actual JSON
+outputs from `biors`. It is deterministic for the committed dataset and avoids
+checking in generated recordings.
+
+An external recorder can wrap it without changing the repo:
+
+```bash
+asciinema rec -c "sh scripts/record-cli-demo.sh --cargo" bio-rs-demo.cast
+```
+
 ## Website Demo Script
 
 1. Show the first README screen: bio-rs converts FASTA into validated,
@@ -76,7 +95,8 @@ limited to these FASTA workloads and this recorded environment.`
 
 ## Browser Playground Concept
 
-The no-install playground should start as a single browser flow:
+Browser implementation is intentionally deferred for this release pass. The
+concept remains:
 
 1. Upload or paste FASTA.
 2. Validate sequence kind.

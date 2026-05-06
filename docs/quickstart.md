@@ -23,6 +23,31 @@ Generate shell completions from the installed binary:
 biors completions zsh > _biors
 ```
 
+## First 60 Seconds
+
+Run the first-impression workflow before trying individual commands:
+
+```bash
+sh scripts/launch-demo.sh
+```
+
+From a source checkout before installing:
+
+```bash
+sh scripts/launch-demo.sh --cargo
+```
+
+For terminal recording tools such as `asciinema`, use the deterministic CLI
+transcript script:
+
+```bash
+sh scripts/record-cli-demo.sh --cargo
+```
+
+The demo uses `examples/launch-demo.fasta`, then shows local diagnostics,
+kind-aware validation, tokenization, model-input JSON, and package fixture
+verification.
+
 ## Validate FASTA
 
 ```bash
@@ -53,6 +78,12 @@ From a source checkout before installing:
 
 ```bash
 sh scripts/launch-demo.sh --cargo
+```
+
+For a recording-friendly transcript:
+
+```bash
+sh scripts/record-cli-demo.sh
 ```
 
 ## Tokenize FASTA
