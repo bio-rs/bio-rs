@@ -302,6 +302,7 @@ Public contract docs:
 - [Launch demo](docs/demo.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
+- [Reliability and input safety](docs/reliability.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)

@@ -40,7 +40,7 @@ fn human_error_mode_uses_stderr_and_exit_code() {
 
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stdout.is_empty());
-    assert!(String::from_utf8_lossy(&output.stderr).contains("error: FASTA input"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("error[fasta.missing_header]:"));
 }
 
 #[test]

@@ -13,7 +13,7 @@ fn main() {
         if cli.json {
             output::print_json_error(error);
         } else {
-            eprintln!("error: {error}");
+            eprintln!("error[{}]: {error}", error.code());
         }
         std::process::exit(exit_code);
     }

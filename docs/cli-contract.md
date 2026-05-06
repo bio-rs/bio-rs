@@ -100,7 +100,7 @@ Passing `--json` writes errors to stdout as:
 }
 ```
 
-Without `--json`, errors are written to stderr as human-readable text.
+Without `--json`, errors are written to stderr as `error[code]: message`.
 
 ## Exit Codes
 

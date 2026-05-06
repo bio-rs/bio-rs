@@ -54,6 +54,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "docs/demo.md",
         "docs/cli-contract.md",
         "docs/error-codes.md",
+        "docs/reliability.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
     ];
@@ -71,6 +72,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "docs/demo.md",
         "docs/cli-contract.md",
         "docs/error-codes.md",
+        "docs/reliability.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "CITATION.cff",
