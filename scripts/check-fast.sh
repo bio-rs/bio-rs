@@ -21,6 +21,9 @@ python3 -m py_compile \
   scripts/check-release-workflow.py \
   scripts/benchmark_large_file_streaming.py \
   scripts/render_benchmark_report.py \
+  examples/python/esm_from_biors_json.py \
+  examples/python/pandas_numpy_friendly.py \
+  examples/python/protbert_from_biors_json.py \
   examples/python/reference_preprocess.py
 
 echo "==> module size"
