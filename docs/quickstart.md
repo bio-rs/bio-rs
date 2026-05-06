@@ -104,6 +104,19 @@ biors model-input --max-length 8 examples/protein.fasta
 `model-input` emits `input_ids`, `attention_mask`, and truncation metadata. It
 rejects sequences with unresolved residue warnings or errors.
 
+## Run The Stable Workflow
+
+```bash
+biors workflow --max-length 8 examples/protein.fasta
+```
+
+`workflow` runs the protein FASTA preparation path end to end: validation,
+deterministic `protein-20` tokenization, model-input generation, readiness
+issues, and reproducibility provenance. If a sequence has unresolved warnings
+or errors, the command keeps validation and tokenization context in the JSON
+payload and sets `model_ready` to `false` instead of silently producing partial
+model input.
+
 ## Verify Package Fixtures
 
 ```bash

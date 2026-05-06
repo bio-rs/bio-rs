@@ -87,6 +87,7 @@ Current contribution priority areas:
 - FASTA parser correctness and edge cases
 - buffered FASTA reader APIs for large inputs
 - protein-20 tokenizer behavior and diagnostics
+- stable sequence workflow JSON and provenance contracts
 - manifest validation/reporting clarity
 - typed package validation issue codes
 - fixture verification UX and reporting

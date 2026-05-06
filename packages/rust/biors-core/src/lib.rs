@@ -13,6 +13,7 @@ pub mod package;
 pub mod sequence;
 pub mod tokenizer;
 pub mod verification;
+pub mod workflow;
 
 pub use error::{BioRsError, Diagnostic, ErrorLocation, FastaReadError};
 pub use fasta::{
@@ -55,4 +56,8 @@ pub use verification::{
     stable_input_hash, verify_package_outputs, verify_package_outputs_with_observation_base,
     ContentMismatchDiff, FirstDifference, FixtureObservation, FixtureVerificationResult,
     PackageVerificationReport, StableInputHasher, VerificationIssueCode, VerificationStatus,
+};
+pub use workflow::{
+    prepare_protein_model_input_workflow, SequenceWorkflowOutput, SequenceWorkflowProvenance,
+    SequenceWorkflowReadinessIssue, TokenizationWorkflowOutput, WorkflowTokenizerMetadata,
 };

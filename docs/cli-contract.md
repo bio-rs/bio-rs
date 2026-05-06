@@ -10,6 +10,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors tokenize <path|->`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
+- `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
@@ -18,6 +19,11 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package verify <manifest> <observations>`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
+`workflow` runs protein FASTA validation, deterministic `protein-20`
+tokenization, model-input generation, readiness reporting, and reproducibility
+provenance in a single JSON payload. It keeps validation and tokenization
+context when residues are not model-ready and sets `model_ready=false` with
+stable `sequence.not_model_ready` readiness issue codes.
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
 `biors completions <shell>` writes shell completion scripts to stdout.
@@ -68,6 +74,12 @@ Package validation reports include both the legacy string `issues` list and a ty
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such
 as `ambiguous_symbol` and `invalid_symbol` plus human-readable messages.
+
+Workflow payloads use `schemas/sequence-workflow-output.v0.json`. The
+provenance section records the `biors-core` version, input hash, normalization
+policy, validation alphabet, tokenizer metadata, and model-input policy used to
+produce the output. Raw command argument capture and output/vocabulary hashes
+belong to the stronger reproducibility layer.
 
 `structured_issues` entries use this shape:
 

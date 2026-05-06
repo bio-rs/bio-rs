@@ -41,6 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ```bash
 cargo install biors --version 0.20.1
 biors tokenize examples/protein.fasta
+biors workflow --max-length 8 examples/protein.fasta
 ```
 
 Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
@@ -107,6 +108,8 @@ Current capabilities:
 - attention masks
 - padding/truncation policy
 - `model-input` CLI output
+- `workflow` CLI output that combines validation, tokenization, model input,
+  readiness issues, and reproducibility provenance
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
@@ -135,6 +138,7 @@ Current capabilities:
 - [Versioning policy](docs/versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
+- [Changelog](CHANGELOG.md)
 - [Citation metadata](CITATION.cff)
 
 ## Not yet
@@ -215,6 +219,7 @@ schemas/
   fasta-validation-output.v0.json
   inspect-output.v0.json
   model-input-output.v0.json
+  sequence-workflow-output.v0.json
   package-bridge-output.v0.json
   package-inspect-output.v0.json
   package-manifest.v0.json

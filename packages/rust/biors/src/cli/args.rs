@@ -48,6 +48,15 @@ pub enum Command {
     Tokenize {
         path: PathBuf,
     },
+    Workflow {
+        #[arg(long)]
+        max_length: usize,
+        #[arg(long, default_value_t = 0)]
+        pad_token_id: u8,
+        #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
+        padding: PaddingArg,
+        path: PathBuf,
+    },
 }
 
 #[derive(Debug, Subcommand)]

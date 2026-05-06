@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/sequence-workflow-output.v0.json",
+  "title": "bio-rs sequence workflow data payload",
+  "type": "object",
+  "required": [
+    "workflow",
+    "model_ready",
+    "provenance",
+    "validation",
+    "tokenization",
+    "model_input",
+    "readiness_issues"
+  ],
+  "properties": {
+    "workflow": { "const": "protein_model_input.v0" },
+    "model_ready": { "type": "boolean" },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "biors_core_version",
+        "input_hash",
+        "normalization",
+        "validation_alphabet",
+        "tokenizer",
+        "model_input_policy"
+      ],
+      "properties": {
+        "biors_core_version": { "type": "string", "minLength": 1 },
+        "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" },
+        "normalization": { "const": "strip_ascii_whitespace_uppercase" },
+        "validation_alphabet": { "const": "protein-20" },
+        "tokenizer": {
+          "type": "object",
+          "required": ["name", "vocab_size", "unknown_token_id", "unknown_token_policy"],
+          "properties": {
+            "name": { "const": "protein-20" },
+            "vocab_size": { "const": 20 },
+            "unknown_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "unknown_token_policy": { "const": "warn_or_error_with_unknown_token" }
+          },
+          "additionalProperties": false
+        },
+        "model_input_policy": { "$ref": "#/$defs/modelInputPolicy" }
+      },
+      "additionalProperties": false
+    },
+    "validation": {
+      "type": "object",
+      "required": ["records", "valid_records", "warning_count", "error_count", "sequences"],
+      "properties": {
+        "records": { "type": "integer", "minimum": 0 },
+        "valid_records": { "type": "integer", "minimum": 0 },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "sequences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "sequence", "alphabet", "valid", "warnings", "errors"],
+            "properties": {
+              "id": { "type": "string" },
+              "sequence": { "type": "string" },
+              "alphabet": { "const": "protein-20" },
+              "valid": { "type": "boolean" },
+              "warnings": { "$ref": "#/$defs/residueIssues" },
+              "errors": { "$ref": "#/$defs/residueIssues" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "tokenization": {
+      "type": "object",
+      "required": ["summary", "records"],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "required": ["records", "total_length", "valid_records", "warning_count", "error_count"],
+          "properties": {
+            "records": { "type": "integer", "minimum": 0 },
+            "total_length": { "type": "integer", "minimum": 0 },
+            "valid_records": { "type": "integer", "minimum": 0 },
+            "warning_count": { "type": "integer", "minimum": 0 },
+            "error_count": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tokenizedProtein" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "model_input": {
+      "anyOf": [
+        { "$ref": "#/$defs/modelInput" },
+        { "type": "null" }
+      ]
+    },
+    "readiness_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "id", "warning_count", "error_count", "message"],
+        "properties": {
+          "code": { "const": "sequence.not_model_ready" },
+          "id": { "type": "string" },
+          "warning_count": { "type": "integer", "minimum": 0 },
+          "error_count": { "type": "integer", "minimum": 0 },
+          "message": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "modelInputPolicy": {
+      "type": "object",
+      "required": ["max_length", "pad_token_id", "padding"],
+      "properties": {
+        "max_length": { "type": "integer", "minimum": 1 },
+        "pad_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "padding": { "enum": ["fixed_length", "no_padding"] }
+      },
+      "additionalProperties": false
+    },
+    "modelInput": {
+      "type": "object",
+      "required": ["policy", "records"],
+      "properties": {
+        "policy": { "$ref": "#/$defs/modelInputPolicy" },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "input_ids", "attention_mask", "truncated"],
+            "properties": {
+              "id": { "type": "string" },
+              "input_ids": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
+              "attention_mask": { "type": "array", "items": { "type": "integer", "enum": [0, 1] } },
+              "truncated": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "tokenizedProtein": {
+      "type": "object",
+      "required": ["id", "length", "alphabet", "valid", "tokens", "warnings", "errors"],
+      "properties": {
+        "id": { "type": "string" },
+        "length": { "type": "integer", "minimum": 0 },
+        "alphabet": { "const": "protein-20" },
+        "valid": { "type": "boolean" },
+        "tokens": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        "warnings": { "$ref": "#/$defs/residueIssues" },
+        "errors": { "$ref": "#/$defs/residueIssues" }
+      },
+      "additionalProperties": false
+    },
+    "residueIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["residue", "position"],
+        "properties": {
+          "residue": { "type": "string", "minLength": 1, "maxLength": 1 },
+          "position": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

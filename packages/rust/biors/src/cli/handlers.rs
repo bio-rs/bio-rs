@@ -5,9 +5,10 @@ use crate::input::{open_fasta_input, read_fixture_observations, read_package_man
 use crate::output::print_success;
 use biors_core::{
     build_model_inputs_checked, inspect_package_manifest, plan_runtime_bridge,
-    summarize_fasta_records_reader, tokenize_fasta_records_reader,
-    validate_fasta_reader_with_kind_and_hash, validate_package_manifest_artifacts,
-    verify_package_outputs_with_observation_base, ModelInputPolicy,
+    prepare_protein_model_input_workflow, summarize_fasta_records_reader,
+    tokenize_fasta_records_reader, validate_fasta_reader_with_kind_and_hash,
+    validate_package_manifest_artifacts, verify_package_outputs_with_observation_base,
+    ModelInputPolicy,
 };
 use clap::CommandFactory;
 use std::path::PathBuf;
@@ -27,6 +28,12 @@ pub fn run(command: Command) -> Result<(), CliError> {
         Command::Package { command } => run_package_command(command),
         Command::Seq { command } => run_seq_command(command),
         Command::Tokenize { path } => run_tokenize(path),
+        Command::Workflow {
+            max_length,
+            pad_token_id,
+            padding,
+            path,
+        } => run_workflow(max_length, pad_token_id, padding, path),
     }
 }
 
@@ -155,6 +162,28 @@ fn run_tokenize(path: PathBuf) -> Result<(), CliError> {
     let output = tokenize_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     print_success(Some(output.input_hash), output.records)
+}
+
+fn run_workflow(
+    max_length: usize,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: PathBuf,
+) -> Result<(), CliError> {
+    let reader = open_fasta_input(&path)?;
+    let input = biors_core::parse_fasta_records_reader(reader)
+        .map_err(|error| CliError::from_fasta_read(path, error))?;
+    let input_hash = input.input_hash.clone();
+    let output = prepare_protein_model_input_workflow(
+        input.input_hash,
+        &input.records,
+        ModelInputPolicy {
+            max_length,
+            pad_token_id,
+            padding: padding.into(),
+        },
+    )?;
+    print_success(Some(input_hash), output)
 }
 
 fn run_sequence_validation(path: PathBuf, kind: KindArg) -> Result<(), CliError> {

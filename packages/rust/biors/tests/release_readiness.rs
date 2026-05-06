@@ -38,6 +38,13 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
         8
     );
 
+    let workflow = run_biors(&["workflow", "--max-length", "8"], &[&fasta]);
+    assert_eq!(workflow["data"]["workflow"], "protein_model_input.v0");
+    assert_eq!(workflow["data"]["model_ready"], true);
+    assert_eq!(workflow["data"]["validation"]["records"], 1);
+    assert_eq!(workflow["data"]["tokenization"]["summary"]["records"], 1);
+    assert_eq!(workflow["data"]["model_input"]["policy"]["max_length"], 8);
+
     let package_validation = run_biors(&["package", "validate"], &[&manifest]);
     assert_eq!(package_validation["data"]["valid"], true);
 
@@ -59,6 +66,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
+        "CHANGELOG.md",
     ];
 
     for path in required {
@@ -79,6 +87,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
+        "CHANGELOG.md",
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
