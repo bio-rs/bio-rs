@@ -131,6 +131,35 @@ payload and sets `model_ready` to `false` instead of silently producing partial
 model input. Provenance also records the resolved CLI invocation, tokenizer
 vocabulary SHA-256, and output-content SHA-256 for repeatable runs.
 
+## Compose A CLI Pipeline
+
+```bash
+biors pipeline --max-length 8 examples/protein.fasta
+```
+
+`pipeline` uses the same no-config preprocessing defaults as `workflow`, but
+adds explicit validate, tokenize, and export step statuses for scripts that
+chain command output into downstream jobs.
+
+## Inspect A Problem Sequence
+
+```bash
+biors debug --max-length 8 examples/protein.fasta
+```
+
+`debug` shows each normalized residue, emitted token ID, model-input record
+when available, and compact `W`/`E` markers for residues that need review.
+
+## Compare Outputs
+
+```bash
+biors diff expected.json observed.json
+```
+
+`diff` compares canonical JSON when both files are JSON and raw bytes
+otherwise. It reports SHA-256 hashes, whether the outputs match, and
+first-difference metadata for mismatches.
+
 ## Validate Batches
 
 ```bash

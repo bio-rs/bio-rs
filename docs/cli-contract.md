@@ -6,6 +6,8 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 
 - `biors --version`
 - `biors completions <bash|elvish|fish|powershell|zsh>`
+- `biors debug --max-length <usize> <path|->`
+- `biors diff <expected> <observed>`
 - `biors doctor`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
@@ -20,6 +22,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package validate <manifest|->`
 - `biors package bridge <manifest>`
 - `biors package verify <manifest> <observations>`
+- `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
 `workflow` runs protein FASTA validation, deterministic `protein-20`
@@ -27,6 +30,15 @@ tokenization, model-input generation, readiness reporting, and reproducibility
 provenance in a single JSON payload. It keeps validation and tokenization
 context when residues are not model-ready and sets `model_ready=false` with
 stable `sequence.not_model_ready` readiness issue codes.
+`pipeline` wraps the same no-config preprocessing path in explicit
+validate -> tokenize -> export step statuses for CLI chaining and pipeline
+orchestration.
+`debug` emits a step-by-step per-record view from normalized sequence to token
+IDs to model-input records, with compact `W`/`E` residue markers for warnings
+and errors.
+`diff` compares expected and observed outputs as canonical JSON when possible
+and raw bytes otherwise. It always emits a report with SHA-256 hashes,
+`matches`, and first-difference metadata for mismatches.
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
 `biors completions <shell>` writes shell completion scripts to stdout.
@@ -95,6 +107,10 @@ policy, validation alphabet, tokenizer metadata, model-input policy, resolved
 CLI invocation arguments, vocabulary SHA-256, and output-content SHA-256. The
 output-content digest covers the workflow payload excluding the hash values
 themselves.
+
+Pipeline payloads use `schemas/pipeline-output.v0.json`. Debug payloads use
+`schemas/sequence-debug-output.v0.json`. Output diff reports use
+`schemas/output-diff.v0.json`.
 
 Batch validation payloads use `schemas/batch-validation-output.v0.json` and
 include `inputs`, aggregate `summary`, and a deterministic `files` list with

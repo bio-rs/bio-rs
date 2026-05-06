@@ -31,6 +31,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `prepare_protein_model_input_workflow`
 - `prepare_protein_model_input_workflow_with_invocation`
 - `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowInvocation`, `SequenceWorkflowHashes`, `SequenceWorkflowReadinessIssue`
+- `diff_output_bytes`, `OutputDiffReport`
 - `validate_package_manifest_artifacts`
 - `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
@@ -52,7 +53,10 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/tokenize-output.v0.json`
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
+- `schemas/output-diff.v0.json`
+- `schemas/pipeline-output.v0.json`
 - `schemas/batch-validation-output.v0.json`
+- `schemas/sequence-debug-output.v0.json`
 - `schemas/tokenizer-inspect-output.v0.json`
 - `schemas/sequence-workflow-output.v0.json`
 - `schemas/doctor-output.v0.json`

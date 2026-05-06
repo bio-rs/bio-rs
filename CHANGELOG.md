@@ -14,6 +14,16 @@ All notable public behavior changes for bio-rs are recorded here.
   Python preprocessing parity fixture.
 - Added workflow provenance for resolved CLI invocation arguments, tokenizer
   vocabulary SHA-256, and workflow output-content SHA-256.
+- Added `biors diff <expected> <observed>` for canonical JSON/raw output hash
+  comparison and first-difference reports.
+- Added `biors pipeline --max-length <N> <path|->` for no-config
+  validate -> tokenize -> export workflow composition.
+- Added `biors debug --max-length <N> <path|->` for sequence -> token ->
+  model-input step inspection and compact residue error visualization.
+- Added Python interop examples for ESM-style batches, ProtBERT-style sequence
+  adaptation, and pandas/NumPy-friendly JSON conventions without PyO3.
+- Hardened core sequence validation and tokenization APIs so invalid direct
+  byte input returns structured reports instead of panicking.
 - Added `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
   for multiple input files, recursive directory expansion, quoted glob input,
   empty-glob `batch.no_inputs` errors, and memory-bounded validation summaries.

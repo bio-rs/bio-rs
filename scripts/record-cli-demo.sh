@@ -3,29 +3,34 @@ set -eu
 
 BIN="${BIORS_BIN:-biors}"
 DATASET="${BIORS_DEMO_DATASET:-examples/launch-demo.fasta}"
+OUT_DIR="${BIORS_DEMO_OUT_DIR:-target/biors-demo}"
 
 if [ "${1:-}" = "--cargo" ]; then
-  BIN="cargo run -q -p biors --"
+  BIN="cargo run -p biors --"
 fi
 
-run_step() {
-  title="$1"
-  shift
+mkdir -p "$OUT_DIR"
 
-  printf '\n## %s\n' "$title"
-  printf '$ %s %s\n' "$BIN" "$*"
-  # shellcheck disable=SC2086
-  $BIN "$@"
-}
+printf '$ %s --version\n' "$BIN"
+$BIN --version
 
-printf '# bio-rs CLI demo\n'
-printf '# Input: %s\n' "$DATASET"
+printf '\n$ %s doctor\n' "$BIN"
+$BIN doctor >"$OUT_DIR/doctor.json"
+cat "$OUT_DIR/doctor.json"
 
-run_step "Confirm the exact binary" --version
-run_step "Check local launch readiness" doctor
-run_step "Validate mixed biological FASTA" seq validate "$DATASET"
-run_step "Tokenize FASTA into stable protein IDs" tokenize "$DATASET"
-run_step "Build model-ready JSON records" model-input --max-length 32 "$DATASET"
-run_step "Verify a portable package fixture" package verify \
+printf '\n$ %s seq validate %s\n' "$BIN" "$DATASET"
+$BIN seq validate "$DATASET" >"$OUT_DIR/validate.json"
+cat "$OUT_DIR/validate.json"
+
+printf '\n$ %s model-input --max-length 32 %s\n' "$BIN" "$DATASET"
+$BIN model-input --max-length 32 "$DATASET" >"$OUT_DIR/model-input.json"
+cat "$OUT_DIR/model-input.json"
+
+printf '\n$ %s package verify examples/protein-package/manifest.json examples/protein-package/observations.json\n' "$BIN"
+$BIN package verify \
   examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
+  examples/protein-package/observations.json \
+  >"$OUT_DIR/package-verify.json"
+cat "$OUT_DIR/package-verify.json"
+
+printf '\nDemo artifacts written to %s\n' "$OUT_DIR"
