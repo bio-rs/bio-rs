@@ -17,6 +17,9 @@ def main() -> int:
 
 
 def render_report(result: dict) -> str:
+    if "environment" not in result:
+        return render_hyperfine_report(result)
+
     env = result["environment"]
     generated_at = datetime.fromisoformat(result["generated_at_utc"])
     generated_date = generated_at.date().isoformat()
@@ -122,6 +125,30 @@ def render_report(result: dict) -> str:
         ]
     )
 
+    return "\n".join(lines)
+
+
+def render_hyperfine_report(result: dict) -> str:
+    lines = [
+        "# FASTA Benchmark: bio-rs vs Biopython",
+        "",
+        "Benchmarked with [hyperfine](https://github.com/sharkdp/hyperfine).",
+        "",
+        "| Workload | bio-rs | Biopython | Speedup |",
+        "| --- | --- | --- | --- |",
+    ]
+
+    for workload in ["parse", "validate", "tokenize"]:
+        data = result[workload]
+        lines.append(
+            "| "
+            f"{workload} | "
+            f"{data['rust_ms']:.2f}ms | "
+            f"{data['python_ms']:.2f}ms | "
+            f"**{data['speedup']:.1f}x** |"
+        )
+
+    lines.append("")
     return "\n".join(lines)
 
 
