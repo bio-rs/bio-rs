@@ -26,7 +26,7 @@ sh scripts/launch-demo.sh --cargo
 ## Run With An Installed Binary
 
 ```bash
-cargo install biors --version 0.30.0
+cargo install biors --version 0.30.1
 biors --version
 sh scripts/launch-demo.sh
 ```
