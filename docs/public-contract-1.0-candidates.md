@@ -34,6 +34,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - error envelope: `ok=false`, `error.code`, `error.message`, `error.location`
 - exit code policy
 - command list in `docs/cli-contract.md`
+- `doctor` diagnostic payload in `schemas/doctor-output.v0.json`
 - checksum policy: FASTA uses `fnv1a64`, package assets and fixtures use `sha256`
 
 ## Schemas
@@ -43,6 +44,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/tokenize-output.v0.json`
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
+- `schemas/doctor-output.v0.json`
 - `schemas/fasta-validation-output.v0.json`
 - `schemas/package-inspect-output.v0.json`
 - `schemas/package-bridge-output.v0.json`

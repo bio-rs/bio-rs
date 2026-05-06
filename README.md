@@ -43,6 +43,7 @@ Install the published CLI:
 ```bash
 cargo install biors --version 0.15.2
 biors --version
+biors doctor
 ```
 
 Tokenize a FASTA file:
@@ -81,6 +82,12 @@ Build model-ready input records:
 
 ```bash
 biors model-input --max-length 8 examples/protein.fasta
+```
+
+Check local launch-readiness diagnostics:
+
+```bash
+biors doctor
 ```
 
 ## Proof
@@ -145,6 +152,7 @@ Current capabilities:
 - attention masks
 - padding/truncation policy
 - `model-input` CLI output
+- `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
 - writer-based CLI success JSON serialization to reduce peak allocations for large outputs
@@ -290,6 +298,7 @@ Public contract docs:
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)
+  - [Doctor output schema](schemas/doctor-output.v0.json)
 - [Citation metadata](CITATION.cff)
 
 ## Not yet

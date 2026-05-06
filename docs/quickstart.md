@@ -8,10 +8,14 @@ fresh checkout.
 ```bash
 cargo install biors --version 0.15.2
 biors --version
+biors doctor
 ```
 
 When working inside a source checkout, replace `biors` with
 `cargo run -p biors --`.
+
+`biors doctor` reports local platform, Rust/Cargo availability, optional WASM
+target readiness, and whether the committed demo/package fixtures are present.
 
 ## Validate FASTA
 

@@ -15,6 +15,7 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    Doctor,
     Fasta {
         #[command(subcommand)]
         command: FastaCommand,

@@ -14,6 +14,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/tokenize-output.v0.json",
         "schemas/inspect-output.v0.json",
         "schemas/model-input-output.v0.json",
+        "schemas/doctor-output.v0.json",
         "schemas/fasta-validation-output.v0.json",
         "schemas/package-inspect-output.v0.json",
         "schemas/package-bridge-output.v0.json",
@@ -76,6 +77,9 @@ fn cli_outputs_match_declared_payload_schemas() {
 
     let model_input = run_with_stdin(["model-input", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
     assert_payload_matches_schema(&model_input, "schemas/model-input-output.v0.json");
+
+    let doctor = run_command(["doctor"], &[]);
+    assert_payload_matches_schema(&doctor, "schemas/doctor-output.v0.json");
 
     let zero_model_input = serde_json::json!({
         "policy": {
