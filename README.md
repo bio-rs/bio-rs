@@ -39,7 +39,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.21.0
+cargo install biors --version 0.30.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -156,7 +156,6 @@ Current capabilities:
 - [Versioning policy](docs/versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
-- [Changelog](CHANGELOG.md)
 - [Citation metadata](CITATION.cff)
 
 ## Not yet
