@@ -58,6 +58,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "docs/reliability.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
+        "docs/final-release-checklist.md",
     ];
 
     for path in required {
@@ -77,6 +78,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "docs/reliability.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
+        "docs/final-release-checklist.md",
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
@@ -105,6 +107,45 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         quickstart.contains("First 60 Seconds"),
         "quickstart does not expose first-impression commands"
     );
+}
+
+#[test]
+fn final_release_candidate_checklist_covers_required_gates() {
+    let repo = repo_root();
+    let checklist =
+        fs::read_to_string(repo.join("docs/final-release-checklist.md")).expect("read checklist");
+    let script = fs::read_to_string(repo.join("scripts/check-final-release-candidate.sh"))
+        .expect("read final RC script");
+
+    for expected in [
+        "Full End-To-End Workflow Validation",
+        "Public Contract Freeze",
+        "Breaking Change Cleanup",
+        "Release Candidate Tag",
+        "Binary Release Test",
+        "Install Flow Final Test",
+        "GitHub Release Dry Run",
+        "Public Demo Dry Run",
+        "Final Release Checklist",
+    ] {
+        assert!(
+            checklist.contains(expected),
+            "final checklist missing {expected}"
+        );
+    }
+
+    for expected in [
+        "scripts/check.sh",
+        "cargo build --locked --release -p biors",
+        "BIORS_BIN=target/release/biors sh scripts/launch-demo.sh",
+        "scripts/check-install-smoke.sh",
+        "python3 scripts/check-release-workflow.py",
+    ] {
+        assert!(
+            script.contains(expected),
+            "final RC script missing {expected}"
+        );
+    }
 }
 
 #[test]

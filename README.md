@@ -343,6 +343,7 @@ Public contract docs:
 - [Reliability and input safety](docs/reliability.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
+- [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
   - [Doctor output schema](schemas/doctor-output.v0.json)
 - [Citation metadata](CITATION.cff)
