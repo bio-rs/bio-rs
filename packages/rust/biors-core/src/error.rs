@@ -15,8 +15,8 @@ pub trait Diagnostic {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Machine-readable location metadata for a parse or validation error.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ErrorLocation {
     /// One-based source line when the error can be located in input text.
     pub line: Option<usize>,
@@ -42,8 +42,8 @@ impl ErrorLocation {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
 /// Public parse errors produced by FASTA string APIs.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BioRsError {
     /// Input contained no non-whitespace FASTA content.
     EmptyInput,
@@ -134,8 +134,8 @@ impl Diagnostic for BioRsError {
     }
 }
 
-#[derive(Debug)]
 /// Error type for streaming FASTA reader APIs.
+#[derive(Debug)]
 pub enum FastaReadError {
     /// FASTA syntax or record validation error.
     Parse(BioRsError),

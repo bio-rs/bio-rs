@@ -1,10 +1,7 @@
 use super::{
     is_ambiguous_residue, is_ambiguous_residue_byte, is_protein_20_residue,
-    is_protein_20_residue_byte,
-};
-use super::{
-    AlphabetPolicy, ProteinSequence, ResidueIssue, SequenceRecord, SequenceValidationIssue,
-    SymbolClass, ValidatedSequence, ValidatedSequenceRecord, PROTEIN_20,
+    is_protein_20_residue_byte, AlphabetPolicy, ProteinSequence, ResidueIssue, SequenceRecord,
+    SequenceValidationIssue, SymbolClass, ValidatedSequence, ValidatedSequenceRecord, PROTEIN_20,
 };
 
 /// Validate one normalized protein sequence against the `protein-20` policy.
