@@ -25,7 +25,7 @@ sh scripts/launch-demo.sh --cargo
 With the published CLI installed, the same flow is:
 
 ```bash
-cargo install biors --version 0.18.0
+cargo install biors --version 0.19.0
 biors doctor
 sh scripts/launch-demo.sh
 ```
@@ -66,7 +66,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.18.0
+cargo install biors --version 0.19.0
 biors --version
 biors doctor
 ```
