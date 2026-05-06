@@ -28,6 +28,13 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
             >= 4
     );
 
+    let tokenizer = run_biors(
+        &["tokenizer", "inspect", "--profile", "protein-20-special"],
+        &[],
+    );
+    assert_eq!(tokenizer["data"]["profile"], "protein-20-special");
+    assert_eq!(tokenizer["data"]["special_tokens"]["pad"]["token_id"], 21);
+
     let model_input = run_biors(&["model-input", "--max-length", "8"], &[&fasta]);
     assert_eq!(model_input["data"]["policy"]["max_length"], 8);
     assert_eq!(
@@ -36,6 +43,33 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
             .expect("attention mask")
             .len(),
         8
+    );
+
+    let workflow = run_biors(&["workflow", "--max-length", "8"], &[&fasta]);
+    assert_eq!(workflow["data"]["workflow"], "protein_model_input.v0");
+    assert_eq!(workflow["data"]["model_ready"], true);
+    assert_eq!(workflow["data"]["validation"]["records"], 1);
+    assert_eq!(workflow["data"]["tokenization"]["summary"]["records"], 1);
+    assert_eq!(workflow["data"]["model_input"]["policy"]["max_length"], 8);
+    assert_eq!(
+        workflow["data"]["provenance"]["invocation"]["command"],
+        "biors workflow"
+    );
+    assert!(
+        workflow["data"]["provenance"]["hashes"]["output_data_sha256"]
+            .as_str()
+            .expect("workflow output hash")
+            .starts_with("sha256:")
+    );
+
+    let examples = repo.join("examples");
+    let batch = run_biors(&["batch", "validate", "--kind", "auto"], &[&examples]);
+    assert!(batch["data"]["summary"]["files"].as_u64().expect("files") >= 3);
+    assert!(
+        batch["data"]["summary"]["records"]
+            .as_u64()
+            .expect("records")
+            >= 3
     );
 
     let package_validation = run_biors(&["package", "validate"], &[&manifest]);
@@ -56,6 +90,8 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/cli-contract.md",
         "docs/error-codes.md",
         "docs/reliability.md",
+        "docs/python-interop.md",
+        "docs/wasm-readiness.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
@@ -76,6 +112,8 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/cli-contract.md",
         "docs/error-codes.md",
         "docs/reliability.md",
+        "docs/python-interop.md",
+        "docs/wasm-readiness.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
@@ -208,6 +246,36 @@ fn launch_demo_assets_cover_first_impression_workflow() {
         3
     );
     assert_eq!(model_input["data"]["policy"]["max_length"], 32);
+}
+
+#[test]
+fn python_interop_examples_are_present_and_dependency_light() {
+    let repo = repo_root();
+    let required = [
+        "examples/python/reference_preprocess.py",
+        "examples/python/esm_from_biors_json.py",
+        "examples/python/protbert_from_biors_json.py",
+        "examples/python/pandas_numpy_friendly.py",
+        "docs/python-interop.md",
+    ];
+
+    for path in required {
+        assert!(
+            repo.join(path).exists(),
+            "missing Python interop asset: {path}"
+        );
+    }
+
+    let docs = fs::read_to_string(repo.join("docs/python-interop.md")).expect("read Python docs");
+    for expected in ["ESM", "ProtBERT", "pandas", "NumPy", "No PyO3"] {
+        assert!(
+            docs.contains(expected),
+            "Python interop docs missing {expected}"
+        );
+    }
+
+    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+    assert!(readme.contains("docs/python-interop.md"));
 }
 
 fn repo_root() -> PathBuf {

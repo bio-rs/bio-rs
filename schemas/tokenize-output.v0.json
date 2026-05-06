@@ -9,7 +9,7 @@
     "properties": {
       "id": { "type": "string" },
       "length": { "type": "integer", "minimum": 0 },
-      "alphabet": { "const": "protein-20" },
+      "alphabet": { "enum": ["protein-20", "protein-20-special"] },
       "valid": { "type": "boolean" },
       "tokens": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
       "warnings": { "$ref": "#/$defs/residueIssues" },

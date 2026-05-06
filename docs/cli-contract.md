@@ -6,27 +6,59 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 
 - `biors --version`
 - `biors completions <bash|elvish|fish|powershell|zsh>`
+- `biors debug --max-length <usize> <path|->`
+- `biors diff <expected> <observed>`
 - `biors doctor`
+- `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
+- `biors tokenize [--profile protein-20|protein-20-special] [--config <json>] <path|->`
+- `biors tokenizer inspect [--profile protein-20|protein-20-special] [--config <json>]`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
+- `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
 - `biors package bridge <manifest>`
 - `biors package verify <manifest> <observations>`
+- `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
+`workflow` runs protein FASTA validation, deterministic `protein-20`
+tokenization, model-input generation, readiness reporting, and reproducibility
+provenance in a single JSON payload. It keeps validation and tokenization
+context when residues are not model-ready and sets `model_ready=false` with
+stable `sequence.not_model_ready` readiness issue codes.
+`pipeline` wraps the same no-config preprocessing path in explicit
+validate -> tokenize -> export step statuses for CLI chaining and pipeline
+orchestration.
+`debug` emits a step-by-step per-record view from normalized sequence to token
+IDs to model-input records, with compact `W`/`E` residue markers for warnings
+and errors.
+`diff` compares expected and observed outputs as canonical JSON when possible
+and raw bytes otherwise. It always emits a report with SHA-256 hashes,
+`matches`, and first-difference metadata for mismatches.
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
 `biors completions <shell>` writes shell completion scripts to stdout.
 `biors doctor` emits local readiness diagnostics for platform identity,
 available Rust/Cargo toolchains, optional WASM target support, and committed
 demo/package fixtures.
+`batch validate` accepts multiple file paths, directories, and quoted glob
+patterns. Directory inputs recurse into nested folders, include common FASTA
+file extensions, and ignore unrelated files. Empty glob expansion fails with
+`batch.no_inputs`. The command emits memory-bounded per-file validation
+summaries and a batch summary without retaining per-record validation payloads.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
+Without `--config`, tokenization defaults to the stable `protein-20` profile.
+Tokenizer config JSON currently supports `profile` and `add_special_tokens`.
+The built-in `protein-20-special` profile keeps residue IDs stable and exposes
+`UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24`.
+`tokenizer inspect` emits the resolved config, vocabulary, unknown-token policy,
+and special-token policy as JSON.
 FASTA validation defaults to the protein policy for pre-0.14 compatibility.
 Passing `--kind dna`, `--kind rna`, or `--kind protein` applies one policy to
 all records; `--kind auto` assigns `protein`, `dna`, or `rna` per record and
@@ -68,6 +100,25 @@ Package validation reports include both the legacy string `issues` list and a ty
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such
 as `ambiguous_symbol` and `invalid_symbol` plus human-readable messages.
+
+Workflow payloads use `schemas/sequence-workflow-output.v0.json`. The
+provenance section records the `biors-core` version, input hash, normalization
+policy, validation alphabet, tokenizer metadata, model-input policy, resolved
+CLI invocation arguments, vocabulary SHA-256, and output-content SHA-256. The
+output-content digest covers the workflow payload excluding the hash values
+themselves.
+
+Pipeline payloads use `schemas/pipeline-output.v0.json`. Debug payloads use
+`schemas/sequence-debug-output.v0.json`. Output diff reports use
+`schemas/output-diff.v0.json`.
+
+Batch validation payloads use `schemas/batch-validation-output.v0.json` and
+include `inputs`, aggregate `summary`, and a deterministic `files` list with
+per-file `input_hash`, validation counts, and `kind_counts`.
+
+Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
+Tokenizer config files reject unknown top-level fields so preprocessing
+configuration stays explicit.
 
 `structured_issues` entries use this shape:
 

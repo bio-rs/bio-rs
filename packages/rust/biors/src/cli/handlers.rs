@@ -1,20 +1,31 @@
-use super::{Cli, Command, FastaCommand, KindArg, PackageCommand, PaddingArg, SeqCommand};
-use crate::cli::build_doctor_report;
+use super::{
+    Cli, Command, FastaCommand, KindArg, PackageCommand, PaddingArg, SeqCommand, TokenizerCommand,
+    TokenizerProfileArg,
+};
+use crate::cli::{
+    build_doctor_report, run_batch_command, run_debug, run_diff, run_pipeline, run_workflow,
+};
 use crate::errors::{classify_validation_code, classify_verification_code, CliError};
-use crate::input::{open_fasta_input, read_fixture_observations, read_package_manifest};
+use crate::input::{
+    open_fasta_input, read_fixture_observations, read_package_manifest, read_tokenizer_config,
+};
 use crate::output::print_success;
 use biors_core::{
     build_model_inputs_checked, inspect_package_manifest, plan_runtime_bridge,
     summarize_fasta_records_reader, tokenize_fasta_records_reader,
-    validate_fasta_reader_with_kind_and_hash, validate_package_manifest_artifacts,
-    verify_package_outputs_with_observation_base, ModelInputPolicy,
+    tokenize_fasta_records_reader_with_config, validate_fasta_reader_with_kind_and_hash,
+    validate_package_manifest_artifacts, verify_package_outputs_with_observation_base,
+    ModelInputPolicy, ProteinTokenizerConfig,
 };
 use clap::CommandFactory;
 use std::path::PathBuf;
 
 pub fn run(command: Command) -> Result<(), CliError> {
     match command {
+        Command::Batch { command } => run_batch_command(command),
         Command::Completions { shell } => run_completions(shell),
+        Command::Debug { max_length, path } => run_debug(max_length, path),
+        Command::Diff { expected, observed } => run_diff(expected, observed),
         Command::Doctor => run_doctor(),
         Command::Fasta { command } => run_fasta_command(command),
         Command::Inspect { path } => run_inspect(path),
@@ -25,8 +36,25 @@ pub fn run(command: Command) -> Result<(), CliError> {
             path,
         } => run_model_input(max_length, pad_token_id, padding, path),
         Command::Package { command } => run_package_command(command),
+        Command::Pipeline {
+            max_length,
+            pad_token_id,
+            padding,
+            path,
+        } => run_pipeline(max_length, pad_token_id, padding, path),
         Command::Seq { command } => run_seq_command(command),
-        Command::Tokenize { path } => run_tokenize(path),
+        Command::Tokenize {
+            profile,
+            config,
+            path,
+        } => run_tokenize(profile, config, path),
+        Command::Tokenizer { command } => run_tokenizer_command(command),
+        Command::Workflow {
+            max_length,
+            pad_token_id,
+            padding,
+            path,
+        } => run_workflow(max_length, pad_token_id, padding, path),
     }
 }
 
@@ -150,11 +178,37 @@ fn run_package_command(command: PackageCommand) -> Result<(), CliError> {
     }
 }
 
-fn run_tokenize(path: PathBuf) -> Result<(), CliError> {
+fn run_tokenize(
+    profile: TokenizerProfileArg,
+    config: Option<PathBuf>,
+    path: PathBuf,
+) -> Result<(), CliError> {
+    let config = resolve_tokenizer_config(profile, config)?;
     let reader = open_fasta_input(&path)?;
-    let output = tokenize_fasta_records_reader(reader)
+    let output = tokenize_fasta_records_reader_with_config(reader, &config)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     print_success(Some(output.input_hash), output.records)
+}
+
+fn run_tokenizer_command(command: TokenizerCommand) -> Result<(), CliError> {
+    match command {
+        TokenizerCommand::Inspect { profile, config } => {
+            let config = resolve_tokenizer_config(profile, config)?;
+            print_success(None, biors_core::inspect_protein_tokenizer_config(&config))
+        }
+    }
+}
+
+fn resolve_tokenizer_config(
+    profile: TokenizerProfileArg,
+    config: Option<PathBuf>,
+) -> Result<ProteinTokenizerConfig, CliError> {
+    match config {
+        Some(path) => read_tokenizer_config(path),
+        None => Ok(biors_core::protein_tokenizer_config_for_profile(
+            profile.into(),
+        )),
+    }
 }
 
 fn run_sequence_validation(path: PathBuf, kind: KindArg) -> Result<(), CliError> {

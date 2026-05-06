@@ -28,6 +28,13 @@ The guarantee is enforced by CLI tests that cover:
 - manifest path traversal
 - model-input policy failures
 - model-input residue failures
+- workflow readiness reporting for non-model-ready residues
+- batch validation summaries that avoid per-record payload retention
+- tokenizer config parsing with unknown top-level fields rejected
+- workflow reproducibility hashes for vocabulary and output-content contracts
+- canonical output diff reports for JSON and raw artifact comparisons
+- debug views that preserve token alignment while visualizing warning/error residues
+- direct Rust `ProteinSequence` APIs with invalid byte input
 
 ## Malicious Input Policy
 
@@ -38,12 +45,19 @@ bio-rs does not execute model files, tokenizer files, vocab files, or fixture
 payloads during validation. Package validation reads files only to verify
 presence and checksum contracts.
 
+Tokenizer config files are data-only JSON. They select built-in preprocessing
+profiles and do not load executable code.
+
 ## Large File Handling
 
 FASTA-backed CLI paths use buffered reader APIs. `inspect` uses a summary path
 that avoids materializing token vectors. `tokenize`, `seq validate`, and
 `model-input` stream parsing from the reader but retain their public JSON output
-payloads before serialization.
+payloads before serialization. `batch validate` uses a summary sink that does
+not retain per-record validation payloads across files. `workflow` reads FASTA
+through the buffered parser and retains normalized records because it must emit
+validation, tokenization, readiness, and model-input sections in one JSON
+payload.
 
 Use the large-file benchmark helper after building the release binary:
 

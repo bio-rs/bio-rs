@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/tokenizer-inspect-output.v0.json",
+  "title": "bio-rs tokenizer inspection data payload",
+  "type": "object",
+  "required": [
+    "profile",
+    "config",
+    "vocabulary",
+    "unknown_token_policy",
+    "unknown_token_id",
+    "special_tokens"
+  ],
+  "properties": {
+    "profile": { "enum": ["protein-20", "protein-20-special"] },
+    "config": {
+      "type": "object",
+      "required": ["profile", "add_special_tokens"],
+      "properties": {
+        "profile": { "enum": ["protein-20", "protein-20-special"] },
+        "add_special_tokens": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "vocabulary": {
+      "type": "object",
+      "required": ["name", "tokens", "unknown_token_id", "unknown_token_policy"],
+      "properties": {
+        "name": { "const": "protein-20" },
+        "tokens": {
+          "type": "array",
+          "minItems": 20,
+          "items": {
+            "type": "object",
+            "required": ["residue", "token_id"],
+            "properties": {
+              "residue": { "type": "string", "minLength": 1, "maxLength": 1 },
+              "token_id": { "type": "integer", "minimum": 0, "maximum": 255 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "unknown_token_id": { "const": 20 },
+        "unknown_token_policy": { "const": "warn_or_error_with_unknown_token" }
+      },
+      "additionalProperties": false
+    },
+    "unknown_token_policy": { "const": "warn_or_error_with_unknown_token" },
+    "unknown_token_id": { "const": 20 },
+    "special_tokens": {
+      "type": "object",
+      "required": ["unk", "pad", "cls", "sep", "mask"],
+      "properties": {
+        "unk": { "$ref": "#/$defs/specialToken" },
+        "pad": { "$ref": "#/$defs/specialToken" },
+        "cls": { "$ref": "#/$defs/specialToken" },
+        "sep": { "$ref": "#/$defs/specialToken" },
+        "mask": { "$ref": "#/$defs/specialToken" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "specialToken": {
+      "type": "object",
+      "required": ["token", "token_id"],
+      "properties": {
+        "token": { "type": "string", "minLength": 3 },
+        "token_id": { "type": "integer", "minimum": 0, "maximum": 255 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,5 +1,5 @@
 use crate::errors::CliError;
-use biors_core::{FixtureObservation, PackageManifest};
+use biors_core::{FixtureObservation, PackageManifest, ProteinTokenizerConfig};
 use std::fs;
 use std::io::{self, BufRead, BufReader, Read};
 use std::path::PathBuf;
@@ -32,6 +32,11 @@ pub(crate) fn read_fixture_observations(
         serde_json::from_str(&input).map_err(CliError::Json)?,
         base_dir,
     ))
+}
+
+pub(crate) fn read_tokenizer_config(path: PathBuf) -> Result<ProteinTokenizerConfig, CliError> {
+    let input = read_input(path)?;
+    serde_json::from_str(&input).map_err(CliError::Json)
 }
 
 fn read_input(path: PathBuf) -> Result<String, CliError> {

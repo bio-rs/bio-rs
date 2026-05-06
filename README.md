@@ -39,8 +39,11 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.20.1
+cargo install biors --version 0.30.0
 biors tokenize examples/protein.fasta
+biors workflow --max-length 8 examples/protein.fasta
+biors batch validate --kind auto examples/
+biors tokenizer inspect --profile protein-20-special
 ```
 
 Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
@@ -100,6 +103,9 @@ Current capabilities:
 - FASTA validation with line and record-index diagnostics
 - FASTA record identifier validation
 - protein-20 tokenization
+- `protein-20-special` tokenization with explicit UNK/PAD/CLS/SEP/MASK policy
+- tokenizer JSON config loading
+- tokenizer inspection JSON output
 - JSON vocab loading for tokenizer contracts
 - positional token alignment preserved with explicit unknown-token IDs for unresolved residues
 - residue warning/error reporting
@@ -107,6 +113,18 @@ Current capabilities:
 - attention masks
 - padding/truncation policy
 - `model-input` CLI output
+- `workflow` CLI output that combines validation, tokenization, model input,
+  readiness issues, and reproducibility provenance
+- workflow provenance hashes for tokenizer vocabulary and output-content
+  reproducibility
+- `diff` CLI output for canonical JSON/raw output comparison with SHA-256
+  hashes and first-difference metadata
+- `pipeline` CLI output for no-config validate -> tokenize -> export workflow
+  composition
+- `debug` CLI output for sequence -> token -> model-input step inspection and
+  compact residue error visualization
+- `batch validate` for multiple files, recursive directory inputs, quoted glob
+  inputs, empty-glob errors, and memory-bounded validation summaries
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
@@ -121,6 +139,7 @@ Current capabilities:
 - package fixture verification from observed artifact paths
 - structured package fixture mismatch issue codes and first-difference reports
 - committed FASTA, tokenizer, manifest, and verification fixtures
+- draft model-input contract and reference Python preprocessing parity fixtures
 - JSON success/error envelopes
 
 ## Documentation
@@ -131,6 +150,8 @@ Current capabilities:
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
+- [Python interop](docs/python-interop.md)
+- [WASM readiness](docs/wasm-readiness.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
@@ -210,21 +231,36 @@ packages/
     biors-core/  Core engine + contracts
 
 schemas/
+  batch-validation-output.v0.json
   cli-error.v0.json
   cli-success.v0.json
   fasta-validation-output.v0.json
   inspect-output.v0.json
   model-input-output.v0.json
+  output-diff.v0.json
+  pipeline-output.v0.json
+  sequence-workflow-output.v0.json
+  sequence-debug-output.v0.json
   package-bridge-output.v0.json
   package-inspect-output.v0.json
   package-manifest.v0.json
   package-validation-report.v0.json
   package-verify-output.v0.json
+  tokenizer-inspect-output.v0.json
   tokenize-output.v0.json
 
 examples/
   protein.fasta
   multi.fasta
+  model-input-contract/
+    protein-20-special.config.json
+    protein-20-special.expected.json
+    reference-python-parity.json
+  python/
+    esm_from_biors_json.py
+    pandas_numpy_friendly.py
+    protbert_from_biors_json.py
+    reference_preprocess.py
   protein-package/
     models/
     manifest.json

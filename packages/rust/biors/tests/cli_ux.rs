@@ -38,13 +38,17 @@ fn help_snapshot_lists_commands_and_global_json_flag() {
     for expected in [
         "Usage: biors [OPTIONS] <COMMAND>",
         "--json",
+        "debug",
+        "diff",
         "doctor",
         "completions",
         "fasta",
         "inspect",
         "model-input",
         "package",
+        "pipeline",
         "seq",
+        "tokenizer",
         "tokenize",
     ] {
         assert!(stdout.contains(expected), "help output missing {expected}");

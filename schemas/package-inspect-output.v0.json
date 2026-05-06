@@ -12,7 +12,8 @@
     "runtime_target",
     "preprocessing_steps",
     "postprocessing_steps",
-    "fixtures"
+    "fixtures",
+    "layout"
   ],
   "properties": {
     "schema_version": { "const": "biors.package.v0" },
@@ -25,7 +26,25 @@
     "runtime_target": { "type": "string" },
     "preprocessing_steps": { "type": "integer", "minimum": 0 },
     "postprocessing_steps": { "type": "integer", "minimum": 0 },
-    "fixtures": { "type": "integer", "minimum": 0 }
+    "fixtures": { "type": "integer", "minimum": 0 },
+    "layout": {
+      "type": "object",
+      "required": ["model", "fixture_inputs", "fixture_outputs"],
+      "properties": {
+        "model": { "type": "string", "minLength": 1 },
+        "tokenizer": { "type": ["string", "null"] },
+        "vocab": { "type": ["string", "null"] },
+        "fixture_inputs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "fixture_outputs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": false
 }

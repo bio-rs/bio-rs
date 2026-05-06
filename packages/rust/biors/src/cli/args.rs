@@ -1,4 +1,4 @@
-use biors_core::{PaddingPolicy, SequenceKind, SequenceKindSelection};
+use biors_core::{PaddingPolicy, ProteinTokenizerProfile, SequenceKind, SequenceKindSelection};
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 use std::path::PathBuf;
@@ -16,9 +16,22 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    Batch {
+        #[command(subcommand)]
+        command: BatchCommand,
+    },
     Completions {
         #[arg(value_enum)]
         shell: Shell,
+    },
+    Debug {
+        #[arg(long)]
+        max_length: usize,
+        path: PathBuf,
+    },
+    Diff {
+        expected: PathBuf,
+        observed: PathBuf,
     },
     Doctor,
     Fasta {
@@ -41,12 +54,58 @@ pub enum Command {
         #[command(subcommand)]
         command: PackageCommand,
     },
+    Pipeline {
+        #[arg(long)]
+        max_length: usize,
+        #[arg(long, default_value_t = 0)]
+        pad_token_id: u8,
+        #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
+        padding: PaddingArg,
+        path: PathBuf,
+    },
     Seq {
         #[command(subcommand)]
         command: SeqCommand,
     },
     Tokenize {
+        #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
+        profile: TokenizerProfileArg,
+        #[arg(long)]
+        config: Option<PathBuf>,
         path: PathBuf,
+    },
+    Tokenizer {
+        #[command(subcommand)]
+        command: TokenizerCommand,
+    },
+    Workflow {
+        #[arg(long)]
+        max_length: usize,
+        #[arg(long, default_value_t = 0)]
+        pad_token_id: u8,
+        #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
+        padding: PaddingArg,
+        path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum TokenizerCommand {
+    Inspect {
+        #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
+        profile: TokenizerProfileArg,
+        #[arg(long)]
+        config: Option<PathBuf>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum BatchCommand {
+    Validate {
+        #[arg(long, default_value_t = KindArg::Auto, value_enum)]
+        kind: KindArg,
+        #[arg(required = true)]
+        inputs: Vec<PathBuf>,
     },
 }
 
@@ -97,6 +156,24 @@ impl From<PaddingArg> for PaddingPolicy {
         match value {
             PaddingArg::FixedLength => Self::FixedLength,
             PaddingArg::NoPadding => Self::NoPadding,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+pub enum TokenizerProfileArg {
+    #[default]
+    #[value(name = "protein-20")]
+    Protein20,
+    #[value(name = "protein-20-special")]
+    Protein20Special,
+}
+
+impl From<TokenizerProfileArg> for ProteinTokenizerProfile {
+    fn from(value: TokenizerProfileArg) -> Self {
+        match value {
+            TokenizerProfileArg::Protein20 => Self::Protein20,
+            TokenizerProfileArg::Protein20Special => Self::Protein20Special,
         }
     }
 }

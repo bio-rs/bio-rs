@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/batch-validation-output.v0.json",
+  "title": "bio-rs batch validation data payload",
+  "type": "object",
+  "required": ["inputs", "summary", "files"],
+  "properties": {
+    "inputs": { "type": "integer", "minimum": 1 },
+    "summary": { "$ref": "#/$defs/batchSummary" },
+    "files": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fileReport" }
+    }
+  },
+  "$defs": {
+    "batchSummary": {
+      "type": "object",
+      "required": [
+        "files",
+        "records",
+        "valid_records",
+        "warning_count",
+        "error_count",
+        "kind_counts"
+      ],
+      "properties": {
+        "files": { "type": "integer", "minimum": 1 },
+        "records": { "type": "integer", "minimum": 0 },
+        "valid_records": { "type": "integer", "minimum": 0 },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "kind_counts": { "$ref": "#/$defs/kindCounts" }
+      },
+      "additionalProperties": false
+    },
+    "fileReport": {
+      "type": "object",
+      "required": [
+        "path",
+        "input_hash",
+        "records",
+        "valid_records",
+        "warning_count",
+        "error_count",
+        "kind_counts"
+      ],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" },
+        "records": { "type": "integer", "minimum": 0 },
+        "valid_records": { "type": "integer", "minimum": 0 },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "kind_counts": { "$ref": "#/$defs/kindCounts" }
+      },
+      "additionalProperties": false
+    },
+    "kindCounts": {
+      "type": "object",
+      "required": ["protein", "dna", "rna"],
+      "properties": {
+        "protein": { "type": "integer", "minimum": 0 },
+        "dna": { "type": "integer", "minimum": 0 },
+        "rna": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

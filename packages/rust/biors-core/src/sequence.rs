@@ -25,9 +25,10 @@ pub(crate) use residue::{
 };
 pub use residue::{AMBIGUOUS_RESIDUES, PROTEIN_20, PROTEIN_20_RESIDUES};
 pub use types::{
-    KindAwareSequenceValidationReport, ProteinSequence, ResidueIssue, SequenceKindCounts,
-    SequenceRecord, SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
-    ValidatedSequence, ValidatedSequenceRecord,
+    KindAwareSequenceValidationReport, KindAwareSequenceValidationSummary, ProteinSequence,
+    ResidueIssue, SequenceKindCounts, SequenceRecord, SequenceValidationIssue,
+    SequenceValidationIssueCode, SequenceValidationReport, ValidatedSequence,
+    ValidatedSequenceRecord,
 };
 pub(crate) use validation::validate_protein_sequence_owned;
 pub use validation::{validate_protein_sequence, validate_sequence_record};

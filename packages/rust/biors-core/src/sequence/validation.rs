@@ -18,43 +18,63 @@ pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> 
 
     if sequence.is_ascii() {
         for (index, byte) in sequence.iter().enumerate() {
-            let position = index + 1;
-            if is_protein_20_residue_byte(*byte) {
-                continue;
-            }
-
-            let residue = *byte as char;
-            if is_ambiguous_residue_byte(*byte) {
-                warnings.push(ResidueIssue { residue, position });
-            } else {
-                errors.push(ResidueIssue { residue, position });
-            }
+            push_protein_byte_issue(*byte, index + 1, &mut warnings, &mut errors);
+        }
+    } else if let Ok(s) = std::str::from_utf8(&sequence) {
+        for (index, residue) in s.chars().enumerate() {
+            push_protein_issue(residue, index + 1, &mut warnings, &mut errors);
         }
     } else {
-        let s = std::str::from_utf8(&sequence).expect("normalized sequence is valid UTF-8");
-        for (index, residue) in s.chars().enumerate() {
-            let position = index + 1;
-            if is_protein_20_residue(residue) {
-                continue;
-            }
-
-            if is_ambiguous_residue(residue) {
-                warnings.push(ResidueIssue { residue, position });
-            } else {
-                errors.push(ResidueIssue { residue, position });
-            }
+        for (index, byte) in sequence.iter().enumerate() {
+            push_protein_byte_issue(*byte, index + 1, &mut warnings, &mut errors);
         }
     }
 
-    let sequence = String::from_utf8(sequence).expect("normalized sequence is valid UTF-8");
+    let normalized_sequence = String::from_utf8(sequence.clone())
+        .unwrap_or_else(|_| String::from_utf8_lossy(&sequence).into_owned());
 
     ValidatedSequence {
         id,
-        sequence,
+        sequence: normalized_sequence,
         alphabet: PROTEIN_20.to_string(),
         valid: warnings.is_empty() && errors.is_empty(),
         warnings,
         errors,
+    }
+}
+
+fn push_protein_issue(
+    residue: char,
+    position: usize,
+    warnings: &mut Vec<ResidueIssue>,
+    errors: &mut Vec<ResidueIssue>,
+) {
+    if is_protein_20_residue(residue) {
+        return;
+    }
+
+    if is_ambiguous_residue(residue) {
+        warnings.push(ResidueIssue { residue, position });
+    } else {
+        errors.push(ResidueIssue { residue, position });
+    }
+}
+
+fn push_protein_byte_issue(
+    byte: u8,
+    position: usize,
+    warnings: &mut Vec<ResidueIssue>,
+    errors: &mut Vec<ResidueIssue>,
+) {
+    if is_protein_20_residue_byte(byte) {
+        return;
+    }
+
+    let residue = char::from(byte);
+    if is_ambiguous_residue_byte(byte) {
+        warnings.push(ResidueIssue { residue, position });
+    } else {
+        errors.push(ResidueIssue { residue, position });
     }
 }
 

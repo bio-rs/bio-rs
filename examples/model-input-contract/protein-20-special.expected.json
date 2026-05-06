@@ -1,0 +1,15 @@
+{
+  "policy": {
+    "max_length": 8,
+    "pad_token_id": 21,
+    "padding": "fixed_length"
+  },
+  "records": [
+    {
+      "id": "seq1",
+      "input_ids": [22, 0, 1, 2, 3, 23, 21, 21],
+      "attention_mask": [1, 1, 1, 1, 1, 1, 0, 0],
+      "truncated": false
+    }
+  ]
+}

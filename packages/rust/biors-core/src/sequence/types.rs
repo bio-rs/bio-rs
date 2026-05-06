@@ -222,3 +222,31 @@ pub struct KindAwareSequenceValidationReport {
     /// Per-record validation details.
     pub sequences: Vec<ValidatedSequenceRecord>,
 }
+
+/// Aggregate validation summary for mixed biological sequence batches without per-record payloads.
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct KindAwareSequenceValidationSummary {
+    /// Number of input records.
+    pub records: usize,
+    /// Number of records with no warnings and no errors.
+    pub valid_records: usize,
+    /// Total number of ambiguous-symbol warnings.
+    pub warning_count: usize,
+    /// Total number of invalid-symbol errors.
+    pub error_count: usize,
+    /// Per-kind record counts.
+    pub kind_counts: SequenceKindCounts,
+}
+
+impl KindAwareSequenceValidationSummary {
+    /// Add one validated record to the summary.
+    pub fn add_record(&mut self, record: &ValidatedSequenceRecord) {
+        self.records += 1;
+        if record.valid {
+            self.valid_records += 1;
+        }
+        self.warning_count += record.warnings.len();
+        self.error_count += record.errors.len();
+        self.kind_counts.increment(record.kind);
+    }
+}

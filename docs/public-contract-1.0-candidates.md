@@ -12,17 +12,26 @@ The following surfaces are candidates for stabilization before the first stable 
 - `validate_fasta_reader_with_hash`
 - `validate_fasta_reader_with_kind`
 - `validate_fasta_reader_with_kind_and_hash`
+- `validate_fasta_reader_summary_with_kind_and_hash`
 - `SequenceKind`, `SequenceKindSelection`, `AlphabetPolicy`
-- `KindAwareSequenceValidationReport`, `ValidatedSequenceRecord`, `SequenceValidationIssue`
+- `KindAwareSequenceValidationReport`, `KindAwareSequenceValidationSummary`, `ValidatedSequenceRecord`, `SequenceValidationIssue`
 - `tokenize_fasta_records`
 - `tokenize_fasta_records_reader`
 - `load_vocab_json`
+- `load_protein_tokenizer_config_json`
 - `protein_20_vocab_tokens`
 - `protein_20_vocabulary`
 - `ProteinTokenizer` and `Tokenizer`
+- `ProteinTokenizerProfile`, `ProteinTokenizerConfig`, `ProteinTokenizerInspection`
+- `tokenize_protein_with_config`
+- `tokenize_fasta_records_reader_with_config`
 - `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
 - `build_model_inputs_checked`
 - `build_model_inputs_unchecked`
+- `prepare_protein_model_input_workflow`
+- `prepare_protein_model_input_workflow_with_invocation`
+- `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowInvocation`, `SequenceWorkflowHashes`, `SequenceWorkflowReadinessIssue`
+- `diff_output_bytes`, `OutputDiffReport`
 - `validate_package_manifest_artifacts`
 - `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
@@ -44,6 +53,12 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/tokenize-output.v0.json`
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
+- `schemas/output-diff.v0.json`
+- `schemas/pipeline-output.v0.json`
+- `schemas/batch-validation-output.v0.json`
+- `schemas/sequence-debug-output.v0.json`
+- `schemas/tokenizer-inspect-output.v0.json`
+- `schemas/sequence-workflow-output.v0.json`
 - `schemas/doctor-output.v0.json`
 - `schemas/fasta-validation-output.v0.json`
 - `schemas/package-inspect-output.v0.json`

@@ -14,7 +14,13 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/tokenize-output.v0.json",
         "schemas/inspect-output.v0.json",
         "schemas/model-input-output.v0.json",
+        "schemas/batch-validation-output.v0.json",
         "schemas/doctor-output.v0.json",
+        "schemas/output-diff.v0.json",
+        "schemas/pipeline-output.v0.json",
+        "schemas/sequence-debug-output.v0.json",
+        "schemas/tokenizer-inspect-output.v0.json",
+        "schemas/sequence-workflow-output.v0.json",
         "schemas/fasta-validation-output.v0.json",
         "schemas/package-inspect-output.v0.json",
         "schemas/package-bridge-output.v0.json",
@@ -66,6 +72,15 @@ fn cli_outputs_match_declared_payload_schemas() {
     let tokenize = run_with_stdin(["tokenize", "-"], ">seq1\nACDE\n");
     assert_payload_matches_schema(&tokenize, "schemas/tokenize-output.v0.json");
 
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let special_config = repo.join("examples/model-input-contract/protein-20-special.config.json");
+    let special_fasta = repo.join("examples/model-input-contract/protein.fasta");
+    let special_tokenize = run_command(
+        ["tokenize", "--config"],
+        &[special_config.as_os_str(), special_fasta.as_os_str()],
+    );
+    assert_payload_matches_schema(&special_tokenize, "schemas/tokenize-output.v0.json");
+
     let inspect = run_with_stdin(["inspect", "-"], ">seq1\nACDE\n>seq2\nAX\n");
     assert_payload_matches_schema(&inspect, "schemas/inspect-output.v0.json");
 
@@ -77,6 +92,36 @@ fn cli_outputs_match_declared_payload_schemas() {
 
     let model_input = run_with_stdin(["model-input", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
     assert_payload_matches_schema(&model_input, "schemas/model-input-output.v0.json");
+
+    let workflow = run_with_stdin(["workflow", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
+    assert_payload_matches_schema(&workflow, "schemas/sequence-workflow-output.v0.json");
+
+    let pipeline = run_with_stdin(["pipeline", "--max-length", "4", "-"], ">seq1\nACDE\n");
+    assert_payload_matches_schema(&pipeline, "schemas/pipeline-output.v0.json");
+
+    let debug = run_with_stdin(["debug", "--max-length", "4", "-"], ">seq1\nAX*\n");
+    assert_payload_matches_schema(&debug, "schemas/sequence-debug-output.v0.json");
+
+    let expected = repo.join("examples/protein-package/fixtures/tiny.output.json");
+    let observed = repo.join("examples/protein-package/observed/tiny.reordered.json");
+    let diff = run_command(["diff"], &[expected.as_os_str(), observed.as_os_str()]);
+    assert_payload_matches_schema(&diff, "schemas/output-diff.v0.json");
+
+    let examples = repo.join("examples");
+    let batch_validate = run_command(
+        ["batch", "validate", "--kind", "auto"],
+        &[examples.as_os_str()],
+    );
+    assert_payload_matches_schema(&batch_validate, "schemas/batch-validation-output.v0.json");
+
+    let tokenizer_inspect = run_command(
+        ["tokenizer", "inspect", "--profile", "protein-20-special"],
+        &[],
+    );
+    assert_payload_matches_schema(
+        &tokenizer_inspect,
+        "schemas/tokenizer-inspect-output.v0.json",
+    );
 
     let doctor = run_command(["doctor"], &[]);
     assert_payload_matches_schema(&doctor, "schemas/doctor-output.v0.json");
@@ -91,7 +136,6 @@ fn cli_outputs_match_declared_payload_schemas() {
     });
     assert_payload_rejected_by_schema(&zero_model_input, "schemas/model-input-output.v0.json");
 
-    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let manifest = repo.join("examples/protein-package/manifest.json");
     let observations = repo.join("examples/protein-package/observations.json");
 

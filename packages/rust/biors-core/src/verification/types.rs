@@ -3,6 +3,24 @@ use serde::{Deserialize, Serialize};
 use crate::package::PackageFixture;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Canonical diff report for two JSON or byte outputs.
+pub struct OutputDiffReport {
+    /// Expected output path or label.
+    pub expected_path: String,
+    /// Observed output path or label.
+    pub observed_path: String,
+    /// SHA-256 digest of the expected output content.
+    pub expected_sha256: String,
+    /// SHA-256 digest of the observed output content.
+    pub observed_sha256: String,
+    /// True when canonical JSON content or raw bytes match.
+    pub matches: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// First-difference report when content differs.
+    pub content_diff: Option<ContentMismatchDiff>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Observed output path for one named package fixture.
 pub struct FixtureObservation {
     /// Fixture name matching `PackageFixture::name`.

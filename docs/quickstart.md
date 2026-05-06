@@ -6,7 +6,7 @@ fresh checkout.
 ## Install
 
 ```bash
-cargo install biors --version 0.20.1
+cargo install biors --version 0.30.0
 biors --version
 biors doctor
 ```
@@ -90,10 +90,23 @@ sh scripts/record-cli-demo.sh
 
 ```bash
 biors tokenize examples/protein.fasta
+biors tokenize \
+  --config examples/model-input-contract/protein-20-special.config.json \
+  examples/model-input-contract/protein.fasta
 ```
 
 `tokenize` emits stable `protein-20` token IDs. Ambiguous or invalid residues
 keep positional alignment by using the explicit unknown token ID.
+
+Inspect tokenizer profiles and special token policy:
+
+```bash
+biors tokenizer inspect --profile protein-20-special
+```
+
+The `protein-20-special` profile keeps the protein-20 residue IDs stable and
+adds `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24` for model-input
+contract tests and Python preprocessing parity fixtures.
 
 ## Build Model Input
 
@@ -103,6 +116,62 @@ biors model-input --max-length 8 examples/protein.fasta
 
 `model-input` emits `input_ids`, `attention_mask`, and truncation metadata. It
 rejects sequences with unresolved residue warnings or errors.
+
+## Run The Stable Workflow
+
+```bash
+biors workflow --max-length 8 examples/protein.fasta
+```
+
+`workflow` runs the protein FASTA preparation path end to end: validation,
+deterministic `protein-20` tokenization, model-input generation, readiness
+issues, and reproducibility provenance. If a sequence has unresolved warnings
+or errors, the command keeps validation and tokenization context in the JSON
+payload and sets `model_ready` to `false` instead of silently producing partial
+model input. Provenance also records the resolved CLI invocation, tokenizer
+vocabulary SHA-256, and output-content SHA-256 for repeatable runs.
+
+## Compose A CLI Pipeline
+
+```bash
+biors pipeline --max-length 8 examples/protein.fasta
+```
+
+`pipeline` uses the same no-config preprocessing defaults as `workflow`, but
+adds explicit validate, tokenize, and export step statuses for scripts that
+chain command output into downstream jobs.
+
+## Inspect A Problem Sequence
+
+```bash
+biors debug --max-length 8 examples/protein.fasta
+```
+
+`debug` shows each normalized residue, emitted token ID, model-input record
+when available, and compact `W`/`E` markers for residues that need review.
+
+## Compare Outputs
+
+```bash
+biors diff expected.json observed.json
+```
+
+`diff` compares canonical JSON when both files are JSON and raw bytes
+otherwise. It reports SHA-256 hashes, whether the outputs match, and
+first-difference metadata for mismatches.
+
+## Validate Batches
+
+```bash
+biors batch validate --kind auto examples/
+biors batch validate --kind auto "examples/*.fasta"
+```
+
+`batch validate` accepts multiple files, recursive directories, and quoted glob
+patterns. Directory inputs include common FASTA extensions and skip unrelated
+files. Empty glob expansion returns `batch.no_inputs`. The command emits one
+batch summary plus per-file validation summaries without retaining per-record
+validation payloads.
 
 ## Verify Package Fixtures
 
