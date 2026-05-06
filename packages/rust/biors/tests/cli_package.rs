@@ -32,6 +32,20 @@ fn package_inspect_outputs_manifest_summary() {
     assert_eq!(value["data"]["runtime_backend"], "onnx-webgpu");
     assert_eq!(value["data"]["runtime_target"], "browser-wasm-webgpu");
     assert_eq!(value["data"]["fixtures"], 1);
+    assert_eq!(value["data"]["layout"]["model"], "models/protein-seed.onnx");
+    assert_eq!(
+        value["data"]["layout"]["tokenizer"],
+        "tokenizers/protein-20.json"
+    );
+    assert_eq!(value["data"]["layout"]["vocab"], "vocabs/protein-20.json");
+    assert_eq!(
+        value["data"]["layout"]["fixture_inputs"][0],
+        "fixtures/tiny.fasta"
+    );
+    assert_eq!(
+        value["data"]["layout"]["fixture_outputs"][0],
+        "fixtures/tiny.output.json"
+    );
 }
 
 #[test]

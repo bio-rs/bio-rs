@@ -16,6 +16,18 @@ pub struct PackageManifestSummary {
     pub preprocessing_steps: usize,
     pub postprocessing_steps: usize,
     pub fixtures: usize,
+    /// Draft package layout paths grouped for inspect UX and future package layers.
+    pub layout: PackageLayoutSummary,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Package-relative layout paths declared by a manifest.
+pub struct PackageLayoutSummary {
+    pub model: String,
+    pub tokenizer: Option<String>,
+    pub vocab: Option<String>,
+    pub fixture_inputs: Vec<String>,
+    pub fixture_outputs: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
