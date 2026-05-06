@@ -46,7 +46,7 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
 }
 
 #[test]
-fn release_candidate_documentation_surfaces_are_present_and_linked() {
+fn release_readiness_documentation_surfaces_are_present_and_linked() {
     let repo = repo_root();
     let required = [
         "CITATION.cff",
@@ -64,7 +64,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
     for path in required {
         assert!(
             repo.join(path).exists(),
-            "missing release-candidate doc: {path}"
+            "missing release-readiness doc: {path}"
         );
     }
 
@@ -110,18 +110,18 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
 }
 
 #[test]
-fn final_release_candidate_checklist_covers_required_gates() {
+fn final_release_checklist_covers_required_gates() {
     let repo = repo_root();
     let checklist =
         fs::read_to_string(repo.join("docs/final-release-checklist.md")).expect("read checklist");
-    let script = fs::read_to_string(repo.join("scripts/check-final-release-candidate.sh"))
-        .expect("read final RC script");
+    let script =
+        fs::read_to_string(repo.join("scripts/check-final-release.sh")).expect("read final script");
 
     for expected in [
         "Full End-To-End Workflow Validation",
         "Public Contract Freeze",
         "Breaking Change Cleanup",
-        "Release Candidate Tag",
+        "Version Tag",
         "Binary Release Test",
         "Install Flow Final Test",
         "GitHub Release Dry Run",
@@ -143,7 +143,7 @@ fn final_release_candidate_checklist_covers_required_gates() {
     ] {
         assert!(
             script.contains(expected),
-            "final RC script missing {expected}"
+            "final release script missing {expected}"
         );
     }
 }
@@ -182,10 +182,12 @@ fn launch_demo_assets_cover_first_impression_workflow() {
         "README does not link the recorded CLI demo"
     );
     for expected in [
-        "## Visual summary",
-        "## Short narrative",
-        "## Claim boundary",
-        "scripts/render_benchmark_report.py",
+        "## Environment",
+        "## Matched results",
+        "## Raw result scope",
+        "Human Reference Proteome",
+        "reasonable claim",
+        "Benchmark schema",
     ] {
         assert!(
             benchmark.contains(expected),

@@ -17,9 +17,6 @@ def main() -> int:
 
 
 def render_report(result: dict) -> str:
-    if "environment" not in result:
-        return render_hyperfine_report(result)
-
     env = result["environment"]
     generated_at = datetime.fromisoformat(result["generated_at_utc"])
     generated_date = generated_at.date().isoformat()
@@ -125,60 +122,6 @@ def render_report(result: dict) -> str:
         ]
     )
 
-    return "\n".join(lines)
-
-
-def render_hyperfine_report(result: dict) -> str:
-    lines = [
-        "# FASTA Benchmark: bio-rs vs Biopython",
-        "",
-        "Benchmarked with [hyperfine](https://github.com/sharkdp/hyperfine).",
-        "",
-        "## Visual summary",
-        "",
-        "| Workload | bio-rs | Biopython | Speedup |",
-        "| --- | --- | --- | --- |",
-    ]
-
-    for workload in ["parse", "validate", "tokenize"]:
-        data = result[workload]
-        lines.append(
-            "| "
-            f"{workload} | "
-            f"{data['rust_ms']:.2f}ms | "
-            f"{data['python_ms']:.2f}ms | "
-            f"**{data['speedup']:.1f}x** |"
-        )
-
-    best = max(
-        ((workload, result[workload]["speedup"]) for workload in ["parse", "validate", "tokenize"]),
-        key=lambda item: item[1],
-    )
-    lines.extend(
-        [
-            "",
-            "## Short narrative",
-            "",
-            "In this recorded FASTA benchmark, bio-rs is faster than the matched",
-            "Biopython loops for parse, validation, and tokenization work. The largest",
-            f"gap is `{best[0]}`, where bio-rs is `{best[1]:.1f}x` faster in the committed",
-            "artifact.",
-            "",
-            "## Claim boundary",
-            "",
-            "These numbers support a narrow claim: bio-rs is materially faster on the",
-            "committed matched FASTA workloads represented in",
-            "`benchmarks/fasta_vs_biopython.json`. They do not claim universal FASTA",
-            "or Biopython superiority across every workload.",
-            "",
-            "Regenerate this Markdown from the JSON artifact with:",
-            "",
-            "```bash",
-            "python3 scripts/render_benchmark_report.py > benchmarks/fasta_vs_biopython.md",
-            "```",
-            "",
-        ]
-    )
     return "\n".join(lines)
 
 

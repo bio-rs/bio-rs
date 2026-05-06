@@ -1,17 +1,1071 @@
 {
-  "parse": {
-    "rust_ms": 44.73455554666667,
-    "python_ms": 197.66353607999997,
-    "speedup": 4.41858723451045
+  "schema_version": "biors.benchmark.fasta_vs_biopython.v1",
+  "generated_at_utc": "2026-05-06T04:56:06.551680+00:00",
+  "loops": 15,
+  "methodology": {
+    "scope": "core library FASTA throughput, excluding CLI startup and success-envelope JSON serialization",
+    "workloads": [
+      "pure_parse",
+      "parse_plus_validation",
+      "parse_plus_tokenization"
+    ],
+    "shape_profiles": [
+      "human_reference_proteome",
+      "large_repeated_proteome",
+      "many_short_records",
+      "single_long_sequence"
+    ],
+    "memory": "best-effort peak RSS from /usr/bin/time for biors-core and Biopython subprocesses"
   },
-  "validate": {
-    "rust_ms": 35.16245,
-    "python_ms": 603.4465388666666,
-    "speedup": 17.161674993257485
+  "environment": {
+    "os": "macOS-26.3.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_brand": "Apple M1 Pro",
+    "python": "3.12.12",
+    "biopython": "1.87",
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "biors_core": "0.20.0",
+    "git_commit": "a4aee2c2af1d0e23c72f73ef5f6dd48b48cf8252"
   },
-  "tokenize": {
-    "rust_ms": 57.97416968666667,
-    "python_ms": 598.0240944866667,
-    "speedup": 10.315354195132263
-  }
+  "datasets": [
+    {
+      "label": "human_reference_proteome",
+      "dataset": {
+        "source": "user-provided FASTA",
+        "path_hint": "/private/tmp/UP000005640_9606.ebi.fasta",
+        "shape_profile": "human_reference_proteome",
+        "records": 20659,
+        "total_residues": 11456034,
+        "canonical_residues": 11455955,
+        "ambiguous_residues": 79,
+        "invalid_residues": 0,
+        "file_size_bytes": 13735094,
+        "fasta_sha256": "bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+        "path": "/private/tmp/UP000005640_9606.ebi.fasta"
+      },
+      "benchmarks": {
+        "pure_parse": {
+          "biopython": {
+            "name": "Biopython pure parse",
+            "input_hash": "sha256:bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+            "output_hash": "sha256:debec0c3247b28544989d75670f1662ab2ab395b8ac2776620bc3efe1215609c",
+            "warmup_result": {
+              "records": 20659,
+              "residues": 11456034
+            },
+            "seconds": [
+              0.21095241699367762,
+              0.20990912499837577,
+              0.20722870901226997,
+              0.2066325000487268,
+              0.20806924998760223,
+              0.20557162491604686,
+              0.20887816604226828,
+              0.20520549989305437,
+              0.20834720809943974,
+              0.20921812509186566,
+              0.21139970794320107,
+              0.20897591696120799,
+              0.2121214580256492,
+              0.2092262499500066,
+              0.19983583316206932
+            ],
+            "summary": {
+              "mean_s": 0.20810478607503077,
+              "median_s": 0.20887816604226828,
+              "min_s": 0.19983583316206932,
+              "max_s": 0.2121214580256492,
+              "residues_per_sec": 55049353.81865559,
+              "mb_per_sec": 62.94332114256565,
+              "peak_memory_bytes": 42811392
+            }
+          },
+          "biors_core": {
+            "name": "biors-core pure parse",
+            "input_hash": "sha256:bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+            "output_hash": "sha256:f5d92a801f054187eb6b04e3e83eff4c53697dbfc7dbdf2bc47fa81fed6dac83",
+            "warmup_result": {
+              "mode": "parse",
+              "records": 20659,
+              "residues": 11456034,
+              "canonical_tokens": 0,
+              "unknown_tokens": 0,
+              "warning_count": 0,
+              "error_count": 0
+            },
+            "seconds": [
+              0.04748874995857477,
+              0.04658379196189344,
+              0.04594216588884592,
+              0.047855665907263756,
+              0.04966575000435114,
+              0.04652175004594028,
+              0.0474269581027329,
+              0.047207457944750786,
+              0.04653816716745496,
+              0.04685779195278883,
+              0.047450375044718385,
+              0.047065624967217445,
+              0.04598208307288587,
+              0.04590004193596542,
+              0.047144917072728276
+            ],
+            "summary": {
+              "mean_s": 0.04704208606854081,
+              "median_s": 0.047065624967217445,
+              "min_s": 0.04590004193596542,
+              "max_s": 0.04966575000435114,
+              "residues_per_sec": 243527338.1224727,
+              "mb_per_sec": 278.4486717306815,
+              "peak_memory_bytes": 21184512
+            }
+          }
+        },
+        "parse_plus_validation": {
+          "biopython": {
+            "name": "Biopython parse plus validation",
+            "input_hash": "sha256:bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+            "output_hash": "sha256:ab2eeafce4b584e71a722c0efa499c6f14cbb053cffa537b362f2a67a993ce0d",
+            "warmup_result": {
+              "canonical_tokens": 11455955,
+              "error_count": 0,
+              "records": 20659,
+              "residues": 11456034,
+              "unknown_tokens": 79,
+              "warning_count": 79
+            },
+            "seconds": [
+              0.5978753331582993,
+              0.5980315420310944,
+              0.5997903328388929,
+              0.5813041247893125,
+              0.5918417919892818,
+              0.5884872078895569,
+              0.5893592501524836,
+              0.5689529171213508,
+              0.5837841250468045,
+              0.5661148340441287,
+              0.5625208339188248,
+              0.5767017500475049,
+              0.5788257080130279,
+              0.5907648750580847,
+              0.5890815421007574
+            ],
+            "summary": {
+              "mean_s": 0.5842290778799604,
+              "median_s": 0.5884872078895569,
+              "min_s": 0.5625208339188248,
+              "max_s": 0.5997903328388929,
+              "residues_per_sec": 19608804.89134749,
+              "mb_per_sec": 22.420668325442293,
+              "peak_memory_bytes": 42926080
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus validation",
+            "input_hash": "sha256:bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+            "output_hash": "sha256:25667df0cd626162a5f4c5d23f2e9ddf9b6c8205cc73c5e887d5003535b1df64",
+            "warmup_result": {
+              "mode": "validate",
+              "records": 20659,
+              "residues": 11456034,
+              "canonical_tokens": 11455955,
+              "unknown_tokens": 79,
+              "warning_count": 79,
+              "error_count": 0
+            },
+            "seconds": [
+              0.037283417070284486,
+              0.03652054094709456,
+              0.03608662495389581,
+              0.03578200004994869,
+              0.03559716697782278,
+              0.03596062492579222,
+              0.0358447500038892,
+              0.035770833026617765,
+              0.035962540889158845,
+              0.03579395799897611,
+              0.03717783303000033,
+              0.037327833008021116,
+              0.0378988750744611,
+              0.035964166978374124,
+              0.03584200004115701
+            ],
+            "summary": {
+              "mean_s": 0.03632087766503294,
+              "median_s": 0.035962540889158845,
+              "min_s": 0.03559716697782278,
+              "max_s": 0.0378988750744611,
+              "residues_per_sec": 315411816.4668973,
+              "mb_per_sec": 360.6412406117639,
+              "peak_memory_bytes": 1589248
+            }
+          }
+        },
+        "parse_plus_tokenization": {
+          "biopython": {
+            "name": "Biopython parse plus tokenization",
+            "input_hash": "sha256:bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+            "output_hash": "sha256:36d687401f6840ced6209ded074d38bf979f6ec6afcd6d7417ce4e79cd5c78a5",
+            "warmup_result": {
+              "canonical_tokens": 11455955,
+              "error_count": 0,
+              "records": 20659,
+              "residues": 11456034,
+              "unknown_token_id": 20,
+              "unknown_tokens": 79,
+              "warning_count": 79
+            },
+            "seconds": [
+              0.5701555421110243,
+              0.5687352500390261,
+              0.5992850419133902,
+              0.5934063331224024,
+              0.5780188341159374,
+              0.587281750049442,
+              0.5835616670083255,
+              0.5829689998645335,
+              0.6183070000261068,
+              0.5800664580892771,
+              0.60663454211317,
+              0.6014506670180708,
+              0.5722371251322329,
+              0.571928332792595,
+              0.5840117908082902
+            ],
+            "summary": {
+              "mean_s": 0.5865366222802549,
+              "median_s": 0.5835616670083255,
+              "min_s": 0.5687352500390261,
+              "max_s": 0.6183070000261068,
+              "residues_per_sec": 19531660.197896656,
+              "mb_per_sec": 22.33246123712085,
+              "peak_memory_bytes": 42467328
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus tokenization",
+            "input_hash": "sha256:bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
+            "output_hash": "sha256:a2f94c1fcdc36e823f112f5b0690773a9ce094da202e0b7dd9762840be9c5f45",
+            "warmup_result": {
+              "mode": "tokenize",
+              "records": 20659,
+              "residues": 11456034,
+              "canonical_tokens": 11455955,
+              "unknown_tokens": 79,
+              "warning_count": 79,
+              "error_count": 0
+            },
+            "seconds": [
+              0.06009145802818239,
+              0.06055187503807247,
+              0.060348208993673325,
+              0.060412000166252255,
+              0.0604925830848515,
+              0.06084266700781882,
+              0.06036041700281203,
+              0.0609180829487741,
+              0.06275941710919142,
+              0.0600809589959681,
+              0.06099658296443522,
+              0.0613966251257807,
+              0.06039891601540148,
+              0.06032229098491371,
+              0.059312500059604645
+            ],
+            "summary": {
+              "mean_s": 0.060618972235048814,
+              "median_s": 0.060412000166252255,
+              "min_s": 0.059312500059604645,
+              "max_s": 0.06275941710919142,
+              "residues_per_sec": 188984299.42987922,
+              "mb_per_sec": 216.08427029140702,
+              "peak_memory_bytes": 24559616
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "large_scale_fasta",
+      "dataset": {
+        "source": "repeated_uniprot_human_proteome",
+        "base_proteome_id": "UP000005640",
+        "repeat_count": 9,
+        "min_target_mb": 110,
+        "shape_profile": "large_repeated_proteome",
+        "records": 185931,
+        "total_residues": 103104306,
+        "canonical_residues": 103103595,
+        "ambiguous_residues": 711,
+        "invalid_residues": 0,
+        "file_size_bytes": 123615846,
+        "fasta_sha256": "c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+        "path": "human_proteome_x110.fasta"
+      },
+      "benchmarks": {
+        "pure_parse": {
+          "biopython": {
+            "name": "Biopython pure parse",
+            "input_hash": "sha256:c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+            "output_hash": "sha256:6bbe5db3e3a1159b3e5aa8bace4287ca5d78eccda2e8bc0bb0d569b3f8af058f",
+            "warmup_result": {
+              "records": 185931,
+              "residues": 103104306
+            },
+            "seconds": [
+              0.6173944168258458,
+              0.6324357921257615,
+              0.6338150419760495,
+              0.6258035420905799,
+              0.6325274999253452,
+              0.6350362079683691,
+              0.6266248330939561,
+              0.6319218340795487,
+              0.6590984580107033,
+              0.6476566249039024,
+              0.6181941248942167,
+              0.6160662500187755,
+              0.621043625054881,
+              0.6163655000273138,
+              0.6153318339493126
+            ],
+            "summary": {
+              "mean_s": 0.6286210389963041,
+              "median_s": 0.6266248330939561,
+              "min_s": 0.6153318339493126,
+              "max_s": 0.6590984580107033,
+              "residues_per_sec": 164016632.60367936,
+              "mb_per_sec": 187.53628993910175,
+              "peak_memory_bytes": 42385408
+            }
+          },
+          "biors_core": {
+            "name": "biors-core pure parse",
+            "input_hash": "sha256:c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+            "output_hash": "sha256:15d222c62ec989f4f3a8f26dde60cbdfb1caa10484736f0376df77582dd56dd7",
+            "warmup_result": {
+              "mode": "parse",
+              "records": 185931,
+              "residues": 103104306,
+              "canonical_tokens": 0,
+              "unknown_tokens": 0,
+              "warning_count": 0,
+              "error_count": 0
+            },
+            "seconds": [
+              0.3702228330075741,
+              0.3702816250734031,
+              0.3699572498444468,
+              0.37151054106652737,
+              0.3697060418780893,
+              0.36824041698127985,
+              0.37089704093523324,
+              0.3695626670960337,
+              0.36757154180668294,
+              0.36927062505856156,
+              0.36994654196314514,
+              0.3692270000465214,
+              0.36954666720703244,
+              0.36772158392705023,
+              0.3689639999065548
+            ],
+            "summary": {
+              "mean_s": 0.3695084250532091,
+              "median_s": 0.3695626670960337,
+              "min_s": 0.36757154180668294,
+              "max_s": 0.37151054106652737,
+              "residues_per_sec": 279031001.75632805,
+              "mb_per_sec": 319.0434897771391,
+              "peak_memory_bytes": 178028544
+            }
+          }
+        },
+        "parse_plus_validation": {
+          "biopython": {
+            "name": "Biopython parse plus validation",
+            "input_hash": "sha256:c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+            "output_hash": "sha256:a33b3423d4a568f2e9e184ad8920631d631e6665e438a2c4bc65135ed8da02bf",
+            "warmup_result": {
+              "canonical_tokens": 103103595,
+              "error_count": 0,
+              "records": 185931,
+              "residues": 103104306,
+              "unknown_tokens": 711,
+              "warning_count": 711
+            },
+            "seconds": [
+              3.930982582969591,
+              4.091333250049502,
+              3.957915207836777,
+              3.9470796671230346,
+              4.124786959029734,
+              4.007049834122881,
+              3.8896762079093605,
+              3.911130625056103,
+              3.991782624972984,
+              4.060571083100513,
+              3.9370155830401927,
+              4.019342083018273,
+              3.9250541660003364,
+              4.0057184170000255,
+              4.10780066694133
+            ],
+            "summary": {
+              "mean_s": 3.993815930544709,
+              "median_s": 3.991782624972984,
+              "min_s": 3.8896762079093605,
+              "max_s": 4.124786959029734,
+              "residues_per_sec": 25815988.466433354,
+              "mb_per_sec": 29.517949620415177,
+              "peak_memory_bytes": 42532864
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus validation",
+            "input_hash": "sha256:c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+            "output_hash": "sha256:b374009c39b009ce1fd512381e2a95cade8738e44be9a816f6df04a821501262",
+            "warmup_result": {
+              "mode": "validate",
+              "records": 185931,
+              "residues": 103104306,
+              "canonical_tokens": 103103595,
+              "unknown_tokens": 711,
+              "warning_count": 711,
+              "error_count": 0
+            },
+            "seconds": [
+              0.2942069999407977,
+              0.2952108329627663,
+              0.2944355409126729,
+              0.2935404581949115,
+              0.29426329187117517,
+              0.2941076250281185,
+              0.2948480420745909,
+              0.2919749589636922,
+              0.2930876249447465,
+              0.29297062498517334,
+              0.2942896669264883,
+              0.2956527080386877,
+              0.29275662498548627,
+              0.2944953329861164,
+              0.2928811658639461
+            ],
+            "summary": {
+              "mean_s": 0.29391476657862464,
+              "median_s": 0.2942069999407977,
+              "min_s": 0.2919749589636922,
+              "max_s": 0.2956527080386877,
+              "residues_per_sec": 350796617.67323536,
+              "mb_per_sec": 401.1001515961394,
+              "peak_memory_bytes": 1589248
+            }
+          }
+        },
+        "parse_plus_tokenization": {
+          "biopython": {
+            "name": "Biopython parse plus tokenization",
+            "input_hash": "sha256:c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+            "output_hash": "sha256:fab4c013051207df7e8eccf04cca473d1325e8ac5956e058a4f911a8a6b65893",
+            "warmup_result": {
+              "canonical_tokens": 103103595,
+              "error_count": 0,
+              "records": 185931,
+              "residues": 103104306,
+              "unknown_token_id": 20,
+              "unknown_tokens": 711,
+              "warning_count": 711
+            },
+            "seconds": [
+              4.020541833015159,
+              4.147067375015467,
+              4.116808333899826,
+              4.146587749943137,
+              4.092735167127103,
+              3.9616244579665363,
+              4.010876541957259,
+              4.017174334032461,
+              4.030203332891688,
+              3.969433208927512,
+              3.9735735829453915,
+              3.930598875042051,
+              4.1159710409119725,
+              4.019671082962304,
+              4.043550750007853
+            ],
+            "summary": {
+              "mean_s": 4.0397611777763816,
+              "median_s": 4.020541833015159,
+              "min_s": 3.930598875042051,
+              "max_s": 4.147067375015467,
+              "residues_per_sec": 25522376.562060043,
+              "mb_per_sec": 29.182234355725065,
+              "peak_memory_bytes": 42713088
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus tokenization",
+            "input_hash": "sha256:c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
+            "output_hash": "sha256:583be09628171ec4bd871a40de86b1c7871f70e249d962d842099cc321241e1b",
+            "warmup_result": {
+              "mode": "tokenize",
+              "records": 185931,
+              "residues": 103104306,
+              "canonical_tokens": 103103595,
+              "unknown_tokens": 711,
+              "warning_count": 711,
+              "error_count": 0
+            },
+            "seconds": [
+              0.4924827921204269,
+              0.4904305830132216,
+              0.49214141606353223,
+              0.4913763329386711,
+              0.492115291999653,
+              0.4919631250668317,
+              0.49126820801757276,
+              0.4903731669764966,
+              0.49032895802520216,
+              0.49139654194004834,
+              0.4910043750423938,
+              0.4917568329256028,
+              0.49342112499289215,
+              0.4918961660005152,
+              0.49380141706205904
+            ],
+            "summary": {
+              "mean_s": 0.4917170888123413,
+              "median_s": 0.4917568329256028,
+              "min_s": 0.49032895802520216,
+              "max_s": 0.49380141706205904,
+              "residues_per_sec": 209682169.57647508,
+              "mb_per_sec": 239.75017365325184,
+              "peak_memory_bytes": 196149248
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "many_short_records",
+      "dataset": {
+        "source": "synthetic_many_short_records_from_uniprot_human_proteome",
+        "base_proteome_id": "UP000005640",
+        "shape_profile": "many_short_records",
+        "record_count": 20000,
+        "record_length": 48,
+        "records": 20000,
+        "total_residues": 960000,
+        "canonical_residues": 959998,
+        "ambiguous_residues": 2,
+        "invalid_residues": 0,
+        "file_size_bytes": 1228890,
+        "fasta_sha256": "cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+        "path": "many_short_records.fasta"
+      },
+      "benchmarks": {
+        "pure_parse": {
+          "biopython": {
+            "name": "Biopython pure parse",
+            "input_hash": "sha256:cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+            "output_hash": "sha256:4402a15918cc8c63acfca891b733ecc0ac21f77a8a4637be2a6d93f4b9cb9e3c",
+            "warmup_result": {
+              "records": 20000,
+              "residues": 960000
+            },
+            "seconds": [
+              0.165917124832049,
+              0.16345099988393486,
+              0.16224387497641146,
+              0.17093120887875557,
+              0.16270758397877216,
+              0.16784966713748872,
+              0.1661311248317361,
+              0.16796445799991488,
+              0.16869695810601115,
+              0.1668151670601219,
+              0.165724708000198,
+              0.16666387487202883,
+              0.16755179199390113,
+              0.16778308292850852,
+              0.16487483400851488
+            ],
+            "summary": {
+              "mean_s": 0.1663537639658898,
+              "median_s": 0.16666387487202883,
+              "min_s": 0.16224387497641146,
+              "max_s": 0.17093120887875557,
+              "residues_per_sec": 5770834.257749913,
+              "mb_per_sec": 7.044991365081361,
+              "peak_memory_bytes": 42336256
+            }
+          },
+          "biors_core": {
+            "name": "biors-core pure parse",
+            "input_hash": "sha256:cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+            "output_hash": "sha256:1850fa9b552d25eeaf50f51872b88a959c8e167986fc28550f486591cccb0a8d",
+            "warmup_result": {
+              "mode": "parse",
+              "records": 20000,
+              "residues": 960000,
+              "canonical_tokens": 0,
+              "unknown_tokens": 0,
+              "warning_count": 0,
+              "error_count": 0
+            },
+            "seconds": [
+              0.00812579202465713,
+              0.007780333980917931,
+              0.007966042030602694,
+              0.007513207849115133,
+              0.007763416972011328,
+              0.0081173749640584,
+              0.008585458155721426,
+              0.007654374931007624,
+              0.007723540998995304,
+              0.010070374934002757,
+              0.007411874830722809,
+              0.007989292033016682,
+              0.008509707869961858,
+              0.008493124973028898,
+              0.008480124874040484
+            ],
+            "summary": {
+              "mean_s": 0.008145602761457364,
+              "median_s": 0.007989292033016682,
+              "min_s": 0.007411874830722809,
+              "max_s": 0.010070374934002757,
+              "residues_per_sec": 117854998.34861115,
+              "mb_per_sec": 143.87650183898683,
+              "peak_memory_bytes": 3997696
+            }
+          }
+        },
+        "parse_plus_validation": {
+          "biopython": {
+            "name": "Biopython parse plus validation",
+            "input_hash": "sha256:cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+            "output_hash": "sha256:62ab168e9fc2a4f23a1432a900f286706024f4d3a7f0b7a7fc0f9a5bd6d611d6",
+            "warmup_result": {
+              "canonical_tokens": 959998,
+              "error_count": 0,
+              "records": 20000,
+              "residues": 960000,
+              "unknown_tokens": 2,
+              "warning_count": 2
+            },
+            "seconds": [
+              0.20389912510290742,
+              0.20430137519724667,
+              0.20250750007107854,
+              0.20731833390891552,
+              0.20373383397236466,
+              0.2038344161119312,
+              0.20245991693809628,
+              0.2024028329178691,
+              0.20415329211391509,
+              0.20590974995866418,
+              0.20482266694307327,
+              0.20316600007936358,
+              0.202888541854918,
+              0.20432837517000735,
+              0.201759957941249
+            ],
+            "summary": {
+              "mean_s": 0.20383239455210667,
+              "median_s": 0.2038344161119312,
+              "min_s": 0.201759957941249,
+              "max_s": 0.20731833390891552,
+              "residues_per_sec": 4709751.863090587,
+              "mb_per_sec": 5.7496299018794215,
+              "peak_memory_bytes": 42483712
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus validation",
+            "input_hash": "sha256:cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+            "output_hash": "sha256:e602a9b52075b2268e996252ed43faf1db02c6e2361a05c304a30a439821b8ae",
+            "warmup_result": {
+              "mode": "validate",
+              "records": 20000,
+              "residues": 960000,
+              "canonical_tokens": 959998,
+              "unknown_tokens": 2,
+              "warning_count": 2,
+              "error_count": 0
+            },
+            "seconds": [
+              0.007477832958102226,
+              0.007356542162597179,
+              0.006957083009183407,
+              0.006657791091129184,
+              0.0069593749940395355,
+              0.007186249829828739,
+              0.006947916001081467,
+              0.006933791097253561,
+              0.0068732500076293945,
+              0.007302667014300823,
+              0.007486416958272457,
+              0.0075841250363737345,
+              0.007554125040769577,
+              0.007013916969299316,
+              0.007557541131973267
+            ],
+            "summary": {
+              "mean_s": 0.007189908220122258,
+              "median_s": 0.007186249829828739,
+              "min_s": 0.006657791091129184,
+              "max_s": 0.0075841250363737345,
+              "residues_per_sec": 133520480.45804903,
+              "mb_per_sec": 163.0008054078538,
+              "peak_memory_bytes": 1605632
+            }
+          }
+        },
+        "parse_plus_tokenization": {
+          "biopython": {
+            "name": "Biopython parse plus tokenization",
+            "input_hash": "sha256:cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+            "output_hash": "sha256:7abd2c4896c3cf042dfdb72c00fca9b8c538ca2d71a2474021e49bff044ed0f9",
+            "warmup_result": {
+              "canonical_tokens": 959998,
+              "error_count": 0,
+              "records": 20000,
+              "residues": 960000,
+              "unknown_token_id": 20,
+              "unknown_tokens": 2,
+              "warning_count": 2
+            },
+            "seconds": [
+              0.26304154098033905,
+              0.20537350000813603,
+              0.20216633309610188,
+              0.19888566597364843,
+              0.2015743749216199,
+              0.20334979216568172,
+              0.19780608406290412,
+              0.19991991599090397,
+              0.20169408386573195,
+              0.19611279107630253,
+              0.20355670899152756,
+              0.1970611670985818,
+              0.20106799993664026,
+              0.2015573747921735,
+              0.20024591707624495
+            ],
+            "summary": {
+              "mean_s": 0.2048942166691025,
+              "median_s": 0.2015573747921735,
+              "min_s": 0.19611279107630253,
+              "max_s": 0.26304154098033905,
+              "residues_per_sec": 4685344.543181366,
+              "mb_per_sec": 5.719833628008911,
+              "peak_memory_bytes": 42500096
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus tokenization",
+            "input_hash": "sha256:cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
+            "output_hash": "sha256:57c21578f9c28c9f1cd0154cc57949ef4d3f591adbd8e025e79f1002938b7200",
+            "warmup_result": {
+              "mode": "tokenize",
+              "records": 20000,
+              "residues": 960000,
+              "canonical_tokens": 959998,
+              "unknown_tokens": 2,
+              "warning_count": 2,
+              "error_count": 0
+            },
+            "seconds": [
+              0.009680415969341993,
+              0.010415333090350032,
+              0.01059054210782051,
+              0.009860541904345155,
+              0.009854042204096913,
+              0.01006154203787446,
+              0.009884041966870427,
+              0.009599291952326894,
+              0.009660833049565554,
+              0.009657916845753789,
+              0.009677625028416514,
+              0.010685499990358949,
+              0.010434499941766262,
+              0.009831750066950917,
+              0.00974604208022356
+            ],
+            "summary": {
+              "mean_s": 0.009975994549070796,
+              "median_s": 0.009854042204096913,
+              "min_s": 0.009599291952326894,
+              "max_s": 0.010685499990358949,
+              "residues_per_sec": 96231006.87133177,
+              "mb_per_sec": 117.47809453220258,
+              "peak_memory_bytes": 7192576
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "single_long_sequence",
+      "dataset": {
+        "source": "synthetic_single_long_sequence_from_uniprot_human_proteome",
+        "base_proteome_id": "UP000005640",
+        "shape_profile": "single_long_sequence",
+        "target_residues": 960000,
+        "records": 1,
+        "total_residues": 960000,
+        "canonical_residues": 959998,
+        "ambiguous_residues": 2,
+        "invalid_residues": 0,
+        "file_size_bytes": 972013,
+        "fasta_sha256": "da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+        "path": "single_long_sequence.fasta"
+      },
+      "benchmarks": {
+        "pure_parse": {
+          "biopython": {
+            "name": "Biopython pure parse",
+            "input_hash": "sha256:da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+            "output_hash": "sha256:99a31024125c6f9b137f28290cbd5b7863ccd4934689017c3556231c9b68266b",
+            "warmup_result": {
+              "records": 1,
+              "residues": 960000
+            },
+            "seconds": [
+              0.1465383330360055,
+              0.14430495910346508,
+              0.14446537499316037,
+              0.1459283339791,
+              0.14541795896366239,
+              0.14436191716231406,
+              0.14547987491823733,
+              0.14757470809854567,
+              0.1439651669934392,
+              0.14268683409318328,
+              0.14729837491177022,
+              0.1439567501656711,
+              0.14358891709707677,
+              0.1461121249012649,
+              0.1453057499602437
+            ],
+            "summary": {
+              "mean_s": 0.14513235855847598,
+              "median_s": 0.1453057499602437,
+              "min_s": 0.14268683409318328,
+              "max_s": 0.14757470809854567,
+              "residues_per_sec": 6614651.6844016,
+              "mb_per_sec": 6.387161640038343,
+              "peak_memory_bytes": 45678592
+            }
+          },
+          "biors_core": {
+            "name": "biors-core pure parse",
+            "input_hash": "sha256:da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+            "output_hash": "sha256:de132ec9b27eb5a663257a4ef002cb1b1a721d6948a670bc46313fe5ef269646",
+            "warmup_result": {
+              "mode": "parse",
+              "records": 1,
+              "residues": 960000,
+              "canonical_tokens": 0,
+              "unknown_tokens": 0,
+              "warning_count": 0,
+              "error_count": 0
+            },
+            "seconds": [
+              0.005728082964196801,
+              0.005901291035115719,
+              0.0064457079861313105,
+              0.005578582873567939,
+              0.0056152918841689825,
+              0.005657207919284701,
+              0.005378374829888344,
+              0.005871583009138703,
+              0.005773291224613786,
+              0.005477250088006258,
+              0.005495875142514706,
+              0.008156833006069064,
+              0.005596625152975321,
+              0.005560958059504628,
+              0.005681625101715326
+            ],
+            "summary": {
+              "mean_s": 0.0058612386851261055,
+              "median_s": 0.005657207919284701,
+              "min_s": 0.005378374829888344,
+              "max_s": 0.008156833006069064,
+              "residues_per_sec": 163787904.15687457,
+              "mb_per_sec": 158.15493671420822,
+              "peak_memory_bytes": 2605056
+            }
+          }
+        },
+        "parse_plus_validation": {
+          "biopython": {
+            "name": "Biopython parse plus validation",
+            "input_hash": "sha256:da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+            "output_hash": "sha256:3a31e3ebcdc488d25150d85c4d421b8430ddf6dd5544396731e9684d459a8ad6",
+            "warmup_result": {
+              "canonical_tokens": 959998,
+              "error_count": 0,
+              "records": 1,
+              "residues": 960000,
+              "unknown_tokens": 2,
+              "warning_count": 2
+            },
+            "seconds": [
+              0.17906208406202495,
+              0.17897654185071588,
+              0.1755755830090493,
+              0.17314820806495845,
+              0.17310541705228388,
+              0.17588983289897442,
+              0.17547091585583985,
+              0.17287220782600343,
+              0.1787317090202123,
+              0.1756462079938501,
+              0.17570695909671485,
+              0.17537191603332758,
+              0.17304804199375212,
+              0.1765600829385221,
+              0.17545070801861584
+            ],
+            "summary": {
+              "mean_s": 0.17564109438098968,
+              "median_s": 0.1755755830090493,
+              "min_s": 0.17287220782600343,
+              "max_s": 0.17906208406202495,
+              "residues_per_sec": 5465691.291570001,
+              "mb_per_sec": 5.277716109546851,
+              "peak_memory_bytes": 45924352
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus validation",
+            "input_hash": "sha256:da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+            "output_hash": "sha256:5fb9746b99bfd8e3eb3a7928de1c696ac4b45f1558f3a459d5476f68bafc33d2",
+            "warmup_result": {
+              "mode": "validate",
+              "records": 1,
+              "residues": 960000,
+              "canonical_tokens": 959998,
+              "unknown_tokens": 2,
+              "warning_count": 2,
+              "error_count": 0
+            },
+            "seconds": [
+              0.005062708863988519,
+              0.005428415955975652,
+              0.005138291046023369,
+              0.00508354208432138,
+              0.0052289580926299095,
+              0.005139291984960437,
+              0.005032999906688929,
+              0.005016457987949252,
+              0.004977124975994229,
+              0.00496120797470212,
+              0.004878290928900242,
+              0.004998750053346157,
+              0.004904166096821427,
+              0.004924792097881436,
+              0.00562458299100399
+            ],
+            "summary": {
+              "mean_s": 0.005093305402745803,
+              "median_s": 0.005032999906688929,
+              "min_s": 0.004878290928900242,
+              "max_s": 0.00562458299100399,
+              "residues_per_sec": 188482708.98549762,
+              "mb_per_sec": 182.00044175895104,
+              "peak_memory_bytes": 1572864
+            }
+          }
+        },
+        "parse_plus_tokenization": {
+          "biopython": {
+            "name": "Biopython parse plus tokenization",
+            "input_hash": "sha256:da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+            "output_hash": "sha256:28ccfb6aebbe02a4214bd233d81434a34b0c82bad51cc9594dfc53e303c64f22",
+            "warmup_result": {
+              "canonical_tokens": 959998,
+              "error_count": 0,
+              "records": 1,
+              "residues": 960000,
+              "unknown_token_id": 20,
+              "unknown_tokens": 2,
+              "warning_count": 2
+            },
+            "seconds": [
+              0.17681999993510544,
+              0.1753671250771731,
+              0.18079554103314877,
+              0.17512291693128645,
+              0.17995324986986816,
+              0.1788599998690188,
+              0.17957725003361702,
+              0.17340045794844627,
+              0.17407599999569356,
+              0.1766542079858482,
+              0.17640800005756319,
+              0.17440458294004202,
+              0.17589412513189018,
+              0.17551308311522007,
+              0.17940624989569187
+            ],
+            "summary": {
+              "mean_s": 0.17681685265464087,
+              "median_s": 0.17640800005756319,
+              "min_s": 0.17340045794844627,
+              "max_s": 0.18079554103314877,
+              "residues_per_sec": 5429346.725648796,
+              "mb_per_sec": 5.242621500132544,
+              "peak_memory_bytes": 46104576
+            }
+          },
+          "biors_core": {
+            "name": "biors-core parse plus tokenization",
+            "input_hash": "sha256:da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
+            "output_hash": "sha256:9e0754ef63b10ba39a92b05e1870cd9fa4343bec9e45b41d928315ca737b1864",
+            "warmup_result": {
+              "mode": "tokenize",
+              "records": 1,
+              "residues": 960000,
+              "canonical_tokens": 959998,
+              "unknown_tokens": 2,
+              "warning_count": 2,
+              "error_count": 0
+            },
+            "seconds": [
+              0.006435167044401169,
+              0.006418416975066066,
+              0.00647737504914403,
+              0.006792624946683645,
+              0.0067038750275969505,
+              0.006379750091582537,
+              0.006637417012825608,
+              0.00649516680277884,
+              0.00649654190056026,
+              0.0063506250735372305,
+              0.006440832978114486,
+              0.006563541013747454,
+              0.006467582890763879,
+              0.0072735829744488,
+              0.007516041863709688
+            ],
+            "summary": {
+              "mean_s": 0.00662990277633071,
+              "median_s": 0.00649516680277884,
+              "min_s": 0.0063506250735372305,
+              "max_s": 0.007516041863709688,
+              "residues_per_sec": 144798503.44522062,
+              "mb_per_sec": 139.81861643920266,
+              "peak_memory_bytes": 2605056
+            }
+          }
+        }
+      }
+    }
+  ]
 }

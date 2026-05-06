@@ -141,14 +141,14 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.036s** | 0.441s | **12.31x** |
-| Human proteome | Parse + tokenization | **0.061s** | 0.441s | **7.27x** |
-| 100MB+ FASTA | Parse + validation | **0.291s** | 3.972s | **13.67x** |
-| 100MB+ FASTA | Parse + tokenization | **0.507s** | 4.002s | **7.90x** |
-| Many short records | Parse + validation | **0.007s** | 0.057s | **8.25x** |
-| Many short records | Parse + tokenization | **0.010s** | 0.057s | **5.54x** |
-| Single long sequence | Parse + validation | **0.006s** | 0.034s | **5.95x** |
-| Single long sequence | Parse + tokenization | **0.007s** | 0.035s | **4.75x** |
+| Human proteome | Parse + validation | **0.036s** | 0.584s | **16.09x** |
+| Human proteome | Parse + tokenization | **0.061s** | 0.587s | **9.68x** |
+| 100MB+ FASTA | Parse + validation | **0.294s** | 3.994s | **13.59x** |
+| 100MB+ FASTA | Parse + tokenization | **0.492s** | 4.040s | **8.22x** |
+| Many short records | Parse + validation | **0.007s** | 0.204s | **28.35x** |
+| Many short records | Parse + tokenization | **0.010s** | 0.205s | **20.54x** |
+| Single long sequence | Parse + validation | **0.005s** | 0.176s | **34.48x** |
+| Single long sequence | Parse + tokenization | **0.007s** | 0.177s | **26.67x** |
 
 Benchmark details:
 
@@ -162,10 +162,10 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + validation: `319.9M residues/s`, `365.8 MB/s`
-  - 100MB+ FASTA parse + validation: `354.7M residues/s`, `405.6 MB/s`
+  - human proteome parse + validation: `315.4M residues/s`, `360.6 MB/s`
+  - 100MB+ FASTA parse + validation: `350.8M residues/s`, `401.1 MB/s`
   - human proteome parse + tokenization: `189.0M residues/s`, `216.1 MB/s`
-  - 100MB+ FASTA parse + tokenization: `203.4M residues/s`, `232.6 MB/s`
+  - 100MB+ FASTA parse + tokenization: `209.7M residues/s`, `239.8 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 

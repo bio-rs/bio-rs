@@ -84,14 +84,14 @@ research workflow.
 
 Use the committed benchmark report as the source for a simple three-bar chart:
 
-- parse: bio-rs `44.73ms`, Biopython `197.66ms`
-- validate: bio-rs `35.16ms`, Biopython `603.45ms`
-- tokenize: bio-rs `57.97ms`, Biopython `598.02ms`
+- parse: bio-rs `47.04ms`, Biopython `208.10ms`
+- validate: bio-rs `36.32ms`, Biopython `584.23ms`
+- tokenize: bio-rs `60.62ms`, Biopython `586.54ms`
 
 Chart title: `Matched FASTA workloads: bio-rs vs Biopython`
 
-Caption: `Measured with the committed hyperfine benchmark artifact. Claims are
-limited to these FASTA workloads and this recorded environment.`
+Caption: `Measured with the committed FASTA benchmark artifact. Claims are
+limited to these workloads and this recorded environment.`
 
 ## Browser Playground Concept
 

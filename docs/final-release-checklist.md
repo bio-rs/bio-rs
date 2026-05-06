@@ -1,19 +1,20 @@
 # Final Release Checklist
 
-This checklist is the release-candidate gate for the pre-1.0 launch-readiness
-line.
+This checklist is the final release readiness gate for the pre-1.0
+launch-readiness line.
 
-Run it from a clean checkout before tagging a release candidate:
+Run it from a clean checkout before tagging a release:
 
 ```bash
-scripts/check-final-release-candidate.sh
+scripts/check-final-release.sh
 ```
 
 ## Full End-To-End Workflow Validation
 
-The RC gate runs `scripts/check.sh`, which covers formatting, shell and Python
-syntax, benchmark report regeneration, release workflow invariants, Rust checks,
-the `wasm32-unknown-unknown` core build, tests, install smoke, and clippy.
+The final release gate runs `scripts/check.sh`, which covers formatting, shell
+and Python syntax, benchmark report regeneration, release workflow invariants,
+Rust checks, the `wasm32-unknown-unknown` core build, tests, install smoke, and
+clippy.
 
 It also runs the researcher-facing workflow through `scripts/launch-demo.sh`
 against the release binary.
@@ -36,9 +37,9 @@ No known breaking cleanup is deferred for the current pre-1.0 contract set.
 
 If a breaking cleanup is discovered, do not hide it in release prep. Land it as
 a focused implementation commit with tests, update the contract docs, then rerun
-the RC gate.
+the final release gate.
 
-## Release Candidate Tag
+## Version Tag
 
 Use annotated tags that point at the release-prep commit:
 
@@ -51,7 +52,7 @@ The tag push triggers `.github/workflows/release.yml`.
 
 ## Binary Release Test
 
-The RC gate builds the release binary locally:
+The final release gate builds the release binary locally:
 
 ```bash
 cargo build --locked --release -p biors
@@ -65,7 +66,7 @@ Tagged releases also build and attach:
 
 ## Install Flow Final Test
 
-The RC gate runs:
+The final release gate runs:
 
 ```bash
 scripts/check-install-smoke.sh
