@@ -7,6 +7,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors --version`
 - `biors completions <bash|elvish|fish|powershell|zsh>`
 - `biors doctor`
+- `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
@@ -30,6 +31,10 @@ benchmark records can be tied back to the exact released binary.
 `biors doctor` emits local readiness diagnostics for platform identity,
 available Rust/Cargo toolchains, optional WASM target support, and committed
 demo/package fixtures.
+`batch validate` accepts multiple file paths, directories, and quoted glob
+patterns. Directory inputs include common FASTA file extensions and ignore
+unrelated files. It emits memory-bounded per-file validation summaries and a
+batch summary without retaining per-record validation payloads.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
@@ -80,6 +85,10 @@ provenance section records the `biors-core` version, input hash, normalization
 policy, validation alphabet, tokenizer metadata, and model-input policy used to
 produce the output. Raw command argument capture and output/vocabulary hashes
 belong to the stronger reproducibility layer.
+
+Batch validation payloads use `schemas/batch-validation-output.v0.json` and
+include `inputs`, aggregate `summary`, and a deterministic `files` list with
+per-file `input_hash`, validation counts, and `kind_counts`.
 
 `structured_issues` entries use this shape:
 

@@ -42,6 +42,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 cargo install biors --version 0.21.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
+biors batch validate --kind auto examples/
 ```
 
 Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
@@ -110,6 +111,8 @@ Current capabilities:
 - `model-input` CLI output
 - `workflow` CLI output that combines validation, tokenization, model input,
   readiness issues, and reproducibility provenance
+- `batch validate` for multiple files, directory inputs, quoted glob inputs,
+  and memory-bounded validation summaries
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
@@ -214,6 +217,7 @@ packages/
     biors-core/  Core engine + contracts
 
 schemas/
+  batch-validation-output.v0.json
   cli-error.v0.json
   cli-success.v0.json
   fasta-validation-output.v0.json

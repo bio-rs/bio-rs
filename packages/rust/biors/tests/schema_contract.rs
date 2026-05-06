@@ -14,6 +14,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/tokenize-output.v0.json",
         "schemas/inspect-output.v0.json",
         "schemas/model-input-output.v0.json",
+        "schemas/batch-validation-output.v0.json",
         "schemas/doctor-output.v0.json",
         "schemas/sequence-workflow-output.v0.json",
         "schemas/fasta-validation-output.v0.json",
@@ -82,6 +83,14 @@ fn cli_outputs_match_declared_payload_schemas() {
     let workflow = run_with_stdin(["workflow", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
     assert_payload_matches_schema(&workflow, "schemas/sequence-workflow-output.v0.json");
 
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let examples = repo.join("examples");
+    let batch_validate = run_command(
+        ["batch", "validate", "--kind", "auto"],
+        &[examples.as_os_str()],
+    );
+    assert_payload_matches_schema(&batch_validate, "schemas/batch-validation-output.v0.json");
+
     let doctor = run_command(["doctor"], &[]);
     assert_payload_matches_schema(&doctor, "schemas/doctor-output.v0.json");
 
@@ -95,7 +104,6 @@ fn cli_outputs_match_declared_payload_schemas() {
     });
     assert_payload_rejected_by_schema(&zero_model_input, "schemas/model-input-output.v0.json");
 
-    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let manifest = repo.join("examples/protein-package/manifest.json");
     let observations = repo.join("examples/protein-package/observations.json");
 

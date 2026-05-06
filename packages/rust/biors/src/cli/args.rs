@@ -16,6 +16,10 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    Batch {
+        #[command(subcommand)]
+        command: BatchCommand,
+    },
     Completions {
         #[arg(value_enum)]
         shell: Shell,
@@ -56,6 +60,16 @@ pub enum Command {
         #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
         padding: PaddingArg,
         path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum BatchCommand {
+    Validate {
+        #[arg(long, default_value_t = KindArg::Auto, value_enum)]
+        kind: KindArg,
+        #[arg(required = true)]
+        inputs: Vec<PathBuf>,
     },
 }
 

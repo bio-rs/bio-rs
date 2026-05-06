@@ -1,5 +1,6 @@
 use biors_core::{
-    stable_input_hash, validate_fasta_input_with_kind, validate_fasta_reader_with_kind_and_hash,
+    stable_input_hash, validate_fasta_input_with_kind,
+    validate_fasta_reader_summary_with_kind_and_hash, validate_fasta_reader_with_kind_and_hash,
     Diagnostic, SequenceKind, SequenceKindSelection,
 };
 use std::io::Cursor;
@@ -56,4 +57,23 @@ fn reader_kind_validation_preserves_input_hash_and_unicode_fallback() {
     assert_eq!(output.report.sequences[0].sequence, "ACΩ");
     assert_eq!(output.report.sequences[0].errors[0].symbol, 'Ω');
     assert_eq!(output.report.sequences[0].errors[0].position, 3);
+}
+
+#[test]
+fn reader_kind_validation_summary_counts_without_record_payloads() {
+    let raw = ">dna\nACGN\n>rna\nACGU\n>protein\nMEEPQSDPSV\n";
+    let output = validate_fasta_reader_summary_with_kind_and_hash(
+        Cursor::new(raw),
+        SequenceKindSelection::Auto,
+    )
+    .expect("valid FASTA envelope");
+
+    assert_eq!(output.input_hash, stable_input_hash(raw));
+    assert_eq!(output.summary.records, 3);
+    assert_eq!(output.summary.valid_records, 2);
+    assert_eq!(output.summary.warning_count, 1);
+    assert_eq!(output.summary.error_count, 0);
+    assert_eq!(output.summary.kind_counts.dna, 1);
+    assert_eq!(output.summary.kind_counts.rna, 1);
+    assert_eq!(output.summary.kind_counts.protein, 1);
 }

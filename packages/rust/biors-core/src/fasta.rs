@@ -12,8 +12,9 @@ use std::io::BufRead;
 mod kind_validation;
 
 pub use kind_validation::{
-    validate_fasta_input_with_kind, validate_fasta_reader_with_kind,
-    validate_fasta_reader_with_kind_and_hash, ValidatedKindAwareFastaInput,
+    validate_fasta_input_with_kind, validate_fasta_reader_summary_with_kind_and_hash,
+    validate_fasta_reader_with_kind, validate_fasta_reader_with_kind_and_hash,
+    ValidatedKindAwareFastaInput, ValidatedKindAwareFastaSummaryInput,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

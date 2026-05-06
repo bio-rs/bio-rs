@@ -4,6 +4,14 @@ All notable public behavior changes for bio-rs are recorded here.
 
 ## Unreleased
 
+### Added
+
+- Added `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
+  for multiple input files, directory expansion, quoted glob input, and
+  memory-bounded validation summaries.
+- Added `schemas/batch-validation-output.v0.json` for the batch validation data
+  payload.
+
 ## 0.21.0 - 2026-05-06
 
 ### Added

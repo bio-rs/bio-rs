@@ -12,8 +12,9 @@ The following surfaces are candidates for stabilization before the first stable 
 - `validate_fasta_reader_with_hash`
 - `validate_fasta_reader_with_kind`
 - `validate_fasta_reader_with_kind_and_hash`
+- `validate_fasta_reader_summary_with_kind_and_hash`
 - `SequenceKind`, `SequenceKindSelection`, `AlphabetPolicy`
-- `KindAwareSequenceValidationReport`, `ValidatedSequenceRecord`, `SequenceValidationIssue`
+- `KindAwareSequenceValidationReport`, `KindAwareSequenceValidationSummary`, `ValidatedSequenceRecord`, `SequenceValidationIssue`
 - `tokenize_fasta_records`
 - `tokenize_fasta_records_reader`
 - `load_vocab_json`
@@ -46,6 +47,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/tokenize-output.v0.json`
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
+- `schemas/batch-validation-output.v0.json`
 - `schemas/sequence-workflow-output.v0.json`
 - `schemas/doctor-output.v0.json`
 - `schemas/fasta-validation-output.v0.json`

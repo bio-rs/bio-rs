@@ -29,6 +29,7 @@ The guarantee is enforced by CLI tests that cover:
 - model-input policy failures
 - model-input residue failures
 - workflow readiness reporting for non-model-ready residues
+- batch validation summaries that avoid per-record payload retention
 
 ## Malicious Input Policy
 
@@ -44,9 +45,11 @@ presence and checksum contracts.
 FASTA-backed CLI paths use buffered reader APIs. `inspect` uses a summary path
 that avoids materializing token vectors. `tokenize`, `seq validate`, and
 `model-input` stream parsing from the reader but retain their public JSON output
-payloads before serialization. `workflow` reads FASTA through the buffered
-parser and retains normalized records because it must emit validation,
-tokenization, readiness, and model-input sections in one JSON payload.
+payloads before serialization. `batch validate` uses a summary sink that does
+not retain per-record validation payloads across files. `workflow` reads FASTA
+through the buffered parser and retains normalized records because it must emit
+validation, tokenization, readiness, and model-input sections in one JSON
+payload.
 
 Use the large-file benchmark helper after building the release binary:
 

@@ -1,5 +1,5 @@
 use super::{Cli, Command, FastaCommand, KindArg, PackageCommand, PaddingArg, SeqCommand};
-use crate::cli::build_doctor_report;
+use crate::cli::{build_doctor_report, run_batch_command};
 use crate::errors::{classify_validation_code, classify_verification_code, CliError};
 use crate::input::{open_fasta_input, read_fixture_observations, read_package_manifest};
 use crate::output::print_success;
@@ -15,6 +15,7 @@ use std::path::PathBuf;
 
 pub fn run(command: Command) -> Result<(), CliError> {
     match command {
+        Command::Batch { command } => run_batch_command(command),
         Command::Completions { shell } => run_completions(shell),
         Command::Doctor => run_doctor(),
         Command::Fasta { command } => run_fasta_command(command),

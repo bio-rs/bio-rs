@@ -45,6 +45,16 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
     assert_eq!(workflow["data"]["tokenization"]["summary"]["records"], 1);
     assert_eq!(workflow["data"]["model_input"]["policy"]["max_length"], 8);
 
+    let examples = repo.join("examples");
+    let batch = run_biors(&["batch", "validate", "--kind", "auto"], &[&examples]);
+    assert!(batch["data"]["summary"]["files"].as_u64().expect("files") >= 3);
+    assert!(
+        batch["data"]["summary"]["records"]
+            .as_u64()
+            .expect("records")
+            >= 3
+    );
+
     let package_validation = run_biors(&["package", "validate"], &[&manifest]);
     assert_eq!(package_validation["data"]["valid"], true);
 

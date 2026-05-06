@@ -117,6 +117,18 @@ or errors, the command keeps validation and tokenization context in the JSON
 payload and sets `model_ready` to `false` instead of silently producing partial
 model input.
 
+## Validate Batches
+
+```bash
+biors batch validate --kind auto examples/
+biors batch validate --kind auto "examples/*.fasta"
+```
+
+`batch validate` accepts multiple files, directories, and quoted glob patterns.
+Directory inputs include common FASTA extensions and skip unrelated files. The
+command emits one batch summary plus per-file validation summaries without
+retaining per-record validation payloads.
+
 ## Verify Package Fixtures
 
 ```bash
