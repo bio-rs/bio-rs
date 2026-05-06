@@ -78,6 +78,8 @@ struct WorkflowHashPayload<'a> {
 }
 
 fn json_sha256<T: Serialize>(value: &T) -> String {
-    let bytes = serde_json::to_vec(value).expect("workflow reproducibility payload serializes");
-    crate::sha256_digest(&bytes)
+    match serde_json::to_vec(value) {
+        Ok(bytes) => crate::sha256_digest(&bytes),
+        Err(error) => crate::sha256_digest(error.to_string().as_bytes()),
+    }
 }

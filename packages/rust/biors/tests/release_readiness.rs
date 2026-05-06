@@ -90,6 +90,8 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/cli-contract.md",
         "docs/error-codes.md",
         "docs/reliability.md",
+        "docs/python-interop.md",
+        "docs/wasm-readiness.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
@@ -111,6 +113,8 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/cli-contract.md",
         "docs/error-codes.md",
         "docs/reliability.md",
+        "docs/python-interop.md",
+        "docs/wasm-readiness.md",
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
@@ -244,6 +248,36 @@ fn launch_demo_assets_cover_first_impression_workflow() {
         3
     );
     assert_eq!(model_input["data"]["policy"]["max_length"], 32);
+}
+
+#[test]
+fn python_interop_examples_are_present_and_dependency_light() {
+    let repo = repo_root();
+    let required = [
+        "examples/python/reference_preprocess.py",
+        "examples/python/esm_from_biors_json.py",
+        "examples/python/protbert_from_biors_json.py",
+        "examples/python/pandas_numpy_friendly.py",
+        "docs/python-interop.md",
+    ];
+
+    for path in required {
+        assert!(
+            repo.join(path).exists(),
+            "missing Python interop asset: {path}"
+        );
+    }
+
+    let docs = fs::read_to_string(repo.join("docs/python-interop.md")).expect("read Python docs");
+    for expected in ["ESM", "ProtBERT", "pandas", "NumPy", "No PyO3"] {
+        assert!(
+            docs.contains(expected),
+            "Python interop docs missing {expected}"
+        );
+    }
+
+    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+    assert!(readme.contains("docs/python-interop.md"));
 }
 
 fn repo_root() -> PathBuf {

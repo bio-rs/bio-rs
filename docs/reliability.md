@@ -32,6 +32,9 @@ The guarantee is enforced by CLI tests that cover:
 - batch validation summaries that avoid per-record payload retention
 - tokenizer config parsing with unknown top-level fields rejected
 - workflow reproducibility hashes for vocabulary and output-content contracts
+- canonical output diff reports for JSON and raw artifact comparisons
+- debug views that preserve token alignment while visualizing warning/error residues
+- direct Rust `ProteinSequence` APIs with invalid byte input
 
 ## Malicious Input Policy
 

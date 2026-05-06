@@ -117,6 +117,12 @@ Current capabilities:
   readiness issues, and reproducibility provenance
 - workflow provenance hashes for tokenizer vocabulary and output-content
   reproducibility
+- `diff` CLI output for canonical JSON/raw output comparison with SHA-256
+  hashes and first-difference metadata
+- `pipeline` CLI output for no-config validate -> tokenize -> export workflow
+  composition
+- `debug` CLI output for sequence -> token -> model-input step inspection and
+  compact residue error visualization
 - `batch validate` for multiple files, recursive directory inputs, quoted glob
   inputs, empty-glob errors, and memory-bounded validation summaries
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
@@ -144,6 +150,8 @@ Current capabilities:
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
+- [Python interop](docs/python-interop.md)
+- [WASM readiness](docs/wasm-readiness.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
@@ -230,7 +238,10 @@ schemas/
   fasta-validation-output.v0.json
   inspect-output.v0.json
   model-input-output.v0.json
+  output-diff.v0.json
+  pipeline-output.v0.json
   sequence-workflow-output.v0.json
+  sequence-debug-output.v0.json
   package-bridge-output.v0.json
   package-inspect-output.v0.json
   package-manifest.v0.json
@@ -246,6 +257,11 @@ examples/
     protein-20-special.config.json
     protein-20-special.expected.json
     reference-python-parity.json
+  python/
+    esm_from_biors_json.py
+    pandas_numpy_friendly.py
+    protbert_from_biors_json.py
+    reference_preprocess.py
   protein-package/
     models/
     manifest.json

@@ -69,10 +69,13 @@ pub fn tokenize_protein_with_config(
         for (index, byte) in protein.sequence.iter().enumerate() {
             push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
-    } else {
-        let s = std::str::from_utf8(&protein.sequence).expect("normalized sequence is valid UTF-8");
+    } else if let Ok(s) = std::str::from_utf8(&protein.sequence) {
         for (index, residue) in s.chars().enumerate() {
             push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
+        }
+    } else {
+        for (index, byte) in protein.sequence.iter().enumerate() {
+            push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
     }
 
