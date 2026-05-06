@@ -55,10 +55,7 @@ fn benchmark_parse(input_path: &str) -> Result<BenchmarkResult, String> {
     Ok(BenchmarkResult {
         mode: "parse".to_string(),
         records: records.len(),
-        residues: records
-            .iter()
-            .map(|record| record.sequence.chars().count())
-            .sum(),
+        residues: records.iter().map(|record| record.sequence.len()).sum(),
         canonical_tokens: 0,
         unknown_tokens: 0,
         warning_count: 0,

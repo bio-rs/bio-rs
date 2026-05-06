@@ -3,13 +3,27 @@ use serde::{Deserialize, Serialize};
 use super::kind::SequenceKind;
 use crate::Diagnostic;
 
+mod serde_bytes_as_str {
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(std::str::from_utf8(bytes).map_err(serde::ser::Error::custom)?)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
+        let s = String::deserialize(deserializer)?;
+        Ok(s.into_bytes())
+    }
+}
+
 /// A named protein sequence parsed from FASTA or supplied by callers.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProteinSequence {
     /// FASTA identifier without the leading `>` and without the description suffix.
     pub id: String,
     /// Normalized sequence residues with whitespace removed and ASCII letters uppercased.
-    pub sequence: String,
+    #[serde(with = "serde_bytes_as_str")]
+    pub sequence: Vec<u8>,
 }
 
 /// A residue-level validation warning or error with a one-based sequence position.

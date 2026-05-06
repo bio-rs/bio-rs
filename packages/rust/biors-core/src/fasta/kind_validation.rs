@@ -4,6 +4,7 @@ use crate::sequence::{
     summarize_validated_sequence_records, KindAwareSequenceValidationReport, SequenceKindSelection,
     SequenceRecord, ValidatedSequenceRecord,
 };
+use crate::verification::StableInputHasher;
 use crate::{BioRsError, FastaReadError};
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
@@ -41,9 +42,10 @@ pub fn validate_fasta_reader_with_kind_and_hash<R: BufRead>(
     selection: SequenceKindSelection,
 ) -> Result<ValidatedKindAwareFastaInput, FastaReadError> {
     let mut sink = KindAwareValidatedRecordSink::new(selection);
-    let input_hash = scan_fasta_reader(reader, &mut sink)?;
+    let mut hasher = StableInputHasher::new();
+    scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
     Ok(ValidatedKindAwareFastaInput {
-        input_hash,
+        input_hash: hasher.finalize(),
         report: sink.finish(),
     })
 }

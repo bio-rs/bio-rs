@@ -61,7 +61,12 @@ pub(crate) fn print_json_error(error: CliError) {
             location: error.location(),
         },
     };
-    println!("{}", to_json(&payload).expect("serialize JSON error"));
+    match to_json(&payload) {
+        Ok(json) => println!("{json}"),
+        Err(_) => println!(
+            r#"{{"ok":false,"error":{{"code":"cli.internal_error","message":"failed to serialize error","location":null}}}}"#
+        ),
+    }
 }
 
 fn to_json<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
@@ -77,11 +82,16 @@ mod tests {
     fn write_success_to_serializes_envelope_to_writer() {
         let mut output = Vec::new();
 
-        write_success_to(&mut output, Some("fnv1a64:test".to_string()), vec![1, 2])
-            .expect("write success envelope");
+        assert!(
+            write_success_to(&mut output, Some("fnv1a64:test".to_string()), vec![1, 2]).is_ok(),
+            "write success envelope failed"
+        );
 
         assert!(output.ends_with(b"\n"));
-        let value: Value = serde_json::from_slice(&output).expect("valid JSON");
+        let value: Value = match serde_json::from_slice(&output) {
+            Ok(v) => v,
+            Err(e) => panic!("invalid JSON: {e}"),
+        };
         assert_eq!(value["ok"], true);
         assert_eq!(value["biors_version"], env!("CARGO_PKG_VERSION"));
         assert_eq!(value["input_hash"], "fnv1a64:test");

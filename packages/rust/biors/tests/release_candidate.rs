@@ -50,12 +50,11 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
     let repo = repo_root();
     let required = [
         "CITATION.cff",
-        "docs/api-review.md",
         "docs/quickstart.md",
-        "docs/professional-readiness.md",
-        "docs/release-candidate-1.0.md",
-        "docs/msrv.md",
-        "scripts/check-install-smoke.sh",
+        "docs/cli-contract.md",
+        "docs/error-codes.md",
+        "docs/public-contract-1.0-candidates.md",
+        "docs/versioning.md",
     ];
 
     for path in required {
@@ -68,31 +67,13 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
     let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
     for link in [
         "docs/quickstart.md",
-        "docs/professional-readiness.md",
-        "docs/api-review.md",
-        "docs/release-candidate-1.0.md",
-        "docs/msrv.md",
+        "docs/cli-contract.md",
+        "docs/error-codes.md",
+        "docs/public-contract-1.0-candidates.md",
+        "docs/versioning.md",
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
-    }
-    assert!(
-        readme.contains("## Release history"),
-        "README does not expose release history"
-    );
-
-    let readiness =
-        fs::read_to_string(repo.join("docs/professional-readiness.md")).expect("read readiness");
-    for marker in [
-        "Phase 1",
-        "Phase 2",
-        "Researcher-Ready Scope",
-        "Known Limits",
-    ] {
-        assert!(
-            readiness.contains(marker),
-            "readiness doc missing marker: {marker}"
-        );
     }
 
     let quickstart = fs::read_to_string(repo.join("docs/quickstart.md")).expect("read quickstart");

@@ -24,6 +24,28 @@ pub(crate) fn append_normalized_sequence_bytes(sequence: &[u8], output: &mut Str
     }
 }
 
+pub(crate) fn append_normalized_sequence_to_vec(sequence: &str, output: &mut Vec<u8>) {
+    output.reserve(sequence.len());
+    if sequence.is_ascii() {
+        append_normalized_sequence_bytes_to_vec(sequence.as_bytes(), output);
+        return;
+    }
+    for symbol in normalized_residues(sequence) {
+        let mut buf = [0; 4];
+        let encoded = symbol.encode_utf8(&mut buf);
+        output.extend_from_slice(encoded.as_bytes());
+    }
+}
+
+pub(crate) fn append_normalized_sequence_bytes_to_vec(sequence: &[u8], output: &mut Vec<u8>) {
+    output.reserve(sequence.len());
+    for &byte in sequence {
+        if !byte.is_ascii_whitespace() {
+            output.push(byte.to_ascii_uppercase());
+        }
+    }
+}
+
 pub(crate) fn normalized_residues(sequence: &str) -> impl Iterator<Item = char> + '_ {
     sequence
         .chars()

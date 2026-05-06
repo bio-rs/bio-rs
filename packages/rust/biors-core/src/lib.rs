@@ -38,10 +38,10 @@ pub use package::{
     inspect_package_manifest, is_sha256_checksum, plan_runtime_bridge, read_package_file,
     resolve_package_asset_path, resolve_package_path, sha256_digest, validate_package_manifest,
     validate_package_manifest_artifacts, validate_package_relative_path, DataShape, DataType,
-    ModelArtifact, ModelFormat, PackageFixture, PackageManifest, PackageManifestSummary,
-    PackageValidationIssue, PackageValidationIssueCode, PackageValidationReport, PipelineStep,
-    RuntimeBackend, RuntimeBridgeReport, RuntimeTarget, RuntimeTargetPlatform, SchemaVersion,
-    TokenAsset,
+    ModelArtifact, ModelFormat, PackageArtifactError, PackageFixture, PackageManifest,
+    PackageManifestSummary, PackageValidationIssue, PackageValidationIssueCode,
+    PackageValidationReport, PipelineStep, RuntimeBackend, RuntimeBridgeReport, RuntimeTarget,
+    RuntimeTargetPlatform, SchemaVersion, TokenAsset,
 };
 pub use sequence::{
     detect_sequence_kind, normalize_sequence, validate_protein_sequence, validate_sequence_record,

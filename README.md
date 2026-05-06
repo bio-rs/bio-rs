@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.15.0
+cargo install biors --version 0.15.1
 biors --version
 ```
 
@@ -285,52 +285,12 @@ Tokenization output is record-oriented:
 Public contract docs:
 
 - [Quickstart](docs/quickstart.md)
-- [Professional readiness](docs/professional-readiness.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
-- [1.0 release candidate path](docs/release-candidate-1.0.md)
-- [API and schema review](docs/api-review.md)
-- [MSRV policy draft](docs/msrv.md)
 - [Versioning policy](docs/versioning.md)
 - [JSON schemas](schemas)
 - [Citation metadata](CITATION.cff)
-
-## Release history
-
-Delivered:
-
-- `0.15.0`: biological sequence UX polish with `biors seq validate`, auto-detect-by-default validation, kind-specific messages, and refreshed docs
-- `0.14.0`: multi-alphabet FASTA validation with per-record kind assignment, `--kind` CLI override, mixed-kind summaries, and updated FASTA validation schema
-- `0.13.0`: biors-core DNA/RNA validation draft with `SequenceKind`, IUPAC nucleotide policies, auto-detection, and diagnostic sequence issues
-- `0.12.8`: biors-core SRP refactor for package, sequence, verification, and FASTA scanner internals with public API docs refreshed
-- `0.12.7`: tokenizer hot-path cleanup, SRP-focused core module split, module-size guardrail, and refreshed benchmark proof assets
-- `0.12.6`: borrowed protein-20 vocabulary API, lowercase-aware token lookup fast path, tokenizer module split, and refreshed benchmark proof assets
-- `0.12.5`: validation-only FASTA reader path, dead analysis-path cleanup, benchmark artifact comparison helper, and refreshed proof assets
-- `0.12.4`: byte-sink FASTA scanner dispatch, tokenization-only sink path, install smoke gate, and refreshed benchmark proof assets
-- `0.12.3`: byte-buffered FASTA reader scanning, static residue/token lookup tables, and expanded shape-profile benchmark proof assets
-- `0.12.2`: published CLI `--version` support and version-verification docs for reproducible installs
-- `0.12.1`: release workflow publish-order guard, published CLI quickstart, professional-readiness audit, and summary-only FASTA inspect path
-- `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and release notes
-- `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
-- `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
-- `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
-- `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
-- `0.9.6`: FASTA identifier validation, model-input policy validation, package path escape rejection, and JSON vocab loading
-- `0.9.5`: core-throughput benchmark harness, matched-workload benchmark refresh, workflow/cache tightening, and git-hook install helper
-- `0.9.4`: tokenizer positional alignment preservation, FASTA single-pass tokenization/validation path, typed package manifest enums, and benchmark refresh
-- `0.9.3`: release workflow fix for automatic GitHub Release creation after crates publish
-- `0.9.2`: model-input safety hardening for unresolved residues and automated GitHub Release creation
-- `0.9.1`: model-input CLI, checksum-backed package validation, benchmark refresh, and contract hardening
-- `0.9.0`: CLI and JSON contract freeze baseline
-- `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
-- `0.8.0`: fixture verification with `package verify`
-- `0.7.0`: runtime bridge planning with `package bridge`
-- `0.6.0`: package manifest inspect/validate
-
-Next:
-
-- first stable release: stable public contracts and runtime-facing APIs after enough real-world package validation
 
 ## Not yet
 

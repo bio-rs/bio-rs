@@ -1,4 +1,5 @@
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str};
+use crate::verification::StableInputHasher;
 use crate::BioRsError;
 use std::io::BufRead;
 
@@ -29,9 +30,10 @@ pub fn tokenize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<TokenizedFastaInput, crate::FastaReadError> {
     let mut sink = TokenizedRecordSink::default();
-    let input_hash = scan_fasta_reader(reader, &mut sink)?;
+    let mut hasher = StableInputHasher::new();
+    scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
     Ok(TokenizedFastaInput {
-        input_hash,
+        input_hash: hasher.finalize(),
         records: sink.records,
     })
 }
@@ -41,10 +43,11 @@ pub fn summarize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<SummarizedFastaInput, crate::FastaReadError> {
     let mut sink = SummaryRecordSink::default();
-    let input_hash = scan_fasta_reader(reader, &mut sink)?;
+    let mut hasher = StableInputHasher::new();
+    scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
 
     Ok(SummarizedFastaInput {
-        input_hash,
+        input_hash: hasher.finalize(),
         summary: sink.summary,
     })
 }

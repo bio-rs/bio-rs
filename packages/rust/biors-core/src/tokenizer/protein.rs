@@ -22,7 +22,7 @@ impl Tokenizer for ProteinTokenizer {
     }
 
     fn vocabulary(&self) -> Vocabulary {
-        load_protein_20_vocab()
+        load_protein_20_vocab().clone()
     }
 
     fn tokenize(&self, protein: &ProteinSequence) -> TokenizedProtein {
@@ -44,11 +44,12 @@ pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     let mut errors = Vec::new();
 
     if protein.sequence.is_ascii() {
-        for (index, byte) in protein.sequence.bytes().enumerate() {
-            push_tokenized_residue_byte(byte, index + 1, &mut tokens, &mut warnings, &mut errors);
+        for (index, byte) in protein.sequence.iter().enumerate() {
+            push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
     } else {
-        for (index, residue) in protein.sequence.chars().enumerate() {
+        let s = std::str::from_utf8(&protein.sequence).expect("normalized sequence is valid UTF-8");
+        for (index, residue) in s.chars().enumerate() {
             push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
     }

@@ -1,4 +1,3 @@
-use crate::verification::StableInputHasher;
 use crate::{BioRsError, FastaReadError};
 use std::io::{BufRead, ErrorKind};
 
@@ -36,9 +35,9 @@ pub(crate) fn scan_fasta_str<S: FastaRecordSink>(
 pub(crate) fn scan_fasta_reader<R: BufRead, S: FastaRecordSink>(
     mut reader: R,
     sink: &mut S,
-) -> Result<String, FastaReadError> {
+    mut on_line: impl FnMut(&[u8]),
+) -> Result<(), FastaReadError> {
     let mut state = FastaScanState::default();
-    let mut hasher = StableInputHasher::new();
     let mut raw_line = Vec::new();
 
     loop {
@@ -48,7 +47,7 @@ pub(crate) fn scan_fasta_reader<R: BufRead, S: FastaRecordSink>(
             break;
         }
         state.line_number += 1;
-        hasher.update(&raw_line);
+        on_line(&raw_line);
         state.scan_line_bytes(&raw_line, sink)?;
     }
 
@@ -56,8 +55,7 @@ pub(crate) fn scan_fasta_reader<R: BufRead, S: FastaRecordSink>(
         return Err(BioRsError::EmptyInput.into());
     }
 
-    state.finish(sink)?;
-    Ok(hasher.finalize())
+    Ok(state.finish(sink)?)
 }
 
 #[derive(Default)]
