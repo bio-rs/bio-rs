@@ -1,4 +1,24 @@
-use super::{ContentMismatchDiff, FirstDifference};
+use super::{ContentMismatchDiff, FirstDifference, OutputDiffReport};
+use crate::sha256_digest;
+
+/// Build a canonical diff report for two outputs.
+pub fn diff_output_bytes(
+    expected_path: &str,
+    observed_path: &str,
+    expected: &[u8],
+    observed: &[u8],
+) -> OutputDiffReport {
+    let matches = contents_match(expected, observed);
+    OutputDiffReport {
+        expected_path: expected_path.to_string(),
+        observed_path: observed_path.to_string(),
+        expected_sha256: sha256_digest(expected),
+        observed_sha256: sha256_digest(observed),
+        matches,
+        content_diff: (!matches)
+            .then(|| content_mismatch_diff(expected_path, observed_path, expected, observed)),
+    }
+}
 
 pub(super) fn contents_match(expected: &[u8], observed: &[u8]) -> bool {
     match (

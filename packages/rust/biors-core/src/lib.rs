@@ -33,8 +33,8 @@ pub use package::{
     inspect_package_manifest, is_sha256_checksum, plan_runtime_bridge, read_package_file,
     resolve_package_asset_path, resolve_package_path, sha256_digest, validate_package_manifest,
     validate_package_manifest_artifacts, validate_package_relative_path, DataShape, DataType,
-    ModelArtifact, ModelFormat, PackageArtifactError, PackageFixture, PackageManifest,
-    PackageManifestSummary, PackageValidationIssue, PackageValidationIssueCode,
+    ModelArtifact, ModelFormat, PackageArtifactError, PackageFixture, PackageLayoutSummary,
+    PackageManifest, PackageManifestSummary, PackageValidationIssue, PackageValidationIssueCode,
     PackageValidationReport, PipelineStep, RuntimeBackend, RuntimeBridgeReport, RuntimeTarget,
     RuntimeTargetPlatform, SchemaVersion, TokenAsset,
 };
@@ -57,9 +57,10 @@ pub use tokenizer::{
     PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 pub use verification::{
-    stable_input_hash, verify_package_outputs, verify_package_outputs_with_observation_base,
-    ContentMismatchDiff, FirstDifference, FixtureObservation, FixtureVerificationResult,
-    PackageVerificationReport, StableInputHasher, VerificationIssueCode, VerificationStatus,
+    diff_output_bytes, stable_input_hash, verify_package_outputs,
+    verify_package_outputs_with_observation_base, ContentMismatchDiff, FirstDifference,
+    FixtureObservation, FixtureVerificationResult, OutputDiffReport, PackageVerificationReport,
+    StableInputHasher, VerificationIssueCode, VerificationStatus,
 };
 pub use workflow::{
     prepare_protein_model_input_workflow, prepare_protein_model_input_workflow_with_invocation,

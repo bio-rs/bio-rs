@@ -9,20 +9,26 @@ use crate::input::{
 };
 use crate::output::print_success;
 use biors_core::{
-    build_model_inputs_checked, inspect_package_manifest, plan_runtime_bridge,
+    build_model_inputs_checked, diff_output_bytes, inspect_package_manifest, plan_runtime_bridge,
     prepare_protein_model_input_workflow_with_invocation, summarize_fasta_records_reader,
     tokenize_fasta_records_reader, tokenize_fasta_records_reader_with_config,
-    validate_fasta_reader_with_kind_and_hash, validate_package_manifest_artifacts,
-    verify_package_outputs_with_observation_base, ModelInputPolicy, ProteinTokenizerConfig,
-    SequenceWorkflowInvocation,
+    validate_fasta_reader_with_kind_and_hash, validate_model_input_policy,
+    validate_package_manifest_artifacts, verify_package_outputs_with_observation_base,
+    ModelInputPolicy, ModelInputRecord, ProteinTokenizerConfig, SequenceWorkflowInvocation,
+    SequenceWorkflowOutput, TokenizedProtein, ValidatedSequence,
 };
 use clap::CommandFactory;
+use serde::Serialize;
+use std::collections::BTreeMap;
+use std::fs;
 use std::path::PathBuf;
 
 pub fn run(command: Command) -> Result<(), CliError> {
     match command {
         Command::Batch { command } => run_batch_command(command),
         Command::Completions { shell } => run_completions(shell),
+        Command::Debug { max_length, path } => run_debug(max_length, path),
+        Command::Diff { expected, observed } => run_diff(expected, observed),
         Command::Doctor => run_doctor(),
         Command::Fasta { command } => run_fasta_command(command),
         Command::Inspect { path } => run_inspect(path),
@@ -33,6 +39,12 @@ pub fn run(command: Command) -> Result<(), CliError> {
             path,
         } => run_model_input(max_length, pad_token_id, padding, path),
         Command::Package { command } => run_package_command(command),
+        Command::Pipeline {
+            max_length,
+            pad_token_id,
+            padding,
+            path,
+        } => run_pipeline(max_length, pad_token_id, padding, path),
         Command::Seq { command } => run_seq_command(command),
         Command::Tokenize {
             profile,
@@ -58,6 +70,24 @@ fn run_completions(shell: clap_complete::Shell) -> Result<(), CliError> {
 
 fn run_doctor() -> Result<(), CliError> {
     print_success(None, build_doctor_report())
+}
+
+fn run_diff(expected: PathBuf, observed: PathBuf) -> Result<(), CliError> {
+    let expected_bytes = fs::read(&expected).map_err(|source| CliError::Read {
+        path: expected.clone(),
+        source,
+    })?;
+    let observed_bytes = fs::read(&observed).map_err(|source| CliError::Read {
+        path: observed.clone(),
+        source,
+    })?;
+    let report = diff_output_bytes(
+        &expected.display().to_string(),
+        &observed.display().to_string(),
+        &expected_bytes,
+        &observed_bytes,
+    );
+    print_success(None, report)
 }
 
 fn run_fasta_command(command: FastaCommand) -> Result<(), CliError> {
@@ -208,12 +238,48 @@ fn run_workflow(
     padding: PaddingArg,
     path: PathBuf,
 ) -> Result<(), CliError> {
-    let invocation = workflow_invocation(max_length, pad_token_id, padding, &path);
+    let output = workflow_output("biors workflow", max_length, pad_token_id, padding, path)?;
+    let input_hash = output.provenance.input_hash.clone();
+    print_success(Some(input_hash), output)
+}
+
+fn run_pipeline(
+    max_length: usize,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: PathBuf,
+) -> Result<(), CliError> {
+    let output = workflow_output("biors pipeline", max_length, pad_token_id, padding, path)?;
+    let pipeline = PipelineOutput::from_workflow(output);
+    print_success(
+        Some(pipeline.workflow.provenance.input_hash.clone()),
+        pipeline,
+    )
+}
+
+fn run_debug(max_length: usize, path: PathBuf) -> Result<(), CliError> {
+    let output = workflow_output("biors debug", max_length, 0, PaddingArg::FixedLength, path)?;
+    let debug = SequenceDebugOutput::from_workflow(&output);
+    print_success(Some(output.provenance.input_hash), debug)
+}
+
+fn workflow_output(
+    command: &'static str,
+    max_length: usize,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: PathBuf,
+) -> Result<SequenceWorkflowOutput, CliError> {
+    validate_model_input_policy(&ModelInputPolicy {
+        max_length,
+        pad_token_id,
+        padding: padding.into(),
+    })?;
     let reader = open_fasta_input(&path)?;
     let input = biors_core::parse_fasta_records_reader(reader)
-        .map_err(|error| CliError::from_fasta_read(path, error))?;
-    let input_hash = input.input_hash.clone();
-    let output = prepare_protein_model_input_workflow_with_invocation(
+        .map_err(|error| CliError::from_fasta_read(path.clone(), error))?;
+    let invocation = workflow_invocation(command, max_length, pad_token_id, padding, &path);
+    prepare_protein_model_input_workflow_with_invocation(
         input.input_hash,
         &input.records,
         ModelInputPolicy {
@@ -222,18 +288,19 @@ fn run_workflow(
             padding: padding.into(),
         },
         invocation,
-    )?;
-    print_success(Some(input_hash), output)
+    )
+    .map_err(CliError::from)
 }
 
 fn workflow_invocation(
+    command: &'static str,
     max_length: usize,
     pad_token_id: u8,
     padding: PaddingArg,
     path: &std::path::Path,
 ) -> SequenceWorkflowInvocation {
     SequenceWorkflowInvocation {
-        command: "biors workflow".to_string(),
+        command: command.to_string(),
         arguments: vec![
             "--max-length".to_string(),
             max_length.to_string(),
@@ -258,4 +325,205 @@ fn run_sequence_validation(path: PathBuf, kind: KindArg) -> Result<(), CliError>
     let output = validate_fasta_reader_with_kind_and_hash(reader, kind.into())
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     print_success(Some(output.input_hash), output.report)
+}
+
+#[derive(Debug, Serialize)]
+struct PipelineOutput {
+    pipeline: &'static str,
+    ready: bool,
+    steps: Vec<PipelineStep>,
+    workflow: SequenceWorkflowOutput,
+}
+
+#[derive(Debug, Serialize)]
+struct PipelineStep {
+    name: &'static str,
+    status: &'static str,
+    records: usize,
+    warning_count: usize,
+    error_count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    output_sha256: Option<String>,
+}
+
+impl PipelineOutput {
+    fn from_workflow(workflow: SequenceWorkflowOutput) -> Self {
+        let validation = &workflow.validation;
+        let tokenization = &workflow.tokenization.summary;
+        let export_status = if workflow.model_ready {
+            "passed"
+        } else {
+            "blocked"
+        };
+        Self {
+            pipeline: "validate_tokenize_export.v0",
+            ready: workflow.model_ready,
+            steps: vec![
+                PipelineStep {
+                    name: "validate",
+                    status: if validation.error_count == 0 {
+                        "passed"
+                    } else {
+                        "failed"
+                    },
+                    records: validation.records,
+                    warning_count: validation.warning_count,
+                    error_count: validation.error_count,
+                    output_sha256: None,
+                },
+                PipelineStep {
+                    name: "tokenize",
+                    status: if tokenization.error_count == 0 {
+                        "passed"
+                    } else {
+                        "failed"
+                    },
+                    records: tokenization.records,
+                    warning_count: tokenization.warning_count,
+                    error_count: tokenization.error_count,
+                    output_sha256: None,
+                },
+                PipelineStep {
+                    name: "export",
+                    status: export_status,
+                    records: workflow
+                        .model_input
+                        .as_ref()
+                        .map(|input| input.records.len())
+                        .unwrap_or(0),
+                    warning_count: 0,
+                    error_count: if workflow.model_ready {
+                        0
+                    } else {
+                        workflow.readiness_issues.len()
+                    },
+                    output_sha256: workflow
+                        .model_ready
+                        .then(|| workflow.provenance.hashes.output_data_sha256.clone()),
+                },
+            ],
+            workflow,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct SequenceDebugOutput {
+    view: &'static str,
+    records: Vec<SequenceDebugRecord>,
+}
+
+#[derive(Debug, Serialize)]
+struct SequenceDebugRecord {
+    id: String,
+    normalized_sequence: String,
+    token_map: Vec<TokenDebugStep>,
+    model_input: Option<ModelInputRecord>,
+    error_visualization: ErrorVisualization,
+}
+
+#[derive(Debug, Serialize)]
+struct TokenDebugStep {
+    position: usize,
+    residue: char,
+    token_id: u8,
+    status: &'static str,
+}
+
+#[derive(Debug, Serialize)]
+struct ErrorVisualization {
+    sequence: String,
+    markers: String,
+    legend: &'static str,
+}
+
+impl SequenceDebugOutput {
+    fn from_workflow(workflow: &SequenceWorkflowOutput) -> Self {
+        let model_records: BTreeMap<_, _> = workflow
+            .model_input
+            .as_ref()
+            .map(|input| {
+                input
+                    .records
+                    .iter()
+                    .map(|record| (record.id.as_str(), record.clone()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let records = workflow
+            .validation
+            .sequences
+            .iter()
+            .zip(workflow.tokenization.records.iter())
+            .map(|(validated, tokenized)| SequenceDebugRecord {
+                id: validated.id.clone(),
+                normalized_sequence: validated.sequence.clone(),
+                token_map: token_debug_steps(validated, tokenized),
+                model_input: model_records.get(validated.id.as_str()).cloned(),
+                error_visualization: error_visualization(validated),
+            })
+            .collect();
+
+        Self {
+            view: "sequence_debug.v0",
+            records,
+        }
+    }
+}
+
+fn token_debug_steps(
+    validated: &ValidatedSequence,
+    tokenized: &TokenizedProtein,
+) -> Vec<TokenDebugStep> {
+    validated
+        .sequence
+        .chars()
+        .enumerate()
+        .map(|(index, residue)| {
+            let position = index + 1;
+            TokenDebugStep {
+                position,
+                residue,
+                token_id: tokenized.tokens.get(index).copied().unwrap_or_default(),
+                status: token_status(position, validated),
+            }
+        })
+        .collect()
+}
+
+fn token_status(position: usize, validated: &ValidatedSequence) -> &'static str {
+    if validated
+        .errors
+        .iter()
+        .any(|issue| issue.position == position)
+    {
+        "error"
+    } else if validated
+        .warnings
+        .iter()
+        .any(|issue| issue.position == position)
+    {
+        "warning"
+    } else {
+        "standard"
+    }
+}
+
+fn error_visualization(validated: &ValidatedSequence) -> ErrorVisualization {
+    let markers: String = validated
+        .sequence
+        .chars()
+        .enumerate()
+        .map(|(index, _)| match token_status(index + 1, validated) {
+            "error" => 'E',
+            "warning" => 'W',
+            _ => '.',
+        })
+        .collect();
+    ErrorVisualization {
+        sequence: validated.sequence.clone(),
+        markers,
+        legend: ". standard, W warning, E error",
+    }
 }

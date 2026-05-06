@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/pipeline-output.v0.json",
+  "title": "bio-rs pipeline data payload",
+  "type": "object",
+  "required": ["pipeline", "ready", "steps", "workflow"],
+  "properties": {
+    "pipeline": { "const": "validate_tokenize_export.v0" },
+    "ready": { "type": "boolean" },
+    "steps": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["name", "status", "records", "warning_count", "error_count"],
+        "properties": {
+          "name": { "enum": ["validate", "tokenize", "export"] },
+          "status": { "enum": ["passed", "failed", "blocked"] },
+          "records": { "type": "integer", "minimum": 0 },
+          "warning_count": { "type": "integer", "minimum": 0 },
+          "error_count": { "type": "integer", "minimum": 0 },
+          "output_sha256": { "$ref": "#/$defs/sha256" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "workflow": { "type": "object" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  },
+  "additionalProperties": false
+}

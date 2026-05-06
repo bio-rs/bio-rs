@@ -24,6 +24,15 @@ pub enum Command {
         #[arg(value_enum)]
         shell: Shell,
     },
+    Debug {
+        #[arg(long)]
+        max_length: usize,
+        path: PathBuf,
+    },
+    Diff {
+        expected: PathBuf,
+        observed: PathBuf,
+    },
     Doctor,
     Fasta {
         #[command(subcommand)]
@@ -44,6 +53,15 @@ pub enum Command {
     Package {
         #[command(subcommand)]
         command: PackageCommand,
+    },
+    Pipeline {
+        #[arg(long)]
+        max_length: usize,
+        #[arg(long, default_value_t = 0)]
+        pad_token_id: u8,
+        #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
+        padding: PaddingArg,
+        path: PathBuf,
     },
     Seq {
         #[command(subcommand)]

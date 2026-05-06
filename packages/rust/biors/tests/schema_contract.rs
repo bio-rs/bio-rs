@@ -16,6 +16,9 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/model-input-output.v0.json",
         "schemas/batch-validation-output.v0.json",
         "schemas/doctor-output.v0.json",
+        "schemas/output-diff.v0.json",
+        "schemas/pipeline-output.v0.json",
+        "schemas/sequence-debug-output.v0.json",
         "schemas/tokenizer-inspect-output.v0.json",
         "schemas/sequence-workflow-output.v0.json",
         "schemas/fasta-validation-output.v0.json",
@@ -92,6 +95,17 @@ fn cli_outputs_match_declared_payload_schemas() {
 
     let workflow = run_with_stdin(["workflow", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
     assert_payload_matches_schema(&workflow, "schemas/sequence-workflow-output.v0.json");
+
+    let pipeline = run_with_stdin(["pipeline", "--max-length", "4", "-"], ">seq1\nACDE\n");
+    assert_payload_matches_schema(&pipeline, "schemas/pipeline-output.v0.json");
+
+    let debug = run_with_stdin(["debug", "--max-length", "4", "-"], ">seq1\nAX*\n");
+    assert_payload_matches_schema(&debug, "schemas/sequence-debug-output.v0.json");
+
+    let expected = repo.join("examples/protein-package/fixtures/tiny.output.json");
+    let observed = repo.join("examples/protein-package/observed/tiny.reordered.json");
+    let diff = run_command(["diff"], &[expected.as_os_str(), observed.as_os_str()]);
+    assert_payload_matches_schema(&diff, "schemas/output-diff.v0.json");
 
     let examples = repo.join("examples");
     let batch_validate = run_command(
