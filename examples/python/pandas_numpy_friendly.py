@@ -27,17 +27,15 @@ def table_rows(data: dict[str, Any]) -> list[dict[str, Any]]:
     if model_input is None:
         raise ValueError("bio-rs payload is not model-ready")
 
-    rows = []
-    for record in model_input["records"]:
-        rows.append(
-            {
-                "id": record["id"],
-                "input_ids": list(record["input_ids"]),
-                "attention_mask": list(record["attention_mask"]),
-                "truncated": bool(record["truncated"]),
-            }
-        )
-    return rows
+    return [
+        {
+            "id": record["id"],
+            "input_ids": list(record["input_ids"]),
+            "attention_mask": list(record["attention_mask"]),
+            "truncated": bool(record["truncated"]),
+        }
+        for record in model_input["records"]
+    ]
 
 
 def array_columns(rows: list[dict[str, Any]]) -> dict[str, list[Any]]:

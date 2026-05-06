@@ -27,8 +27,7 @@ def to_protbert_sequences(data: dict[str, Any]) -> list[dict[str, str]]:
     rows = []
     for record in data["records"]:
         token_map = record["token_map"]
-        invalid = [step for step in token_map if step["status"] == "error"]
-        if invalid:
+        if any(step["status"] == "error" for step in token_map):
             raise ValueError(f"record {record['id']} has invalid residues")
         rows.append(
             {
