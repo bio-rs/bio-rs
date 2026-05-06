@@ -29,10 +29,7 @@ echo "==> module size"
 python3 scripts/check-module-size.py
 
 echo "==> benchmark docs"
-scripts/check-benchmark-docs.sh
-python3 scripts/compare-benchmark-artifacts.py \
-  benchmarks/fasta_vs_biopython.json \
-  benchmarks/fasta_vs_biopython.json >/dev/null
+python3 scripts/check-benchmark-artifact.py
 
 echo "==> release workflow"
 python3 scripts/check-release-workflow.py
