@@ -1,4 +1,4 @@
-use crate::{BioRsError, FastaReadError};
+use crate::error::{BioRsError, FastaReadError};
 use std::io::{BufRead, ErrorKind};
 
 pub(crate) trait FastaRecordSink {
@@ -38,7 +38,7 @@ pub(crate) fn scan_fasta_reader<R: BufRead, S: FastaRecordSink>(
     mut on_line: impl FnMut(&[u8]),
 ) -> Result<(), FastaReadError> {
     let mut state = FastaScanState::default();
-    let mut raw_line = Vec::new();
+    let mut raw_line = Vec::with_capacity(128);
 
     loop {
         raw_line.clear();

@@ -1,7 +1,7 @@
-use biors_core::{
-    parse_fasta_records, parse_fasta_records_reader, stable_input_hash, BioRsError, FastaReadError,
-    ProteinSequence,
-};
+use biors_core::error::{BioRsError, FastaReadError};
+use biors_core::fasta::{parse_fasta_records, parse_fasta_records_reader};
+use biors_core::sequence::ProteinSequence;
+use biors_core::verification::stable_input_hash;
 use std::io::{Cursor, ErrorKind};
 
 #[test]

@@ -1,7 +1,9 @@
 use crate::exit_code;
 use biors_core::{
-    BioRsError, ErrorLocation, FastaReadError, ModelInputBuildError, PackageValidationIssueCode,
-    PackageValidationReport, PackageVerificationReport, VerificationIssueCode, VerificationStatus,
+    error::{BioRsError, ErrorLocation, FastaReadError},
+    model_input::ModelInputBuildError,
+    package::{PackageValidationIssueCode, PackageValidationReport},
+    verification::{PackageVerificationReport, VerificationIssueCode, VerificationStatus},
 };
 use serde::Serialize;
 use std::path::PathBuf;

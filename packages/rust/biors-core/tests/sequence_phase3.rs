@@ -1,5 +1,6 @@
-use biors_core::{
-    detect_sequence_kind, validate_sequence_record, AlphabetPolicy, Diagnostic, SequenceKind,
+use biors_core::error::Diagnostic;
+use biors_core::sequence::{
+    detect_sequence_kind, validate_sequence_record, AlphabetPolicy, SequenceKind,
     SequenceKindSelection, SequenceRecord, SymbolClass,
 };
 

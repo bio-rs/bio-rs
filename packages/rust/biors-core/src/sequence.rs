@@ -32,3 +32,10 @@ pub use types::{
 };
 pub(crate) use validation::validate_protein_sequence_owned;
 pub use validation::{validate_protein_sequence, validate_sequence_record};
+
+pub mod kind_validation;
+pub use kind_validation::{
+    validate_fasta_input_with_kind, validate_fasta_reader_summary_with_kind_and_hash,
+    validate_fasta_reader_with_kind, validate_fasta_reader_with_kind_and_hash,
+    ValidatedKindAwareFastaInput, ValidatedKindAwareFastaSummaryInput,
+};

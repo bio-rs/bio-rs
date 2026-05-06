@@ -1,8 +1,9 @@
-use biors_core::{
-    load_vocab_json, protein_20_vocabulary, stable_input_hash, tokenize_fasta_records,
-    tokenize_fasta_records_reader, ProteinSequence, ProteinTokenizer, Tokenizer,
-    UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
+use biors_core::sequence::ProteinSequence;
+use biors_core::tokenizer::{
+    load_vocab_json, protein_20_vocabulary, tokenize_fasta_records, tokenize_fasta_records_reader,
+    ProteinTokenizer, Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
+use biors_core::verification::stable_input_hash;
 use std::io::Cursor;
 
 #[test]
@@ -117,8 +118,8 @@ fn reader_fasta_path_preserves_unicode_fallback_behavior() {
 #[test]
 fn summarizes_fasta_from_reader_without_materializing_tokens() {
     let raw = ">valid\nACDE\n>warn\nXBZ\n>invalid\nA?\n";
-    let output =
-        biors_core::summarize_fasta_records_reader(Cursor::new(raw)).expect("reader summary");
+    let output = biors_core::tokenizer::summarize_fasta_records_reader(Cursor::new(raw))
+        .expect("reader summary");
 
     assert_eq!(output.input_hash, stable_input_hash(raw));
     assert_eq!(output.summary.records, 3);

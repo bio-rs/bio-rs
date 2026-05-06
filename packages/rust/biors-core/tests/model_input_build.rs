@@ -1,7 +1,8 @@
-use biors_core::{
-    build_model_inputs_checked, build_model_inputs_unchecked, tokenize_fasta_records,
-    ModelInputBuildError, ModelInputPolicy, PaddingPolicy,
+use biors_core::model_input::{
+    build_model_inputs_checked, build_model_inputs_unchecked, ModelInputBuildError,
+    ModelInputPolicy, PaddingPolicy,
 };
+use biors_core::tokenizer::tokenize_fasta_records;
 
 #[test]
 fn builds_deterministic_model_input_with_attention_mask() {

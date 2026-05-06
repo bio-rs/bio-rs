@@ -1,4 +1,5 @@
-use biors_core::{validate_fasta_input, validate_fasta_reader, ResidueIssue, ValidatedSequence};
+use biors_core::fasta::{validate_fasta_input, validate_fasta_reader};
+use biors_core::sequence::{ResidueIssue, ValidatedSequence};
 use std::io::Cursor;
 
 #[test]

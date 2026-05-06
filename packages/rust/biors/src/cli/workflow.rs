@@ -3,8 +3,12 @@ use crate::errors::CliError;
 use crate::input::open_fasta_input;
 use crate::output::print_success;
 use biors_core::{
-    prepare_protein_model_input_workflow_with_invocation, validate_model_input_policy,
-    ModelInputPolicy, SequenceWorkflowInvocation, SequenceWorkflowOutput,
+    fasta::parse_fasta_records_reader,
+    model_input::{validate_model_input_policy, ModelInputPolicy},
+    workflow::{
+        prepare_protein_model_input_workflow_with_invocation, SequenceWorkflowInvocation,
+        SequenceWorkflowOutput,
+    },
 };
 use std::path::{Path, PathBuf};
 
@@ -32,7 +36,7 @@ pub(crate) fn workflow_output(
         padding: padding.into(),
     })?;
     let reader = open_fasta_input(&path)?;
-    let input = biors_core::parse_fasta_records_reader(reader)
+    let input = parse_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path.clone(), error))?;
     let invocation = workflow_invocation(command, max_length, pad_token_id, padding, &path);
     prepare_protein_model_input_workflow_with_invocation(

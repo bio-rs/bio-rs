@@ -2,7 +2,9 @@ use super::{
     SequenceWorkflowReadinessIssue, TokenizationWorkflowOutput, WorkflowTokenizerMetadata,
     NORMALIZATION_POLICY, WORKFLOW_NAME,
 };
-use crate::{load_protein_20_vocab, ModelInput, ModelInputPolicy, SequenceValidationReport};
+use crate::model_input::{ModelInput, ModelInputPolicy};
+use crate::sequence::SequenceValidationReport;
+use crate::tokenizer::load_protein_20_vocab;
 use serde::{Deserialize, Serialize};
 
 pub(super) const CORE_WORKFLOW_COMMAND: &str = "biors-core prepare_protein_model_input_workflow";
@@ -79,7 +81,7 @@ struct WorkflowHashPayload<'a> {
 
 fn json_sha256<T: Serialize>(value: &T) -> String {
     match serde_json::to_vec(value) {
-        Ok(bytes) => crate::sha256_digest(&bytes),
-        Err(error) => crate::sha256_digest(error.to_string().as_bytes()),
+        Ok(bytes) => crate::package::sha256_digest(&bytes),
+        Err(error) => crate::package::sha256_digest(error.to_string().as_bytes()),
     }
 }

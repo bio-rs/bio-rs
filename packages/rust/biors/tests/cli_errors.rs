@@ -1,18 +1,10 @@
 use serde_json::Value;
-use std::process::{Command, Stdio};
 
 mod common;
 use common::ChildInputExt;
 
 fn run_biors(args: &[&str], input: &str) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn biors")
-        .tap_stdin(input)
+    common::spawn_biors(args).tap_stdin(input)
 }
 
 fn json_error(output: &std::process::Output) -> Value {

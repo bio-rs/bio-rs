@@ -1,8 +1,10 @@
-use biors_core::{
-    stable_input_hash, validate_fasta_input_with_kind,
-    validate_fasta_reader_summary_with_kind_and_hash, validate_fasta_reader_with_kind_and_hash,
-    Diagnostic, SequenceKind, SequenceKindSelection,
+use biors_core::error::Diagnostic;
+use biors_core::sequence::kind_validation::{
+    validate_fasta_input_with_kind, validate_fasta_reader_summary_with_kind_and_hash,
+    validate_fasta_reader_with_kind_and_hash,
 };
+use biors_core::sequence::{SequenceKind, SequenceKindSelection};
+use biors_core::verification::stable_input_hash;
 use std::io::Cursor;
 
 #[test]

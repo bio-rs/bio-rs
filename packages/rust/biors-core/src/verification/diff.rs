@@ -1,5 +1,5 @@
 use super::{ContentMismatchDiff, FirstDifference, OutputDiffReport};
-use crate::sha256_digest;
+use crate::package::sha256_digest;
 
 /// Build a canonical diff report for two outputs.
 pub fn diff_output_bytes(

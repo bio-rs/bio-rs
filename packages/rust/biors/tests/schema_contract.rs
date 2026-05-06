@@ -1,9 +1,9 @@
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use std::fs;
-use std::io::Write;
 use std::path::Path;
-use std::process::{Command, Stdio};
+
+mod common;
 
 #[test]
 fn machine_readable_schemas_are_valid_json() {
@@ -68,64 +68,106 @@ fn package_manifest_example_uses_declared_schema_version() {
 }
 
 #[test]
-fn cli_outputs_match_declared_payload_schemas() {
-    let tokenize = run_with_stdin(["tokenize", "-"], ">seq1\nACDE\n");
+fn cli_outputs_match_sequence_schemas() {
+    let tokenize = common::run_biors_stdin(&["tokenize", "-"], ">seq1\nACDE\n").stdout;
     assert_payload_matches_schema(&tokenize, "schemas/tokenize-output.v0.json");
 
-    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let special_config = repo.join("examples/model-input-contract/protein-20-special.config.json");
-    let special_fasta = repo.join("examples/model-input-contract/protein.fasta");
-    let special_tokenize = run_command(
-        ["tokenize", "--config"],
-        &[special_config.as_os_str(), special_fasta.as_os_str()],
-    );
+    let special_config =
+        repo_root().join("examples/model-input-contract/protein-20-special.config.json");
+    let special_fasta = repo_root().join("examples/model-input-contract/protein.fasta");
+    let special_tokenize = common::run_biors_paths(
+        &["tokenize", "--config"],
+        &[&special_config, &special_fasta],
+    )
+    .stdout;
     assert_payload_matches_schema(&special_tokenize, "schemas/tokenize-output.v0.json");
 
-    let inspect = run_with_stdin(["inspect", "-"], ">seq1\nACDE\n>seq2\nAX\n");
+    let inspect = common::run_biors_stdin(&["inspect", "-"], ">seq1\nACDE\n>seq2\nAX\n").stdout;
     assert_payload_matches_schema(&inspect, "schemas/inspect-output.v0.json");
 
-    let fasta_validate = run_with_stdin(["fasta", "validate", "-"], ">seq1\nAX*\n");
+    let fasta_validate =
+        common::run_biors_stdin(&["fasta", "validate", "-"], ">seq1\nAX*\n").stdout;
     assert_payload_matches_schema(&fasta_validate, "schemas/fasta-validation-output.v0.json");
 
-    let seq_validate = run_with_stdin(["seq", "validate", "-"], ">seq1\nACGN\n");
+    let seq_validate = common::run_biors_stdin(&["seq", "validate", "-"], ">seq1\nACGN\n").stdout;
     assert_payload_matches_schema(&seq_validate, "schemas/fasta-validation-output.v0.json");
 
-    let model_input = run_with_stdin(["model-input", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
+    let model_input = common::run_biors_stdin(
+        &["model-input", "--max-length", "4", "-"],
+        ">seq1\nACDEFG\n",
+    )
+    .stdout;
     assert_payload_matches_schema(&model_input, "schemas/model-input-output.v0.json");
 
-    let workflow = run_with_stdin(["workflow", "--max-length", "4", "-"], ">seq1\nACDEFG\n");
+    let workflow =
+        common::run_biors_stdin(&["workflow", "--max-length", "4", "-"], ">seq1\nACDEFG\n").stdout;
     assert_payload_matches_schema(&workflow, "schemas/sequence-workflow-output.v0.json");
 
-    let pipeline = run_with_stdin(["pipeline", "--max-length", "4", "-"], ">seq1\nACDE\n");
+    let pipeline =
+        common::run_biors_stdin(&["pipeline", "--max-length", "4", "-"], ">seq1\nACDE\n").stdout;
     assert_payload_matches_schema(&pipeline, "schemas/pipeline-output.v0.json");
 
-    let debug = run_with_stdin(["debug", "--max-length", "4", "-"], ">seq1\nAX*\n");
+    let debug =
+        common::run_biors_stdin(&["debug", "--max-length", "4", "-"], ">seq1\nAX*\n").stdout;
     assert_payload_matches_schema(&debug, "schemas/sequence-debug-output.v0.json");
+}
 
-    let expected = repo.join("examples/protein-package/fixtures/tiny.output.json");
-    let observed = repo.join("examples/protein-package/observed/tiny.reordered.json");
-    let diff = run_command(["diff"], &[expected.as_os_str(), observed.as_os_str()]);
+#[test]
+fn cli_outputs_match_diff_schema() {
+    let expected = repo_root().join("examples/protein-package/fixtures/tiny.output.json");
+    let observed = repo_root().join("examples/protein-package/observed/tiny.reordered.json");
+    let diff = common::run_biors_paths(&["diff"], &[&expected, &observed]).stdout;
     assert_payload_matches_schema(&diff, "schemas/output-diff.v0.json");
+}
 
-    let examples = repo.join("examples");
-    let batch_validate = run_command(
-        ["batch", "validate", "--kind", "auto"],
-        &[examples.as_os_str()],
-    );
+#[test]
+fn cli_outputs_match_batch_schema() {
+    let examples = repo_root().join("examples");
+    let batch_validate =
+        common::run_biors_paths(&["batch", "validate", "--kind", "auto"], &[&examples]).stdout;
     assert_payload_matches_schema(&batch_validate, "schemas/batch-validation-output.v0.json");
+}
 
-    let tokenizer_inspect = run_command(
-        ["tokenizer", "inspect", "--profile", "protein-20-special"],
+#[test]
+fn cli_outputs_match_tooling_schemas() {
+    let tokenizer_inspect = common::run_biors_paths(
+        &["tokenizer", "inspect", "--profile", "protein-20-special"],
         &[],
-    );
+    )
+    .stdout;
     assert_payload_matches_schema(
         &tokenizer_inspect,
         "schemas/tokenizer-inspect-output.v0.json",
     );
 
-    let doctor = run_command(["doctor"], &[]);
+    let doctor = common::run_biors_paths(&["doctor"], &[]).stdout;
     assert_payload_matches_schema(&doctor, "schemas/doctor-output.v0.json");
+}
 
+#[test]
+fn cli_outputs_match_package_schemas() {
+    let manifest = repo_root().join("examples/protein-package/manifest.json");
+    let observations = repo_root().join("examples/protein-package/observations.json");
+
+    let package_inspect = common::run_biors_paths(&["package", "inspect"], &[&manifest]).stdout;
+    assert_payload_matches_schema(&package_inspect, "schemas/package-inspect-output.v0.json");
+
+    let package_validate = common::run_biors_paths(&["package", "validate"], &[&manifest]).stdout;
+    assert_payload_matches_schema(
+        &package_validate,
+        "schemas/package-validation-report.v0.json",
+    );
+
+    let package_bridge = common::run_biors_paths(&["package", "bridge"], &[&manifest]).stdout;
+    assert_payload_matches_schema(&package_bridge, "schemas/package-bridge-output.v0.json");
+
+    let package_verify =
+        common::run_biors_paths(&["package", "verify"], &[&manifest, &observations]).stdout;
+    assert_payload_matches_schema(&package_verify, "schemas/package-verify-output.v0.json");
+}
+
+#[test]
+fn cli_rejections_match_schemas() {
     let zero_model_input = serde_json::json!({
         "policy": {
             "max_length": 0,
@@ -135,27 +177,6 @@ fn cli_outputs_match_declared_payload_schemas() {
         "records": []
     });
     assert_payload_rejected_by_schema(&zero_model_input, "schemas/model-input-output.v0.json");
-
-    let manifest = repo.join("examples/protein-package/manifest.json");
-    let observations = repo.join("examples/protein-package/observations.json");
-
-    let package_inspect = run_command(["package", "inspect"], &[manifest.as_os_str()]);
-    assert_payload_matches_schema(&package_inspect, "schemas/package-inspect-output.v0.json");
-
-    let package_validate = run_command(["package", "validate"], &[manifest.as_os_str()]);
-    assert_payload_matches_schema(
-        &package_validate,
-        "schemas/package-validation-report.v0.json",
-    );
-
-    let package_bridge = run_command(["package", "bridge"], &[manifest.as_os_str()]);
-    assert_payload_matches_schema(&package_bridge, "schemas/package-bridge-output.v0.json");
-
-    let package_verify = run_command(
-        ["package", "verify"],
-        &[manifest.as_os_str(), observations.as_os_str()],
-    );
-    assert_payload_matches_schema(&package_verify, "schemas/package-verify-output.v0.json");
 
     let mismatch_report = serde_json::json!({
         "package": "protein-seed",
@@ -194,10 +215,11 @@ fn cli_outputs_match_declared_payload_schemas() {
 
 #[test]
 fn cli_outputs_match_success_and_error_envelope_schemas() {
-    let success = run_with_stdin(["tokenize", "-"], ">seq1\nACDE\n");
+    let success = common::run_biors_stdin(&["tokenize", "-"], ">seq1\nACDE\n").stdout;
     assert_json_matches_schema(&success, "schemas/cli-success.v0.json");
 
-    let error = run_with_stdin_expect_failure(["--json", "tokenize", "-"], "ACDE\n");
+    let error =
+        common::run_biors_stdin_expect_failure(&["--json", "tokenize", "-"], "ACDE\n").stdout;
     assert_json_matches_schema(&error, "schemas/cli-error.v0.json");
 }
 
@@ -226,6 +248,10 @@ fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
     }
 }
 
+fn repo_root() -> std::path::PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..")
+}
+
 fn assert_payload_rejected_by_schema(payload: &Value, schema_path: &str) {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let schema: Value = serde_json::from_str(
@@ -238,55 +264,4 @@ fn assert_payload_rejected_by_schema(payload: &Value, schema_path: &str) {
         compiled.validate(payload).is_err(),
         "payload unexpectedly matched schema {schema_path}"
     );
-}
-
-fn spawn_with_stdin<const N: usize>(args: [&str; N], input: &str) -> std::process::Output {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn biors");
-
-    child
-        .stdin
-        .take()
-        .unwrap()
-        .write_all(input.as_bytes())
-        .expect("write stdin");
-
-    child.wait_with_output().expect("wait for biors")
-}
-
-fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
-    let output = spawn_with_stdin(args, input);
-    assert!(
-        output.status.success(),
-        "stderr: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    output.stdout
-}
-
-fn run_with_stdin_expect_failure<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
-    let output = spawn_with_stdin(args, input);
-    assert_eq!(output.status.code(), Some(2));
-    assert!(output.stderr.is_empty());
-    output.stdout
-}
-
-fn run_command<const N: usize>(args: [&str; N], extra_args: &[&std::ffi::OsStr]) -> Vec<u8> {
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .args(extra_args)
-        .output()
-        .expect("run biors");
-
-    assert!(
-        output.status.success(),
-        "stderr: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    output.stdout
 }

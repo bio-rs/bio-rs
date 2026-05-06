@@ -68,7 +68,7 @@ fn tokenized_record_sink_rejects_empty_sequence() {
 
     assert!(matches!(
         err,
-        crate::FastaReadError::Parse(crate::BioRsError::MissingSequence { id, line: 1, record_index: 0 })
+        crate::error::FastaReadError::Parse(crate::error::BioRsError::MissingSequence { id, line: 1, record_index: 0 })
         if id == "seq1"
     ));
 }
@@ -115,7 +115,7 @@ fn summary_record_sink_rejects_empty_sequence() {
 
     assert!(matches!(
         err,
-        crate::FastaReadError::Parse(crate::BioRsError::MissingSequence { id, line: 1, record_index: 0 })
+        crate::error::FastaReadError::Parse(crate::error::BioRsError::MissingSequence { id, line: 1, record_index: 0 })
         if id == "seq1"
     ));
 }

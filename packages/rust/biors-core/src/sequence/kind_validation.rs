@@ -1,3 +1,4 @@
+use crate::error::{BioRsError, FastaReadError};
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
     append_normalized_sequence, append_normalized_sequence_bytes, detect_sequence_kind,
@@ -6,7 +7,6 @@ use crate::sequence::{
     ValidatedSequenceRecord,
 };
 use crate::verification::StableInputHasher;
-use crate::{BioRsError, FastaReadError};
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 
@@ -124,7 +124,7 @@ impl FastaRecordSink for KindAwareValidatedRecordSink {
             .unwrap_or_else(|| detect_sequence_kind(&sequence));
         let record = SequenceRecord { id, sequence, kind };
         self.sequences
-            .push(crate::validate_sequence_record(&record));
+            .push(crate::sequence::validate_sequence_record(&record));
         Ok(())
     }
 }
@@ -178,7 +178,7 @@ impl FastaRecordSink for KindAwareValidationSummarySink {
             .explicit_kind()
             .unwrap_or_else(|| detect_sequence_kind(&sequence));
         let record = SequenceRecord { id, sequence, kind };
-        let validated = crate::validate_sequence_record(&record);
+        let validated = crate::sequence::validate_sequence_record(&record);
         self.summary.add_record(&validated);
         Ok(())
     }

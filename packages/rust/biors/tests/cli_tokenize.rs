@@ -3,7 +3,6 @@ use std::path::Path;
 use std::process::Command;
 
 mod common;
-use common::run_with_stdin;
 
 #[test]
 fn tokenize_multi_fasta_outputs_json_array() {
@@ -40,7 +39,7 @@ fn tokenize_multi_fasta_outputs_json_array() {
 
 #[test]
 fn tokenize_stdin_outputs_json_array() {
-    let output = run_with_stdin("tokenize", ">seq1\nACDE\n");
+    let output = common::run_biors_stdin(&["tokenize", "-"], ">seq1\nACDE\n").stdout;
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
     let records = value["data"]
         .as_array()
@@ -53,7 +52,7 @@ fn tokenize_stdin_outputs_json_array() {
 
 #[test]
 fn tokenize_preserves_unknown_token_positions() {
-    let output = run_with_stdin("tokenize", ">seq1\nAX*\n");
+    let output = common::run_biors_stdin(&["tokenize", "-"], ">seq1\nAX*\n").stdout;
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
     let record = &value["data"][0];
 
@@ -65,7 +64,7 @@ fn tokenize_preserves_unknown_token_positions() {
 
 #[test]
 fn public_behavior_snapshot_for_tokenize_stdout() {
-    let output = run_with_stdin("tokenize", ">seq1\nACDE\n");
+    let output = common::run_biors_stdin(&["tokenize", "-"], ">seq1\nACDE\n").stdout;
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
 
     assert_eq!(

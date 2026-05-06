@@ -1,21 +1,14 @@
 use crate::error::BioRsError;
+use crate::error::FastaReadError;
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
     append_normalized_sequence_bytes_to_vec, append_normalized_sequence_to_vec,
     validate_protein_sequence_owned,
 };
+use crate::sequence::{ProteinSequence, SequenceValidationReport};
 use crate::verification::StableInputHasher;
-use crate::{FastaReadError, ProteinSequence, SequenceValidationReport};
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
-
-mod kind_validation;
-
-pub use kind_validation::{
-    validate_fasta_input_with_kind, validate_fasta_reader_summary_with_kind_and_hash,
-    validate_fasta_reader_with_kind, validate_fasta_reader_with_kind_and_hash,
-    ValidatedKindAwareFastaInput, ValidatedKindAwareFastaSummaryInput,
-};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParsedFastaInput {

@@ -1,4 +1,8 @@
-use biors_core::{PaddingPolicy, ProteinTokenizerProfile, SequenceKind, SequenceKindSelection};
+use biors_core::{
+    model_input::PaddingPolicy,
+    sequence::{SequenceKind, SequenceKindSelection},
+    tokenizer::ProteinTokenizerProfile,
+};
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 use std::path::PathBuf;

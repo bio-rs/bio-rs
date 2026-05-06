@@ -1,7 +1,9 @@
-use biors_core::{
-    verify_package_outputs, FixtureObservation, ModelArtifact, ModelFormat, PackageFixture,
-    PackageManifest, RuntimeBackend, RuntimeTarget, RuntimeTargetPlatform, SchemaVersion,
-    VerificationIssueCode, VerificationStatus,
+use biors_core::package::{
+    ModelArtifact, ModelFormat, PackageFixture, PackageManifest, RuntimeBackend, RuntimeTarget,
+    RuntimeTargetPlatform, SchemaVersion,
+};
+use biors_core::verification::{
+    verify_package_outputs, FixtureObservation, VerificationIssueCode, VerificationStatus,
 };
 
 fn manifest() -> PackageManifest {
@@ -159,7 +161,7 @@ fn reports_expected_output_checksum_mismatch_before_observation_compare() {
 #[test]
 fn computes_stable_fixture_hashes() {
     assert_eq!(
-        biors_core::stable_input_hash(">seq1\nACDE\n"),
+        biors_core::verification::stable_input_hash(">seq1\nACDE\n"),
         "fnv1a64:08a331cb13c7bd72"
     );
 }

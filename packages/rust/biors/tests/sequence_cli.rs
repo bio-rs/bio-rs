@@ -1,6 +1,7 @@
 use serde_json::Value;
-use std::io::Write;
-use std::process::{Command, Output, Stdio};
+use std::process::Output;
+
+mod common;
 
 #[test]
 fn fasta_validate_kind_flag_outputs_kind_aware_report() {
@@ -60,29 +61,7 @@ fn seq_validate_kind_override_uses_kind_specific_messages() {
 }
 
 fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Output {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn biors");
-
-    child
-        .stdin
-        .as_mut()
-        .expect("stdin")
-        .write_all(input.as_bytes())
-        .expect("write stdin");
-
-    let output = child.wait_with_output().expect("wait for biors");
-    assert!(
-        output.status.success(),
-        "stderr: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    assert!(output.stderr.is_empty());
-    output
+    common::run_biors_stdin(&args, input)
 }
 
 fn assert_mixed_kind_counts(output: &Output) {

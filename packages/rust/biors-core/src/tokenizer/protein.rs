@@ -58,8 +58,8 @@ pub fn tokenize_protein_with_config(
     config: &ProteinTokenizerConfig,
 ) -> TokenizedProtein {
     let mut tokens = Vec::with_capacity(protein.sequence.len());
-    let mut warnings = Vec::new();
-    let mut errors = Vec::new();
+    let mut warnings = Vec::with_capacity(protein.sequence.len());
+    let mut errors = Vec::with_capacity(protein.sequence.len());
 
     if config.add_special_tokens {
         tokens.push(protein_special_tokens().cls.token_id);

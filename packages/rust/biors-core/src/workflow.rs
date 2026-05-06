@@ -1,8 +1,11 @@
-use crate::{
-    build_model_inputs_checked, load_protein_20_vocab, summarize_tokenized_proteins,
-    validate_model_input_policy, validate_protein_sequence, ModelInput, ModelInputBuildError,
-    ModelInputPolicy, ProteinBatchSummary, ProteinSequence, SequenceValidationReport,
-    TokenizedProtein, UnknownTokenPolicy,
+use crate::model_input::{
+    build_model_inputs_checked, validate_model_input_policy, ModelInput, ModelInputBuildError,
+    ModelInputPolicy,
+};
+use crate::sequence::{validate_protein_sequence, ProteinSequence, SequenceValidationReport};
+use crate::tokenizer::{
+    load_protein_20_vocab, summarize_tokenized_proteins, ProteinBatchSummary, TokenizedProtein,
+    UnknownTokenPolicy,
 };
 use serde::{Deserialize, Serialize};
 
@@ -120,7 +123,10 @@ pub fn prepare_protein_model_input_workflow_with_invocation(
     let validation = crate::sequence::summarize_validated_sequences(
         records.iter().map(validate_protein_sequence).collect(),
     );
-    let tokenized: Vec<_> = records.iter().map(crate::tokenize_protein).collect();
+    let tokenized: Vec<_> = records
+        .iter()
+        .map(crate::tokenizer::tokenize_protein)
+        .collect();
     let readiness_issues = readiness_issues(&tokenized);
     let model_input = if readiness_issues.is_empty() {
         Some(build_model_inputs_checked(&tokenized, policy.clone())?)
@@ -201,7 +207,7 @@ fn readiness_issues(tokenized: &[TokenizedProtein]) -> Vec<SequenceWorkflowReadi
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::PaddingPolicy;
+    use crate::model_input::PaddingPolicy;
 
     #[test]
     fn workflow_preserves_validation_tokenization_and_model_input() {
