@@ -1,4 +1,4 @@
-use super::{Command, FastaCommand, KindArg, PackageCommand, PaddingArg, SeqCommand};
+use super::{Cli, Command, FastaCommand, KindArg, PackageCommand, PaddingArg, SeqCommand};
 use crate::cli::build_doctor_report;
 use crate::errors::{classify_validation_code, classify_verification_code, CliError};
 use crate::input::{open_fasta_input, read_fixture_observations, read_package_manifest};
@@ -9,10 +9,12 @@ use biors_core::{
     validate_fasta_reader_with_kind_and_hash, validate_package_manifest_artifacts,
     verify_package_outputs_with_observation_base, ModelInputPolicy,
 };
+use clap::CommandFactory;
 use std::path::PathBuf;
 
 pub fn run(command: Command) -> Result<(), CliError> {
     match command {
+        Command::Completions { shell } => run_completions(shell),
         Command::Doctor => run_doctor(),
         Command::Fasta { command } => run_fasta_command(command),
         Command::Inspect { path } => run_inspect(path),
@@ -26,6 +28,13 @@ pub fn run(command: Command) -> Result<(), CliError> {
         Command::Seq { command } => run_seq_command(command),
         Command::Tokenize { path } => run_tokenize(path),
     }
+}
+
+fn run_completions(shell: clap_complete::Shell) -> Result<(), CliError> {
+    let mut command = Cli::command();
+    let name = command.get_name().to_string();
+    clap_complete::generate(shell, &mut command, name, &mut std::io::stdout());
+    Ok(())
 }
 
 fn run_doctor() -> Result<(), CliError> {

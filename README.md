@@ -96,6 +96,12 @@ Check local launch-readiness diagnostics:
 biors doctor
 ```
 
+Generate shell completions:
+
+```bash
+biors completions zsh > _biors
+```
+
 ## Proof
 
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
@@ -300,6 +306,7 @@ Public contract docs:
 
 - [Quickstart](docs/quickstart.md)
 - [Launch demo](docs/demo.md)
+- [Installation and distribution](docs/install.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)

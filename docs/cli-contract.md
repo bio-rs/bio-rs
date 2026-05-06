@@ -5,6 +5,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 ## Commands
 
 - `biors --version`
+- `biors completions <bash|elvish|fish|powershell|zsh>`
 - `biors doctor`
 - `biors tokenize <path|->`
 - `biors inspect <path|->`
@@ -19,6 +20,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
+`biors completions <shell>` writes shell completion scripts to stdout.
 `biors doctor` emits local readiness diagnostics for platform identity,
 available Rust/Cargo toolchains, optional WASM target support, and committed
 demo/package fixtures.

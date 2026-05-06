@@ -39,6 +39,7 @@ fn help_snapshot_lists_commands_and_global_json_flag() {
         "Usage: biors [OPTIONS] <COMMAND>",
         "--json",
         "doctor",
+        "completions",
         "fasta",
         "inspect",
         "model-input",
@@ -48,6 +49,22 @@ fn help_snapshot_lists_commands_and_global_json_flag() {
     ] {
         assert!(stdout.contains(expected), "help output missing {expected}");
     }
+}
+
+#[test]
+fn completions_command_outputs_shell_script() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("completions")
+        .arg("bash")
+        .output()
+        .expect("run biors completions");
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+
+    let stdout = String::from_utf8(output.stdout).expect("completion output is UTF-8");
+    assert!(stdout.contains("_biors"));
+    assert!(stdout.contains("COMPREPLY"));
 }
 
 #[test]

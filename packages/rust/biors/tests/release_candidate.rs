@@ -52,6 +52,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
         "CITATION.cff",
         "docs/quickstart.md",
         "docs/demo.md",
+        "docs/install.md",
         "docs/cli-contract.md",
         "docs/error-codes.md",
         "docs/reliability.md",
@@ -70,6 +71,7 @@ fn release_candidate_documentation_surfaces_are_present_and_linked() {
     for link in [
         "docs/quickstart.md",
         "docs/demo.md",
+        "docs/install.md",
         "docs/cli-contract.md",
         "docs/error-codes.md",
         "docs/reliability.md",

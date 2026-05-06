@@ -1,5 +1,6 @@
 use biors_core::{PaddingPolicy, SequenceKind, SequenceKindSelection};
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
@@ -15,6 +16,10 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    Completions {
+        #[arg(value_enum)]
+        shell: Shell,
+    },
     Doctor,
     Fasta {
         #[command(subcommand)]

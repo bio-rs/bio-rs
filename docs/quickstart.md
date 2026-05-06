@@ -17,6 +17,12 @@ When working inside a source checkout, replace `biors` with
 `biors doctor` reports local platform, Rust/Cargo availability, optional WASM
 target readiness, and whether the committed demo/package fixtures are present.
 
+Generate shell completions from the installed binary:
+
+```bash
+biors completions zsh > _biors
+```
+
 ## Validate FASTA
 
 ```bash
