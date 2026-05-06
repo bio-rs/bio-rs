@@ -117,8 +117,8 @@ Current capabilities:
   readiness issues, and reproducibility provenance
 - workflow provenance hashes for tokenizer vocabulary and output-content
   reproducibility
-- `batch validate` for multiple files, directory inputs, quoted glob inputs,
-  and memory-bounded validation summaries
+- `batch validate` for multiple files, recursive directory inputs, quoted glob
+  inputs, empty-glob errors, and memory-bounded validation summaries
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders

@@ -27,6 +27,11 @@ Sequence validation warnings and errors are reported inside successful FASTA or
 - `model_input.invalid_sequence`: a tokenized sequence still contains warnings or errors and cannot be emitted as model-ready input safely
 - `model_input.invalid_policy`: model input policy values are invalid, such as `max_length=0`
 
+## Batch
+
+- `batch.no_inputs`: batch validation did not resolve any FASTA files from the provided paths, directories, or glob patterns
+- `batch.invalid_glob`: a glob pattern could not be interpreted as a UTF-8 file pattern
+
 ## I/O
 
 - `io.read_failed`: input path or stdin could not be read
@@ -55,6 +60,7 @@ parsing the human-readable `issue` field.
 
 - `fasta.*`: sequence file envelope and record parsing errors
 - sequence issue codes: per-record biological sequence validation diagnostics
+- `batch.*`: batch input expansion failures
 - `json.*`: machine-readable input or output failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures

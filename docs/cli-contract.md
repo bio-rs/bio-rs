@@ -34,9 +34,10 @@ benchmark records can be tied back to the exact released binary.
 available Rust/Cargo toolchains, optional WASM target support, and committed
 demo/package fixtures.
 `batch validate` accepts multiple file paths, directories, and quoted glob
-patterns. Directory inputs include common FASTA file extensions and ignore
-unrelated files. It emits memory-bounded per-file validation summaries and a
-batch summary without retaining per-record validation payloads.
+patterns. Directory inputs recurse into nested folders, include common FASTA
+file extensions, and ignore unrelated files. Empty glob expansion fails with
+`batch.no_inputs`. The command emits memory-bounded per-file validation
+summaries and a batch summary without retaining per-record validation payloads.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.

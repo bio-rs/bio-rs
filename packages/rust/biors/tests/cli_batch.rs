@@ -80,6 +80,53 @@ fn batch_validate_expands_directories_and_quoted_globs() {
     );
 }
 
+#[test]
+fn batch_validate_recurses_directories_and_reports_empty_globs() {
+    let temp = TempDir::new("biors-batch-recursive");
+    temp.write("root.fasta", ">root\nACGN\n");
+    fs::create_dir_all(temp.path().join("nested/deeper")).expect("create nested dir");
+    fs::write(
+        temp.path().join("nested/deeper/protein.faa"),
+        ">protein\nMEEPQSDPSV\n",
+    )
+    .expect("write nested FASTA");
+    fs::write(temp.path().join("nested/notes.txt"), "not fasta\n").expect("write notes");
+
+    let dir_output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("batch")
+        .arg("validate")
+        .arg("--kind")
+        .arg("auto")
+        .arg(temp.path())
+        .output()
+        .expect("run recursive biors batch validate");
+
+    assert!(
+        dir_output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&dir_output.stderr)
+    );
+    let dir_value: Value = serde_json::from_slice(&dir_output.stdout).expect("valid JSON output");
+    assert_eq!(dir_value["data"]["summary"]["files"], 2);
+    assert_eq!(dir_value["data"]["summary"]["records"], 2);
+
+    let missing_glob = temp.path().join("*.missing").display().to_string();
+    let glob_output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("batch")
+        .arg("validate")
+        .arg("--kind")
+        .arg("auto")
+        .arg(missing_glob)
+        .output()
+        .expect("run empty-glob biors batch validate");
+
+    assert_eq!(glob_output.status.code(), Some(2));
+    assert!(glob_output.stderr.is_empty());
+    let error: Value = serde_json::from_slice(&glob_output.stdout).expect("valid JSON error");
+    assert_eq!(error["error"]["code"], "batch.no_inputs");
+}
+
 struct TempDir {
     path: PathBuf,
 }

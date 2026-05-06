@@ -92,6 +92,12 @@ fn expand_batch_inputs(inputs: &[PathBuf]) -> Result<Vec<PathBuf>, CliError> {
 
 fn expand_directory(path: &Path) -> Result<Vec<PathBuf>, CliError> {
     let mut files = Vec::new();
+    collect_fasta_files(path, &mut files)?;
+    files.sort_by_key(|path| path.display().to_string());
+    Ok(files)
+}
+
+fn collect_fasta_files(path: &Path, files: &mut Vec<PathBuf>) -> Result<(), CliError> {
     for entry in fs::read_dir(path).map_err(|source| CliError::Read {
         path: path.to_path_buf(),
         source,
@@ -105,12 +111,13 @@ fn expand_directory(path: &Path) -> Result<Vec<PathBuf>, CliError> {
             path: entry_path.clone(),
             source,
         })?;
-        if file_type.is_file() && is_fasta_path(&entry_path) {
+        if file_type.is_dir() {
+            collect_fasta_files(&entry_path, files)?;
+        } else if file_type.is_file() && is_fasta_path(&entry_path) {
             files.push(entry_path);
         }
     }
-    files.sort_by_key(|path| path.display().to_string());
-    Ok(files)
+    Ok(())
 }
 
 fn expand_glob(pattern: &Path) -> Result<Vec<PathBuf>, CliError> {

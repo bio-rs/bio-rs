@@ -15,8 +15,8 @@ All notable public behavior changes for bio-rs are recorded here.
 - Added workflow provenance for resolved CLI invocation arguments, tokenizer
   vocabulary SHA-256, and workflow output-content SHA-256.
 - Added `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
-  for multiple input files, directory expansion, quoted glob input, and
-  memory-bounded validation summaries.
+  for multiple input files, recursive directory expansion, quoted glob input,
+  empty-glob `batch.no_inputs` errors, and memory-bounded validation summaries.
 - Added `schemas/batch-validation-output.v0.json` for the batch validation data
   payload and `schemas/tokenizer-inspect-output.v0.json` for tokenizer
   inspection output.
