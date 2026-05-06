@@ -107,7 +107,7 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "biors"
-version = "0.15.1"
+version = "0.15.2"
 dependencies = [
  "biors-core",
  "clap",
@@ -118,7 +118,7 @@ dependencies = [
 
 [[package]]
 name = "biors-core"
-version = "0.15.1"
+version = "0.15.2"
 dependencies = [
  "criterion",
  "serde",
