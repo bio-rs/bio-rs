@@ -1,11 +1,10 @@
 use serde_json::Value;
 
 mod common;
-use common::run_with_stdin;
 
 #[test]
 fn inspect_stdin_outputs_json_summary() {
-    let output = run_with_stdin("inspect", ">seq1\nACX\n>seq2\nM*\n");
+    let output = common::run_biors_stdin(&["inspect", "-"], ">seq1\nACX\n>seq2\nM*\n").stdout;
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");
 
     assert_eq!(value["data"]["records"], 2);

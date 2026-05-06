@@ -1,4 +1,6 @@
-use biors_core::{parse_fasta_records, tokenize_fasta_records, BioRsError};
+use biors_core::error::BioRsError;
+use biors_core::fasta::parse_fasta_records;
+use biors_core::tokenizer::tokenize_fasta_records;
 use std::path::Path;
 
 #[test]

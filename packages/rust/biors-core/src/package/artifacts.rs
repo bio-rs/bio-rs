@@ -103,7 +103,7 @@ pub fn validate_package_manifest_artifacts(
 }
 
 /// Resolve a package-relative path under a package base directory without validation.
-pub fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
+pub(crate) fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
     base_dir.join(relative_path)
 }
 
@@ -130,7 +130,9 @@ pub fn read_package_file(
 }
 
 /// Validate that an asset path is relative and cannot escape the package root.
-pub fn validate_package_relative_path(relative_path: &str) -> Result<(), PackageArtifactError> {
+pub(crate) fn validate_package_relative_path(
+    relative_path: &str,
+) -> Result<(), PackageArtifactError> {
     let path = Path::new(relative_path);
     if relative_path.trim().is_empty() {
         return Err(PackageArtifactError::EmptyPath);

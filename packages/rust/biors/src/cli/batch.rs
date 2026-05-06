@@ -2,10 +2,8 @@ use super::{BatchCommand, KindArg};
 use crate::errors::CliError;
 use crate::input::open_fasta_input;
 use crate::output::print_success;
-use biors_core::{
-    validate_fasta_reader_summary_with_kind_and_hash, KindAwareSequenceValidationSummary,
-    SequenceKindCounts,
-};
+use biors_core::sequence::kind_validation::validate_fasta_reader_summary_with_kind_and_hash;
+use biors_core::sequence::{KindAwareSequenceValidationSummary, SequenceKindCounts};
 use serde::Serialize;
 use std::collections::BTreeSet;
 use std::fs;
@@ -182,30 +180,26 @@ fn is_fasta_path(path: &Path) -> bool {
 fn wildcard_matches(pattern: &str, text: &str) -> bool {
     let pattern: Vec<char> = pattern.chars().collect();
     let text: Vec<char> = text.chars().collect();
-    let mut matches = vec![vec![false; text.len() + 1]; pattern.len() + 1];
-    matches[0][0] = true;
+    let mut prev = vec![false; text.len() + 1];
+    let mut curr = vec![false; text.len() + 1];
+
+    prev[0] = true;
 
     for pattern_index in 1..=pattern.len() {
-        if pattern[pattern_index - 1] == '*' {
-            matches[pattern_index][0] = matches[pattern_index - 1][0];
-        }
-    }
+        curr[0] = prev[0] && pattern[pattern_index - 1] == '*';
 
-    for pattern_index in 1..=pattern.len() {
         for text_index in 1..=text.len() {
-            matches[pattern_index][text_index] = match pattern[pattern_index - 1] {
-                '*' => {
-                    matches[pattern_index - 1][text_index] || matches[pattern_index][text_index - 1]
-                }
-                '?' => matches[pattern_index - 1][text_index - 1],
-                literal => {
-                    literal == text[text_index - 1] && matches[pattern_index - 1][text_index - 1]
-                }
+            curr[text_index] = match pattern[pattern_index - 1] {
+                '*' => prev[text_index] || curr[text_index - 1],
+                '?' => prev[text_index - 1],
+                literal => literal == text[text_index - 1] && prev[text_index - 1],
             };
         }
+
+        std::mem::swap(&mut prev, &mut curr);
     }
 
-    matches[pattern.len()][text.len()]
+    prev[text.len()]
 }
 
 impl BatchValidationSummary {

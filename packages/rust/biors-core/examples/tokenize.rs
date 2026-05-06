@@ -1,4 +1,4 @@
-use biors_core::{summarize_tokenized_proteins, tokenize_fasta_records};
+use biors_core::tokenizer::{summarize_tokenized_proteins, tokenize_fasta_records};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tokenized = tokenize_fasta_records(">seq1\nACDE\n")?;

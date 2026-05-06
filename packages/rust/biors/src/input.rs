@@ -1,5 +1,7 @@
 use crate::errors::CliError;
-use biors_core::{FixtureObservation, PackageManifest, ProteinTokenizerConfig};
+use biors_core::{
+    package::PackageManifest, tokenizer::ProteinTokenizerConfig, verification::FixtureObservation,
+};
 use std::fs;
 use std::io::{self, BufRead, BufReader, Read};
 use std::path::PathBuf;

@@ -1,7 +1,5 @@
-use biors_core::{
-    parse_fasta_records, parse_fasta_records_reader, tokenize_fasta_records,
-    tokenize_fasta_records_reader,
-};
+use biors_core::fasta::{parse_fasta_records, parse_fasta_records_reader};
+use biors_core::tokenizer::{tokenize_fasta_records, tokenize_fasta_records_reader};
 use std::io::Cursor;
 
 #[test]

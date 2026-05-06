@@ -1,7 +1,8 @@
-use biors_core::{
+use biors_core::sequence::ProteinSequence;
+use biors_core::tokenizer::{
     inspect_protein_tokenizer_config, load_protein_tokenizer_config_json,
     protein_tokenizer_config_for_profile, tokenize_fasta_records_reader_with_config,
-    tokenize_protein_with_config, ProteinSequence, ProteinTokenizerProfile,
+    tokenize_protein_with_config, ProteinTokenizerProfile,
 };
 use std::io::Cursor;
 

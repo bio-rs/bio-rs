@@ -1,7 +1,7 @@
-use biors_core::{
-    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest,
-    validate_package_relative_path, ModelFormat, PackageManifest, PackageValidationIssueCode,
-    RuntimeBackend, RuntimeTargetPlatform, SchemaVersion,
+use biors_core::package::{
+    inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, ModelFormat,
+    PackageManifest, PackageValidationIssueCode, RuntimeBackend, RuntimeTargetPlatform,
+    SchemaVersion,
 };
 use std::path::Path;
 
@@ -102,8 +102,10 @@ fn rejects_invalid_checksum_format() {
     let mut manifest = valid_manifest();
     manifest.model.checksum = Some("draft-model-checksum".to_string());
 
-    let report =
-        biors_core::validate_package_manifest_artifacts(&manifest, std::path::Path::new("."));
+    let report = biors_core::package::validate_package_manifest_artifacts(
+        &manifest,
+        std::path::Path::new("."),
+    );
 
     assert!(!report.valid);
     assert!(report
@@ -123,7 +125,8 @@ fn rejects_checksum_mismatch_against_real_artifact() {
     manifest.model.checksum =
         Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string());
 
-    let report = biors_core::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
 
     assert!(!report.valid);
     assert!(report
@@ -142,7 +145,8 @@ fn rejects_missing_manifest_relative_artifact() {
     let mut manifest = example_manifest();
     manifest.vocab.as_mut().expect("vocab").path = "vocabs/missing.json".to_string();
 
-    let report = biors_core::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
 
     assert!(!report.valid);
     assert!(report
@@ -153,14 +157,11 @@ fn rejects_missing_manifest_relative_artifact() {
 
 #[test]
 fn rejects_asset_paths_outside_package_root() {
-    assert!(validate_package_relative_path("fixtures/tiny.fasta").is_ok());
-    assert!(validate_package_relative_path("../outside.fasta").is_err());
-    assert!(validate_package_relative_path("/tmp/outside.fasta").is_err());
-
     let mut manifest = example_manifest();
     manifest.fixtures[0].input = "../outside.fasta".to_string();
 
-    let report = biors_core::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
 
     assert!(!report.valid);
     assert!(report

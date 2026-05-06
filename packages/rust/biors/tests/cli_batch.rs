@@ -1,7 +1,9 @@
 use serde_json::Value;
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::process::Command;
+
+mod common;
+use common::TempDir;
 
 #[test]
 fn batch_validate_accepts_multiple_input_files() {
@@ -125,39 +127,4 @@ fn batch_validate_recurses_directories_and_reports_empty_globs() {
     assert!(glob_output.stderr.is_empty());
     let error: Value = serde_json::from_slice(&glob_output.stdout).expect("valid JSON error");
     assert_eq!(error["error"]["code"], "batch.no_inputs");
-}
-
-struct TempDir {
-    path: PathBuf,
-}
-
-impl TempDir {
-    fn new(name: &str) -> Self {
-        let path = std::env::temp_dir().join(format!(
-            "{name}-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("system time")
-                .as_nanos()
-        ));
-        fs::create_dir_all(&path).expect("create temp dir");
-        Self { path }
-    }
-
-    fn path(&self) -> &Path {
-        &self.path
-    }
-
-    fn write(&self, name: &str, contents: &str) -> PathBuf {
-        let path = self.path.join(name);
-        fs::write(&path, contents).expect("write temp FASTA");
-        path
-    }
-}
-
-impl Drop for TempDir {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
-    }
 }

@@ -1,10 +1,8 @@
 use serde_json::Value;
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::path::Path;
 
 mod common;
-use common::ChildInputExt;
+use common::{ChildInputExt, TempDir};
 
 #[test]
 fn diff_reports_canonical_json_matches_and_mismatches() {
@@ -40,17 +38,8 @@ fn diff_reports_canonical_json_matches_and_mismatches() {
 
 #[test]
 fn pipeline_outputs_validate_tokenize_export_chain_without_config() {
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .arg("pipeline")
-        .arg("--max-length")
-        .arg("6")
-        .arg("-")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn biors pipeline")
-        .tap_stdin(">seq1\nACDE\n");
+    let output =
+        common::spawn_biors(&["pipeline", "--max-length", "6", "-"]).tap_stdin(">seq1\nACDE\n");
 
     assert!(
         output.status.success(),
@@ -73,17 +62,7 @@ fn pipeline_outputs_validate_tokenize_export_chain_without_config() {
 
 #[test]
 fn debug_outputs_step_by_step_tokens_model_input_and_error_visualization() {
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .arg("debug")
-        .arg("--max-length")
-        .arg("6")
-        .arg("-")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn biors debug")
-        .tap_stdin(">bad\nAX*\n");
+    let output = common::spawn_biors(&["debug", "--max-length", "6", "-"]).tap_stdin(">bad\nAX*\n");
 
     assert!(
         output.status.success(),
@@ -108,47 +87,6 @@ fn debug_outputs_step_by_step_tokens_model_input_and_error_visualization() {
 }
 
 fn run_biors(args: &[&str], paths: &[&Path]) -> Value {
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .args(paths)
-        .output()
-        .expect("run biors command");
-
-    assert!(
-        output.status.success(),
-        "stderr: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+    let output = common::run_biors_paths(args, paths);
     serde_json::from_slice(&output.stdout).expect("valid JSON")
-}
-
-struct TempDir {
-    path: PathBuf,
-}
-
-impl TempDir {
-    fn new(name: &str) -> Self {
-        let path = std::env::temp_dir().join(format!(
-            "{name}-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("system time")
-                .as_nanos()
-        ));
-        fs::create_dir_all(&path).expect("create temp dir");
-        Self { path }
-    }
-
-    fn write(&self, name: &str, contents: &str) -> PathBuf {
-        let path = self.path.join(name);
-        fs::write(&path, contents).expect("write temp file");
-        path
-    }
-}
-
-impl Drop for TempDir {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
-    }
 }

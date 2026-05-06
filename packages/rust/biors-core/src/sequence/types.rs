@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::kind::SequenceKind;
-use crate::Diagnostic;
+use crate::error::Diagnostic;
 
 mod serde_bytes_as_str {
     use serde::{Deserialize, Deserializer, Serializer};

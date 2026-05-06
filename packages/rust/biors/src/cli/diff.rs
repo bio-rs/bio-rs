@@ -1,6 +1,6 @@
 use crate::errors::CliError;
 use crate::output::print_success;
-use biors_core::diff_output_bytes;
+use biors_core::verification::diff_output_bytes;
 use std::fs;
 use std::path::PathBuf;
 

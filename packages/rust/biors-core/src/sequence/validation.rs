@@ -13,8 +13,8 @@ pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence
 }
 
 pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> ValidatedSequence {
-    let mut warnings = Vec::new();
-    let mut errors = Vec::new();
+    let mut warnings = Vec::with_capacity(sequence.len());
+    let mut errors = Vec::with_capacity(sequence.len());
 
     if sequence.is_ascii() {
         for (index, byte) in sequence.iter().enumerate() {
@@ -30,8 +30,8 @@ pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> 
         }
     }
 
-    let normalized_sequence = String::from_utf8(sequence.clone())
-        .unwrap_or_else(|_| String::from_utf8_lossy(&sequence).into_owned());
+    let normalized_sequence = String::from_utf8(sequence)
+        .unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
 
     ValidatedSequence {
         id,

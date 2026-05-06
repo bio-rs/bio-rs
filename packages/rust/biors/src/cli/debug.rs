@@ -1,7 +1,10 @@
 use super::{workflow::workflow_output, PaddingArg};
 use crate::errors::CliError;
 use crate::output::print_success;
-use biors_core::{ModelInputRecord, SequenceWorkflowOutput, TokenizedProtein, ValidatedSequence};
+use biors_core::{
+    model_input::ModelInputRecord, sequence::ValidatedSequence, tokenizer::TokenizedProtein,
+    workflow::SequenceWorkflowOutput,
+};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::path::PathBuf;

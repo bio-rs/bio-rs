@@ -1,7 +1,6 @@
-use biors_core::{
-    build_model_inputs_checked, load_protein_tokenizer_config_json, tokenize_protein_with_config,
-    ModelInputPolicy, PaddingPolicy, ProteinSequence,
-};
+use biors_core::model_input::{build_model_inputs_checked, ModelInputPolicy, PaddingPolicy};
+use biors_core::sequence::ProteinSequence;
+use biors_core::tokenizer::{load_protein_tokenizer_config_json, tokenize_protein_with_config};
 use serde_json::Value;
 use std::fs;
 use std::path::Path;

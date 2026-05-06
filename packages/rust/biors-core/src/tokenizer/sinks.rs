@@ -4,9 +4,9 @@ use super::lookup::{
     push_tokenized_residue, push_tokenized_residue_byte,
 };
 use super::{ProteinBatchSummary, ProteinTokenizerConfig, TokenizedProtein};
+use crate::error::BioRsError;
 use crate::fasta_scan::FastaRecordSink;
 use crate::sequence::{is_ambiguous_residue, normalized_residues, ResidueIssue};
-use crate::BioRsError;
 
 #[derive(Default)]
 pub(super) struct TokenizedRecordSink {

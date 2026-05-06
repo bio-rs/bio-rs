@@ -1,7 +1,7 @@
-use biors_core::{
-    prepare_protein_model_input_workflow, tokenize_protein, validate_protein_sequence,
-    ModelInputPolicy, PaddingPolicy, ProteinSequence,
-};
+use biors_core::model_input::{ModelInputPolicy, PaddingPolicy};
+use biors_core::sequence::{validate_protein_sequence, ProteinSequence};
+use biors_core::tokenizer::tokenize_protein;
+use biors_core::workflow::prepare_protein_model_input_workflow;
 
 #[test]
 fn public_sequence_apis_do_not_panic_on_invalid_utf8_bytes() {

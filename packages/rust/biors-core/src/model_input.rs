@@ -1,4 +1,4 @@
-use crate::TokenizedProtein;
+use crate::tokenizer::TokenizedProtein;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -77,15 +77,6 @@ pub fn build_model_inputs_unchecked(
     ModelInput { policy, records }
 }
 
-#[deprecated(
-    since = "0.9.7",
-    note = "use build_model_inputs_checked for safe output or build_model_inputs_unchecked when unresolved residues are intentional"
-)]
-/// Deprecated unchecked model-input builder retained for pre-1.0 compatibility.
-pub fn build_model_inputs(tokenized: &[TokenizedProtein], policy: ModelInputPolicy) -> ModelInput {
-    build_model_inputs_unchecked(tokenized, policy)
-}
-
 /// Build model input after rejecting invalid policies and unresolved residue issues.
 pub fn build_model_inputs_checked(
     tokenized: &[TokenizedProtein],
@@ -121,20 +112,14 @@ fn model_input_from_tokenized(
     tokenized: &TokenizedProtein,
     policy: &ModelInputPolicy,
 ) -> ModelInputRecord {
-    let mut input_ids: Vec<u8> = tokenized
-        .tokens
-        .iter()
-        .copied()
-        .take(policy.max_length)
-        .collect();
+    let end = tokenized.tokens.len().min(policy.max_length);
+    let mut input_ids = tokenized.tokens[..end].to_vec();
     let mut attention_mask = vec![1; input_ids.len()];
     let truncated = tokenized.tokens.len() > policy.max_length;
 
     if policy.padding == PaddingPolicy::FixedLength {
-        while input_ids.len() < policy.max_length {
-            input_ids.push(policy.pad_token_id);
-            attention_mask.push(0);
-        }
+        input_ids.resize(policy.max_length, policy.pad_token_id);
+        attention_mask.resize(policy.max_length, 0);
     }
 
     ModelInputRecord {

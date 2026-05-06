@@ -1,6 +1,6 @@
+use crate::error::BioRsError;
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str};
 use crate::verification::StableInputHasher;
-use crate::BioRsError;
 use std::io::BufRead;
 
 mod config;
@@ -34,7 +34,7 @@ pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioR
 /// Tokenize FASTA records from a buffered reader and include a stable input hash.
 pub fn tokenize_fasta_records_reader<R: BufRead>(
     reader: R,
-) -> Result<TokenizedFastaInput, crate::FastaReadError> {
+) -> Result<TokenizedFastaInput, crate::error::FastaReadError> {
     tokenize_fasta_records_reader_with_config(
         reader,
         &ProteinTokenizerConfig {
@@ -48,7 +48,7 @@ pub fn tokenize_fasta_records_reader<R: BufRead>(
 pub fn tokenize_fasta_records_reader_with_config<R: BufRead>(
     reader: R,
     config: &ProteinTokenizerConfig,
-) -> Result<TokenizedFastaInput, crate::FastaReadError> {
+) -> Result<TokenizedFastaInput, crate::error::FastaReadError> {
     let mut sink = TokenizedRecordSink::default();
     sink.set_config(config.clone());
     let mut hasher = StableInputHasher::new();
@@ -62,7 +62,7 @@ pub fn tokenize_fasta_records_reader_with_config<R: BufRead>(
 /// Summarize FASTA records from a buffered reader without materializing token vectors.
 pub fn summarize_fasta_records_reader<R: BufRead>(
     reader: R,
-) -> Result<SummarizedFastaInput, crate::FastaReadError> {
+) -> Result<SummarizedFastaInput, crate::error::FastaReadError> {
     let mut sink = SummaryRecordSink::default();
     let mut hasher = StableInputHasher::new();
     scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;

@@ -1,7 +1,8 @@
 use serde_json::Value;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+
+mod common;
 
 #[test]
 fn full_workflow_e2e_covers_researcher_cli_path() {
@@ -285,16 +286,6 @@ fn repo_root() -> PathBuf {
 }
 
 fn run_biors(args: &[&str], paths: &[&Path]) -> Value {
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .args(paths)
-        .output()
-        .expect("run biors command");
-
-    assert!(
-        output.status.success(),
-        "stderr: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+    let output = common::run_biors_paths(args, paths);
     serde_json::from_slice(&output.stdout).expect("valid JSON")
 }

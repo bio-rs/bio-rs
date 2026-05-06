@@ -1,7 +1,6 @@
-use biors_core::{
-    parse_fasta_records_reader, summarize_fasta_records_reader, tokenize_fasta_records_reader,
-    FastaReadError,
-};
+use biors_core::error::FastaReadError;
+use biors_core::fasta::parse_fasta_records_reader;
+use biors_core::tokenizer::{summarize_fasta_records_reader, tokenize_fasta_records_reader};
 use serde::Serialize;
 use std::env;
 use std::fs::File;

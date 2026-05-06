@@ -1,7 +1,7 @@
 use super::{workflow::workflow_output, PaddingArg};
 use crate::errors::CliError;
 use crate::output::print_success;
-use biors_core::SequenceWorkflowOutput;
+use biors_core::workflow::SequenceWorkflowOutput;
 use serde::Serialize;
 use std::path::PathBuf;
 
