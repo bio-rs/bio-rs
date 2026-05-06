@@ -90,9 +90,10 @@ as `ambiguous_symbol` and `invalid_symbol` plus human-readable messages.
 
 Workflow payloads use `schemas/sequence-workflow-output.v0.json`. The
 provenance section records the `biors-core` version, input hash, normalization
-policy, validation alphabet, tokenizer metadata, and model-input policy used to
-produce the output. Raw command argument capture and output/vocabulary hashes
-belong to the stronger reproducibility layer.
+policy, validation alphabet, tokenizer metadata, model-input policy, resolved
+CLI invocation arguments, vocabulary SHA-256, and output-content SHA-256. The
+output-content digest covers the workflow payload excluding the hash values
+themselves.
 
 Batch validation payloads use `schemas/batch-validation-output.v0.json` and
 include `inputs`, aggregate `summary`, and a deterministic `files` list with

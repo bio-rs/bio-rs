@@ -62,6 +62,8 @@ pub use verification::{
     PackageVerificationReport, StableInputHasher, VerificationIssueCode, VerificationStatus,
 };
 pub use workflow::{
-    prepare_protein_model_input_workflow, SequenceWorkflowOutput, SequenceWorkflowProvenance,
-    SequenceWorkflowReadinessIssue, TokenizationWorkflowOutput, WorkflowTokenizerMetadata,
+    prepare_protein_model_input_workflow, prepare_protein_model_input_workflow_with_invocation,
+    SequenceWorkflowHashes, SequenceWorkflowInvocation, SequenceWorkflowOutput,
+    SequenceWorkflowProvenance, SequenceWorkflowReadinessIssue, TokenizationWorkflowOutput,
+    WorkflowTokenizerMetadata,
 };

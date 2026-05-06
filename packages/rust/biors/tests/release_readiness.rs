@@ -51,6 +51,16 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
     assert_eq!(workflow["data"]["validation"]["records"], 1);
     assert_eq!(workflow["data"]["tokenization"]["summary"]["records"], 1);
     assert_eq!(workflow["data"]["model_input"]["policy"]["max_length"], 8);
+    assert_eq!(
+        workflow["data"]["provenance"]["invocation"]["command"],
+        "biors workflow"
+    );
+    assert!(
+        workflow["data"]["provenance"]["hashes"]["output_data_sha256"]
+            .as_str()
+            .expect("workflow output hash")
+            .starts_with("sha256:")
+    );
 
     let examples = repo.join("examples");
     let batch = run_biors(&["batch", "validate", "--kind", "auto"], &[&examples]);

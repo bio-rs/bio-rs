@@ -6,6 +6,10 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+mod reproducibility;
+use reproducibility::{workflow_hashes, CORE_WORKFLOW_COMMAND};
+pub use reproducibility::{SequenceWorkflowHashes, SequenceWorkflowInvocation};
+
 const WORKFLOW_NAME: &str = "protein_model_input.v0";
 const NORMALIZATION_POLICY: &str = "strip_ascii_whitespace_uppercase";
 const READINESS_ISSUE_CODE: &str = "sequence.not_model_ready";
@@ -34,6 +38,8 @@ pub struct SequenceWorkflowOutput {
 pub struct SequenceWorkflowProvenance {
     /// bio-rs core version used for preprocessing.
     pub biors_core_version: String,
+    /// Command or API entrypoint and resolved arguments used for this run.
+    pub invocation: SequenceWorkflowInvocation,
     /// Stable hash of the exact input bytes.
     pub input_hash: String,
     /// Normalization policy applied before validation and tokenization.
@@ -44,6 +50,8 @@ pub struct SequenceWorkflowProvenance {
     pub tokenizer: WorkflowTokenizerMetadata,
     /// Model-input policy used to build arrays.
     pub model_input_policy: ModelInputPolicy,
+    /// Content hashes that make workflow outputs easier to reproduce.
+    pub hashes: SequenceWorkflowHashes,
 }
 
 /// Tokenizer metadata included in workflow provenance.
@@ -89,6 +97,24 @@ pub fn prepare_protein_model_input_workflow(
     records: &[ProteinSequence],
     policy: ModelInputPolicy,
 ) -> Result<SequenceWorkflowOutput, ModelInputBuildError> {
+    prepare_protein_model_input_workflow_with_invocation(
+        input_hash,
+        records,
+        policy,
+        SequenceWorkflowInvocation {
+            command: CORE_WORKFLOW_COMMAND.to_string(),
+            arguments: Vec::new(),
+        },
+    )
+}
+
+/// Build the stable workflow and capture a command/API invocation in provenance.
+pub fn prepare_protein_model_input_workflow_with_invocation(
+    input_hash: String,
+    records: &[ProteinSequence],
+    policy: ModelInputPolicy,
+    invocation: SequenceWorkflowInvocation,
+) -> Result<SequenceWorkflowOutput, ModelInputBuildError> {
     validate_model_input_policy(&policy)?;
 
     let validation = crate::sequence::summarize_validated_sequences(
@@ -105,11 +131,21 @@ pub fn prepare_protein_model_input_workflow(
         summary: summarize_tokenized_proteins(&tokenized),
         records: tokenized,
     };
+    let model_ready = readiness_issues.is_empty();
+    let hashes = workflow_hashes(
+        input_hash.as_str(),
+        &policy,
+        &invocation,
+        &validation,
+        &tokenization,
+        &model_input,
+        &readiness_issues,
+    );
 
     Ok(SequenceWorkflowOutput {
         workflow: WORKFLOW_NAME.to_string(),
-        model_ready: readiness_issues.is_empty(),
-        provenance: provenance(input_hash, policy),
+        model_ready,
+        provenance: provenance(input_hash, policy, invocation, hashes),
         validation,
         tokenization,
         model_input,
@@ -117,10 +153,16 @@ pub fn prepare_protein_model_input_workflow(
     })
 }
 
-fn provenance(input_hash: String, policy: ModelInputPolicy) -> SequenceWorkflowProvenance {
+fn provenance(
+    input_hash: String,
+    policy: ModelInputPolicy,
+    invocation: SequenceWorkflowInvocation,
+    hashes: SequenceWorkflowHashes,
+) -> SequenceWorkflowProvenance {
     let vocab = load_protein_20_vocab();
     SequenceWorkflowProvenance {
         biors_core_version: env!("CARGO_PKG_VERSION").to_string(),
+        invocation,
         input_hash,
         normalization: NORMALIZATION_POLICY.to_string(),
         validation_alphabet: vocab.name.clone(),
@@ -131,6 +173,7 @@ fn provenance(input_hash: String, policy: ModelInputPolicy) -> SequenceWorkflowP
             unknown_token_policy: vocab.unknown_token_policy.clone(),
         },
         model_input_policy: policy,
+        hashes,
     }
 }
 
@@ -184,6 +227,17 @@ mod tests {
             output.model_input.expect("model input").records[0].input_ids,
             vec![0, 1, 2, 3, 0, 0]
         );
+        assert_eq!(output.provenance.invocation.command, CORE_WORKFLOW_COMMAND);
+        assert!(output
+            .provenance
+            .hashes
+            .vocabulary_sha256
+            .starts_with("sha256:"));
+        assert!(output
+            .provenance
+            .hashes
+            .output_data_sha256
+            .starts_with("sha256:"));
         assert!(output.readiness_issues.is_empty());
     }
 

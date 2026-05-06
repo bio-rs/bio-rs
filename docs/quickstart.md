@@ -128,7 +128,8 @@ deterministic `protein-20` tokenization, model-input generation, readiness
 issues, and reproducibility provenance. If a sequence has unresolved warnings
 or errors, the command keeps validation and tokenization context in the JSON
 payload and sets `model_ready` to `false` instead of silently producing partial
-model input.
+model input. Provenance also records the resolved CLI invocation, tokenizer
+vocabulary SHA-256, and output-content SHA-256 for repeatable runs.
 
 ## Validate Batches
 

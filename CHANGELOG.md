@@ -12,6 +12,8 @@ All notable public behavior changes for bio-rs are recorded here.
   `biors tokenizer inspect` for machine-readable token/profile inspection.
 - Added draft model-input contract fixtures plus a dependency-free reference
   Python preprocessing parity fixture.
+- Added workflow provenance for resolved CLI invocation arguments, tokenizer
+  vocabulary SHA-256, and workflow output-content SHA-256.
 - Added `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
   for multiple input files, directory expansion, quoted glob input, and
   memory-bounded validation summaries.

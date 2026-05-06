@@ -29,7 +29,8 @@ The following surfaces are candidates for stabilization before the first stable 
 - `build_model_inputs_checked`
 - `build_model_inputs_unchecked`
 - `prepare_protein_model_input_workflow`
-- `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowReadinessIssue`
+- `prepare_protein_model_input_workflow_with_invocation`
+- `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowInvocation`, `SequenceWorkflowHashes`, `SequenceWorkflowReadinessIssue`
 - `validate_package_manifest_artifacts`
 - `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`

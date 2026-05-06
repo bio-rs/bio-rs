@@ -115,6 +115,8 @@ Current capabilities:
 - `model-input` CLI output
 - `workflow` CLI output that combines validation, tokenization, model input,
   readiness issues, and reproducibility provenance
+- workflow provenance hashes for tokenizer vocabulary and output-content
+  reproducibility
 - `batch validate` for multiple files, directory inputs, quoted glob inputs,
   and memory-bounded validation summaries
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness

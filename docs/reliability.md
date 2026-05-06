@@ -31,6 +31,7 @@ The guarantee is enforced by CLI tests that cover:
 - workflow readiness reporting for non-model-ready residues
 - batch validation summaries that avoid per-record payload retention
 - tokenizer config parsing with unknown top-level fields rejected
+- workflow reproducibility hashes for vocabulary and output-content contracts
 
 ## Malicious Input Policy
 

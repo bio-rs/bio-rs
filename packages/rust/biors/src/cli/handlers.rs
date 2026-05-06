@@ -10,10 +10,11 @@ use crate::input::{
 use crate::output::print_success;
 use biors_core::{
     build_model_inputs_checked, inspect_package_manifest, plan_runtime_bridge,
-    prepare_protein_model_input_workflow, summarize_fasta_records_reader,
+    prepare_protein_model_input_workflow_with_invocation, summarize_fasta_records_reader,
     tokenize_fasta_records_reader, tokenize_fasta_records_reader_with_config,
     validate_fasta_reader_with_kind_and_hash, validate_package_manifest_artifacts,
     verify_package_outputs_with_observation_base, ModelInputPolicy, ProteinTokenizerConfig,
+    SequenceWorkflowInvocation,
 };
 use clap::CommandFactory;
 use std::path::PathBuf;
@@ -207,11 +208,12 @@ fn run_workflow(
     padding: PaddingArg,
     path: PathBuf,
 ) -> Result<(), CliError> {
+    let invocation = workflow_invocation(max_length, pad_token_id, padding, &path);
     let reader = open_fasta_input(&path)?;
     let input = biors_core::parse_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     let input_hash = input.input_hash.clone();
-    let output = prepare_protein_model_input_workflow(
+    let output = prepare_protein_model_input_workflow_with_invocation(
         input.input_hash,
         &input.records,
         ModelInputPolicy {
@@ -219,8 +221,36 @@ fn run_workflow(
             pad_token_id,
             padding: padding.into(),
         },
+        invocation,
     )?;
     print_success(Some(input_hash), output)
+}
+
+fn workflow_invocation(
+    max_length: usize,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: &std::path::Path,
+) -> SequenceWorkflowInvocation {
+    SequenceWorkflowInvocation {
+        command: "biors workflow".to_string(),
+        arguments: vec![
+            "--max-length".to_string(),
+            max_length.to_string(),
+            "--pad-token-id".to_string(),
+            pad_token_id.to_string(),
+            "--padding".to_string(),
+            padding_arg_value(padding).to_string(),
+            path.to_string_lossy().into_owned(),
+        ],
+    }
+}
+
+fn padding_arg_value(padding: PaddingArg) -> &'static str {
+    match padding {
+        PaddingArg::FixedLength => "fixed_length",
+        PaddingArg::NoPadding => "no_padding",
+    }
 }
 
 fn run_sequence_validation(path: PathBuf, kind: KindArg) -> Result<(), CliError> {

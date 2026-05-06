@@ -94,3 +94,60 @@ fn workflow_reports_non_model_ready_sequences_without_losing_validation_context(
     );
     assert_eq!(value["data"]["readiness_issues"][0]["id"], "seq1");
 }
+
+#[test]
+fn workflow_records_invocation_and_reproducibility_hashes() {
+    let first = run_workflow_json(">seq1\nacde\n");
+    let second = run_workflow_json(">seq1\nacde\n");
+
+    let provenance = &first["data"]["provenance"];
+    assert_eq!(provenance["invocation"]["command"], "biors workflow");
+    assert_eq!(
+        provenance["invocation"]["arguments"],
+        serde_json::json!([
+            "--max-length",
+            "6",
+            "--pad-token-id",
+            "0",
+            "--padding",
+            "fixed_length",
+            "-"
+        ])
+    );
+
+    for key in ["vocabulary_sha256", "output_data_sha256"] {
+        assert!(
+            provenance["hashes"][key]
+                .as_str()
+                .expect("workflow hash")
+                .starts_with("sha256:"),
+            "{key} should be a sha256 digest"
+        );
+    }
+    assert_eq!(
+        first["data"]["provenance"]["hashes"],
+        second["data"]["provenance"]["hashes"]
+    );
+}
+
+fn run_workflow_json(input: &str) -> Value {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("workflow")
+        .arg("--max-length")
+        .arg("6")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors workflow")
+        .tap_stdin(input);
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON output")
+}
