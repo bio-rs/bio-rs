@@ -43,6 +43,7 @@ cargo install biors --version 0.21.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
+biors tokenizer inspect --profile protein-20-special
 ```
 
 Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
@@ -102,6 +103,9 @@ Current capabilities:
 - FASTA validation with line and record-index diagnostics
 - FASTA record identifier validation
 - protein-20 tokenization
+- `protein-20-special` tokenization with explicit UNK/PAD/CLS/SEP/MASK policy
+- tokenizer JSON config loading
+- tokenizer inspection JSON output
 - JSON vocab loading for tokenizer contracts
 - positional token alignment preserved with explicit unknown-token IDs for unresolved residues
 - residue warning/error reporting
@@ -127,6 +131,7 @@ Current capabilities:
 - package fixture verification from observed artifact paths
 - structured package fixture mismatch issue codes and first-difference reports
 - committed FASTA, tokenizer, manifest, and verification fixtures
+- draft model-input contract and reference Python preprocessing parity fixtures
 - JSON success/error envelopes
 
 ## Documentation
@@ -229,11 +234,16 @@ schemas/
   package-manifest.v0.json
   package-validation-report.v0.json
   package-verify-output.v0.json
+  tokenizer-inspect-output.v0.json
   tokenize-output.v0.json
 
 examples/
   protein.fasta
   multi.fasta
+  model-input-contract/
+    protein-20-special.config.json
+    protein-20-special.expected.json
+    reference-python-parity.json
   protein-package/
     models/
     manifest.json

@@ -6,11 +6,18 @@ All notable public behavior changes for bio-rs are recorded here.
 
 ### Added
 
+- Added `protein-20-special` tokenizer profile with explicit UNK/PAD/CLS/SEP/MASK
+  token policy.
+- Added tokenizer JSON config loading, `tokenize --config <json>`, and
+  `biors tokenizer inspect` for machine-readable token/profile inspection.
+- Added draft model-input contract fixtures plus a dependency-free reference
+  Python preprocessing parity fixture.
 - Added `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
   for multiple input files, directory expansion, quoted glob input, and
   memory-bounded validation summaries.
 - Added `schemas/batch-validation-output.v0.json` for the batch validation data
-  payload.
+  payload and `schemas/tokenizer-inspect-output.v0.json` for tokenizer
+  inspection output.
 
 ## 0.21.0 - 2026-05-06
 

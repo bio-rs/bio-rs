@@ -1,0 +1,9 @@
+{
+  "id": "seq1",
+  "length": 6,
+  "alphabet": "protein-20-special",
+  "valid": true,
+  "tokens": [22, 0, 1, 2, 3, 23],
+  "warnings": [],
+  "errors": []
+}

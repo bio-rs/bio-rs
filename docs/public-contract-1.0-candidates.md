@@ -18,9 +18,13 @@ The following surfaces are candidates for stabilization before the first stable 
 - `tokenize_fasta_records`
 - `tokenize_fasta_records_reader`
 - `load_vocab_json`
+- `load_protein_tokenizer_config_json`
 - `protein_20_vocab_tokens`
 - `protein_20_vocabulary`
 - `ProteinTokenizer` and `Tokenizer`
+- `ProteinTokenizerProfile`, `ProteinTokenizerConfig`, `ProteinTokenizerInspection`
+- `tokenize_protein_with_config`
+- `tokenize_fasta_records_reader_with_config`
 - `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
 - `build_model_inputs_checked`
 - `build_model_inputs_unchecked`
@@ -48,6 +52,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
 - `schemas/batch-validation-output.v0.json`
+- `schemas/tokenizer-inspect-output.v0.json`
 - `schemas/sequence-workflow-output.v0.json`
 - `schemas/doctor-output.v0.json`
 - `schemas/fasta-validation-output.v0.json`

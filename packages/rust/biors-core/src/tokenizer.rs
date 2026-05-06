@@ -3,12 +3,18 @@ use crate::verification::StableInputHasher;
 use crate::BioRsError;
 use std::io::BufRead;
 
+mod config;
 mod lookup;
 mod protein;
 mod sinks;
 mod types;
 mod vocab;
-pub use protein::{tokenize_protein, ProteinTokenizer, Tokenizer};
+pub use config::{
+    inspect_protein_tokenizer_config, load_protein_tokenizer_config_json,
+    protein_tokenizer_config_for_profile, ProteinTokenizerConfig, ProteinTokenizerInspection,
+    ProteinTokenizerProfile, SpecialToken, SpecialTokenSet,
+};
+pub use protein::{tokenize_protein, tokenize_protein_with_config, ProteinTokenizer, Tokenizer};
 use sinks::{SummaryRecordSink, TokenizedRecordSink};
 pub use types::{ProteinBatchSummary, SummarizedFastaInput, TokenizedFastaInput, TokenizedProtein};
 use vocab::TOKEN_LOOKUP_MISSING;
@@ -29,7 +35,22 @@ pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioR
 pub fn tokenize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<TokenizedFastaInput, crate::FastaReadError> {
+    tokenize_fasta_records_reader_with_config(
+        reader,
+        &ProteinTokenizerConfig {
+            profile: ProteinTokenizerProfile::Protein20,
+            add_special_tokens: false,
+        },
+    )
+}
+
+/// Tokenize FASTA records from a buffered reader using an explicit tokenizer config.
+pub fn tokenize_fasta_records_reader_with_config<R: BufRead>(
+    reader: R,
+    config: &ProteinTokenizerConfig,
+) -> Result<TokenizedFastaInput, crate::FastaReadError> {
     let mut sink = TokenizedRecordSink::default();
+    sink.set_config(config.clone());
     let mut hasher = StableInputHasher::new();
     scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
     Ok(TokenizedFastaInput {

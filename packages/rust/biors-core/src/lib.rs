@@ -46,10 +46,13 @@ pub use sequence::{
     SymbolClass, ValidatedSequence, ValidatedSequenceRecord,
 };
 pub use tokenizer::{
-    load_protein_20_vocab, load_vocab_json, protein_20_unknown_token_policy,
-    protein_20_vocab_tokens, protein_20_vocabulary, summarize_fasta_records_reader,
+    inspect_protein_tokenizer_config, load_protein_20_vocab, load_protein_tokenizer_config_json,
+    load_vocab_json, protein_20_unknown_token_policy, protein_20_vocab_tokens,
+    protein_20_vocabulary, protein_tokenizer_config_for_profile, summarize_fasta_records_reader,
     summarize_tokenized_proteins, tokenize_fasta_records, tokenize_fasta_records_reader,
-    tokenize_protein, ProteinBatchSummary, ProteinTokenizer, SummarizedFastaInput,
+    tokenize_fasta_records_reader_with_config, tokenize_protein, tokenize_protein_with_config,
+    ProteinBatchSummary, ProteinTokenizer, ProteinTokenizerConfig, ProteinTokenizerInspection,
+    ProteinTokenizerProfile, SpecialToken, SpecialTokenSet, SummarizedFastaInput,
     TokenizedFastaInput, TokenizedProtein, Tokenizer, UnknownTokenPolicy, VocabToken, Vocabulary,
     PROTEIN_20_UNKNOWN_TOKEN_ID,
 };

@@ -24,7 +24,8 @@ python3 -m py_compile \
   scripts/check-module-size.py \
   scripts/check-release-workflow.py \
   scripts/benchmark_large_file_streaming.py \
-  scripts/render_benchmark_report.py
+  scripts/render_benchmark_report.py \
+  examples/python/reference_preprocess.py
 
 echo "==> module size"
 python3 scripts/check-module-size.py

@@ -1,4 +1,4 @@
-use biors_core::{PaddingPolicy, SequenceKind, SequenceKindSelection};
+use biors_core::{PaddingPolicy, ProteinTokenizerProfile, SequenceKind, SequenceKindSelection};
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 use std::path::PathBuf;
@@ -50,7 +50,15 @@ pub enum Command {
         command: SeqCommand,
     },
     Tokenize {
+        #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
+        profile: TokenizerProfileArg,
+        #[arg(long)]
+        config: Option<PathBuf>,
         path: PathBuf,
+    },
+    Tokenizer {
+        #[command(subcommand)]
+        command: TokenizerCommand,
     },
     Workflow {
         #[arg(long)]
@@ -60,6 +68,16 @@ pub enum Command {
         #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
         padding: PaddingArg,
         path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum TokenizerCommand {
+    Inspect {
+        #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
+        profile: TokenizerProfileArg,
+        #[arg(long)]
+        config: Option<PathBuf>,
     },
 }
 
@@ -120,6 +138,24 @@ impl From<PaddingArg> for PaddingPolicy {
         match value {
             PaddingArg::FixedLength => Self::FixedLength,
             PaddingArg::NoPadding => Self::NoPadding,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+pub enum TokenizerProfileArg {
+    #[default]
+    #[value(name = "protein-20")]
+    Protein20,
+    #[value(name = "protein-20-special")]
+    Protein20Special,
+}
+
+impl From<TokenizerProfileArg> for ProteinTokenizerProfile {
+    fn from(value: TokenizerProfileArg) -> Self {
+        match value {
+            TokenizerProfileArg::Protein20 => Self::Protein20,
+            TokenizerProfileArg::Protein20Special => Self::Protein20Special,
         }
     }
 }

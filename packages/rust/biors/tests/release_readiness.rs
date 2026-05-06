@@ -28,6 +28,13 @@ fn full_workflow_e2e_covers_researcher_cli_path() {
             >= 4
     );
 
+    let tokenizer = run_biors(
+        &["tokenizer", "inspect", "--profile", "protein-20-special"],
+        &[],
+    );
+    assert_eq!(tokenizer["data"]["profile"], "protein-20-special");
+    assert_eq!(tokenizer["data"]["special_tokens"]["pad"]["token_id"], 21);
+
     let model_input = run_biors(&["model-input", "--max-length", "8"], &[&fasta]);
     assert_eq!(model_input["data"]["policy"]["max_length"], 8);
     assert_eq!(

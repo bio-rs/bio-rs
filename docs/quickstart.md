@@ -90,10 +90,23 @@ sh scripts/record-cli-demo.sh
 
 ```bash
 biors tokenize examples/protein.fasta
+biors tokenize \
+  --config examples/model-input-contract/protein-20-special.config.json \
+  examples/model-input-contract/protein.fasta
 ```
 
 `tokenize` emits stable `protein-20` token IDs. Ambiguous or invalid residues
 keep positional alignment by using the explicit unknown token ID.
+
+Inspect tokenizer profiles and special token policy:
+
+```bash
+biors tokenizer inspect --profile protein-20-special
+```
+
+The `protein-20-special` profile keeps the protein-20 residue IDs stable and
+adds `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24` for model-input
+contract tests and Python preprocessing parity fixtures.
 
 ## Build Model Input
 

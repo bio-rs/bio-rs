@@ -9,6 +9,8 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors doctor`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
+- `biors tokenize [--profile protein-20|protein-20-special] [--config <json>] <path|->`
+- `biors tokenizer inspect [--profile protein-20|protein-20-special] [--config <json>]`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 - `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
@@ -38,6 +40,12 @@ batch summary without retaining per-record validation payloads.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
+Without `--config`, tokenization defaults to the stable `protein-20` profile.
+Tokenizer config JSON currently supports `profile` and `add_special_tokens`.
+The built-in `protein-20-special` profile keeps residue IDs stable and exposes
+`UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24`.
+`tokenizer inspect` emits the resolved config, vocabulary, unknown-token policy,
+and special-token policy as JSON.
 FASTA validation defaults to the protein policy for pre-0.14 compatibility.
 Passing `--kind dna`, `--kind rna`, or `--kind protein` applies one policy to
 all records; `--kind auto` assigns `protein`, `dna`, or `rna` per record and
@@ -89,6 +97,10 @@ belong to the stronger reproducibility layer.
 Batch validation payloads use `schemas/batch-validation-output.v0.json` and
 include `inputs`, aggregate `summary`, and a deterministic `files` list with
 per-file `input_hash`, validation counts, and `kind_counts`.
+
+Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
+Tokenizer config files reject unknown top-level fields so preprocessing
+configuration stays explicit.
 
 `structured_issues` entries use this shape:
 

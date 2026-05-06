@@ -30,6 +30,7 @@ The guarantee is enforced by CLI tests that cover:
 - model-input residue failures
 - workflow readiness reporting for non-model-ready residues
 - batch validation summaries that avoid per-record payload retention
+- tokenizer config parsing with unknown top-level fields rejected
 
 ## Malicious Input Policy
 
@@ -39,6 +40,9 @@ manifests and fixture observations remain rooted in their package directory.
 bio-rs does not execute model files, tokenizer files, vocab files, or fixture
 payloads during validation. Package validation reads files only to verify
 presence and checksum contracts.
+
+Tokenizer config files are data-only JSON. They select built-in preprocessing
+profiles and do not load executable code.
 
 ## Large File Handling
 
