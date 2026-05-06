@@ -39,7 +39,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.20.1
+cargo install biors --version 0.21.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 ```

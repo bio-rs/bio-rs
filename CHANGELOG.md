@@ -4,6 +4,8 @@ All notable public behavior changes for bio-rs are recorded here.
 
 ## Unreleased
 
+## 0.21.0 - 2026-05-06
+
 ### Added
 
 - Added `biors workflow --max-length <N> <path|->`, a stable protein FASTA
