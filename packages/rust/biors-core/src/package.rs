@@ -2,6 +2,8 @@
 
 mod artifacts;
 mod checksum;
+mod manifest;
+mod reports;
 mod runtime;
 mod summary;
 mod types;
@@ -12,6 +14,8 @@ pub use artifacts::{
     validate_package_manifest_artifacts, validate_package_relative_path, PackageArtifactError,
 };
 pub use checksum::{is_sha256_checksum, sha256_digest};
+pub use manifest::*;
+pub use reports::*;
 pub use runtime::plan_runtime_bridge;
 pub use summary::inspect_package_manifest;
 pub use types::*;

@@ -16,6 +16,8 @@ fn package_facade_delegates_to_focused_modules() {
     for module in [
         "mod artifacts;",
         "mod checksum;",
+        "mod manifest;",
+        "mod reports;",
         "mod runtime;",
         "mod summary;",
         "mod validation;",
@@ -31,6 +33,31 @@ fn package_facade_delegates_to_focused_modules() {
     assert!(
         !package.contains("fn validate_artifact"),
         "artifact validation must live outside the package facade"
+    );
+
+    let manifest = read_src("package/manifest.rs");
+    let reports = read_src("package/reports.rs");
+    let types = read_src("package/types.rs");
+
+    assert!(
+        manifest.contains("pub struct PackageManifest"),
+        "manifest contracts must live in package/manifest.rs"
+    );
+    assert!(
+        reports.contains("pub struct PackageValidationReport"),
+        "validation reports must live in package/reports.rs"
+    );
+    assert!(
+        types.contains("pub enum SchemaVersion"),
+        "stable package enums must live in package/types.rs"
+    );
+    assert!(
+        !types.contains("pub struct PackageManifest"),
+        "package/types.rs must not own manifest structs"
+    );
+    assert!(
+        !types.contains("pub struct PackageValidationReport"),
+        "package/types.rs must not own report structs"
     );
 }
 
