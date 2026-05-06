@@ -30,7 +30,8 @@ impl FastaRecordSink for ByteCountingSink {
 fn reader_scanner_uses_byte_sink_for_ascii_sequence_lines() {
     let mut sink = ByteCountingSink::default();
 
-    scan_fasta_reader(Cursor::new(b">seq1\nACDE\nFGHI\n"), &mut sink).expect("valid FASTA");
+    scan_fasta_reader(Cursor::new(b">seq1\nACDE\nFGHI\n"), &mut sink, |_line| {})
+        .expect("valid FASTA");
 
     assert_eq!(sink.byte_lines, 2);
     assert_eq!(sink.text_lines, 0);

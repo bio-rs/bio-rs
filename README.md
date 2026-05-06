@@ -9,7 +9,7 @@
 bio-rs turns biological sequences into validated, model-ready inputs for bio-AI workflows.
 
 ```txt
-FASTA -> validated protein sequence -> token ids -> model-ready JSON
+FASTA -> validated protein/DNA/RNA sequence -> protein token ids -> model-ready JSON
 ```
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
@@ -38,44 +38,12 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 
 ## Quickstart
 
-Install the published CLI:
-
 ```bash
-cargo install biors --version 0.12.8
-biors --version
-```
-
-Tokenize a FASTA file:
-
-```bash
+cargo install biors --version 0.20.1
 biors tokenize examples/protein.fasta
 ```
 
-Pipe FASTA through stdin:
-
-```bash
-printf '>tiny\nACDE\n' | biors tokenize -
-```
-
-Validate FASTA:
-
-```bash
-biors fasta validate examples/protein.fasta
-```
-
-Verify package fixture outputs:
-
-```bash
-biors package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
-```
-
-Build model-ready input records:
-
-```bash
-biors model-input --max-length 8 examples/protein.fasta
-```
+Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
 
 ## Proof
 
@@ -85,14 +53,14 @@ Latest recorded FASTA benchmark baseline:
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
-| Human proteome | Parse + validation | **0.036s** | 0.441s | **12.31x** |
-| Human proteome | Parse + tokenization | **0.061s** | 0.441s | **7.27x** |
-| 100MB+ FASTA | Parse + validation | **0.291s** | 3.972s | **13.67x** |
-| 100MB+ FASTA | Parse + tokenization | **0.507s** | 4.002s | **7.90x** |
-| Many short records | Parse + validation | **0.007s** | 0.057s | **8.25x** |
-| Many short records | Parse + tokenization | **0.010s** | 0.057s | **5.54x** |
-| Single long sequence | Parse + validation | **0.006s** | 0.034s | **5.95x** |
-| Single long sequence | Parse + tokenization | **0.007s** | 0.035s | **4.75x** |
+| Human proteome | Parse + validation | **0.036s** | 0.584s | **16.09x** |
+| Human proteome | Parse + tokenization | **0.061s** | 0.587s | **9.68x** |
+| 100MB+ FASTA | Parse + validation | **0.294s** | 3.994s | **13.59x** |
+| 100MB+ FASTA | Parse + tokenization | **0.492s** | 4.040s | **8.22x** |
+| Many short records | Parse + validation | **0.007s** | 0.204s | **28.35x** |
+| Many short records | Parse + tokenization | **0.010s** | 0.205s | **20.54x** |
+| Single long sequence | Parse + validation | **0.005s** | 0.176s | **34.48x** |
+| Single long sequence | Parse + tokenization | **0.007s** | 0.177s | **26.67x** |
 
 Benchmark details:
 
@@ -106,10 +74,10 @@ Benchmark details:
   - parse plus validation
   - parse plus tokenization
 - Current best recorded raw throughput:
-  - human proteome parse + validation: `319.9M residues/s`, `365.8 MB/s`
-  - 100MB+ FASTA parse + validation: `354.7M residues/s`, `405.6 MB/s`
+  - human proteome parse + validation: `315.4M residues/s`, `360.6 MB/s`
+  - 100MB+ FASTA parse + validation: `350.8M residues/s`, `401.1 MB/s`
   - human proteome parse + tokenization: `189.0M residues/s`, `216.1 MB/s`
-  - 100MB+ FASTA parse + tokenization: `203.4M residues/s`, `232.6 MB/s`
+  - 100MB+ FASTA parse + tokenization: `209.7M residues/s`, `239.8 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
 - Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
 
@@ -139,6 +107,7 @@ Current capabilities:
 - attention masks
 - padding/truncation policy
 - `model-input` CLI output
+- `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
 - writer-based CLI success JSON serialization to reduce peak allocations for large outputs
@@ -154,174 +123,19 @@ Current capabilities:
 - committed FASTA, tokenizer, manifest, and verification fixtures
 - JSON success/error envelopes
 
-## CLI examples
+## Documentation
 
-Inspect FASTA records:
-
-```bash
-cargo run -p biors -- inspect examples/protein.fasta
-```
-
-Tokenize FASTA records:
-
-```bash
-cargo run -p biors -- tokenize examples/protein.fasta
-```
-
-Tokenize a multi-record FASTA file:
-
-```bash
-cargo run -p biors -- tokenize examples/multi.fasta
-```
-
-Validate FASTA records:
-
-```bash
-cargo run -p biors -- fasta validate examples/protein.fasta
-```
-
-Emit structured JSON errors:
-
-```bash
-printf 'ACDE\n' | cargo run -p biors -- --json tokenize -
-```
-
-Build model-ready input records:
-
-```bash
-cargo run -p biors -- model-input --max-length 4 examples/protein.fasta
-```
-
-Inspect a package manifest:
-
-```bash
-cargo run -p biors -- package inspect examples/protein-package/manifest.json
-```
-
-Validate a package manifest:
-
-```bash
-cargo run -p biors -- package validate examples/protein-package/manifest.json
-```
-
-Plan a runtime bridge from a package manifest:
-
-```bash
-cargo run -p biors -- package bridge examples/protein-package/manifest.json
-```
-
-Verify package fixture observations:
-
-```bash
-cargo run -p biors -- package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
-```
-
-`package verify` expects the observations file to point at observed output artifact paths:
-
-```json
-[
-  {
-    "name": "tiny-protein",
-    "path": "observed/tiny.output.json"
-  }
-]
-```
-
-## JSON contracts
-
-Success output uses a stable envelope shape:
-
-```json
-{
-  "ok": true,
-  "biors_version": "0.x.y",
-  "input_hash": "fnv1a64:846a502e5067bc21",
-  "data": {}
-}
-```
-
-FASTA-backed commands keep `input_hash` in the legacy `fnv1a64:` format for backward compatibility. Package artifacts and fixture hashes use `sha256:` in manifests and verification reports.
-
-`--json` error mode emits structured errors:
-
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "fasta.missing_header",
-    "message": "FASTA input must start with a header line beginning with '>' at line 1",
-    "location": {
-      "line": 1,
-      "record_index": null
-    }
-  }
-}
-```
-
-Tokenization output is record-oriented:
-
-```json
-[
-  {
-    "id": "seq1",
-    "length": 4,
-    "alphabet": "protein-20",
-    "valid": true,
-    "tokens": [0, 1, 2, 3],
-    "warnings": [],
-    "errors": []
-  }
-]
-```
-
-Public contract docs:
-
-- [Quickstart](docs/quickstart.md)
-- [Professional readiness](docs/professional-readiness.md)
-- [CLI contract](docs/cli-contract.md)
+- [Quickstart](docs/quickstart.md) — install, first commands, demos
+- [Launch demo](docs/demo.md) — researcher-facing demo workflow
+- [Installation and distribution](docs/install.md) — cargo, binaries, completions
+- [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Error code registry](docs/error-codes.md)
+- [Reliability and input safety](docs/reliability.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
-- [1.0 release candidate path](docs/release-candidate-1.0.md)
-- [API and schema review](docs/api-review.md)
-- [MSRV policy draft](docs/msrv.md)
 - [Versioning policy](docs/versioning.md)
+- [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
 - [Citation metadata](CITATION.cff)
-
-## Release history
-
-Delivered:
-
-- `0.12.8`: biors-core SRP refactor for package, sequence, verification, and FASTA scanner internals with public API docs refreshed
-- `0.12.7`: tokenizer hot-path cleanup, SRP-focused core module split, module-size guardrail, and refreshed benchmark proof assets
-- `0.12.6`: borrowed protein-20 vocabulary API, lowercase-aware token lookup fast path, tokenizer module split, and refreshed benchmark proof assets
-- `0.12.5`: validation-only FASTA reader path, dead analysis-path cleanup, benchmark artifact comparison helper, and refreshed proof assets
-- `0.12.4`: byte-sink FASTA scanner dispatch, tokenization-only sink path, install smoke gate, and refreshed benchmark proof assets
-- `0.12.3`: byte-buffered FASTA reader scanning, static residue/token lookup tables, and expanded shape-profile benchmark proof assets
-- `0.12.2`: published CLI `--version` support and version-verification docs for reproducible installs
-- `0.12.1`: release workflow publish-order guard, published CLI quickstart, professional-readiness audit, and summary-only FASTA inspect path
-- `0.12.0`: release-candidate documentation, full workflow e2e coverage, MSRV/citation policy drafts, and release notes
-- `0.11.0`: benchmark reproducibility metadata, generated benchmark report checks, and refreshed speed/memory proof assets
-- `0.10.0`: fixture and verification hardening with shared byte-aware FASTA scanning, tokenizer invariants, and structured mismatch reports
-- `0.9.8`: tokenization lookup and CLI JSON writer performance improvements with refreshed reader-based benchmarks
-- `0.9.7`: buffered FASTA reader APIs, typed package validation issues, CLI module refactor, and explicit model-input builder safety
-- `0.9.6`: FASTA identifier validation, model-input policy validation, package path escape rejection, and JSON vocab loading
-- `0.9.5`: core-throughput benchmark harness, matched-workload benchmark refresh, workflow/cache tightening, and git-hook install helper
-- `0.9.4`: tokenizer positional alignment preservation, FASTA single-pass tokenization/validation path, typed package manifest enums, and benchmark refresh
-- `0.9.3`: release workflow fix for automatic GitHub Release creation after crates publish
-- `0.9.2`: model-input safety hardening for unresolved residues and automated GitHub Release creation
-- `0.9.1`: model-input CLI, checksum-backed package validation, benchmark refresh, and contract hardening
-- `0.9.0`: CLI and JSON contract freeze baseline
-- `0.8.1`: documentation, contribution guide, and benchmark baseline hardening
-- `0.8.0`: fixture verification with `package verify`
-- `0.7.0`: runtime bridge planning with `package bridge`
-- `0.6.0`: package manifest inspect/validate
-
-Next:
-
-- first stable release: stable public contracts and runtime-facing APIs after enough real-world package validation
 
 ## Not yet
 

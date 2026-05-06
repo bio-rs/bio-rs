@@ -1,4 +1,5 @@
 /target/
+.venv-bench/
 **/*.rs.bk
 .DS_Store
 __pycache__/

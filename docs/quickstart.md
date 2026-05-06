@@ -6,12 +6,47 @@ fresh checkout.
 ## Install
 
 ```bash
-cargo install biors --version 0.12.8
+cargo install biors --version 0.20.1
 biors --version
+biors doctor
 ```
 
 When working inside a source checkout, replace `biors` with
 `cargo run -p biors --`.
+
+`biors doctor` reports local platform, Rust/Cargo availability, optional WASM
+target readiness, and whether the committed demo/package fixtures are present.
+
+Generate shell completions from the installed binary:
+
+```bash
+biors completions zsh > _biors
+```
+
+## First 60 Seconds
+
+Run the first-impression workflow before trying individual commands:
+
+```bash
+sh scripts/launch-demo.sh
+```
+
+From a source checkout before installing:
+
+```bash
+sh scripts/launch-demo.sh --cargo
+```
+
+For terminal recording tools such as `asciinema`, use the deterministic CLI
+transcript script:
+
+```bash
+sh scripts/record-cli-demo.sh --cargo
+```
+
+The demo uses `examples/launch-demo.fasta`, then shows local diagnostics,
+kind-aware validation, tokenization, model-input JSON, and package fixture
+verification.
 
 ## Validate FASTA
 
@@ -19,8 +54,37 @@ When working inside a source checkout, replace `biors` with
 biors fasta validate examples/protein.fasta
 ```
 
-Use this first when you need structured diagnostics for record counts,
-ambiguous residues, and invalid residues.
+Use this for protein-first FASTA validation. It defaults to the `protein-20`
+policy for compatibility and accepts `--kind protein|dna|rna|auto` when you
+want a specific policy.
+
+## Validate Biological Sequences
+
+```bash
+biors seq validate examples/protein.fasta
+```
+
+Use this for mixed biological FASTA. It defaults to `--kind auto`, assigns
+Protein, DNA, or RNA per record, and reports `kind_counts` plus kind-specific
+warnings and errors.
+
+## Run The Launch Demo
+
+```bash
+sh scripts/launch-demo.sh
+```
+
+From a source checkout before installing:
+
+```bash
+sh scripts/launch-demo.sh --cargo
+```
+
+For a recording-friendly transcript:
+
+```bash
+sh scripts/record-cli-demo.sh
+```
 
 ## Tokenize FASTA
 

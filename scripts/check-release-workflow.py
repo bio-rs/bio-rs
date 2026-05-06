@@ -10,16 +10,19 @@ WORKFLOW = Path(".github/workflows/release.yml")
 def main() -> None:
     lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
 
-    required_order = [
+    publish_order = [
         "- name: Dry-run publish biors-core",
         "- name: Publish biors-core",
         "- name: Wait for biors-core index",
         "- name: Dry-run publish biors",
         "- name: Publish biors",
+        "create-github-release:",
+        "- name: Download binary artifacts",
+        "- name: Create release if missing",
     ]
 
     positions: list[tuple[str, int]] = []
-    for marker in required_order:
+    for marker in publish_order:
         matching_lines = [
             line_number
             for line_number, line in enumerate(lines, start=1)
@@ -28,6 +31,18 @@ def main() -> None:
         if not matching_lines:
             raise SystemExit(f"release workflow is missing step: {marker}")
         positions.append((marker, matching_lines[0]))
+
+    required_text = [
+        "x86_64-unknown-linux-gnu",
+        "aarch64-apple-darwin",
+        "actions/upload-artifact@v4",
+        "actions/download-artifact@v4",
+        "dist/*.tar.gz",
+    ]
+    workflow_text = "\n".join(lines)
+    for text in required_text:
+        if text not in workflow_text:
+            raise SystemExit(f"release workflow is missing binary packaging text: {text}")
 
     out_of_order = [
         (previous, current)

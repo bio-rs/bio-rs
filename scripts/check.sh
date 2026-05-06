@@ -23,16 +23,14 @@ python3 -m py_compile \
   scripts/check-benchmark-artifact.py \
   scripts/check-module-size.py \
   scripts/check-release-workflow.py \
+  scripts/benchmark_large_file_streaming.py \
   scripts/render_benchmark_report.py
 
 echo "==> module size"
 python3 scripts/check-module-size.py
 
 echo "==> benchmark docs"
-scripts/check-benchmark-docs.sh
-python3 scripts/compare-benchmark-artifacts.py \
-  benchmarks/fasta_vs_biopython.json \
-  benchmarks/fasta_vs_biopython.json >/dev/null
+python3 scripts/check-benchmark-artifact.py
 
 echo "==> release workflow"
 python3 scripts/check-release-workflow.py

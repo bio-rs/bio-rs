@@ -32,9 +32,9 @@ pub enum UnknownTokenPolicy {
     WarnOrErrorWithUnknownToken,
 }
 
-/// Return an owned copy of the built-in `protein-20` vocabulary.
-pub fn load_protein_20_vocab() -> Vocabulary {
-    protein_20_vocabulary().clone()
+/// Borrow the cached built-in `protein-20` vocabulary.
+pub fn load_protein_20_vocab() -> &'static Vocabulary {
+    protein_20_vocabulary()
 }
 
 /// Borrow the cached built-in `protein-20` vocabulary.

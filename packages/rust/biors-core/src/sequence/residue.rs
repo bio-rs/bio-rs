@@ -11,40 +11,19 @@ pub const PROTEIN_20_RESIDUES: [char; 20] = [
 pub const AMBIGUOUS_RESIDUES: [char; 6] = ['X', 'B', 'Z', 'J', 'U', 'O'];
 
 pub(crate) fn is_protein_20_residue(residue: char) -> bool {
-    if residue.is_ascii() {
-        return PROTEIN_20_RESIDUE_LOOKUP[residue as usize];
-    }
-
-    matches!(
-        residue,
-        'A' | 'C'
-            | 'D'
-            | 'E'
-            | 'F'
-            | 'G'
-            | 'H'
-            | 'I'
-            | 'K'
-            | 'L'
-            | 'M'
-            | 'N'
-            | 'P'
-            | 'Q'
-            | 'R'
-            | 'S'
-            | 'T'
-            | 'V'
-            | 'W'
-            | 'Y'
-    )
+    residue.is_ascii() && PROTEIN_20_RESIDUE_LOOKUP[residue as usize]
 }
 
 pub(crate) fn is_ambiguous_residue(residue: char) -> bool {
-    if residue.is_ascii() {
-        return AMBIGUOUS_RESIDUE_LOOKUP[residue as usize];
-    }
+    residue.is_ascii() && AMBIGUOUS_RESIDUE_LOOKUP[residue as usize]
+}
 
-    matches!(residue, 'X' | 'B' | 'Z' | 'J' | 'U' | 'O')
+pub(crate) fn is_protein_20_residue_byte(residue: u8) -> bool {
+    PROTEIN_20_RESIDUE_LOOKUP[residue as usize]
+}
+
+pub(crate) fn is_ambiguous_residue_byte(residue: u8) -> bool {
+    AMBIGUOUS_RESIDUE_LOOKUP[residue as usize]
 }
 
 const PROTEIN_20_RESIDUE_LOOKUP: [bool; 256] = {

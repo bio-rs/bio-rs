@@ -4,12 +4,19 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Core protein input contracts and tokenization for bio-rs."
+description = "Core biological sequence validation and protein tokenization contracts for bio-rs."
 readme = "../../../README.md"
-keywords = ["bioinformatics", "protein", "tokenizer", "ai"]
+keywords = ["bioinformatics", "sequence", "tokenizer", "ai"]
 categories = ["science"]
 
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
 sha2 = "0.10.8"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "fasta_workloads"
+harness = false

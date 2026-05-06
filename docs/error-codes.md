@@ -9,6 +9,14 @@ Error codes are stable identifiers for CLI JSON error mode.
 - `fasta.missing_header`: non-empty FASTA input did not start with `>`
 - `fasta.missing_sequence`: a FASTA record header had no sequence body
 
+## Sequence Validation
+
+Sequence validation warnings and errors are reported inside successful FASTA or
+`seq validate` payloads, not as top-level CLI failures.
+
+- `ambiguous_symbol`: a supported ambiguous IUPAC symbol was accepted with a warning
+- `invalid_symbol`: a symbol is not supported by the selected Protein, DNA, or RNA policy
+
 ## JSON
 
 - `json.invalid`: JSON input could not be decoded
@@ -46,6 +54,7 @@ parsing the human-readable `issue` field.
 ## Taxonomy
 
 - `fasta.*`: sequence file envelope and record parsing errors
+- sequence issue codes: per-record biological sequence validation diagnostics
 - `json.*`: machine-readable input or output failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures
