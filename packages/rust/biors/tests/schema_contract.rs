@@ -159,9 +159,8 @@ fn cli_outputs_match_success_and_error_envelope_schemas() {
 
 fn assert_payload_matches_schema(output: &[u8], schema_path: &str) {
     let envelope: Value = serde_json::from_slice(output).expect("valid CLI JSON");
-    let payload = envelope["data"].clone();
     assert_json_value_matches_schema(&envelope, "schemas/cli-success.v0.json");
-    assert_json_value_matches_schema(&payload, schema_path);
+    assert_json_value_matches_schema(&envelope["data"], schema_path);
 }
 
 fn assert_json_matches_schema(output: &[u8], schema_path: &str) {
@@ -197,7 +196,7 @@ fn assert_payload_rejected_by_schema(payload: &Value, schema_path: &str) {
     );
 }
 
-fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
+fn spawn_with_stdin<const N: usize>(args: [&str; N], input: &str) -> std::process::Output {
     let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
         .args(args)
         .stdin(Stdio::piped())
@@ -208,12 +207,16 @@ fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
 
     child
         .stdin
-        .as_mut()
-        .expect("stdin pipe")
+        .take()
+        .unwrap()
         .write_all(input.as_bytes())
         .expect("write stdin");
 
-    let output = child.wait_with_output().expect("wait for biors");
+    child.wait_with_output().expect("wait for biors")
+}
+
+fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
+    let output = spawn_with_stdin(args, input);
     assert!(
         output.status.success(),
         "stderr: {}",
@@ -223,22 +226,7 @@ fn run_with_stdin<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
 }
 
 fn run_with_stdin_expect_failure<const N: usize>(args: [&str; N], input: &str) -> Vec<u8> {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_biors"))
-        .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn biors");
-
-    child
-        .stdin
-        .as_mut()
-        .expect("stdin pipe")
-        .write_all(input.as_bytes())
-        .expect("write stdin");
-
-    let output = child.wait_with_output().expect("wait for biors");
+    let output = spawn_with_stdin(args, input);
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stderr.is_empty());
     output.stdout

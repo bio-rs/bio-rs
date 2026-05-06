@@ -3,7 +3,6 @@ use super::{
     ValidatedSequenceRecord,
 };
 
-/// Summarize per-record validation results into a batch validation report.
 pub fn summarize_validated_sequences(
     sequences: Vec<ValidatedSequence>,
 ) -> SequenceValidationReport {
@@ -19,7 +18,6 @@ pub fn summarize_validated_sequences(
     }
 }
 
-/// Summarize kind-aware per-record validation results into a batch report.
 pub fn summarize_validated_sequence_records(
     sequences: Vec<ValidatedSequenceRecord>,
 ) -> KindAwareSequenceValidationReport {

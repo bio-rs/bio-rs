@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Run hyperfine-based cross-language benchmark and generate report.
-
-This is the industry-standard approach for fair cross-language benchmarking.
-Hyperfine handles warmup, statistical analysis, and outlier detection.
-"""
+"""Run hyperfine-based cross-language benchmark and generate report."""
 
 from __future__ import annotations
 

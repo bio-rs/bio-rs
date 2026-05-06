@@ -17,20 +17,14 @@ pub use kind_validation::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// Parsed FASTA records plus a stable hash of the raw reader input.
 pub struct ParsedFastaInput {
-    /// Stable hash of the exact bytes read from the input stream.
     pub input_hash: String,
-    /// Parsed and normalized FASTA records.
     pub records: Vec<ProteinSequence>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// FASTA validation report plus a stable hash of the raw reader input.
 pub struct ValidatedFastaInput {
-    /// Stable hash of the exact bytes read from the input stream.
     pub input_hash: String,
-    /// Aggregate sequence validation report.
     pub report: SequenceValidationReport,
 }
 
@@ -150,8 +144,7 @@ impl FastaRecordSink for ValidatedRecordSink {
 
         let validated =
             validate_protein_sequence_owned(id, std::mem::take(&mut self.current_sequence));
-        let valid = validated.valid;
-        if valid {
+        if validated.valid {
             self.report.valid_records += 1;
         }
         self.report.records += 1;

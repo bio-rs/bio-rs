@@ -100,8 +100,8 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
     }
 
     assert!(
-        readme.contains("First 60 Seconds"),
-        "README does not expose first-impression copy"
+        readme.contains("## Quickstart"),
+        "README does not expose quickstart copy"
     );
     assert!(
         quickstart.contains("First 60 Seconds"),
@@ -172,14 +172,14 @@ fn launch_demo_assets_cover_first_impression_workflow() {
         "CLI Recorded Demo Script",
         "scripts/record-cli-demo.sh",
         "Benchmark Visual Draft",
-        "Browser Playground Concept",
-        "Browser implementation is intentionally deferred",
+        "Deferred",
+        "Browser playground: deferred to a later release pass",
     ] {
         assert!(demo.contains(expected), "demo doc missing {expected}");
     }
     assert!(
-        readme.contains("sh scripts/record-cli-demo.sh"),
-        "README does not link the recorded CLI demo"
+        readme.contains("docs/demo.md"),
+        "README does not link the demo doc"
     );
     for expected in [
         "## Environment",

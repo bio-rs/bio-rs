@@ -14,31 +14,6 @@ FASTA -> validated protein/DNA/RNA sequence -> protein token ids -> model-ready 
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
-## First 60 Seconds
-
-From a checkout, the shortest credible demo is:
-
-```bash
-sh scripts/launch-demo.sh --cargo
-```
-
-With the published CLI installed, the same flow is:
-
-```bash
-cargo install biors --version 0.20.0
-biors doctor
-sh scripts/launch-demo.sh
-```
-
-For a terminal recording or animated CLI capture, run:
-
-```bash
-sh scripts/record-cli-demo.sh --cargo
-```
-
-That path validates the launch FASTA, tokenizes it, builds model-ready JSON,
-and verifies a portable package fixture without a separate demo app.
-
 ## Why bio-rs?
 
 Most bio-AI models are born in Python, but the tooling around them often needs to run somewhere else:
@@ -63,75 +38,12 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 
 ## Quickstart
 
-Install the published CLI:
-
 ```bash
-cargo install biors --version 0.20.0
-biors --version
-biors doctor
-```
-
-Tokenize a FASTA file:
-
-```bash
+cargo install biors --version 0.20.1
 biors tokenize examples/protein.fasta
 ```
 
-Pipe FASTA through stdin:
-
-```bash
-printf '>tiny\nACDE\n' | biors tokenize -
-```
-
-Validate FASTA:
-
-```bash
-biors fasta validate examples/protein.fasta
-```
-
-Validate mixed biological FASTA with per-record kind detection:
-
-```bash
-biors seq validate examples/protein.fasta
-```
-
-Run the launch demo dataset:
-
-```bash
-sh scripts/launch-demo.sh
-```
-
-Generate a terminal-friendly CLI demo transcript:
-
-```bash
-sh scripts/record-cli-demo.sh
-```
-
-Verify package fixture outputs:
-
-```bash
-biors package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
-```
-
-Build model-ready input records:
-
-```bash
-biors model-input --max-length 8 examples/protein.fasta
-```
-
-Check local launch-readiness diagnostics:
-
-```bash
-biors doctor
-```
-
-Generate shell completions:
-
-```bash
-biors completions zsh > _biors
-```
+Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
 
 ## Proof
 
@@ -211,141 +123,18 @@ Current capabilities:
 - committed FASTA, tokenizer, manifest, and verification fixtures
 - JSON success/error envelopes
 
-## CLI examples
+## Documentation
 
-Inspect FASTA records:
-
-```bash
-cargo run -p biors -- inspect examples/protein.fasta
-```
-
-Tokenize FASTA records:
-
-```bash
-cargo run -p biors -- tokenize examples/protein.fasta
-```
-
-Tokenize a multi-record FASTA file:
-
-```bash
-cargo run -p biors -- tokenize examples/multi.fasta
-```
-
-Validate FASTA records:
-
-```bash
-cargo run -p biors -- fasta validate examples/protein.fasta
-```
-
-Emit structured JSON errors:
-
-```bash
-printf 'ACDE\n' | cargo run -p biors -- --json tokenize -
-```
-
-Build model-ready input records:
-
-```bash
-cargo run -p biors -- model-input --max-length 4 examples/protein.fasta
-```
-
-Inspect a package manifest:
-
-```bash
-cargo run -p biors -- package inspect examples/protein-package/manifest.json
-```
-
-Validate a package manifest:
-
-```bash
-cargo run -p biors -- package validate examples/protein-package/manifest.json
-```
-
-Plan a runtime bridge from a package manifest:
-
-```bash
-cargo run -p biors -- package bridge examples/protein-package/manifest.json
-```
-
-Verify package fixture observations:
-
-```bash
-cargo run -p biors -- package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
-```
-
-`package verify` expects the observations file to point at observed output artifact paths:
-
-```json
-[
-  {
-    "name": "tiny-protein",
-    "path": "observed/tiny.output.json"
-  }
-]
-```
-
-## JSON contracts
-
-Success output uses a stable envelope shape:
-
-```json
-{
-  "ok": true,
-  "biors_version": "0.x.y",
-  "input_hash": "fnv1a64:846a502e5067bc21",
-  "data": {}
-}
-```
-
-FASTA-backed commands keep `input_hash` in the legacy `fnv1a64:` format for backward compatibility. Package artifacts and fixture hashes use `sha256:` in manifests and verification reports.
-
-`--json` error mode emits structured errors:
-
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "fasta.missing_header",
-    "message": "FASTA input must start with a header line beginning with '>' at line 1",
-    "location": {
-      "line": 1,
-      "record_index": null
-    }
-  }
-}
-```
-
-Tokenization output is record-oriented:
-
-```json
-[
-  {
-    "id": "seq1",
-    "length": 4,
-    "alphabet": "protein-20",
-    "valid": true,
-    "tokens": [0, 1, 2, 3],
-    "warnings": [],
-    "errors": []
-  }
-]
-```
-
-Public contract docs:
-
-- [Quickstart](docs/quickstart.md)
-- [Launch demo](docs/demo.md)
-- [Installation and distribution](docs/install.md)
-- [CLI contract](docs/cli-contract.md)
+- [Quickstart](docs/quickstart.md) — install, first commands, demos
+- [Launch demo](docs/demo.md) — researcher-facing demo workflow
+- [Installation and distribution](docs/install.md) — cargo, binaries, completions
+- [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
-  - [Doctor output schema](schemas/doctor-output.v0.json)
 - [Citation metadata](CITATION.cff)
 
 ## Not yet

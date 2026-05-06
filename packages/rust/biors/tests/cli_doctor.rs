@@ -20,11 +20,10 @@ fn doctor_reports_local_readiness_checks() {
     assert_eq!(value["data"]["cli_version"], env!("CARGO_PKG_VERSION"));
     assert!(value["data"]["platform"]["os"].is_string());
     assert!(value["data"]["platform"]["arch"].is_string());
-    assert!(value["data"]["checks"].as_array().expect("checks").len() >= 4);
+    let checks = value["data"]["checks"].as_array().expect("checks");
+    assert!(checks.len() >= 4);
 
-    let check_names: Vec<_> = value["data"]["checks"]
-        .as_array()
-        .expect("checks")
+    let check_names: Vec<_> = checks
         .iter()
         .filter_map(|check| check["name"].as_str())
         .collect();
@@ -34,9 +33,7 @@ fn doctor_reports_local_readiness_checks() {
     assert!(check_names.contains(&"demo.dataset"));
     assert!(check_names.contains(&"package.fixture"));
 
-    let status_values: Vec<_> = value["data"]["checks"]
-        .as_array()
-        .expect("checks")
+    let status_values: Vec<_> = checks
         .iter()
         .filter_map(|check| check["status"].as_str())
         .collect();

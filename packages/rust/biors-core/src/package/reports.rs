@@ -4,27 +4,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Compact manifest summary for inspect-style outputs.
 pub struct PackageManifestSummary {
-    /// Manifest schema version.
     pub schema_version: SchemaVersion,
-    /// Package name.
     pub name: String,
-    /// Model file format.
     pub model_format: ModelFormat,
     /// Whether the model artifact declares a checksum.
     pub has_model_checksum: bool,
-    /// Optional tokenizer asset name.
     pub tokenizer: Option<String>,
-    /// Optional vocabulary asset name.
     pub vocab: Option<String>,
-    /// Runtime backend.
     pub runtime_backend: RuntimeBackend,
-    /// Runtime target platform.
     pub runtime_target: RuntimeTargetPlatform,
-    /// Number of preprocessing steps.
     pub preprocessing_steps: usize,
-    /// Number of postprocessing steps.
     pub postprocessing_steps: usize,
-    /// Number of package verification fixtures.
     pub fixtures: usize,
 }
 
@@ -42,11 +32,9 @@ pub struct PackageValidationReport {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// One structured manifest validation issue.
 pub struct PackageValidationIssue {
-    /// Stable issue code.
     pub code: PackageValidationIssueCode,
     /// Manifest field path associated with the issue.
     pub field: String,
-    /// Human-readable explanation.
     pub message: String,
 }
 
@@ -75,11 +63,8 @@ pub enum PackageValidationIssueCode {
 pub struct RuntimeBridgeReport {
     /// True when validation produced no blocking issues.
     pub ready: bool,
-    /// Runtime backend.
     pub backend: RuntimeBackend,
-    /// Target runtime platform.
     pub target: RuntimeTargetPlatform,
-    /// Execution provider selected for the bridge.
     pub execution_provider: String,
     /// Human-readable blocking validation issues.
     pub blocking_issues: Vec<String>,

@@ -2,35 +2,30 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Supported package manifest schema versions.
 pub enum SchemaVersion {
     #[serde(rename = "biors.package.v0")]
     BiorsPackageV0,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Supported model artifact formats.
 pub enum ModelFormat {
     #[serde(rename = "onnx")]
     Onnx,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Supported runtime backends.
 pub enum RuntimeBackend {
     #[serde(rename = "onnx-webgpu")]
     OnnxWebgpu,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Supported runtime target platforms.
 pub enum RuntimeTargetPlatform {
     #[serde(rename = "browser-wasm-webgpu")]
     BrowserWasmWebgpu,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Supported tensor element dtypes.
 pub enum DataType {
     #[serde(rename = "uint8")]
     Uint8,

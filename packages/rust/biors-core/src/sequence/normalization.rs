@@ -1,4 +1,3 @@
-/// Return a normalized protein sequence with whitespace removed and ASCII letters uppercased.
 pub fn normalize_sequence(sequence: &str) -> String {
     let mut normalized = String::with_capacity(sequence.len());
     append_normalized_sequence(sequence, &mut normalized);

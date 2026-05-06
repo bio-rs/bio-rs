@@ -19,12 +19,10 @@ pub struct AlphabetPolicy {
 }
 
 impl AlphabetPolicy {
-    /// Return the alphabet policy for a sequence kind.
     pub const fn for_kind(kind: SequenceKind) -> Self {
         Self { kind }
     }
 
-    /// Return the sequence kind covered by this policy.
     pub const fn kind(self) -> SequenceKind {
         self.kind
     }

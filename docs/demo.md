@@ -26,7 +26,7 @@ sh scripts/launch-demo.sh --cargo
 ## Run With An Installed Binary
 
 ```bash
-cargo install biors --version 0.20.0
+cargo install biors --version 0.20.1
 biors --version
 sh scripts/launch-demo.sh
 ```
@@ -93,15 +93,6 @@ Chart title: `Matched FASTA workloads: bio-rs vs Biopython`
 Caption: `Measured with the committed FASTA benchmark artifact. Claims are
 limited to these workloads and this recorded environment.`
 
-## Browser Playground Concept
+## Deferred
 
-Browser implementation is intentionally deferred for this release pass. The
-concept remains:
-
-1. Upload or paste FASTA.
-2. Validate sequence kind.
-3. Tokenize with `protein-20`.
-4. Show JSON output in the same success envelope shape as the CLI.
-
-The browser build must reuse `biors-core`; it should not fork validation or
-tokenization behavior in JavaScript.
+- Browser playground: deferred to a later release pass

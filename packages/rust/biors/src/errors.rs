@@ -75,7 +75,6 @@ impl CliError {
         }
     }
 
-    /// Convert a `FastaReadError` into the appropriate `CliError` variant.
     pub(crate) fn from_fasta_read(path: PathBuf, error: FastaReadError) -> Self {
         match error {
             FastaReadError::Parse(error) => Self::Core(error),
@@ -121,7 +120,6 @@ impl From<serde_json::Error> for CliError {
     }
 }
 
-/// Map a package validation report to a stable CLI error code.
 pub(crate) fn classify_validation_code(report: &PackageValidationReport) -> &'static str {
     if report
         .structured_issues
@@ -152,7 +150,6 @@ pub(crate) fn classify_validation_code(report: &PackageValidationReport) -> &'st
     }
 }
 
-/// Map a package verification report to a stable CLI error code.
 pub(crate) fn classify_verification_code(report: &PackageVerificationReport) -> &'static str {
     if report
         .results
