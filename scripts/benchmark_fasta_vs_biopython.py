@@ -488,7 +488,7 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
         "pure_parse": {
             "biopython": benchmark_case(
                 "Biopython pure parse",
-                lambda: biopython_parse_only(fasta_path),
+                lambda: biopython_subprocess_run("biopython_parse_only", fasta_path),
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
@@ -508,7 +508,7 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
         "parse_plus_validation": {
             "biopython": benchmark_case(
                 "Biopython parse plus validation",
-                lambda: biopython_parse_validate(fasta_path),
+                lambda: biopython_subprocess_run("biopython_parse_validate", fasta_path),
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,
@@ -530,7 +530,7 @@ def dataset_report(label: str, fasta_path: Path, provenance: dict, loops: int, h
         "parse_plus_tokenization": {
             "biopython": benchmark_case(
                 "Biopython parse plus tokenization",
-                lambda: biopython_parse_tokenize(fasta_path),
+                lambda: biopython_subprocess_run("biopython_parse_tokenize", fasta_path),
                 loops=loops,
                 residues=residues,
                 file_size_bytes=size_bytes,

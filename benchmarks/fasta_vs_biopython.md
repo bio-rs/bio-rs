@@ -16,7 +16,7 @@ FASTA throughput.
 - bio-rs: `biors-core v0.15.1`
 - Python: `3.14.3`
 - Biopython: `1.87`
-- Git commit: `0141bef7a1534012f0bf9d8de63759ee89934674`
+- Git commit: `f485ae8b5a945a37a5ba211ffb81a07be0a2a1f2`
 - Benchmark schema: `biors.benchmark.fasta_vs_biopython.v1`
 
 ## Datasets
@@ -95,29 +95,29 @@ memory-efficiency claim across every FASTA workload.
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.038s** | 0.445s | **11.82x** | **304.2M** | **347.9** | 1.5 MB | 44.2 MB |
-| Parse + tokenization | **0.060s** | 0.445s | **7.36x** | **189.6M** | **216.8** | 23.4 MB | 44.1 MB |
+| Parse + validation | **0.037s** | 0.619s | **16.70x** | **309.2M** | **353.6** | 1.5 MB | 44.3 MB |
+| Parse + tokenization | **0.060s** | 0.615s | **10.26x** | **191.1M** | **218.5** | 23.4 MB | 44.2 MB |
 
 ### Large Scale Fasta
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.296s** | 4.018s | **13.58x** | **348.4M** | **398.3** | 1.5 MB | 43.9 MB |
-| Parse + tokenization | **0.501s** | 4.022s | **8.03x** | **205.8M** | **235.3** | 187.2 MB | 44.4 MB |
+| Parse + validation | **0.293s** | 4.309s | **14.69x** | **351.6M** | **402.0** | 1.5 MB | 44.2 MB |
+| Parse + tokenization | **0.516s** | 4.265s | **8.27x** | **200.0M** | **228.7** | 187.3 MB | 44.3 MB |
 
 ### Many Short Records
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.007s** | 0.057s | **7.80x** | **130.8M** | **159.7** | 1.5 MB | 43.9 MB |
-| Parse + tokenization | **0.011s** | 0.057s | **5.39x** | **90.0M** | **109.9** | 6.8 MB | 44.3 MB |
+| Parse + validation | **0.007s** | 0.216s | **30.59x** | **135.7M** | **165.7** | 1.5 MB | 43.8 MB |
+| Parse + tokenization | **0.010s** | 0.219s | **22.17x** | **97.1M** | **118.5** | 6.8 MB | 44.2 MB |
 
 ### Single Long Sequence
 
 | Workload | bio-rs mean | Biopython mean | bio-rs speedup | bio-rs residues/s | bio-rs MB/s | bio-rs peak memory | Biopython peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Parse + validation | **0.006s** | 0.035s | **5.91x** | **163.0M** | **157.4** | 1.5 MB | 47.8 MB |
-| Parse + tokenization | **0.008s** | 0.035s | **4.60x** | **126.8M** | **122.4** | 2.5 MB | 48.2 MB |
+| Parse + validation | **0.006s** | 0.203s | **36.33x** | **172.2M** | **166.3** | 1.5 MB | 47.7 MB |
+| Parse + tokenization | **0.007s** | 0.245s | **32.62x** | **128.0M** | **123.6** | 2.5 MB | 48.8 MB |
 
 ## Reproduce
 

@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 Install the published CLI:
 
 ```bash
-cargo install biors --version 0.15.1
+cargo install biors --version 0.15.2
 biors --version
 ```
 
