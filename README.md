@@ -70,6 +70,12 @@ Validate mixed biological FASTA with per-record kind detection:
 biors seq validate examples/protein.fasta
 ```
 
+Run the launch demo dataset:
+
+```bash
+sh scripts/launch-demo.sh
+```
+
 Verify package fixture outputs:
 
 ```bash
@@ -293,6 +299,7 @@ Tokenization output is record-oriented:
 Public contract docs:
 
 - [Quickstart](docs/quickstart.md)
+- [Launch demo](docs/demo.md)
 - [CLI contract](docs/cli-contract.md)
 - [Error code registry](docs/error-codes.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)

@@ -37,6 +37,18 @@ Use this for mixed biological FASTA. It defaults to `--kind auto`, assigns
 Protein, DNA, or RNA per record, and reports `kind_counts` plus kind-specific
 warnings and errors.
 
+## Run The Launch Demo
+
+```bash
+sh scripts/launch-demo.sh
+```
+
+From a source checkout before installing:
+
+```bash
+sh scripts/launch-demo.sh --cargo
+```
+
 ## Tokenize FASTA
 
 ```bash
