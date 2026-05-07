@@ -71,6 +71,8 @@ Required v1 sections:
   limitations.
 - `model`, `preprocessing`, `postprocessing`, `runtime`, and `fixtures`: the
   executable package contract already present in v0.
+- `runtime.version`: backend contract/version string pinned by generated
+  pipeline lockfiles when package context is supplied.
 
 Package metadata is intentionally explicit. A researcher should be able to
 inspect the package and know whether the artifact can be redistributed, how to

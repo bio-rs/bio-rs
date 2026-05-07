@@ -19,6 +19,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/output-diff.v0.json",
         "schemas/pipeline-output.v0.json",
         "schemas/pipeline-config.v0.json",
+        "schemas/pipeline-lock.v0.json",
         "schemas/sequence-debug-output.v0.json",
         "schemas/tokenizer-inspect-output.v0.json",
         "schemas/sequence-workflow-output.v0.json",
@@ -140,6 +141,13 @@ fn cli_outputs_match_sequence_schemas() {
     )
     .expect("pipeline config JSON");
     assert_json_value_matches_schema(&pipeline_config_json, "schemas/pipeline-config.v0.json");
+
+    let pipeline_lock_json: Value = serde_json::from_str(
+        &fs::read_to_string(repo_root().join("examples/pipeline/pipeline.lock"))
+            .expect("read pipeline lock example"),
+    )
+    .expect("pipeline lock JSON");
+    assert_json_value_matches_schema(&pipeline_lock_json, "schemas/pipeline-lock.v0.json");
 
     let debug =
         common::run_biors_stdin(&["debug", "--max-length", "4", "-"], ">seq1\nAX*\n").stdout;

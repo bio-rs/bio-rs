@@ -80,7 +80,8 @@
   ],
   "runtime": {
     "backend": "onnx-webgpu",
-    "target": "browser-wasm-webgpu"
+    "target": "browser-wasm-webgpu",
+    "version": "onnx-webgpu.v0"
   },
   "expected_input": {
     "shape": ["batch", "sequence"],

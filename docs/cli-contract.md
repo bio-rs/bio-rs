@@ -24,6 +24,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package verify <manifest> <observations>`
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 - `biors pipeline --config <toml|yaml|json> [--dry-run] [--explain-plan]`
+- `biors pipeline --config <toml|yaml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
 `workflow` runs protein FASTA validation, deterministic `protein-20`
@@ -36,7 +37,11 @@ validate -> tokenize -> export step statuses for CLI chaining and pipeline
 orchestration. With `--config`, it reads `biors.pipeline.v0` TOML/YAML/JSON and
 runs parse -> normalize -> validate -> tokenize -> export. `--dry-run` validates
 the config and emits planned stages without reading FASTA input; `--explain-plan`
-includes the static plan with an executing run.
+includes the static plan with an executing run. `--write-lock` records a
+`biors.pipeline.lock.v0` file for an executed config pipeline. When `--package`
+is supplied, the lock pins the package manifest path, model checksum, runtime
+backend, runtime target, and backend version alongside the pipeline config hash,
+vocabulary hash, input hash, and output-content hash.
 `debug` emits a step-by-step per-record view from normalized sequence to token
 IDs to model-input records, with compact `W`/`E` residue markers for warnings
 and errors.
@@ -118,7 +123,8 @@ CLI invocation arguments, vocabulary SHA-256, and output-content SHA-256. The
 output-content digest covers the workflow payload excluding the hash values
 themselves.
 
-Pipeline payloads use `schemas/pipeline-output.v0.json`. Debug payloads use
+Pipeline payloads use `schemas/pipeline-output.v0.json`; pipeline lockfiles use
+`schemas/pipeline-lock.v0.json`. Debug payloads use
 `schemas/sequence-debug-output.v0.json`. Output diff reports use
 `schemas/output-diff.v0.json`.
 

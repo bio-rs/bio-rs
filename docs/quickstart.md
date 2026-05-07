@@ -178,10 +178,16 @@ validation payloads.
 ```bash
 biors pipeline --config examples/pipeline/protein.toml --explain-plan
 biors pipeline --config examples/pipeline/protein.yaml --dry-run
+biors pipeline \
+  --config examples/protein-package/pipelines/protein.toml \
+  --package examples/protein-package/manifest.json \
+  --write-lock examples/pipeline/pipeline.lock
 ```
 
 Pipeline configs support TOML, YAML, and JSON. The static MVP runs parse,
-normalize, validate, tokenize, and export stages. See
+normalize, validate, tokenize, and export stages. `--write-lock` records a
+reproducible execution lock with config, input, vocabulary, output, model, and
+backend pins when package context is supplied. See
 [Pipeline Config](pipeline-config.md).
 
 ## Verify Package Fixtures

@@ -6,6 +6,7 @@ mod doctor;
 pub mod handlers;
 mod pipeline;
 mod pipeline_config;
+mod pipeline_lock;
 mod pipeline_output;
 mod workflow;
 pub use args::{
@@ -17,5 +18,5 @@ pub(crate) use debug::run_debug;
 pub(crate) use diff::run_diff;
 pub(crate) use doctor::build_doctor_report;
 pub use handlers::run;
-pub(crate) use pipeline::run_pipeline;
+pub(crate) use pipeline::{run_pipeline, PipelineRunOptions};
 pub(crate) use workflow::run_workflow;

@@ -22,6 +22,7 @@ fn minimal_manifest() -> PackageManifest {
         runtime: RuntimeTarget {
             backend: RuntimeBackend::OnnxWebgpu,
             target: RuntimeTargetPlatform::BrowserWasmWebgpu,
+            version: None,
         },
         expected_input: None,
         expected_output: None,

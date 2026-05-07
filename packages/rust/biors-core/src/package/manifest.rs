@@ -130,6 +130,8 @@ pub struct PipelineConfigArtifact {
 pub struct RuntimeTarget {
     pub backend: RuntimeBackend,
     pub target: RuntimeTargetPlatform,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

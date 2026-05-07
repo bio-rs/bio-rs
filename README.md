@@ -121,6 +121,8 @@ Current capabilities:
   hashes and first-difference metadata
 - `pipeline` CLI output for no-config validate -> tokenize -> export workflow
   composition
+- pipeline lockfile generation for config-driven workflows with package/model
+  and runtime provenance pins
 - `debug` CLI output for sequence -> token -> model-input step inspection and
   compact residue error visualization
 - `batch validate` for multiple files, recursive directory inputs, quoted glob
@@ -245,6 +247,7 @@ schemas/
   output-diff.v0.json
   pipeline-output.v0.json
   pipeline-config.v0.json
+  pipeline-lock.v0.json
   sequence-workflow-output.v0.json
   sequence-debug-output.v0.json
   package-bridge-output.v0.json
@@ -282,6 +285,7 @@ examples/
     protein.toml
     protein.yaml
     protein.json
+    pipeline.lock
 ```
 
 ## Protein-20 alphabet

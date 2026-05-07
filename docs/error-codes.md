@@ -60,6 +60,8 @@ parsing the human-readable `issue` field.
 ## Pipeline
 
 - `pipeline.invalid_config`: a pipeline config is malformed, unsupported, or missing required legacy no-config arguments
+- `pipeline.invalid_lock_package`: a package manifest supplied for pipeline lock generation failed package validation
+- `pipeline.lock_requires_model_checksum`: a package manifest supplied for pipeline lock generation did not declare `model.checksum`
 
 ## Taxonomy
 

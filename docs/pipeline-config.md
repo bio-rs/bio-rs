@@ -39,6 +39,29 @@ biors pipeline --config examples/pipeline/protein.json --explain-plan
 `--explain-plan` includes the static execution plan together with the normal
 workflow result.
 
+## Lockfile
+
+```bash
+biors pipeline \
+  --config examples/protein-package/pipelines/protein.toml \
+  --package examples/protein-package/manifest.json \
+  --write-lock examples/pipeline/pipeline.lock
+```
+
+`--write-lock` requires an executed config pipeline, so it cannot be combined
+with `--dry-run`. The generated `biors.pipeline.lock.v0` JSON pins:
+
+- bio-rs CLI and core package versions
+- pipeline config path, schema version, name, and SHA-256
+- input path and `fnv1a64` input hash
+- vocabulary SHA-256 and output-content SHA-256 from workflow provenance
+- package manifest path, model SHA-256, runtime backend, runtime target, and
+  backend version when `--package` is supplied
+
+The lockfile also records the Python baseline parity strategy: compare
+normalized records and `protein-20` token IDs against
+`examples/model-input-contract/reference-python-parity.json`.
+
 ## Config Shape
 
 ```toml

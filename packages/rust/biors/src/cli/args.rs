@@ -66,6 +66,10 @@ pub enum Command {
         #[arg(long)]
         explain_plan: bool,
         #[arg(long)]
+        package: Option<PathBuf>,
+        #[arg(long)]
+        write_lock: Option<PathBuf>,
+        #[arg(long)]
         max_length: Option<usize>,
         #[arg(long, default_value_t = 0)]
         pad_token_id: u8,

@@ -1,4 +1,5 @@
 use serde_json::Value;
+use std::fs;
 use std::path::Path;
 
 mod common;
@@ -142,6 +143,62 @@ fn pipeline_runs_json_config() {
     );
     assert_eq!(value["data"]["ready"], true);
     assert!(value["data"]["plan"].is_null());
+}
+
+#[test]
+fn pipeline_writes_lockfile_with_package_provenance() {
+    let temp = TempDir::new("biors-pipeline-lock");
+    let lockfile = temp.path().join("pipeline.lock");
+    let repo = repo_root();
+    let config = repo.join("examples/protein-package/pipelines/protein.toml");
+    let package = repo.join("examples/protein-package/manifest.json");
+    let config_arg = config.to_string_lossy();
+    let package_arg = package.to_string_lossy();
+    let lock_arg = lockfile.to_string_lossy();
+
+    let value = run_biors(
+        &[
+            "pipeline",
+            "--config",
+            &config_arg,
+            "--package",
+            &package_arg,
+            "--write-lock",
+            &lock_arg,
+        ],
+        &[],
+    );
+
+    assert_eq!(value["data"]["pipeline"], "config_pipeline.v0");
+    assert!(lockfile.exists(), "pipeline.lock was not written");
+
+    let lock: Value = serde_json::from_str(&fs::read_to_string(&lockfile).expect("read lockfile"))
+        .expect("valid lockfile JSON");
+
+    assert_eq!(lock["schema_version"], "biors.pipeline.lock.v0");
+    assert_eq!(
+        lock["pipeline_config"]["schema_version"],
+        "biors.pipeline.v0"
+    );
+    assert_eq!(lock["package"]["name"], "protein-seed");
+    assert_eq!(
+        lock["package"]["model_sha256"],
+        "sha256:2c1da72b15fab35bd6f1bb62f5037b936e26e6413a220fa9afe5a64bce0df68d"
+    );
+    assert_eq!(lock["package"]["runtime_backend"], "onnx-webgpu");
+    assert_eq!(lock["package"]["backend_version"], "onnx-webgpu.v0");
+    assert!(lock["hashes"]["vocabulary_sha256"]
+        .as_str()
+        .expect("vocab hash")
+        .starts_with("sha256:"));
+    assert!(lock["execution"]["input_hash"]
+        .as_str()
+        .expect("input hash")
+        .starts_with("fnv1a64:"));
+    assert_eq!(
+        lock["python_baseline"]["comparison"],
+        "normalized_records_and_protein20_tokens"
+    );
 }
 
 #[test]

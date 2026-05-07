@@ -4,6 +4,7 @@ use super::{
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_debug, run_diff, run_pipeline, run_workflow,
+    PipelineRunOptions,
 };
 use crate::errors::{classify_validation_code, classify_verification_code, CliError};
 use crate::input::{
@@ -44,19 +45,23 @@ pub fn run(command: Command) -> Result<(), CliError> {
             config,
             dry_run,
             explain_plan,
+            package,
+            write_lock,
             max_length,
             pad_token_id,
             padding,
             path,
-        } => run_pipeline(
+        } => run_pipeline(PipelineRunOptions {
             config,
             dry_run,
             explain_plan,
+            package,
+            write_lock,
             max_length,
             pad_token_id,
             padding,
             path,
-        ),
+        }),
         Command::Seq { command } => run_seq_command(command),
         Command::Tokenize {
             profile,

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/pipeline-lock.v0.json",
+  "title": "bio-rs pipeline lockfile v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_by",
+    "pipeline_config",
+    "execution",
+    "hashes",
+    "python_baseline"
+  ],
+  "properties": {
+    "schema_version": { "const": "biors.pipeline.lock.v0" },
+    "generated_by": {
+      "type": "object",
+      "required": ["biors_version", "biors_core_version"],
+      "properties": {
+        "biors_version": { "type": "string", "minLength": 1 },
+        "biors_core_version": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "pipeline_config": {
+      "type": "object",
+      "required": ["schema_version", "name", "path", "sha256"],
+      "properties": {
+        "schema_version": { "const": "biors.pipeline.v0" },
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "package": {
+      "type": ["object", "null"],
+      "required": [
+        "name",
+        "schema_version",
+        "manifest_path",
+        "model_sha256",
+        "runtime_backend",
+        "runtime_target",
+        "backend_version"
+      ],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] },
+        "manifest_path": { "type": "string", "minLength": 1 },
+        "model_sha256": { "$ref": "#/$defs/sha256" },
+        "runtime_backend": { "type": "string", "minLength": 1 },
+        "runtime_target": { "type": "string", "minLength": 1 },
+        "backend_version": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "required": ["command", "arguments", "input_path", "input_hash", "ready"],
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "input_path": { "type": "string", "minLength": 1 },
+        "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" },
+        "ready": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "hashes": {
+      "type": "object",
+      "required": ["vocabulary_sha256", "output_data_sha256"],
+      "properties": {
+        "vocabulary_sha256": { "$ref": "#/$defs/sha256" },
+        "output_data_sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "python_baseline": {
+      "type": "object",
+      "required": ["comparison", "reference", "status"],
+      "properties": {
+        "comparison": { "const": "normalized_records_and_protein20_tokens" },
+        "reference": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  },
+  "additionalProperties": false
+}
