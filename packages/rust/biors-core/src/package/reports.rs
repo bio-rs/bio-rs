@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 pub struct PackageManifestSummary {
     pub schema_version: SchemaVersion,
     pub name: String,
+    pub package_layout: Option<PackageDirectoryLayoutSummary>,
+    pub metadata: Option<PackageMetadataSummary>,
     pub model_format: ModelFormat,
     /// Whether the model artifact declares a checksum.
     pub has_model_checksum: bool,
@@ -21,11 +23,33 @@ pub struct PackageManifestSummary {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Declared package directory layout returned by inspect.
+pub struct PackageDirectoryLayoutSummary {
+    pub manifest: String,
+    pub models: String,
+    pub tokenizers: Option<String>,
+    pub vocabs: Option<String>,
+    pub pipelines: Option<String>,
+    pub fixtures: String,
+    pub observed: Option<String>,
+    pub docs: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Compact research metadata returned by inspect.
+pub struct PackageMetadataSummary {
+    pub license: String,
+    pub citation: String,
+    pub model_card: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Package-relative layout paths declared by a manifest.
 pub struct PackageLayoutSummary {
     pub model: String,
     pub tokenizer: Option<String>,
     pub vocab: Option<String>,
+    pub pipeline_configs: Vec<String>,
     pub fixture_inputs: Vec<String>,
     pub fixture_outputs: Vec<String>,
 }
@@ -68,6 +92,8 @@ pub enum PackageValidationIssueCode {
     InvalidAssetPath,
     /// Asset could not be read from disk.
     AssetReadFailed,
+    /// Asset path does not live under the declared v1 package layout directory.
+    LayoutMismatch,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

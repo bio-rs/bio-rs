@@ -21,7 +21,8 @@
               "invalid_checksum_format",
               "checksum_mismatch",
               "invalid_asset_path",
-              "asset_read_failed"
+              "asset_read_failed",
+              "layout_mismatch"
             ]
           },
           "field": { "type": "string" },

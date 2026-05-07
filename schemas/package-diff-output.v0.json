@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-diff-output.v0.json",
+  "title": "bio-rs package manifest diff data payload",
+  "type": "object",
+  "required": [
+    "left_path",
+    "right_path",
+    "left_package",
+    "right_package",
+    "left_schema_version",
+    "right_schema_version",
+    "compatibility",
+    "same_package_name",
+    "diff"
+  ],
+  "properties": {
+    "left_path": { "type": "string", "minLength": 1 },
+    "right_path": { "type": "string", "minLength": 1 },
+    "left_package": { "type": "string", "minLength": 1 },
+    "right_package": { "type": "string", "minLength": 1 },
+    "left_schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] },
+    "right_schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] },
+    "compatibility": {
+      "enum": ["backward_compatible", "migration_required", "unsupported"]
+    },
+    "same_package_name": { "type": "boolean" },
+    "diff": { "$ref": "#/$defs/outputDiff" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "outputDiff": {
+      "type": "object",
+      "required": [
+        "expected_path",
+        "observed_path",
+        "expected_sha256",
+        "observed_sha256",
+        "matches"
+      ],
+      "properties": {
+        "expected_path": { "type": "string", "minLength": 1 },
+        "observed_path": { "type": "string", "minLength": 1 },
+        "expected_sha256": { "$ref": "#/$defs/sha256" },
+        "observed_sha256": { "$ref": "#/$defs/sha256" },
+        "matches": { "type": "boolean" },
+        "content_diff": { "$ref": "#/$defs/contentDiff" }
+      },
+      "additionalProperties": false
+    },
+    "contentDiff": {
+      "type": "object",
+      "required": ["expected_path", "observed_path", "expected_len", "observed_len"],
+      "properties": {
+        "expected_path": { "type": "string", "minLength": 1 },
+        "observed_path": { "type": "string", "minLength": 1 },
+        "expected_len": { "type": "integer", "minimum": 0 },
+        "observed_len": { "type": "integer", "minimum": 0 },
+        "first_difference": {
+          "type": "object",
+          "required": ["byte_offset"],
+          "properties": {
+            "byte_offset": { "type": "integer", "minimum": 0 },
+            "expected_byte": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "observed_byte": { "type": "integer", "minimum": 0, "maximum": 255 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -5,6 +5,8 @@ use std::fmt;
 pub enum SchemaVersion {
     #[serde(rename = "biors.package.v0")]
     BiorsPackageV0,
+    #[serde(rename = "biors.package.v1")]
+    BiorsPackageV1,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -37,6 +39,7 @@ impl fmt::Display for SchemaVersion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
             Self::BiorsPackageV0 => "biors.package.v0",
+            Self::BiorsPackageV1 => "biors.package.v1",
         };
         f.write_str(value)
     }

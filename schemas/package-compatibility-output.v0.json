@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-compatibility-output.v0.json",
+  "title": "bio-rs package compatibility data payload",
+  "type": "object",
+  "required": [
+    "left_path",
+    "right_path",
+    "left_package",
+    "right_package",
+    "left_schema_version",
+    "right_schema_version",
+    "compatibility",
+    "schema_compatible",
+    "migration_required",
+    "same_package_name"
+  ],
+  "properties": {
+    "left_path": { "type": "string", "minLength": 1 },
+    "right_path": { "type": "string", "minLength": 1 },
+    "left_package": { "type": "string", "minLength": 1 },
+    "right_package": { "type": "string", "minLength": 1 },
+    "left_schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] },
+    "right_schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] },
+    "compatibility": {
+      "enum": ["backward_compatible", "migration_required", "unsupported"]
+    },
+    "schema_compatible": { "type": "boolean" },
+    "migration_required": { "type": "boolean" },
+    "same_package_name": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

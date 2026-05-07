@@ -1,51 +1,9 @@
 use super::{
-    is_sha256_checksum, sha256_digest, validate_package_manifest, PackageManifest,
+    is_sha256_checksum, read_package_file, sha256_digest, validate_declared_layout,
+    validate_package_manifest, validate_package_relative_path, PackageManifest,
     PackageValidationIssueCode, PackageValidationReport,
 };
-use std::fmt;
-use std::fs;
-use std::path::{Component, Path, PathBuf};
-
-/// Error type for package artifact path resolution and file reads.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PackageArtifactError {
-    /// Asset path is empty.
-    EmptyPath,
-    /// Asset path is absolute.
-    AbsolutePath { path: String },
-    /// Asset path escapes the package root.
-    PathEscape { path: String },
-    /// Asset file could not be read.
-    AssetReadFailed {
-        path: String,
-        resolved: String,
-        reason: String,
-    },
-}
-
-impl fmt::Display for PackageArtifactError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::EmptyPath => write!(f, "asset path is required"),
-            Self::AbsolutePath { path } => {
-                write!(
-                    f,
-                    "asset path '{path}' must be relative to the package root"
-                )
-            }
-            Self::PathEscape { path } => {
-                write!(f, "asset path '{path}' must stay inside the package root")
-            }
-            Self::AssetReadFailed {
-                path,
-                resolved,
-                reason,
-            } => write!(f, "failed to read asset '{path}' at '{resolved}': {reason}"),
-        }
-    }
-}
-
-impl std::error::Error for PackageArtifactError {}
+use std::path::Path;
 
 /// Validate manifest fields and all package-relative artifact paths and checksums.
 pub fn validate_package_manifest_artifacts(
@@ -82,6 +40,47 @@ pub fn validate_package_manifest_artifacts(
         );
     }
 
+    validate_pipeline_configs(
+        &mut report,
+        "preprocessing",
+        &manifest.preprocessing,
+        base_dir,
+    );
+    validate_pipeline_configs(
+        &mut report,
+        "postprocessing",
+        &manifest.postprocessing,
+        base_dir,
+    );
+
+    if let Some(metadata) = &manifest.metadata {
+        if let Some(file) = &metadata.license.file {
+            validate_artifact(
+                &mut report,
+                "metadata.license.file",
+                &file.path,
+                file.checksum.as_deref(),
+                base_dir,
+            );
+        }
+        if let Some(file) = &metadata.citation.file {
+            validate_artifact(
+                &mut report,
+                "metadata.citation.file",
+                &file.path,
+                file.checksum.as_deref(),
+                base_dir,
+            );
+        }
+        validate_artifact(
+            &mut report,
+            "metadata.model_card",
+            &metadata.model_card.path,
+            metadata.model_card.checksum.as_deref(),
+            base_dir,
+        );
+    }
+
     for (index, fixture) in manifest.fixtures.iter().enumerate() {
         validate_artifact(
             &mut report,
@@ -99,63 +98,28 @@ pub fn validate_package_manifest_artifacts(
         );
     }
 
+    validate_declared_layout(&mut report, manifest);
+
     report.finish()
 }
 
-/// Resolve a package-relative path under a package base directory without validation.
-pub(crate) fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
-    base_dir.join(relative_path)
-}
-
-/// Validate and resolve a package-relative asset path under a package base directory.
-pub fn resolve_package_asset_path(
+fn validate_pipeline_configs(
+    report: &mut PackageValidationReport,
+    section: &str,
+    steps: &[super::PipelineStep],
     base_dir: &Path,
-    relative_path: &str,
-) -> Result<PathBuf, PackageArtifactError> {
-    validate_package_relative_path(relative_path)?;
-    Ok(resolve_package_path(base_dir, relative_path))
-}
-
-/// Read a package-relative asset after validating that the path stays inside the package root.
-pub fn read_package_file(
-    base_dir: &Path,
-    relative_path: &str,
-) -> Result<Vec<u8>, PackageArtifactError> {
-    let resolved = resolve_package_asset_path(base_dir, relative_path)?;
-    fs::read(&resolved).map_err(|error| PackageArtifactError::AssetReadFailed {
-        path: relative_path.to_string(),
-        resolved: resolved.display().to_string(),
-        reason: error.to_string(),
-    })
-}
-
-/// Validate that an asset path is relative and cannot escape the package root.
-pub(crate) fn validate_package_relative_path(
-    relative_path: &str,
-) -> Result<(), PackageArtifactError> {
-    let path = Path::new(relative_path);
-    if relative_path.trim().is_empty() {
-        return Err(PackageArtifactError::EmptyPath);
+) {
+    for (index, step) in steps.iter().enumerate() {
+        if let Some(config) = &step.config {
+            validate_artifact(
+                report,
+                &format!("{section}[{index}].config"),
+                &config.path,
+                config.checksum.as_deref(),
+                base_dir,
+            );
+        }
     }
-
-    if path.is_absolute() {
-        return Err(PackageArtifactError::AbsolutePath {
-            path: relative_path.to_string(),
-        });
-    }
-
-    if path.components().any(|component| {
-        matches!(
-            component,
-            Component::ParentDir | Component::RootDir | Component::Prefix(_)
-        )
-    }) {
-        return Err(PackageArtifactError::PathEscape {
-            path: relative_path.to_string(),
-        });
-    }
-
-    Ok(())
 }
 
 fn validate_artifact(

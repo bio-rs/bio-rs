@@ -1,6 +1,46 @@
 {
-  "schema_version": "biors.package.v0",
+  "schema_version": "biors.package.v1",
   "name": "protein-seed",
+  "package_layout": {
+    "manifest": "manifest.json",
+    "models": "models",
+    "tokenizers": "tokenizers",
+    "vocabs": "vocabs",
+    "pipelines": "pipelines",
+    "fixtures": "fixtures",
+    "observed": "observed",
+    "docs": "docs"
+  },
+  "metadata": {
+    "license": {
+      "expression": "CC0-1.0",
+      "file": {
+        "path": "docs/LICENSE.txt",
+        "checksum": "sha256:25e2954753a250090508b62e67b793a1114027f413da237b801641aec7977cf9"
+      }
+    },
+    "citation": {
+      "preferred_citation": "bio-rs protein package fixture, version 0.31.0",
+      "doi": "10.0000/biors.fixture",
+      "file": {
+        "path": "docs/CITATION.cff",
+        "checksum": "sha256:88980d43dcaebca23998d514d013ecbd1e05bf92eb83f80eb90b80b69ce7a6da"
+      }
+    },
+    "model_card": {
+      "path": "docs/model-card.md",
+      "checksum": "sha256:230083ac98b86eec3f8e6b22be0c8f9f9c9e737ea498d5c41f7daa5993c15827",
+      "summary": "Tiny deterministic package fixture for package layout and checksum validation.",
+      "intended_use": [
+        "Validate bio-rs package tooling in local and CI environments",
+        "Exercise package fixture verification without external downloads"
+      ],
+      "limitations": [
+        "Placeholder artifact, not a biological model",
+        "Not suitable for scientific inference"
+      ]
+    }
+  },
   "model": {
     "format": "onnx",
     "path": "models/protein-seed.onnx",
@@ -23,7 +63,12 @@
       "name": "protein_fasta_tokenize",
       "implementation": "biors-core",
       "contract": "protein-20",
-      "contract_version": "protein-20.v0"
+      "contract_version": "protein-20.v0",
+      "config": {
+        "path": "pipelines/protein.toml",
+        "schema_version": "biors.pipeline.v0",
+        "checksum": "sha256:18474b569c046137712e0634d0fb9dcff6d9eab65b7001b2da089572cbb1f8ab"
+      }
     }
   ],
   "postprocessing": [
@@ -35,7 +80,8 @@
   ],
   "runtime": {
     "backend": "onnx-webgpu",
-    "target": "browser-wasm-webgpu"
+    "target": "browser-wasm-webgpu",
+    "version": "onnx-webgpu.v0"
   },
   "expected_input": {
     "shape": ["batch", "sequence"],

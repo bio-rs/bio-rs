@@ -33,7 +33,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowInvocation`, `SequenceWorkflowHashes`, `SequenceWorkflowReadinessIssue`
 - `diff_output_bytes`, `OutputDiffReport`
 - `validate_package_manifest_artifacts`
-- `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
+- `PackageManifest`, `PipelineConfigArtifact`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
 - `BioRsError::code`
 
@@ -54,17 +54,28 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
 - `schemas/output-diff.v0.json`
+- `schemas/dataset-inspect-output.v0.json`
+- `schemas/cache-output.v0.json`
 - `schemas/pipeline-output.v0.json`
+- `schemas/pipeline-config.v0.json`
+- `schemas/pipeline-lock.v0.json`
 - `schemas/batch-validation-output.v0.json`
 - `schemas/sequence-debug-output.v0.json`
 - `schemas/tokenizer-inspect-output.v0.json`
+- `schemas/tokenizer-conversion-output.v0.json`
 - `schemas/sequence-workflow-output.v0.json`
 - `schemas/doctor-output.v0.json`
 - `schemas/fasta-validation-output.v0.json`
 - `schemas/package-inspect-output.v0.json`
 - `schemas/package-bridge-output.v0.json`
 - `schemas/package-verify-output.v0.json`
+- `schemas/package-conversion-output.v0.json`
+- `schemas/package-skeleton-output.v0.json`
+- `schemas/package-migration-output.v0.json`
+- `schemas/package-compatibility-output.v0.json`
+- `schemas/package-diff-output.v0.json`
 - `schemas/package-manifest.v0.json`
+- `schemas/package-manifest.v1.json`
 - `schemas/package-validation-report.v0.json`
 
 ## Not Yet Stable
@@ -73,3 +84,5 @@ The following surfaces are candidates for stabilization before the first stable 
 - larger fixture verification formats
 - benchmark claims beyond the recorded baseline workload
 - independent `biors-core` and `biors` versioning outside isolated post-1.0 patch releases
+- final shape of schema version migration helpers beyond the current
+  `biors_core::versioning` policy API

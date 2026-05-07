@@ -144,6 +144,12 @@ pub(crate) fn classify_validation_code(report: &PackageValidationReport) -> &'st
     } else if report
         .structured_issues
         .iter()
+        .any(|issue| issue.code == PackageValidationIssueCode::LayoutMismatch)
+    {
+        "package.layout_mismatch"
+    } else if report
+        .structured_issues
+        .iter()
         .any(|issue| issue.code == PackageValidationIssueCode::AssetReadFailed)
     {
         "package.asset_read_failed"

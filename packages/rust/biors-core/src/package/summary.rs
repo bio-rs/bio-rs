@@ -1,10 +1,15 @@
-use super::{PackageLayoutSummary, PackageManifest, PackageManifestSummary};
+use super::{
+    PackageDirectoryLayout, PackageDirectoryLayoutSummary, PackageLayoutSummary, PackageManifest,
+    PackageManifestSummary, PackageMetadata, PackageMetadataSummary,
+};
 
 /// Build a compact summary of a package manifest for inspect-style output.
 pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSummary {
     PackageManifestSummary {
         schema_version: manifest.schema_version,
         name: manifest.name.clone(),
+        package_layout: manifest.package_layout.as_ref().map(package_layout_summary),
+        metadata: manifest.metadata.as_ref().map(metadata_summary),
         model_format: manifest.model.format,
         has_model_checksum: manifest.model.checksum.is_some(),
         tokenizer: manifest
@@ -24,6 +29,7 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
                 .as_ref()
                 .map(|tokenizer| tokenizer.path.clone()),
             vocab: manifest.vocab.as_ref().map(|vocab| vocab.path.clone()),
+            pipeline_configs: pipeline_config_paths(manifest),
             fixture_inputs: manifest
                 .fixtures
                 .iter()
@@ -35,5 +41,36 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
                 .map(|fixture| fixture.expected_output.clone())
                 .collect(),
         },
+    }
+}
+
+fn package_layout_summary(layout: &PackageDirectoryLayout) -> PackageDirectoryLayoutSummary {
+    PackageDirectoryLayoutSummary {
+        manifest: layout.manifest.clone(),
+        models: layout.models.clone(),
+        tokenizers: layout.tokenizers.clone(),
+        vocabs: layout.vocabs.clone(),
+        pipelines: layout.pipelines.clone(),
+        fixtures: layout.fixtures.clone(),
+        observed: layout.observed.clone(),
+        docs: layout.docs.clone(),
+    }
+}
+
+fn pipeline_config_paths(manifest: &PackageManifest) -> Vec<String> {
+    manifest
+        .preprocessing
+        .iter()
+        .chain(manifest.postprocessing.iter())
+        .filter_map(|step| step.config.as_ref())
+        .map(|config| config.path.clone())
+        .collect()
+}
+
+fn metadata_summary(metadata: &PackageMetadata) -> PackageMetadataSummary {
+    PackageMetadataSummary {
+        license: metadata.license.expression.clone(),
+        citation: metadata.citation.preferred_citation.clone(),
+        model_card: metadata.model_card.path.clone(),
     }
 }

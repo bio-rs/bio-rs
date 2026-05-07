@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/package-migration-output.v0.json",
+  "title": "bio-rs package migration data payload",
+  "type": "object",
+  "required": [
+    "package",
+    "from",
+    "to",
+    "compatibility",
+    "automatic",
+    "required_steps"
+  ],
+  "properties": {
+    "package": { "type": "string", "minLength": 1 },
+    "from": { "enum": ["biors.package.v0", "biors.package.v1"] },
+    "to": { "enum": ["biors.package.v0", "biors.package.v1"] },
+    "compatibility": {
+      "enum": ["backward_compatible", "migration_required", "unsupported"]
+    },
+    "automatic": { "type": "boolean" },
+    "required_steps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "additionalProperties": false
+}

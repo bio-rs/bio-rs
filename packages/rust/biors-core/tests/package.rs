@@ -78,6 +78,126 @@ fn inspects_portable_package_manifest() {
 }
 
 #[test]
+fn validates_v1_package_layout_and_metadata_contract() {
+    let manifest = example_manifest();
+    let summary = inspect_package_manifest(&manifest);
+
+    assert_eq!(summary.schema_version, SchemaVersion::BiorsPackageV1);
+    assert_eq!(
+        summary
+            .package_layout
+            .as_ref()
+            .expect("package layout")
+            .models,
+        "models"
+    );
+    assert_eq!(
+        summary.metadata.as_ref().expect("metadata").license,
+        "CC0-1.0"
+    );
+    assert_eq!(
+        summary.metadata.as_ref().expect("metadata").model_card,
+        "docs/model-card.md"
+    );
+    assert_eq!(
+        summary
+            .package_layout
+            .as_ref()
+            .expect("package layout")
+            .pipelines
+            .as_deref(),
+        Some("pipelines")
+    );
+    assert_eq!(
+        summary.layout.pipeline_configs,
+        vec!["pipelines/protein.toml"]
+    );
+    assert_eq!(
+        manifest.preprocessing[0]
+            .config
+            .as_ref()
+            .expect("pipeline config")
+            .schema_version
+            .to_string(),
+        "biors.pipeline.v0"
+    );
+
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(report.valid, "{:?}", report.issues);
+}
+
+#[test]
+fn rejects_v1_manifest_without_required_research_metadata() {
+    let mut manifest = example_manifest();
+    manifest.metadata = None;
+
+    let report = validate_package_manifest(&manifest);
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::RequiredField && issue.field == "metadata"
+    }));
+}
+
+#[test]
+fn rejects_v1_assets_outside_declared_package_layout() {
+    let mut manifest = example_manifest();
+    manifest.model.path = "artifacts/protein-seed.onnx".to_string();
+
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::LayoutMismatch
+            && issue.field == "model.path"
+            && issue.message.contains("models")
+    }));
+}
+
+#[test]
+fn rejects_pipeline_config_outside_declared_pipeline_layout() {
+    let mut manifest = example_manifest();
+    manifest.preprocessing[0]
+        .config
+        .as_mut()
+        .expect("pipeline config")
+        .path = "configs/protein.toml".to_string();
+
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::LayoutMismatch
+            && issue.field == "preprocessing[0].config.path"
+            && issue.message.contains("pipelines")
+    }));
+}
+
+#[test]
+fn rejects_pipeline_config_checksum_mismatch() {
+    let mut manifest = example_manifest();
+    manifest.preprocessing[0]
+        .config
+        .as_mut()
+        .expect("pipeline config")
+        .checksum =
+        Some("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_string());
+
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::ChecksumMismatch
+            && issue.field == "preprocessing[0].config.checksum"
+    }));
+}
+
+#[test]
 fn validates_required_package_manifest_fields() {
     let mut manifest = valid_manifest();
     manifest.name.clear();

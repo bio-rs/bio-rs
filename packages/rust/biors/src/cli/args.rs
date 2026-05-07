@@ -1,3 +1,4 @@
+use super::package_args::PackageCommand;
 use biors_core::{
     model_input::PaddingPolicy,
     sequence::{SequenceKind, SequenceKindSelection},
@@ -24,9 +25,17 @@ pub enum Command {
         #[command(subcommand)]
         command: BatchCommand,
     },
+    Cache {
+        #[command(subcommand)]
+        command: CacheCommand,
+    },
     Completions {
         #[arg(value_enum)]
         shell: Shell,
+    },
+    Dataset {
+        #[command(subcommand)]
+        command: DatasetCommand,
     },
     Debug {
         #[arg(long)]
@@ -60,12 +69,22 @@ pub enum Command {
     },
     Pipeline {
         #[arg(long)]
-        max_length: usize,
+        config: Option<PathBuf>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        explain_plan: bool,
+        #[arg(long)]
+        package: Option<PathBuf>,
+        #[arg(long)]
+        write_lock: Option<PathBuf>,
+        #[arg(long)]
+        max_length: Option<usize>,
         #[arg(long, default_value_t = 0)]
         pad_token_id: u8,
         #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
         padding: PaddingArg,
-        path: PathBuf,
+        path: Option<PathBuf>,
     },
     Seq {
         #[command(subcommand)]
@@ -95,6 +114,11 @@ pub enum Command {
 
 #[derive(Debug, Subcommand)]
 pub enum TokenizerCommand {
+    ConvertHf {
+        path: PathBuf,
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
     Inspect {
         #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
         profile: TokenizerProfileArg,
@@ -114,11 +138,43 @@ pub enum BatchCommand {
 }
 
 #[derive(Debug, Subcommand)]
+pub enum CacheCommand {
+    Clean {
+        #[arg(long)]
+        root: Option<PathBuf>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        yes: bool,
+    },
+    Inspect {
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
 pub enum FastaCommand {
     Validate {
         #[arg(long, default_value_t = KindArg::Protein, value_enum)]
         kind: KindArg,
         path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DatasetCommand {
+    Inspect {
+        #[arg(long, default_value = "local")]
+        source: String,
+        #[arg(long, default_value = "unversioned")]
+        version: String,
+        #[arg(long, default_value = "unspecified")]
+        split: String,
+        #[arg(long = "metadata")]
+        metadata: Vec<String>,
+        #[arg(required = true)]
+        inputs: Vec<PathBuf>,
     },
 }
 
@@ -131,24 +187,7 @@ pub enum SeqCommand {
     },
 }
 
-#[derive(Debug, Subcommand)]
-pub enum PackageCommand {
-    Bridge {
-        path: PathBuf,
-    },
-    Inspect {
-        path: PathBuf,
-    },
-    Validate {
-        path: PathBuf,
-    },
-    Verify {
-        manifest: PathBuf,
-        observations: PathBuf,
-    },
-}
-
-#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum PaddingArg {
     #[default]
     FixedLength,

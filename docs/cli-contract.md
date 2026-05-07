@@ -5,13 +5,17 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 ## Commands
 
 - `biors --version`
+- `biors cache inspect [--root <path>]`
+- `biors cache clean [--root <path>] (--dry-run|--yes)`
 - `biors completions <bash|elvish|fish|powershell|zsh>`
+- `biors dataset inspect [--source <name>] [--version <version>] [--split <split>] [--metadata key=value]... <path|directory|glob>...`
 - `biors debug --max-length <usize> <path|->`
 - `biors diff <expected> <observed>`
 - `biors doctor`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors tokenize [--profile protein-20|protein-20-special] [--config <json>] <path|->`
+- `biors tokenizer convert-hf <tokenizer_config.json> [--output <json>]`
 - `biors tokenizer inspect [--profile protein-20|protein-20-special] [--config <json>]`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
@@ -20,9 +24,17 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
+- `biors package init <output-dir> --name <name> --model <model.onnx> [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
+- `biors package migrate <manifest|-> [--to biors.package.v0|biors.package.v1]`
+- `biors package convert <manifest|-> [--to biors.package.v1] [--output <manifest.json>] --license <expr> --citation <text> --model-card <path> --model-card-summary <text> --intended-use <text> --limitation <text>`
+- `biors package convert-project <python-project-dir> --output <package-dir> --name <name> [--model <model.onnx>] [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
+- `biors package compatibility <left-manifest> <right-manifest>`
+- `biors package diff <left-manifest> <right-manifest>`
 - `biors package bridge <manifest>`
 - `biors package verify <manifest> <observations>`
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
+- `biors pipeline --config <toml|yaml|json> [--dry-run] [--explain-plan]`
+- `biors pipeline --config <toml|yaml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
 `workflow` runs protein FASTA validation, deterministic `protein-20`
@@ -32,7 +44,14 @@ context when residues are not model-ready and sets `model_ready=false` with
 stable `sequence.not_model_ready` readiness issue codes.
 `pipeline` wraps the same no-config preprocessing path in explicit
 validate -> tokenize -> export step statuses for CLI chaining and pipeline
-orchestration.
+orchestration. With `--config`, it reads `biors.pipeline.v0` TOML/YAML/JSON and
+runs parse -> normalize -> validate -> tokenize -> export. `--dry-run` validates
+the config and emits planned stages without reading FASTA input; `--explain-plan`
+includes the static plan with an executing run. `--write-lock` records a
+`biors.pipeline.lock.v0` file for an executed config pipeline. When `--package`
+is supplied, the lock pins the package manifest path, model checksum, runtime
+backend, runtime target, and backend version alongside the pipeline config hash,
+vocabulary hash, input hash, and output-content hash.
 `debug` emits a step-by-step per-record view from normalized sequence to token
 IDs to model-input records, with compact `W`/`E` residue markers for warnings
 and errors.
@@ -51,10 +70,22 @@ file extensions, and ignore unrelated files. Empty glob expansion fails with
 `batch.no_inputs`. The command emits memory-bounded per-file validation
 summaries and a batch summary without retaining per-record validation payloads.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
+`dataset inspect` uses the same FASTA file, recursive directory, and quoted glob
+resolver as `batch validate`, then emits a dataset descriptor, optional
+metadata, resolved file paths, byte counts, file SHA-256 values, record counts,
+a deterministic dataset hash, and a dataset-to-sample mapping from FASTA record
+IDs. Empty datasets fail with `dataset.no_inputs`.
+`cache inspect` reports the local artifact store root, layout policy, and file
+inventory. The default root is `.biors/artifacts`, overridden by
+`BIORS_ARTIFACT_STORE` or `--root`. `cache clean` requires `--dry-run` or
+`--yes`.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 Without `--config`, tokenization defaults to the stable `protein-20` profile.
 Tokenizer config JSON currently supports `profile` and `add_special_tokens`.
+`tokenizer convert-hf` accepts a Hugging Face `tokenizer_config.json`, maps it
+to the closest supported protein tokenizer config, and emits package
+tokenizer/preprocessing fragments plus conversion assumptions and warnings.
 The built-in `protein-20-special` profile keeps residue IDs stable and exposes
 `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24`.
 `tokenizer inspect` emits the resolved config, vocabulary, unknown-token policy,
@@ -75,7 +106,11 @@ Absolute paths and `..` parent traversal are rejected so packages remain portabl
 Observation paths in `package verify` are resolved against the observations file's parent directory. If the observations file is read from stdin, relative paths are resolved against the current working directory.
 Absolute observation paths and `..` parent traversal are rejected for the same reason.
 
-The package manifest contract is closed over enumerated values for `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and tensor `dtype` fields. Unsupported values fail JSON deserialization instead of being accepted as loose strings.
+The package manifest contract is closed over enumerated values for
+`schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and
+tensor `dtype` fields. Unsupported values fail JSON deserialization instead of
+being accepted as loose strings. `biors.package.v1` requires declared package
+layout and research metadata for license, citation, and model-card inspection.
 
 ## JSON Success Envelope
 
@@ -95,7 +130,27 @@ unless they directly hash a user input contract in a later release.
 
 The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Package manifest checksums and fixture hashes use `sha256:`.
 
-Package validation reports include both the legacy string `issues` list and a typed `structured_issues` list with stable issue codes.
+Package validation reports include both the legacy string `issues` list and a
+typed `structured_issues` list with stable issue codes. Manifest v1 validation
+also checks that artifacts live under the declared package layout directories.
+Package migration reports use `schemas/package-migration-output.v0.json` and
+emit the explicit steps needed to move between supported manifest schema
+versions. Package compatibility reports use
+`schemas/package-compatibility-output.v0.json` and state whether the left
+manifest can be read or migrated as the right manifest schema. Package manifest
+diff reports use `schemas/package-diff-output.v0.json`; the nested `diff`
+payload follows the canonical JSON/raw comparison contract from
+`schemas/output-diff.v0.json`.
+Package conversion reports use `schemas/package-conversion-output.v0.json` and
+include the converted manifest. Conversion to `biors.package.v1` requires
+caller-supplied license, citation, model-card summary, intended-use, and
+limitation fields so the CLI does not invent research metadata.
+Package skeleton reports use `schemas/package-skeleton-output.v0.json`.
+`package init` and `package convert-project` create a local package layout,
+write docs and pipeline config, copy supplied fixture artifacts, and record
+SHA-256 checksums. Python project conversion scans for an ONNX model and
+`tokenizer_config.json`; model artifact metadata beyond path/checksum is not
+imported by this layer.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such
@@ -108,17 +163,25 @@ CLI invocation arguments, vocabulary SHA-256, and output-content SHA-256. The
 output-content digest covers the workflow payload excluding the hash values
 themselves.
 
-Pipeline payloads use `schemas/pipeline-output.v0.json`. Debug payloads use
+Pipeline payloads use `schemas/pipeline-output.v0.json`; pipeline lockfiles use
+`schemas/pipeline-lock.v0.json`. Debug payloads use
 `schemas/sequence-debug-output.v0.json`. Output diff reports use
 `schemas/output-diff.v0.json`.
 
 Batch validation payloads use `schemas/batch-validation-output.v0.json` and
 include `inputs`, aggregate `summary`, and a deterministic `files` list with
 per-file `input_hash`, validation counts, and `kind_counts`.
+Dataset inspection payloads use `schemas/dataset-inspect-output.v0.json` and
+include `provided_inputs`, descriptor, metadata, resolved file count, total
+byte count, sample count, dataset hash, deterministic `resolved_files`, and
+sample mapping lists.
+Cache payloads use `schemas/cache-output.v0.json`.
 
 Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
 Tokenizer config files reject unknown top-level fields so preprocessing
 configuration stays explicit.
+Tokenizer conversion payloads use
+`schemas/tokenizer-conversion-output.v0.json`.
 
 `structured_issues` entries use this shape:
 

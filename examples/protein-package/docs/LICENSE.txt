@@ -1,0 +1,2 @@
+Example package fixtures are distributed under CC0-1.0 for contract testing.
+This file does not grant rights to real model weights.

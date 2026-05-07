@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/tokenizer-conversion-output.v0.json",
+  "title": "bio-rs tokenizer conversion data payload",
+  "type": "object",
+  "required": [
+    "source_format",
+    "source_path",
+    "config",
+    "package_tokenizer_asset",
+    "package_preprocessing_step",
+    "assumptions",
+    "warnings",
+    "config_sha256"
+  ],
+  "properties": {
+    "source_format": { "const": "huggingface.tokenizer_config" },
+    "source_path": { "type": "string", "minLength": 1 },
+    "config": {
+      "type": "object",
+      "required": ["profile", "add_special_tokens"],
+      "properties": {
+        "profile": { "enum": ["protein-20", "protein-20-special"] },
+        "add_special_tokens": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "package_tokenizer_asset": {
+      "type": "object",
+      "required": ["name", "path", "contract_version"],
+      "properties": {
+        "name": { "enum": ["protein-20", "protein-20-special"] },
+        "path": { "type": "string", "minLength": 1 },
+        "contract_version": {
+          "enum": ["protein-20.v0", "protein-20-special.v0"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "package_preprocessing_step": {
+      "type": "object",
+      "required": ["name", "implementation", "contract", "contract_version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "implementation": { "const": "biors-core" },
+        "contract": { "enum": ["protein-20", "protein-20-special"] },
+        "contract_version": {
+          "enum": ["protein-20.v0", "protein-20-special.v0"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "output_path": { "type": "string", "minLength": 1 },
+    "config_sha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  },
+  "additionalProperties": false
+}

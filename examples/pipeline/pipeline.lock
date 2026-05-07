@@ -1,0 +1,46 @@
+{
+  "schema_version": "biors.pipeline.lock.v0",
+  "generated_by": {
+    "biors_version": "0.34.0",
+    "biors_core_version": "0.34.0"
+  },
+  "pipeline_config": {
+    "schema_version": "biors.pipeline.v0",
+    "name": "protein-package-fixture-pipeline",
+    "path": "examples/protein-package/pipelines/protein.toml",
+    "sha256": "sha256:18474b569c046137712e0634d0fb9dcff6d9eab65b7001b2da089572cbb1f8ab"
+  },
+  "package": {
+    "name": "protein-seed",
+    "schema_version": "biors.package.v1",
+    "manifest_path": "examples/protein-package/manifest.json",
+    "model_sha256": "sha256:2c1da72b15fab35bd6f1bb62f5037b936e26e6413a220fa9afe5a64bce0df68d",
+    "runtime_backend": "onnx-webgpu",
+    "runtime_target": "browser-wasm-webgpu",
+    "backend_version": "onnx-webgpu.v0"
+  },
+  "execution": {
+    "command": "biors pipeline --config",
+    "arguments": [
+      "--max-length",
+      "8",
+      "--pad-token-id",
+      "0",
+      "--padding",
+      "fixed_length",
+      "examples/protein-package/pipelines/../fixtures/tiny.fasta"
+    ],
+    "input_path": "examples/protein-package/pipelines/../fixtures/tiny.fasta",
+    "input_hash": "fnv1a64:b37cd2c1dea95350",
+    "ready": true
+  },
+  "hashes": {
+    "vocabulary_sha256": "sha256:ae89a88cbf0ab48e74075da93f4c145df0a5bde7bab6081786419764171b6076",
+    "output_data_sha256": "sha256:ed32fcdf5fd054913d72966493c2d07572fe1a2c627b182a9cb89f89e9fe0d6d"
+  },
+  "python_baseline": {
+    "comparison": "normalized_records_and_protein20_tokens",
+    "reference": "examples/model-input-contract/reference-python-parity.json",
+    "status": "strategy_recorded"
+  }
+}

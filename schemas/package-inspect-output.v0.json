@@ -6,6 +6,8 @@
   "required": [
     "schema_version",
     "name",
+    "package_layout",
+    "metadata",
     "model_format",
     "has_model_checksum",
     "runtime_backend",
@@ -16,8 +18,33 @@
     "layout"
   ],
   "properties": {
-    "schema_version": { "const": "biors.package.v0" },
+    "schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] },
     "name": { "type": "string" },
+    "package_layout": {
+      "type": ["object", "null"],
+      "required": ["manifest", "models", "fixtures", "docs"],
+      "properties": {
+        "manifest": { "type": "string", "minLength": 1 },
+        "models": { "type": "string", "minLength": 1 },
+        "tokenizers": { "type": ["string", "null"] },
+        "vocabs": { "type": ["string", "null"] },
+        "pipelines": { "type": ["string", "null"] },
+        "fixtures": { "type": "string", "minLength": 1 },
+        "observed": { "type": ["string", "null"] },
+        "docs": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": ["object", "null"],
+      "required": ["license", "citation", "model_card"],
+      "properties": {
+        "license": { "type": "string", "minLength": 1 },
+        "citation": { "type": "string", "minLength": 1 },
+        "model_card": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
     "model_format": { "type": "string" },
     "has_model_checksum": { "type": "boolean" },
     "tokenizer": { "type": ["string", "null"] },
@@ -34,6 +61,10 @@
         "model": { "type": "string", "minLength": 1 },
         "tokenizer": { "type": ["string", "null"] },
         "vocab": { "type": ["string", "null"] },
+        "pipeline_configs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
         "fixture_inputs": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }

@@ -1,100 +1,165 @@
-use super::{workflow::workflow_output, PaddingArg};
+use super::{
+    pipeline_config::load_pipeline_config,
+    pipeline_lock::{write_pipeline_lock, PipelineLockPackage},
+    pipeline_output::PipelineOutput,
+    workflow::workflow_output,
+    PaddingArg,
+};
 use crate::errors::CliError;
+use crate::input::read_package_manifest;
 use crate::output::print_success;
-use biors_core::workflow::SequenceWorkflowOutput;
-use serde::Serialize;
+use biors_core::package::validate_package_manifest_artifacts;
 use std::path::PathBuf;
 
-pub(crate) fn run_pipeline(
-    max_length: usize,
-    pad_token_id: u8,
-    padding: PaddingArg,
-    path: PathBuf,
-) -> Result<(), CliError> {
-    let output = workflow_output("biors pipeline", max_length, pad_token_id, padding, path)?;
-    let pipeline = PipelineOutput::from_workflow(output);
+pub(crate) struct PipelineRunOptions {
+    pub(crate) config: Option<PathBuf>,
+    pub(crate) dry_run: bool,
+    pub(crate) explain_plan: bool,
+    pub(crate) package: Option<PathBuf>,
+    pub(crate) write_lock: Option<PathBuf>,
+    pub(crate) max_length: Option<usize>,
+    pub(crate) pad_token_id: u8,
+    pub(crate) padding: PaddingArg,
+    pub(crate) path: Option<PathBuf>,
+}
+
+pub(crate) fn run_pipeline(options: PipelineRunOptions) -> Result<(), CliError> {
+    let pipeline = match options.config {
+        Some(config_path) => {
+            if options.max_length.is_some() || options.path.is_some() {
+                return Err(CliError::Validation {
+                    code: "pipeline.invalid_config",
+                    message: "--config cannot be combined with --max-length or positional input"
+                        .to_string(),
+                    location: Some("pipeline".to_string()),
+                });
+            }
+            let package = load_lock_package(options.package, options.write_lock.is_some())?;
+            run_config_pipeline(
+                config_path,
+                options.dry_run,
+                options.explain_plan,
+                options.write_lock,
+                package,
+            )?
+        }
+        None => {
+            if options.write_lock.is_some() || options.package.is_some() {
+                return Err(CliError::Validation {
+                    code: "pipeline.invalid_config",
+                    message: "--write-lock and --package require --config".to_string(),
+                    location: Some("pipeline".to_string()),
+                });
+            }
+            run_legacy_pipeline(
+                options.max_length,
+                options.pad_token_id,
+                options.padding,
+                options.path,
+            )?
+        }
+    };
+
     print_success(
-        Some(pipeline.workflow.provenance.input_hash.clone()),
+        pipeline
+            .workflow
+            .as_ref()
+            .map(|workflow| workflow.provenance.input_hash.clone()),
         pipeline,
     )
 }
 
-#[derive(Debug, Serialize)]
-struct PipelineOutput {
-    pipeline: &'static str,
-    ready: bool,
-    steps: Vec<PipelineStep>,
-    workflow: SequenceWorkflowOutput,
+fn run_legacy_pipeline(
+    max_length: Option<usize>,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: Option<PathBuf>,
+) -> Result<PipelineOutput, CliError> {
+    let max_length = max_length.ok_or_else(|| CliError::Validation {
+        code: "pipeline.invalid_config",
+        message: "--max-length is required when --config is not used".to_string(),
+        location: Some("max_length".to_string()),
+    })?;
+    let path = path.ok_or_else(|| CliError::Validation {
+        code: "pipeline.invalid_config",
+        message: "input path is required when --config is not used".to_string(),
+        location: Some("path".to_string()),
+    })?;
+    let output = workflow_output("biors pipeline", max_length, pad_token_id, padding, path)?;
+    Ok(PipelineOutput::from_workflow(output))
 }
 
-#[derive(Debug, Serialize)]
-struct PipelineStep {
-    name: &'static str,
-    status: &'static str,
-    records: usize,
-    warning_count: usize,
-    error_count: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    output_sha256: Option<String>,
-}
-
-impl PipelineOutput {
-    fn from_workflow(workflow: SequenceWorkflowOutput) -> Self {
-        let validation = &workflow.validation;
-        let tokenization = &workflow.tokenization.summary;
-        let export_status = if workflow.model_ready {
-            "passed"
-        } else {
-            "blocked"
-        };
-        Self {
-            pipeline: "validate_tokenize_export.v0",
-            ready: workflow.model_ready,
-            steps: vec![
-                PipelineStep {
-                    name: "validate",
-                    status: if validation.error_count == 0 {
-                        "passed"
-                    } else {
-                        "failed"
-                    },
-                    records: validation.records,
-                    warning_count: validation.warning_count,
-                    error_count: validation.error_count,
-                    output_sha256: None,
-                },
-                PipelineStep {
-                    name: "tokenize",
-                    status: if tokenization.error_count == 0 {
-                        "passed"
-                    } else {
-                        "failed"
-                    },
-                    records: tokenization.records,
-                    warning_count: tokenization.warning_count,
-                    error_count: tokenization.error_count,
-                    output_sha256: None,
-                },
-                PipelineStep {
-                    name: "export",
-                    status: export_status,
-                    records: workflow
-                        .model_input
-                        .as_ref()
-                        .map(|input| input.records.len())
-                        .unwrap_or(0),
-                    warning_count: 0,
-                    error_count: if workflow.model_ready {
-                        0
-                    } else {
-                        workflow.readiness_issues.len()
-                    },
-                    output_sha256: workflow
-                        .model_ready
-                        .then(|| workflow.provenance.hashes.output_data_sha256.clone()),
-                },
-            ],
-            workflow,
-        }
+fn run_config_pipeline(
+    config_path: PathBuf,
+    dry_run: bool,
+    explain_plan: bool,
+    write_lock: Option<PathBuf>,
+    package: Option<PipelineLockPackage>,
+) -> Result<PipelineOutput, CliError> {
+    if dry_run && write_lock.is_some() {
+        return Err(CliError::Validation {
+            code: "pipeline.invalid_config",
+            message:
+                "--write-lock requires an executed pipeline and cannot be combined with --dry-run"
+                    .to_string(),
+            location: Some("pipeline".to_string()),
+        });
     }
+
+    let resolved = load_pipeline_config(&config_path)?;
+    if dry_run {
+        return Ok(PipelineOutput::dry_run(resolved, explain_plan));
+    }
+    let workflow = workflow_output(
+        "biors pipeline --config",
+        resolved.config.export.max_length,
+        resolved.config.export.pad_token_id,
+        resolved.padding,
+        resolved.input_path.clone(),
+    )?;
+    if let Some(lock_path) = write_lock {
+        write_pipeline_lock(
+            &lock_path,
+            &config_path,
+            &resolved,
+            &workflow,
+            package.as_ref(),
+        )?;
+    }
+    Ok(PipelineOutput::from_config_workflow(
+        resolved,
+        explain_plan,
+        workflow,
+    ))
+}
+
+fn load_lock_package(
+    package_path: Option<PathBuf>,
+    lock_requested: bool,
+) -> Result<Option<PipelineLockPackage>, CliError> {
+    let Some(path) = package_path else {
+        return Ok(None);
+    };
+    if !lock_requested {
+        return Err(CliError::Validation {
+            code: "pipeline.invalid_config",
+            message: "--package is only used when --write-lock is supplied".to_string(),
+            location: Some("pipeline".to_string()),
+        });
+    }
+
+    let (manifest, base_dir) = read_package_manifest(path.clone())?;
+    let validation = validate_package_manifest_artifacts(&manifest, &base_dir);
+    if !validation.valid {
+        return Err(CliError::Validation {
+            code: "pipeline.invalid_lock_package",
+            message: format!("{:?}", validation.issues),
+            location: Some(path.display().to_string()),
+        });
+    }
+
+    Ok(Some(PipelineLockPackage {
+        manifest_path: path,
+        manifest,
+    }))
 }

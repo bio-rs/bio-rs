@@ -1,10 +1,14 @@
-use super::{DataShape, PackageManifest, PackageValidationIssueCode, PackageValidationReport};
+use super::{
+    DataShape, PackageDirectoryLayout, PackageManifest, PackageMetadata,
+    PackageValidationIssueCode, PackageValidationReport, SchemaVersion,
+};
 
 /// Validate package manifest fields that do not require filesystem access.
 pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidationReport {
     let mut report = PackageValidationReport::default();
 
     push_required_issue(&mut report, "name", &manifest.name);
+    validate_v1_contract(&mut report, manifest);
     push_required_issue(&mut report, "model.path", &manifest.model.path);
     validate_fixture_list(&mut report, manifest);
     validate_optional_shape(
@@ -19,6 +23,100 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     );
 
     report.finish()
+}
+
+fn validate_v1_contract(report: &mut PackageValidationReport, manifest: &PackageManifest) {
+    if manifest.schema_version != SchemaVersion::BiorsPackageV1 {
+        if let Some(layout) = &manifest.package_layout {
+            validate_package_layout_fields(report, layout, manifest);
+        }
+        if let Some(metadata) = &manifest.metadata {
+            validate_metadata_fields(report, metadata);
+        }
+        return;
+    }
+
+    match &manifest.package_layout {
+        Some(layout) => validate_package_layout_fields(report, layout, manifest),
+        None => report.push_issue(
+            PackageValidationIssueCode::RequiredField,
+            "package_layout",
+            "package_layout is required for biors.package.v1",
+        ),
+    }
+
+    match &manifest.metadata {
+        Some(metadata) => validate_metadata_fields(report, metadata),
+        None => report.push_issue(
+            PackageValidationIssueCode::RequiredField,
+            "metadata",
+            "metadata is required for biors.package.v1",
+        ),
+    }
+}
+
+fn validate_package_layout_fields(
+    report: &mut PackageValidationReport,
+    layout: &PackageDirectoryLayout,
+    manifest: &PackageManifest,
+) {
+    push_required_issue(report, "package_layout.manifest", &layout.manifest);
+    push_required_issue(report, "package_layout.models", &layout.models);
+    push_required_issue(report, "package_layout.fixtures", &layout.fixtures);
+    push_required_issue(report, "package_layout.docs", &layout.docs);
+
+    if manifest.tokenizer.is_some() {
+        push_required_option_issue(
+            report,
+            "package_layout.tokenizers",
+            layout.tokenizers.as_ref(),
+        );
+    }
+    if manifest.vocab.is_some() {
+        push_required_option_issue(report, "package_layout.vocabs", layout.vocabs.as_ref());
+    }
+    if pipeline_steps_have_config(manifest) {
+        push_required_option_issue(
+            report,
+            "package_layout.pipelines",
+            layout.pipelines.as_ref(),
+        );
+    }
+    validate_pipeline_step_configs(report, "preprocessing", &manifest.preprocessing);
+    validate_pipeline_step_configs(report, "postprocessing", &manifest.postprocessing);
+}
+
+fn validate_metadata_fields(report: &mut PackageValidationReport, metadata: &PackageMetadata) {
+    push_required_issue(
+        report,
+        "metadata.license.expression",
+        &metadata.license.expression,
+    );
+    push_required_issue(
+        report,
+        "metadata.citation.preferred_citation",
+        &metadata.citation.preferred_citation,
+    );
+    push_required_issue(
+        report,
+        "metadata.model_card.path",
+        &metadata.model_card.path,
+    );
+    push_required_issue(
+        report,
+        "metadata.model_card.summary",
+        &metadata.model_card.summary,
+    );
+    push_required_list_issue(
+        report,
+        "metadata.model_card.intended_use",
+        &metadata.model_card.intended_use,
+    );
+    push_required_list_issue(
+        report,
+        "metadata.model_card.limitations",
+        &metadata.model_card.limitations,
+    );
 }
 
 fn validate_fixture_list(report: &mut PackageValidationReport, manifest: &PackageManifest) {
@@ -42,6 +140,30 @@ fn validate_fixture_list(report: &mut PackageValidationReport, manifest: &Packag
     }
 }
 
+fn validate_pipeline_step_configs(
+    report: &mut PackageValidationReport,
+    section: &str,
+    steps: &[super::PipelineStep],
+) {
+    for (index, step) in steps.iter().enumerate() {
+        if let Some(config) = &step.config {
+            push_required_issue(
+                report,
+                &format!("{section}[{index}].config.path"),
+                &config.path,
+            );
+        }
+    }
+}
+
+fn pipeline_steps_have_config(manifest: &PackageManifest) -> bool {
+    manifest
+        .preprocessing
+        .iter()
+        .chain(manifest.postprocessing.iter())
+        .any(|step| step.config.is_some())
+}
+
 fn validate_optional_shape(
     report: &mut PackageValidationReport,
     field: &str,
@@ -62,6 +184,31 @@ fn push_required_issue(report: &mut PackageValidationReport, field: &str, value:
     }
 }
 
+fn push_required_option_issue(
+    report: &mut PackageValidationReport,
+    field: &str,
+    value: Option<&String>,
+) {
+    match value {
+        Some(value) => push_required_issue(report, field, value),
+        None => report.push_issue(
+            PackageValidationIssueCode::RequiredField,
+            field,
+            &format!("{field} is required"),
+        ),
+    }
+}
+
+fn push_required_list_issue(report: &mut PackageValidationReport, field: &str, value: &[String]) {
+    if value.is_empty() || value.iter().any(|entry| entry.trim().is_empty()) {
+        report.push_issue(
+            PackageValidationIssueCode::RequiredField,
+            field,
+            &format!("{field} must include non-empty values"),
+        );
+    }
+}
+
 fn validate_shape(report: &mut PackageValidationReport, field: &str, shape: &DataShape) {
     if shape.shape.is_empty() {
         report.push_issue(
@@ -69,151 +216,5 @@ fn validate_shape(report: &mut PackageValidationReport, field: &str, shape: &Dat
             &format!("{field}.shape"),
             &format!("{field}.shape must include at least one dimension"),
         );
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::package::{
-        DataShape, DataType, ModelArtifact, ModelFormat, PackageFixture, PackageManifest,
-        RuntimeBackend, RuntimeTarget, RuntimeTargetPlatform, SchemaVersion,
-    };
-
-    fn minimal_manifest() -> PackageManifest {
-        PackageManifest {
-            schema_version: SchemaVersion::BiorsPackageV0,
-            name: "test-pkg".into(),
-            model: ModelArtifact {
-                format: ModelFormat::Onnx,
-                path: "model.onnx".into(),
-                checksum: None,
-            },
-            tokenizer: None,
-            vocab: None,
-            preprocessing: vec![],
-            postprocessing: vec![],
-            runtime: RuntimeTarget {
-                backend: RuntimeBackend::OnnxWebgpu,
-                target: RuntimeTargetPlatform::BrowserWasmWebgpu,
-            },
-            expected_input: None,
-            expected_output: None,
-            fixtures: vec![PackageFixture {
-                name: "fixture1".into(),
-                input: "input.json".into(),
-                expected_output: "output.json".into(),
-                input_hash: None,
-                expected_output_hash: None,
-            }],
-        }
-    }
-
-    #[test]
-    fn validate_package_manifest_accepts_minimal_valid_manifest() {
-        let manifest = minimal_manifest();
-        let report = validate_package_manifest(&manifest);
-        assert!(report.valid);
-        assert!(report.issues.is_empty());
-        assert!(report.structured_issues.is_empty());
-    }
-
-    #[test]
-    fn validate_package_manifest_rejects_missing_name() {
-        let mut manifest = minimal_manifest();
-        manifest.name = "".into();
-        let report = validate_package_manifest(&manifest);
-        assert!(!report.valid);
-        assert_eq!(report.structured_issues.len(), 1);
-        assert_eq!(
-            report.structured_issues[0].code,
-            PackageValidationIssueCode::RequiredField
-        );
-        assert_eq!(report.structured_issues[0].field, "name");
-    }
-
-    #[test]
-    fn validate_package_manifest_rejects_missing_model_path() {
-        let mut manifest = minimal_manifest();
-        manifest.model.path = "   ".into();
-        let report = validate_package_manifest(&manifest);
-        assert!(!report.valid);
-        let model_issue = report
-            .structured_issues
-            .iter()
-            .find(|i| i.field == "model.path")
-            .expect("model.path issue expected");
-        assert_eq!(model_issue.code, PackageValidationIssueCode::RequiredField);
-    }
-
-    #[test]
-    fn validate_package_manifest_rejects_empty_fixtures() {
-        let mut manifest = minimal_manifest();
-        manifest.fixtures.clear();
-        let report = validate_package_manifest(&manifest);
-        assert!(!report.valid);
-        assert_eq!(report.structured_issues.len(), 1);
-        assert_eq!(
-            report.structured_issues[0].code,
-            PackageValidationIssueCode::MissingFixture
-        );
-        assert_eq!(report.structured_issues[0].field, "fixtures");
-    }
-
-    #[test]
-    fn validate_package_manifest_rejects_fixture_with_missing_fields() {
-        let mut manifest = minimal_manifest();
-        manifest.fixtures = vec![PackageFixture {
-            name: "".into(),
-            input: "".into(),
-            expected_output: "".into(),
-            input_hash: None,
-            expected_output_hash: None,
-        }];
-        let report = validate_package_manifest(&manifest);
-        assert!(!report.valid);
-        assert_eq!(report.structured_issues.len(), 3);
-        let fields: Vec<&str> = report
-            .structured_issues
-            .iter()
-            .map(|i| i.field.as_str())
-            .collect();
-        assert!(fields.contains(&"fixtures[0].name"));
-        assert!(fields.contains(&"fixtures[0].input"));
-        assert!(fields.contains(&"fixtures[0].expected_output"));
-    }
-
-    #[test]
-    fn validate_package_manifest_rejects_empty_shape() {
-        let mut manifest = minimal_manifest();
-        manifest.expected_input = Some(DataShape {
-            shape: vec![],
-            dtype: DataType::Float32,
-        });
-        manifest.expected_output = Some(DataShape {
-            shape: vec![],
-            dtype: DataType::Uint8,
-        });
-        let report = validate_package_manifest(&manifest);
-        assert!(!report.valid);
-        assert_eq!(report.structured_issues.len(), 2);
-        let fields: Vec<&str> = report
-            .structured_issues
-            .iter()
-            .map(|i| i.field.as_str())
-            .collect();
-        assert!(fields.contains(&"expected_input.shape"));
-        assert!(fields.contains(&"expected_output.shape"));
-    }
-
-    #[test]
-    fn validate_package_manifest_accepts_non_empty_shape() {
-        let mut manifest = minimal_manifest();
-        manifest.expected_input = Some(DataShape {
-            shape: vec!["1".into(), "256".into()],
-            dtype: DataType::Float32,
-        });
-        let report = validate_package_manifest(&manifest);
-        assert!(report.valid);
     }
 }
