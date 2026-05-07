@@ -99,6 +99,28 @@ fn validates_v1_package_layout_and_metadata_contract() {
         summary.metadata.as_ref().expect("metadata").model_card,
         "docs/model-card.md"
     );
+    assert_eq!(
+        summary
+            .package_layout
+            .as_ref()
+            .expect("package layout")
+            .pipelines
+            .as_deref(),
+        Some("pipelines")
+    );
+    assert_eq!(
+        summary.layout.pipeline_configs,
+        vec!["pipelines/protein.toml"]
+    );
+    assert_eq!(
+        manifest.preprocessing[0]
+            .config
+            .as_ref()
+            .expect("pipeline config")
+            .schema_version
+            .to_string(),
+        "biors.pipeline.v0"
+    );
 
     let report =
         biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
@@ -132,6 +154,46 @@ fn rejects_v1_assets_outside_declared_package_layout() {
         issue.code == PackageValidationIssueCode::LayoutMismatch
             && issue.field == "model.path"
             && issue.message.contains("models")
+    }));
+}
+
+#[test]
+fn rejects_pipeline_config_outside_declared_pipeline_layout() {
+    let mut manifest = example_manifest();
+    manifest.preprocessing[0]
+        .config
+        .as_mut()
+        .expect("pipeline config")
+        .path = "configs/protein.toml".to_string();
+
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::LayoutMismatch
+            && issue.field == "preprocessing[0].config.path"
+            && issue.message.contains("pipelines")
+    }));
+}
+
+#[test]
+fn rejects_pipeline_config_checksum_mismatch() {
+    let mut manifest = example_manifest();
+    manifest.preprocessing[0]
+        .config
+        .as_mut()
+        .expect("pipeline config")
+        .checksum =
+        Some("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_string());
+
+    let report =
+        biors_core::package::validate_package_manifest_artifacts(&manifest, &example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::ChecksumMismatch
+            && issue.field == "preprocessing[0].config.checksum"
     }));
 }
 

@@ -47,6 +47,7 @@
         "models": { "type": "string", "minLength": 1 },
         "tokenizers": { "type": "string", "minLength": 1 },
         "vocabs": { "type": "string", "minLength": 1 },
+        "pipelines": { "type": "string", "minLength": 1 },
         "fixtures": { "type": "string", "minLength": 1 },
         "observed": { "type": "string", "minLength": 1 },
         "docs": { "type": "string", "minLength": 1 }
@@ -136,7 +137,18 @@
         "name": { "type": "string" },
         "implementation": { "type": "string" },
         "contract": { "type": "string" },
-        "contract_version": { "type": "string" }
+        "contract_version": { "type": "string" },
+        "config": { "$ref": "#/$defs/pipelineConfig" }
+      },
+      "additionalProperties": false
+    },
+    "pipelineConfig": {
+      "type": "object",
+      "required": ["path", "schema_version"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "schema_version": { "const": "biors.pipeline.v0" },
+        "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
       "additionalProperties": false
     },

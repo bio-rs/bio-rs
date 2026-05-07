@@ -29,6 +29,7 @@ pub struct PackageDirectoryLayoutSummary {
     pub models: String,
     pub tokenizers: Option<String>,
     pub vocabs: Option<String>,
+    pub pipelines: Option<String>,
     pub fixtures: String,
     pub observed: Option<String>,
     pub docs: String,
@@ -48,6 +49,7 @@ pub struct PackageLayoutSummary {
     pub model: String,
     pub tokenizer: Option<String>,
     pub vocab: Option<String>,
+    pub pipeline_configs: Vec<String>,
     pub fixture_inputs: Vec<String>,
     pub fixture_outputs: Vec<String>,
 }

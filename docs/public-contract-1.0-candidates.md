@@ -33,7 +33,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowInvocation`, `SequenceWorkflowHashes`, `SequenceWorkflowReadinessIssue`
 - `diff_output_bytes`, `OutputDiffReport`
 - `validate_package_manifest_artifacts`
-- `PackageManifest`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
+- `PackageManifest`, `PipelineConfigArtifact`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
 - `BioRsError::code`
 

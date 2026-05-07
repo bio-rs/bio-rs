@@ -28,6 +28,7 @@ fn package_inspect_outputs_manifest_summary() {
     assert_eq!(value["data"]["schema_version"], "biors.package.v1");
     assert_eq!(value["data"]["name"], "protein-seed");
     assert_eq!(value["data"]["package_layout"]["models"], "models");
+    assert_eq!(value["data"]["package_layout"]["pipelines"], "pipelines");
     assert_eq!(value["data"]["package_layout"]["docs"], "docs");
     assert_eq!(value["data"]["metadata"]["license"], "CC0-1.0");
     assert_eq!(
@@ -52,6 +53,10 @@ fn package_inspect_outputs_manifest_summary() {
     assert_eq!(
         value["data"]["layout"]["fixture_outputs"][0],
         "fixtures/tiny.output.json"
+    );
+    assert_eq!(
+        value["data"]["layout"]["pipeline_configs"][0],
+        "pipelines/protein.toml"
     );
 }
 

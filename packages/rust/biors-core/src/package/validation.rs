@@ -75,6 +75,15 @@ fn validate_package_layout_fields(
     if manifest.vocab.is_some() {
         push_required_option_issue(report, "package_layout.vocabs", layout.vocabs.as_ref());
     }
+    if pipeline_steps_have_config(manifest) {
+        push_required_option_issue(
+            report,
+            "package_layout.pipelines",
+            layout.pipelines.as_ref(),
+        );
+    }
+    validate_pipeline_step_configs(report, "preprocessing", &manifest.preprocessing);
+    validate_pipeline_step_configs(report, "postprocessing", &manifest.postprocessing);
 }
 
 fn validate_metadata_fields(report: &mut PackageValidationReport, metadata: &PackageMetadata) {
@@ -129,6 +138,30 @@ fn validate_fixture_list(report: &mut PackageValidationReport, manifest: &Packag
             &fixture.expected_output,
         );
     }
+}
+
+fn validate_pipeline_step_configs(
+    report: &mut PackageValidationReport,
+    section: &str,
+    steps: &[super::PipelineStep],
+) {
+    for (index, step) in steps.iter().enumerate() {
+        if let Some(config) = &step.config {
+            push_required_issue(
+                report,
+                &format!("{section}[{index}].config.path"),
+                &config.path,
+            );
+        }
+    }
+}
+
+fn pipeline_steps_have_config(manifest: &PackageManifest) -> bool {
+    manifest
+        .preprocessing
+        .iter()
+        .chain(manifest.postprocessing.iter())
+        .any(|step| step.config.is_some())
 }
 
 fn validate_optional_shape(

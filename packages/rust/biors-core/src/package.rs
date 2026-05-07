@@ -16,7 +16,7 @@ pub use checksum::{is_sha256_checksum, sha256_digest};
 pub use manifest::{
     CitationMetadata, DataShape, DocumentArtifact, LicenseMetadata, ModelArtifact,
     ModelCardMetadata, PackageDirectoryLayout, PackageFixture, PackageManifest, PackageMetadata,
-    PipelineStep, RuntimeTarget, TokenAsset,
+    PipelineConfigArtifact, PipelineStep, RuntimeTarget, TokenAsset,
 };
 pub use reports::{
     PackageDirectoryLayoutSummary, PackageLayoutSummary, PackageManifestSummary,

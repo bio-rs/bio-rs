@@ -18,6 +18,8 @@ protein-package/
     protein-20.json
   vocabs/
     protein-20.json
+  pipelines/
+    protein.toml
   fixtures/
     tiny.fasta
     tiny.output.json
@@ -38,6 +40,7 @@ The `package_layout` manifest section declares the expected directory names:
     "models": "models",
     "tokenizers": "tokenizers",
     "vocabs": "vocabs",
+    "pipelines": "pipelines",
     "fixtures": "fixtures",
     "observed": "observed",
     "docs": "docs"
@@ -73,6 +76,24 @@ Package metadata is intentionally explicit. A researcher should be able to
 inspect the package and know whether the artifact can be redistributed, how to
 cite it, and what the model card says before running inference.
 
+Preprocessing steps may also reference a checked pipeline config artifact:
+
+```json
+{
+  "name": "protein_fasta_tokenize",
+  "implementation": "biors-core",
+  "contract": "protein-20",
+  "contract_version": "protein-20.v0",
+  "config": {
+    "path": "pipelines/protein.toml",
+    "schema_version": "biors.pipeline.v0"
+  }
+}
+```
+
+When a step declares `config`, the path is package-relative and should live
+under the declared `package_layout.pipelines` directory.
+
 ## Checksums
 
 Package artifacts use `sha256:<64 lowercase hex>` checksums. Validation computes
@@ -86,6 +107,7 @@ hashes from disk for:
 - license files
 - citation files
 - model cards
+- pipeline configs
 
 Checksums are optional for some fields in the schema so draft packages can be
 assembled incrementally, but published or shared packages should include them

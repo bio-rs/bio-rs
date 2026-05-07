@@ -3,6 +3,8 @@
 Pipeline config v0 makes the static FASTA preprocessing path reproducible from
 a checked-in config file.
 The JSON shape is described by `schemas/pipeline-config.v0.json`.
+Package manifests can reference pipeline config artifacts from preprocessing
+steps; see [Package Format](package-format.md).
 
 Supported formats:
 

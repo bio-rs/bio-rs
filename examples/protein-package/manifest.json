@@ -6,6 +6,7 @@
     "models": "models",
     "tokenizers": "tokenizers",
     "vocabs": "vocabs",
+    "pipelines": "pipelines",
     "fixtures": "fixtures",
     "observed": "observed",
     "docs": "docs"
@@ -62,7 +63,12 @@
       "name": "protein_fasta_tokenize",
       "implementation": "biors-core",
       "contract": "protein-20",
-      "contract_version": "protein-20.v0"
+      "contract_version": "protein-20.v0",
+      "config": {
+        "path": "pipelines/protein.toml",
+        "schema_version": "biors.pipeline.v0",
+        "checksum": "sha256:18474b569c046137712e0634d0fb9dcff6d9eab65b7001b2da089572cbb1f8ab"
+      }
     }
   ],
   "postprocessing": [

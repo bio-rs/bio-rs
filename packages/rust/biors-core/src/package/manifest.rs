@@ -1,4 +1,5 @@
 use super::{DataType, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion};
+use crate::versioning::PipelineConfigVersion;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -34,6 +35,8 @@ pub struct PackageDirectoryLayout {
     pub tokenizers: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vocabs: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipelines: Option<String>,
     pub fixtures: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub observed: Option<String>,
@@ -110,6 +113,17 @@ pub struct PipelineStep {
     pub contract: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub contract_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config: Option<PipelineConfigArtifact>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PipelineConfigArtifact {
+    pub path: String,
+    pub schema_version: PipelineConfigVersion,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// Optional `sha256:<64 hex>` checksum for the config artifact.
+    pub checksum: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

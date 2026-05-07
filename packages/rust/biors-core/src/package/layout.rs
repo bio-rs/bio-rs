@@ -21,6 +21,9 @@ pub(crate) fn validate_declared_layout(
     if let Some(vocabs) = &layout.vocabs {
         validate_layout_field(report, "package_layout.vocabs", vocabs);
     }
+    if let Some(pipelines) = &layout.pipelines {
+        validate_layout_field(report, "package_layout.pipelines", pipelines);
+    }
     if let Some(observed) = &layout.observed {
         validate_layout_field(report, "package_layout.observed", observed);
     }
@@ -31,6 +34,20 @@ pub(crate) fn validate_declared_layout(
     }
     if let (Some(vocab), Some(vocabs)) = (&manifest.vocab, &layout.vocabs) {
         validate_path_under_dir(report, "vocab.path", &vocab.path, vocabs);
+    }
+    if let Some(pipelines) = &layout.pipelines {
+        validate_pipeline_config_layout(
+            report,
+            "preprocessing",
+            &manifest.preprocessing,
+            pipelines,
+        );
+        validate_pipeline_config_layout(
+            report,
+            "postprocessing",
+            &manifest.postprocessing,
+            pipelines,
+        );
     }
 
     for (index, fixture) in manifest.fixtures.iter().enumerate() {
@@ -71,6 +88,24 @@ pub(crate) fn validate_declared_layout(
             &metadata.model_card.path,
             &layout.docs,
         );
+    }
+}
+
+fn validate_pipeline_config_layout(
+    report: &mut PackageValidationReport,
+    section: &str,
+    steps: &[super::PipelineStep],
+    pipelines_dir: &str,
+) {
+    for (index, step) in steps.iter().enumerate() {
+        if let Some(config) = &step.config {
+            validate_path_under_dir(
+                report,
+                &format!("{section}[{index}].config.path"),
+                &config.path,
+                pipelines_dir,
+            );
+        }
     }
 }
 

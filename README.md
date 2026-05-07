@@ -134,6 +134,7 @@ Current capabilities:
 - typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
 - runtime bridge planning reports
 - manifest-relative asset validation
+- package preprocessing steps can reference checked pipeline config artifacts
 - package path escape rejection for manifest and observation assets
 - SHA-256 package and fixture checksum verification
 - package fixture verification from observed artifact paths
@@ -276,6 +277,7 @@ examples/
     observed/
     tokenizers/
     vocabs/
+    pipelines/
   pipeline/
     protein.toml
     protein.yaml

@@ -40,6 +40,19 @@ pub fn validate_package_manifest_artifacts(
         );
     }
 
+    validate_pipeline_configs(
+        &mut report,
+        "preprocessing",
+        &manifest.preprocessing,
+        base_dir,
+    );
+    validate_pipeline_configs(
+        &mut report,
+        "postprocessing",
+        &manifest.postprocessing,
+        base_dir,
+    );
+
     if let Some(metadata) = &manifest.metadata {
         if let Some(file) = &metadata.license.file {
             validate_artifact(
@@ -88,6 +101,25 @@ pub fn validate_package_manifest_artifacts(
     validate_declared_layout(&mut report, manifest);
 
     report.finish()
+}
+
+fn validate_pipeline_configs(
+    report: &mut PackageValidationReport,
+    section: &str,
+    steps: &[super::PipelineStep],
+    base_dir: &Path,
+) {
+    for (index, step) in steps.iter().enumerate() {
+        if let Some(config) = &step.config {
+            validate_artifact(
+                report,
+                &format!("{section}[{index}].config"),
+                &config.path,
+                config.checksum.as_deref(),
+                base_dir,
+            );
+        }
+    }
 }
 
 fn validate_artifact(

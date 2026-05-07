@@ -29,6 +29,7 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
                 .as_ref()
                 .map(|tokenizer| tokenizer.path.clone()),
             vocab: manifest.vocab.as_ref().map(|vocab| vocab.path.clone()),
+            pipeline_configs: pipeline_config_paths(manifest),
             fixture_inputs: manifest
                 .fixtures
                 .iter()
@@ -49,10 +50,21 @@ fn package_layout_summary(layout: &PackageDirectoryLayout) -> PackageDirectoryLa
         models: layout.models.clone(),
         tokenizers: layout.tokenizers.clone(),
         vocabs: layout.vocabs.clone(),
+        pipelines: layout.pipelines.clone(),
         fixtures: layout.fixtures.clone(),
         observed: layout.observed.clone(),
         docs: layout.docs.clone(),
     }
+}
+
+fn pipeline_config_paths(manifest: &PackageManifest) -> Vec<String> {
+    manifest
+        .preprocessing
+        .iter()
+        .chain(manifest.postprocessing.iter())
+        .filter_map(|step| step.config.as_ref())
+        .map(|config| config.path.clone())
+        .collect()
 }
 
 fn metadata_summary(metadata: &PackageMetadata) -> PackageMetadataSummary {
