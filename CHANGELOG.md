@@ -2,6 +2,17 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.37.0 - 2026-05-07
+
+### Added
+
+- Added `biors dataset inspect <path|directory|glob>...` for deterministic
+  FASTA input resolution before validation or pipeline execution.
+- Added a shared input dataset resolver used by both `dataset inspect` and
+  `batch validate`, preserving the existing batch glob error contract.
+- Added `schemas/dataset-inspect-output.v0.json` and CLI/schema coverage for
+  dataset inspection.
+
 ## 0.36.0 - 2026-05-07
 
 ### Added
