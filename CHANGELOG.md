@@ -2,6 +2,17 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.34.0 - 2026-05-07
+
+### Added
+
+- Added package manifest support for preprocessing/postprocessing steps that
+  reference checked `biors.pipeline.v0` config artifacts.
+- Added `package_layout.pipelines` and package inspect output for declared
+  pipeline config paths.
+- Extended package artifact validation to check pipeline config paths,
+  checksums, and declared layout placement.
+
 ## 0.33.0 - 2026-05-07
 
 ### Added
