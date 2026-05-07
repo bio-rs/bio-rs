@@ -25,8 +25,15 @@ fn package_inspect_outputs_manifest_summary() {
 
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
 
-    assert_eq!(value["data"]["schema_version"], "biors.package.v0");
+    assert_eq!(value["data"]["schema_version"], "biors.package.v1");
     assert_eq!(value["data"]["name"], "protein-seed");
+    assert_eq!(value["data"]["package_layout"]["models"], "models");
+    assert_eq!(value["data"]["package_layout"]["docs"], "docs");
+    assert_eq!(value["data"]["metadata"]["license"], "CC0-1.0");
+    assert_eq!(
+        value["data"]["metadata"]["model_card"],
+        "docs/model-card.md"
+    );
     assert_eq!(value["data"]["model_format"], "onnx");
     assert_eq!(value["data"]["has_model_checksum"], true);
     assert_eq!(value["data"]["runtime_backend"], "onnx-webgpu");

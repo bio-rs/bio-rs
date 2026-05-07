@@ -45,6 +45,7 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.checksum_mismatch`: a manifest or verification checksum does not match the file on disk
 - `package.invalid_asset_path`: a manifest or observation path is absolute or escapes the package root
 - `package.asset_read_failed`: a manifest-relative asset path could not be read
+- `package.layout_mismatch`: a manifest v1 asset path is outside the declared package layout
 - `package.observed_output_missing`: a verification observation is missing or its output artifact could not be read
 - `package.output_content_mismatch`: observed output content does not match the expected output artifact
 - `package.validation_failed`: package manifest validation failed

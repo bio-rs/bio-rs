@@ -65,6 +65,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/package-bridge-output.v0.json`
 - `schemas/package-verify-output.v0.json`
 - `schemas/package-manifest.v0.json`
+- `schemas/package-manifest.v1.json`
 - `schemas/package-validation-report.v0.json`
 
 ## Not Yet Stable

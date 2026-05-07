@@ -75,7 +75,11 @@ Absolute paths and `..` parent traversal are rejected so packages remain portabl
 Observation paths in `package verify` are resolved against the observations file's parent directory. If the observations file is read from stdin, relative paths are resolved against the current working directory.
 Absolute observation paths and `..` parent traversal are rejected for the same reason.
 
-The package manifest contract is closed over enumerated values for `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and tensor `dtype` fields. Unsupported values fail JSON deserialization instead of being accepted as loose strings.
+The package manifest contract is closed over enumerated values for
+`schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and
+tensor `dtype` fields. Unsupported values fail JSON deserialization instead of
+being accepted as loose strings. `biors.package.v1` requires declared package
+layout and research metadata for license, citation, and model-card inspection.
 
 ## JSON Success Envelope
 
@@ -95,7 +99,9 @@ unless they directly hash a user input contract in a later release.
 
 The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Package manifest checksums and fixture hashes use `sha256:`.
 
-Package validation reports include both the legacy string `issues` list and a typed `structured_issues` list with stable issue codes.
+Package validation reports include both the legacy string `issues` list and a
+typed `structured_issues` list with stable issue codes. Manifest v1 validation
+also checks that artifacts live under the declared package layout directories.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such

@@ -10,6 +10,8 @@ fn manifest() -> PackageManifest {
     PackageManifest {
         schema_version: SchemaVersion::BiorsPackageV0,
         name: "protein-seed".to_string(),
+        package_layout: None,
+        metadata: None,
         model: ModelArtifact {
             format: ModelFormat::Onnx,
             path: "models/protein-seed.onnx".to_string(),

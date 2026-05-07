@@ -245,6 +245,7 @@ schemas/
   package-bridge-output.v0.json
   package-inspect-output.v0.json
   package-manifest.v0.json
+  package-manifest.v1.json
   package-validation-report.v0.json
   package-verify-output.v0.json
   tokenizer-inspect-output.v0.json
@@ -264,6 +265,7 @@ examples/
     reference_preprocess.py
   protein-package/
     models/
+    docs/
     manifest.json
     observations.json
     fixtures/

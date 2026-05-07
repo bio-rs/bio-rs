@@ -182,5 +182,7 @@ biors package verify \
   examples/protein-package/observations.json
 ```
 
-Package commands validate portable manifest assets and compare expected fixture
-outputs against observed output artifacts.
+Package commands validate portable manifest assets, v1 layout and research
+metadata, SHA-256 checksums, and expected fixture outputs against observed
+output artifacts. See [Package Format](package-format.md) for the directory
+layout and manifest rules.

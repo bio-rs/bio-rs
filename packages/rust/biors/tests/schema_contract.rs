@@ -26,6 +26,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/package-bridge-output.v0.json",
         "schemas/package-verify-output.v0.json",
         "schemas/package-manifest.v0.json",
+        "schemas/package-manifest.v1.json",
         "schemas/package-validation-report.v0.json",
     ] {
         let input = fs::read_to_string(repo.join(schema)).expect("read schema");
@@ -52,10 +53,20 @@ fn package_manifest_example_uses_declared_schema_version() {
     )
     .expect("manifest JSON");
 
-    assert_eq!(manifest["schema_version"], "biors.package.v0");
+    assert_eq!(manifest["schema_version"], "biors.package.v1");
+    assert_eq!(manifest["package_layout"]["models"], "models");
+    assert_eq!(manifest["package_layout"]["docs"], "docs");
+    assert_eq!(manifest["metadata"]["license"]["expression"], "CC0-1.0");
+    assert_eq!(
+        manifest["metadata"]["model_card"]["path"],
+        "docs/model-card.md"
+    );
     assert!(manifest["model"]["checksum"].is_string());
     assert!(manifest["tokenizer"]["checksum"].is_string());
     assert!(manifest["vocab"]["checksum"].is_string());
+    assert!(manifest["metadata"]["license"]["file"]["checksum"].is_string());
+    assert!(manifest["metadata"]["citation"]["file"]["checksum"].is_string());
+    assert!(manifest["metadata"]["model_card"]["checksum"].is_string());
     assert!(manifest["expected_input"]["dtype"].is_string());
     assert!(manifest["fixtures"][0]["input_hash"]
         .as_str()
@@ -65,6 +76,7 @@ fn package_manifest_example_uses_declared_schema_version() {
         .as_str()
         .expect("fixture output hash")
         .starts_with("sha256:"));
+    assert_json_value_matches_schema(&manifest, "schemas/package-manifest.v1.json");
 }
 
 #[test]

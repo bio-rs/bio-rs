@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 pub struct PackageManifest {
     pub schema_version: SchemaVersion,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub package_layout: Option<PackageDirectoryLayout>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<PackageMetadata>,
     pub model: ModelArtifact,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tokenizer: Option<TokenAsset>,
@@ -19,6 +23,64 @@ pub struct PackageManifest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub expected_output: Option<DataShape>,
     pub fixtures: Vec<PackageFixture>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Declared portable package directory layout.
+pub struct PackageDirectoryLayout {
+    pub manifest: String,
+    pub models: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tokenizers: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vocabs: Option<String>,
+    pub fixtures: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub observed: Option<String>,
+    pub docs: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Research metadata required by the v1 package manifest contract.
+pub struct PackageMetadata {
+    pub license: LicenseMetadata,
+    pub citation: CitationMetadata,
+    pub model_card: ModelCardMetadata,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LicenseMetadata {
+    pub expression: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file: Option<DocumentArtifact>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CitationMetadata {
+    pub preferred_citation: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub doi: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file: Option<DocumentArtifact>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ModelCardMetadata {
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// Optional `sha256:<64 hex>` checksum for the model card.
+    pub checksum: Option<String>,
+    pub summary: String,
+    pub intended_use: Vec<String>,
+    pub limitations: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocumentArtifact {
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// Optional `sha256:<64 hex>` checksum for the document.
+    pub checksum: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
