@@ -2,6 +2,18 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.36.0 - 2026-05-07
+
+### Added
+
+- Added `biors package convert <manifest|-> --to biors.package.v1` for
+  converting supported v0 package manifests to v1 manifests with explicit
+  author-supplied research metadata.
+- Added optional converted manifest file writing with `--output`, manifest
+  SHA-256 provenance, and inferred v1 package layout directories.
+- Added `schemas/package-conversion-output.v0.json` plus CLI and schema tests
+  for conversion success and missing metadata errors.
+
 ## 0.35.0 - 2026-05-07
 
 ### Added
