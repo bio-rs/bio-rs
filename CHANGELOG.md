@@ -2,6 +2,17 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.33.0 - 2026-05-07
+
+### Added
+
+- Added `biors pipeline --config <toml|yaml|json>` for config-driven static
+  FASTA preprocessing over the existing validate -> tokenize -> export path.
+- Added `schemas/pipeline-config.v0.json`, config examples, and documentation
+  for config-relative inputs, dry runs, and explain-plan output.
+- Extended pipeline output schema coverage for `config_pipeline.v0` dry-run and
+  plan payloads.
+
 ## 0.32.0 - 2026-05-07
 
 ### Added
