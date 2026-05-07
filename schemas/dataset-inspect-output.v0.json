@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/dataset-inspect-output.v0.json",
+  "title": "bio-rs dataset inspect data payload",
+  "type": "object",
+  "required": ["provided_inputs", "files", "total_bytes", "resolved_files"],
+  "properties": {
+    "provided_inputs": { "type": "integer", "minimum": 1 },
+    "files": { "type": "integer", "minimum": 1 },
+    "total_bytes": { "type": "integer", "minimum": 0 },
+    "resolved_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "bytes"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "bytes": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

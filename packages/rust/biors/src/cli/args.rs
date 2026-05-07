@@ -29,6 +29,10 @@ pub enum Command {
         #[arg(value_enum)]
         shell: Shell,
     },
+    Dataset {
+        #[command(subcommand)]
+        command: DatasetCommand,
+    },
     Debug {
         #[arg(long)]
         max_length: usize,
@@ -130,6 +134,14 @@ pub enum FastaCommand {
         #[arg(long, default_value_t = KindArg::Protein, value_enum)]
         kind: KindArg,
         path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DatasetCommand {
+    Inspect {
+        #[arg(required = true)]
+        inputs: Vec<PathBuf>,
     },
 }
 

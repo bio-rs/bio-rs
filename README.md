@@ -127,6 +127,8 @@ Current capabilities:
   compact residue error visualization
 - `batch validate` for multiple files, recursive directory inputs, quoted glob
   inputs, empty-glob errors, and memory-bounded validation summaries
+- `dataset inspect` for shared FASTA file/directory/glob input resolution
+  before validation or pipeline execution
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
@@ -243,6 +245,7 @@ schemas/
   batch-validation-output.v0.json
   cli-error.v0.json
   cli-success.v0.json
+  dataset-inspect-output.v0.json
   fasta-validation-output.v0.json
   inspect-output.v0.json
   model-input-output.v0.json

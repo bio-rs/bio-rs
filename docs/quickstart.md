@@ -163,15 +163,17 @@ first-difference metadata for mismatches.
 ## Validate Batches
 
 ```bash
+biors dataset inspect examples/
 biors batch validate --kind auto examples/
 biors batch validate --kind auto "examples/*.fasta"
 ```
 
-`batch validate` accepts multiple files, recursive directories, and quoted glob
-patterns. Directory inputs include common FASTA extensions and skip unrelated
-files. Empty glob expansion returns `batch.no_inputs`. The command emits one
-batch summary plus per-file validation summaries without retaining per-record
-validation payloads.
+`dataset inspect` and `batch validate` accept multiple files, recursive
+directories, and quoted glob patterns. Directory inputs include common FASTA
+extensions and skip unrelated files. Empty glob expansion returns
+`dataset.no_inputs` or `batch.no_inputs`, depending on the command. Batch
+validation emits one summary plus per-file validation summaries without
+retaining per-record validation payloads.
 
 ## Run A Pipeline Config
 

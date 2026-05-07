@@ -3,8 +3,8 @@ use super::{
     TokenizerProfileArg,
 };
 use crate::cli::{
-    build_doctor_report, run_batch_command, run_debug, run_diff, run_package_command, run_pipeline,
-    run_workflow, PipelineRunOptions,
+    build_doctor_report, run_batch_command, run_dataset_command, run_debug, run_diff,
+    run_package_command, run_pipeline, run_workflow, PipelineRunOptions,
 };
 use crate::errors::CliError;
 use crate::input::{open_fasta_input, read_tokenizer_config};
@@ -25,6 +25,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
     match command {
         Command::Batch { command } => run_batch_command(command),
         Command::Completions { shell } => run_completions(shell),
+        Command::Dataset { command } => run_dataset_command(command),
         Command::Debug { max_length, path } => run_debug(max_length, path),
         Command::Diff { expected, observed } => run_diff(expected, observed),
         Command::Doctor => run_doctor(),

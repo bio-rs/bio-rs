@@ -6,6 +6,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 
 - `biors --version`
 - `biors completions <bash|elvish|fish|powershell|zsh>`
+- `biors dataset inspect <path|directory|glob>...`
 - `biors debug --max-length <usize> <path|->`
 - `biors diff <expected> <observed>`
 - `biors doctor`
@@ -64,6 +65,9 @@ file extensions, and ignore unrelated files. Empty glob expansion fails with
 `batch.no_inputs`. The command emits memory-bounded per-file validation
 summaries and a batch summary without retaining per-record validation payloads.
 It rejects sequences that still contain residue warnings or errors, so model-ready output cannot silently drop unresolved residues.
+`dataset inspect` uses the same FASTA file, recursive directory, and quoted glob
+resolver as `batch validate`, but it only emits resolved file paths and byte
+counts. Empty datasets fail with `dataset.no_inputs`.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 Without `--config`, tokenization defaults to the stable `protein-20` profile.
@@ -147,6 +151,9 @@ Pipeline payloads use `schemas/pipeline-output.v0.json`; pipeline lockfiles use
 Batch validation payloads use `schemas/batch-validation-output.v0.json` and
 include `inputs`, aggregate `summary`, and a deterministic `files` list with
 per-file `input_hash`, validation counts, and `kind_counts`.
+Dataset inspection payloads use `schemas/dataset-inspect-output.v0.json` and
+include `provided_inputs`, resolved file count, total byte count, and a
+deterministic `resolved_files` list.
 
 Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
 Tokenizer config files reject unknown top-level fields so preprocessing

@@ -54,6 +54,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/inspect-output.v0.json`
 - `schemas/model-input-output.v0.json`
 - `schemas/output-diff.v0.json`
+- `schemas/dataset-inspect-output.v0.json`
 - `schemas/pipeline-output.v0.json`
 - `schemas/pipeline-config.v0.json`
 - `schemas/pipeline-lock.v0.json`

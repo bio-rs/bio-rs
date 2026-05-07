@@ -15,6 +15,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/inspect-output.v0.json",
         "schemas/model-input-output.v0.json",
         "schemas/batch-validation-output.v0.json",
+        "schemas/dataset-inspect-output.v0.json",
         "schemas/doctor-output.v0.json",
         "schemas/output-diff.v0.json",
         "schemas/pipeline-output.v0.json",
@@ -172,6 +173,9 @@ fn cli_outputs_match_batch_schema() {
     let batch_validate =
         common::run_biors_paths(&["batch", "validate", "--kind", "auto"], &[&examples]).stdout;
     assert_payload_matches_schema(&batch_validate, "schemas/batch-validation-output.v0.json");
+
+    let dataset_inspect = common::run_biors_paths(&["dataset", "inspect"], &[&examples]).stdout;
+    assert_payload_matches_schema(&dataset_inspect, "schemas/dataset-inspect-output.v0.json");
 }
 
 #[test]

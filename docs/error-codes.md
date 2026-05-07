@@ -32,6 +32,11 @@ Sequence validation warnings and errors are reported inside successful FASTA or
 - `batch.no_inputs`: batch validation did not resolve any FASTA files from the provided paths, directories, or glob patterns
 - `batch.invalid_glob`: a glob pattern could not be interpreted as a UTF-8 file pattern
 
+## Dataset
+
+- `dataset.no_inputs`: dataset inspection did not resolve any FASTA files from the provided paths, directories, or glob patterns
+- `dataset.invalid_glob`: a dataset glob pattern could not be interpreted as a UTF-8 file pattern
+
 ## I/O
 
 - `io.read_failed`: input path or stdin could not be read
@@ -72,6 +77,7 @@ parsing the human-readable `issue` field.
 - `fasta.*`: sequence file envelope and record parsing errors
 - sequence issue codes: per-record biological sequence validation diagnostics
 - `batch.*`: batch input expansion failures
+- `dataset.*`: shared dataset/file input resolution failures
 - `json.*`: machine-readable input or output failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures

@@ -6,6 +6,12 @@ use std::fs;
 use std::io::{self, BufRead, BufReader, Read};
 use std::path::PathBuf;
 
+mod sources;
+pub(crate) use sources::{
+    resolve_fasta_input_dataset, resolve_fasta_input_dataset_with_glob_code, ResolvedInputDataset,
+    ResolvedInputFile,
+};
+
 pub(crate) fn open_fasta_input(path: &PathBuf) -> Result<Box<dyn BufRead>, CliError> {
     if path.as_os_str() == "-" {
         return Ok(Box::new(BufReader::new(io::stdin())));

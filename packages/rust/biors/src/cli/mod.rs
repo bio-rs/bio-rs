@@ -1,5 +1,6 @@
 pub mod args;
 mod batch;
+mod dataset;
 mod debug;
 mod diff;
 mod doctor;
@@ -12,10 +13,11 @@ mod pipeline_lock;
 mod pipeline_output;
 mod workflow;
 pub use args::{
-    BatchCommand, Cli, Command, FastaCommand, KindArg, PackageCommand, PackageConvertArgs,
-    PaddingArg, SeqCommand, TokenizerCommand, TokenizerProfileArg,
+    BatchCommand, Cli, Command, DatasetCommand, FastaCommand, KindArg, PackageCommand,
+    PackageConvertArgs, PaddingArg, SeqCommand, TokenizerCommand, TokenizerProfileArg,
 };
 pub(crate) use batch::run_batch_command;
+pub(crate) use dataset::run_dataset_command;
 pub(crate) use debug::run_debug;
 pub(crate) use diff::run_diff;
 pub(crate) use doctor::build_doctor_report;
