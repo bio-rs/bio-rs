@@ -103,6 +103,13 @@ migration plan instead of rewriting the manifest in place. The v0 to v1 path is
 not automatic because v1 requires package layout and research metadata that
 must be supplied by the package author.
 
+`biors package convert <manifest|-> --to biors.package.v1` emits a converted
+manifest and can write it with `--output <manifest.json>`. Conversion preserves
+the v0 model, tokenizer, vocab, preprocessing, runtime, shape, and fixture
+contracts, infers layout directories from existing package-relative paths, and
+requires explicit metadata options for license, citation, model card,
+intended-use, and limitations.
+
 `biors package compatibility <left-manifest> <right-manifest>` reports the
 schema transition from left to right, whether a migration is required, and
 whether both manifests describe the same package name.

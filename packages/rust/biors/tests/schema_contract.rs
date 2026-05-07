@@ -27,6 +27,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/package-inspect-output.v0.json",
         "schemas/package-bridge-output.v0.json",
         "schemas/package-verify-output.v0.json",
+        "schemas/package-conversion-output.v0.json",
         "schemas/package-migration-output.v0.json",
         "schemas/package-compatibility-output.v0.json",
         "schemas/package-diff-output.v0.json",

@@ -52,6 +52,9 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.bridge_not_ready`: package runtime bridge planning found blocking issues
 - `package.verification_failed`: fixture observations did not match expected outputs
 - `package.migration_unsupported`: no migration plan exists for the requested manifest schema transition
+- `package.conversion_missing_metadata`: conversion to manifest v1 is missing required research metadata
+- `package.conversion_layout_conflict`: conversion could not infer a v1 package layout that contains the existing artifact paths
+- `package.conversion_unsupported`: no conversion exists for the requested manifest schema transition
 
 Package verification reports also expose per-fixture `issue_code` values such
 as `observation_missing`, `output_checksum_mismatch`, and

@@ -4,7 +4,7 @@ use biors_core::{
     sequence::{SequenceKind, SequenceKindSelection},
     tokenizer::ProteinTokenizerProfile,
 };
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use clap_complete::Shell;
 use std::path::PathBuf;
 
@@ -151,6 +151,7 @@ pub enum PackageCommand {
         left: PathBuf,
         right: PathBuf,
     },
+    Convert(Box<PackageConvertArgs>),
     Diff {
         left: PathBuf,
         right: PathBuf,
@@ -170,6 +171,47 @@ pub enum PackageCommand {
         manifest: PathBuf,
         observations: PathBuf,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct PackageConvertArgs {
+    pub path: PathBuf,
+    #[arg(long, value_enum, default_value = "biors.package.v1")]
+    pub to: PackageSchemaArg,
+    #[arg(long)]
+    pub output: Option<PathBuf>,
+    #[arg(long)]
+    pub license: Option<String>,
+    #[arg(long)]
+    pub citation: Option<String>,
+    #[arg(long)]
+    pub doi: Option<String>,
+    #[arg(long = "model-card")]
+    pub model_card: Option<String>,
+    #[arg(long = "model-card-summary")]
+    pub model_card_summary: Option<String>,
+    #[arg(long = "intended-use")]
+    pub intended_use: Vec<String>,
+    #[arg(long = "limitation")]
+    pub limitations: Vec<String>,
+    #[arg(long = "license-file")]
+    pub license_file: Option<String>,
+    #[arg(long = "citation-file")]
+    pub citation_file: Option<String>,
+    #[arg(long = "models-dir")]
+    pub models_dir: Option<String>,
+    #[arg(long = "tokenizers-dir")]
+    pub tokenizers_dir: Option<String>,
+    #[arg(long = "vocabs-dir")]
+    pub vocabs_dir: Option<String>,
+    #[arg(long = "pipelines-dir")]
+    pub pipelines_dir: Option<String>,
+    #[arg(long = "fixtures-dir")]
+    pub fixtures_dir: Option<String>,
+    #[arg(long = "observed-dir")]
+    pub observed_dir: Option<String>,
+    #[arg(long = "docs-dir")]
+    pub docs_dir: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]

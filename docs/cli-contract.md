@@ -21,6 +21,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
 - `biors package migrate <manifest|-> [--to biors.package.v0|biors.package.v1]`
+- `biors package convert <manifest|-> [--to biors.package.v1] [--output <manifest.json>] --license <expr> --citation <text> --model-card <path> --model-card-summary <text> --intended-use <text> --limitation <text>`
 - `biors package compatibility <left-manifest> <right-manifest>`
 - `biors package diff <left-manifest> <right-manifest>`
 - `biors package bridge <manifest>`
@@ -122,6 +123,10 @@ manifest can be read or migrated as the right manifest schema. Package manifest
 diff reports use `schemas/package-diff-output.v0.json`; the nested `diff`
 payload follows the canonical JSON/raw comparison contract from
 `schemas/output-diff.v0.json`.
+Package conversion reports use `schemas/package-conversion-output.v0.json` and
+include the converted manifest. Conversion to `biors.package.v1` requires
+caller-supplied license, citation, model-card summary, intended-use, and
+limitation fields so the CLI does not invent research metadata.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such

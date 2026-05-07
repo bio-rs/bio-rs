@@ -39,6 +39,29 @@ fn cli_outputs_match_package_tooling_schemas() {
         .stdout;
     assert_payload_matches_schema(&migration, "schemas/package-migration-output.v0.json");
 
+    let conversion = common::spawn_biors(&[
+        "package",
+        "convert",
+        "-",
+        "--to",
+        "biors.package.v1",
+        "--license",
+        "CC0-1.0",
+        "--citation",
+        "bio-rs converted fixture",
+        "--model-card",
+        "docs/model-card.md",
+        "--model-card-summary",
+        "Converted package fixture for schema tests.",
+        "--intended-use",
+        "Schema validation",
+        "--limitation",
+        "Not for inference",
+    ])
+    .tap_stdin(V0_MANIFEST)
+    .stdout;
+    assert_payload_matches_schema(&conversion, "schemas/package-conversion-output.v0.json");
+
     let compatibility = common::run_biors_paths(&["package", "compatibility"], &[&v0, &v1]).stdout;
     assert_payload_matches_schema(
         &compatibility,
