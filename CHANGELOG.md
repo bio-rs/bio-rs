@@ -2,6 +2,25 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.31.0 - 2026-05-07
+
+### Added
+
+- Added `biors.package.v1` manifests with declared package directory layout,
+  license/citation/model-card metadata, and schema coverage in
+  `schemas/package-manifest.v1.json`.
+- Extended package validation to check v1 layout membership, package-relative
+  metadata document paths, and SHA-256 checksums for license files, citation
+  files, and model cards.
+- Added package-format documentation and upgraded the committed protein package
+  fixture to manifest v1.
+
+### Notes
+
+- `biors-manifest` remains deferred as a separate crate; the manifest contract
+  stays isolated under `biors-core::package` until independent consumers need a
+  smaller parsing-only crate.
+
 ## 0.30.0 - 2026-05-06
 
 ### Added
