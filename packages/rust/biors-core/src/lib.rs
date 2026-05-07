@@ -13,6 +13,7 @@ pub mod package;
 pub mod sequence;
 pub mod tokenizer;
 pub mod verification;
+pub mod versioning;
 pub mod workflow;
 
 pub use error::{BioRsError, FastaReadError};

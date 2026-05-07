@@ -74,3 +74,5 @@ The following surfaces are candidates for stabilization before the first stable 
 - larger fixture verification formats
 - benchmark claims beyond the recorded baseline workload
 - independent `biors-core` and `biors` versioning outside isolated post-1.0 patch releases
+- final shape of schema version migration helpers beyond the current
+  `biors_core::versioning` policy API

@@ -17,3 +17,7 @@ After the first stable release, independent patch releases can be considered onl
 - core-only release: internal library bug fix that does not affect CLI output, schemas, or package verification behavior
 
 Minor or breaking releases should stay lockstep whenever public contracts, schemas, tokenizer behavior, model-input behavior, or package manifests change.
+
+Schema-bearing artifacts follow the stricter policy in
+[Schema Versioning Policy](schema-versioning.md). The code-level policy API
+lives in `biors_core::versioning`.
