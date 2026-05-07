@@ -12,6 +12,13 @@ All notable public behavior changes for bio-rs are recorded here.
   pipeline config paths.
 - Extended package artifact validation to check pipeline config paths,
   checksums, and declared layout placement.
+- Added `biors pipeline --config ... --write-lock <pipeline.lock>` for
+  reproducible lockfiles that pin bio-rs versions, config SHA-256, input hash,
+  vocabulary hash, output-content hash, and Python baseline parity strategy.
+- Added optional package context for pipeline lockfiles so package model
+  checksum, runtime backend, target, and backend version can be pinned.
+- Added `schemas/pipeline-lock.v0.json` and a committed
+  `examples/pipeline/pipeline.lock` fixture.
 
 ## 0.33.0 - 2026-05-07
 
