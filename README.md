@@ -174,7 +174,6 @@ Current capabilities:
 - [Versioning policy](docs/versioning.md)
 - [Schema versioning](docs/schema-versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
-- [Changelog](CHANGELOG.md)
 - [JSON schemas](schemas)
 - [Citation metadata](CITATION.cff)
 
