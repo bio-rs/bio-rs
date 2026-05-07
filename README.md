@@ -132,6 +132,7 @@ Current capabilities:
 - explicit checked and unchecked model-input builders
 - writer-based CLI success JSON serialization to reduce peak allocations for large outputs
 - package manifest inspect/validate
+- package manifest migration planning, schema compatibility checks, and canonical diffs
 - typed package validation issue codes
 - typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
 - runtime bridge planning reports
@@ -251,9 +252,12 @@ schemas/
   sequence-workflow-output.v0.json
   sequence-debug-output.v0.json
   package-bridge-output.v0.json
+  package-compatibility-output.v0.json
+  package-diff-output.v0.json
   package-inspect-output.v0.json
   package-manifest.v0.json
   package-manifest.v1.json
+  package-migration-output.v0.json
   package-validation-report.v0.json
   package-verify-output.v0.json
   tokenizer-inspect-output.v0.json

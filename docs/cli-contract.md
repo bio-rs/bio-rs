@@ -20,6 +20,9 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
+- `biors package migrate <manifest|-> [--to biors.package.v0|biors.package.v1]`
+- `biors package compatibility <left-manifest> <right-manifest>`
+- `biors package diff <left-manifest> <right-manifest>`
 - `biors package bridge <manifest>`
 - `biors package verify <manifest> <observations>`
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
@@ -111,6 +114,14 @@ The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Packag
 Package validation reports include both the legacy string `issues` list and a
 typed `structured_issues` list with stable issue codes. Manifest v1 validation
 also checks that artifacts live under the declared package layout directories.
+Package migration reports use `schemas/package-migration-output.v0.json` and
+emit the explicit steps needed to move between supported manifest schema
+versions. Package compatibility reports use
+`schemas/package-compatibility-output.v0.json` and state whether the left
+manifest can be read or migrated as the right manifest schema. Package manifest
+diff reports use `schemas/package-diff-output.v0.json`; the nested `diff`
+payload follows the canonical JSON/raw comparison contract from
+`schemas/output-diff.v0.json`.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such

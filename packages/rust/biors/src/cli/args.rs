@@ -1,5 +1,6 @@
 use biors_core::{
     model_input::PaddingPolicy,
+    package::SchemaVersion,
     sequence::{SequenceKind, SequenceKindSelection},
     tokenizer::ProteinTokenizerProfile,
 };
@@ -146,8 +147,21 @@ pub enum PackageCommand {
     Bridge {
         path: PathBuf,
     },
+    Compatibility {
+        left: PathBuf,
+        right: PathBuf,
+    },
+    Diff {
+        left: PathBuf,
+        right: PathBuf,
+    },
     Inspect {
         path: PathBuf,
+    },
+    Migrate {
+        path: PathBuf,
+        #[arg(long, value_enum, default_value = "biors.package.v1")]
+        to: PackageSchemaArg,
     },
     Validate {
         path: PathBuf,
@@ -156,6 +170,23 @@ pub enum PackageCommand {
         manifest: PathBuf,
         observations: PathBuf,
     },
+}
+
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum PackageSchemaArg {
+    #[value(name = "biors.package.v0")]
+    BiorsPackageV0,
+    #[value(name = "biors.package.v1")]
+    BiorsPackageV1,
+}
+
+impl From<PackageSchemaArg> for SchemaVersion {
+    fn from(value: PackageSchemaArg) -> Self {
+        match value {
+            PackageSchemaArg::BiorsPackageV0 => Self::BiorsPackageV0,
+            PackageSchemaArg::BiorsPackageV1 => Self::BiorsPackageV1,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]

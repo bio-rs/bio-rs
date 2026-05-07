@@ -66,6 +66,9 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/package-inspect-output.v0.json`
 - `schemas/package-bridge-output.v0.json`
 - `schemas/package-verify-output.v0.json`
+- `schemas/package-migration-output.v0.json`
+- `schemas/package-compatibility-output.v0.json`
+- `schemas/package-diff-output.v0.json`
 - `schemas/package-manifest.v0.json`
 - `schemas/package-manifest.v1.json`
 - `schemas/package-validation-report.v0.json`

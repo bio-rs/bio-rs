@@ -8,6 +8,7 @@ mod paths;
 mod reports;
 mod runtime;
 mod summary;
+mod tooling;
 mod types;
 mod validation;
 
@@ -25,6 +26,10 @@ pub use reports::{
 };
 pub use runtime::plan_runtime_bridge;
 pub use summary::inspect_package_manifest;
+pub use tooling::{
+    compare_package_manifest_schemas, diff_package_manifests, plan_package_schema_migration,
+    PackageManifestDiffReport, PackageSchemaCompatibilityReport, PackageSchemaMigrationReport,
+};
 pub use types::{DataType, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion};
 pub use validation::validate_package_manifest;
 

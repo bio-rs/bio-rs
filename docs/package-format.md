@@ -96,6 +96,22 @@ Preprocessing steps may also reference a checked pipeline config artifact:
 When a step declares `config`, the path is package-relative and should live
 under the declared `package_layout.pipelines` directory.
 
+## Migration And Compatibility
+
+`biors package migrate <manifest|-> --to biors.package.v1` emits an inspectable
+migration plan instead of rewriting the manifest in place. The v0 to v1 path is
+not automatic because v1 requires package layout and research metadata that
+must be supplied by the package author.
+
+`biors package compatibility <left-manifest> <right-manifest>` reports the
+schema transition from left to right, whether a migration is required, and
+whether both manifests describe the same package name.
+
+`biors package diff <left-manifest> <right-manifest>` combines that schema
+context with a canonical manifest content diff. JSON manifests are compared as
+parsed JSON values, so formatting-only changes do not produce content
+mismatches.
+
 ## Checksums
 
 Package artifacts use `sha256:<64 lowercase hex>` checksums. Validation computes

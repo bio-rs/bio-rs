@@ -51,6 +51,7 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.validation_failed`: package manifest validation failed
 - `package.bridge_not_ready`: package runtime bridge planning found blocking issues
 - `package.verification_failed`: fixture observations did not match expected outputs
+- `package.migration_unsupported`: no migration plan exists for the requested manifest schema transition
 
 Package verification reports also expose per-fixture `issue_code` values such
 as `observation_missing`, `output_checksum_mismatch`, and
