@@ -18,8 +18,8 @@ can inspect support status instead of scraping docs.
 
 - A supported schema version must remain readable for at least two minor
   releases after deprecation is announced.
-- Deprecation must be documented in this file, the changelog, and the relevant
-  package or pipeline format guide.
+- Deprecation must be documented in this file and the relevant package or
+  pipeline format guide.
 - Validators must emit a structured warning before a deprecated version can be
   removed.
 - Patch releases must not deprecate or remove schema versions.

@@ -96,7 +96,6 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
-        "CHANGELOG.md",
     ];
 
     for path in required {
@@ -119,7 +118,6 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
-        "CHANGELOG.md",
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
