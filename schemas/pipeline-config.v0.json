@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/pipeline-config.v0.json",
+  "title": "bio-rs pipeline config v0",
+  "type": "object",
+  "required": ["schema_version", "name", "input", "normalize", "validate", "tokenize", "export"],
+  "properties": {
+    "schema_version": { "const": "biors.pipeline.v0" },
+    "name": { "type": "string", "minLength": 1 },
+    "input": {
+      "type": "object",
+      "required": ["format", "path"],
+      "properties": {
+        "format": { "const": "fasta" },
+        "path": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "normalize": {
+      "type": "object",
+      "required": ["policy"],
+      "properties": {
+        "policy": { "const": "strip_ascii_whitespace_uppercase" }
+      },
+      "additionalProperties": false
+    },
+    "validate": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "const": "protein" }
+      },
+      "additionalProperties": false
+    },
+    "tokenize": {
+      "type": "object",
+      "required": ["profile"],
+      "properties": {
+        "profile": { "const": "protein-20" }
+      },
+      "additionalProperties": false
+    },
+    "export": {
+      "type": "object",
+      "required": ["format", "max_length"],
+      "properties": {
+        "format": { "const": "model-input-json" },
+        "max_length": { "type": "integer", "minimum": 1 },
+        "pad_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "padding": { "enum": ["fixed_length", "no_padding"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

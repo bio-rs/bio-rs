@@ -60,12 +60,18 @@ pub enum Command {
     },
     Pipeline {
         #[arg(long)]
-        max_length: usize,
+        config: Option<PathBuf>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        explain_plan: bool,
+        #[arg(long)]
+        max_length: Option<usize>,
         #[arg(long, default_value_t = 0)]
         pad_token_id: u8,
         #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
         padding: PaddingArg,
-        path: PathBuf,
+        path: Option<PathBuf>,
     },
     Seq {
         #[command(subcommand)]
@@ -148,7 +154,7 @@ pub enum PackageCommand {
     },
 }
 
-#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum PaddingArg {
     #[default]
     FixedLength,

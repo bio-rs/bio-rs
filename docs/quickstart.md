@@ -173,6 +173,17 @@ files. Empty glob expansion returns `batch.no_inputs`. The command emits one
 batch summary plus per-file validation summaries without retaining per-record
 validation payloads.
 
+## Run A Pipeline Config
+
+```bash
+biors pipeline --config examples/pipeline/protein.toml --explain-plan
+biors pipeline --config examples/pipeline/protein.yaml --dry-run
+```
+
+Pipeline configs support TOML, YAML, and JSON. The static MVP runs parse,
+normalize, validate, tokenize, and export stages. See
+[Pipeline Config](pipeline-config.md).
+
 ## Verify Package Fixtures
 
 ```bash

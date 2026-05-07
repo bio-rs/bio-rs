@@ -148,12 +148,15 @@ Current capabilities:
 - [Launch demo](docs/demo.md) — researcher-facing demo workflow
 - [Installation and distribution](docs/install.md) — cargo, binaries, completions
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
+- [Package format](docs/package-format.md) — manifest layout and research metadata
+- [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
 - [Python interop](docs/python-interop.md)
 - [WASM readiness](docs/wasm-readiness.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
+- [Schema versioning](docs/schema-versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
 - [Changelog](CHANGELOG.md)
 - [JSON schemas](schemas)
@@ -240,6 +243,7 @@ schemas/
   model-input-output.v0.json
   output-diff.v0.json
   pipeline-output.v0.json
+  pipeline-config.v0.json
   sequence-workflow-output.v0.json
   sequence-debug-output.v0.json
   package-bridge-output.v0.json
@@ -272,6 +276,10 @@ examples/
     observed/
     tokenizers/
     vocabs/
+  pipeline/
+    protein.toml
+    protein.yaml
+    protein.json
 ```
 
 ## Protein-20 alphabet

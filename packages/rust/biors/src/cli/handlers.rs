@@ -41,11 +41,22 @@ pub fn run(command: Command) -> Result<(), CliError> {
         } => run_model_input(max_length, pad_token_id, padding, path),
         Command::Package { command } => run_package_command(command),
         Command::Pipeline {
+            config,
+            dry_run,
+            explain_plan,
             max_length,
             pad_token_id,
             padding,
             path,
-        } => run_pipeline(max_length, pad_token_id, padding, path),
+        } => run_pipeline(
+            config,
+            dry_run,
+            explain_plan,
+            max_length,
+            pad_token_id,
+            padding,
+            path,
+        ),
         Command::Seq { command } => run_seq_command(command),
         Command::Tokenize {
             profile,

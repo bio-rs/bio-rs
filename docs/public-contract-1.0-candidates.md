@@ -55,6 +55,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/model-input-output.v0.json`
 - `schemas/output-diff.v0.json`
 - `schemas/pipeline-output.v0.json`
+- `schemas/pipeline-config.v0.json`
 - `schemas/batch-validation-output.v0.json`
 - `schemas/sequence-debug-output.v0.json`
 - `schemas/tokenizer-inspect-output.v0.json`

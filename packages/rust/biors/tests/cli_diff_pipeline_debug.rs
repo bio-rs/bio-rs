@@ -61,6 +61,90 @@ fn pipeline_outputs_validate_tokenize_export_chain_without_config() {
 }
 
 #[test]
+fn pipeline_runs_toml_config_with_explain_plan() {
+    let config = repo_root().join("examples/pipeline/protein.toml");
+    let config_arg = config.to_string_lossy();
+
+    let value = run_biors(
+        &["pipeline", "--config", &config_arg, "--explain-plan"],
+        &[],
+    );
+
+    assert_eq!(value["data"]["pipeline"], "config_pipeline.v0");
+    assert_eq!(value["data"]["config"]["name"], "protein-fixture-pipeline");
+    assert_eq!(value["data"]["dry_run"], false);
+    assert_eq!(value["data"]["explain_plan"], true);
+    assert_eq!(
+        value["data"]["steps"]
+            .as_array()
+            .expect("steps")
+            .iter()
+            .map(|step| step["name"].as_str().expect("step name"))
+            .collect::<Vec<_>>(),
+        vec!["parse", "normalize", "validate", "tokenize", "export"]
+    );
+    assert_eq!(
+        value["data"]["plan"]["stages"][0]["operation"],
+        "parse FASTA input"
+    );
+    assert_eq!(
+        value["data"]["workflow"]["model_input"]["records"][0]["input_ids"],
+        serde_json::json!([0, 1, 2, 3, 0, 0, 0, 0])
+    );
+}
+
+#[test]
+fn pipeline_dry_run_accepts_yaml_config_without_reading_input() {
+    let temp = TempDir::new("biors-pipeline-yaml");
+    let config = temp.write(
+        "pipeline.yaml",
+        r#"schema_version: biors.pipeline.v0
+name: dry-run-only
+input:
+  format: fasta
+  path: missing/input.fasta
+normalize:
+  policy: strip_ascii_whitespace_uppercase
+validate:
+  kind: protein
+tokenize:
+  profile: protein-20
+export:
+  format: model-input-json
+  max_length: 8
+"#,
+    );
+    let config_arg = config.to_string_lossy();
+
+    let value = run_biors(&["pipeline", "--config", &config_arg, "--dry-run"], &[]);
+
+    assert_eq!(value["data"]["pipeline"], "config_pipeline.v0");
+    assert_eq!(value["data"]["dry_run"], true);
+    assert_eq!(value["data"]["workflow"], Value::Null);
+    assert!(value["data"]["steps"]
+        .as_array()
+        .expect("steps")
+        .iter()
+        .all(|step| step["status"] == "planned"));
+}
+
+#[test]
+fn pipeline_runs_json_config() {
+    let config = repo_root().join("examples/pipeline/protein.json");
+    let config_arg = config.to_string_lossy();
+
+    let value = run_biors(&["pipeline", "--config", &config_arg], &[]);
+
+    assert_eq!(value["data"]["pipeline"], "config_pipeline.v0");
+    assert_eq!(
+        value["data"]["config"]["schema_version"],
+        "biors.pipeline.v0"
+    );
+    assert_eq!(value["data"]["ready"], true);
+    assert!(value["data"]["plan"].is_null());
+}
+
+#[test]
 fn debug_outputs_step_by_step_tokens_model_input_and_error_visualization() {
     let output = common::spawn_biors(&["debug", "--max-length", "6", "-"]).tap_stdin(">bad\nAX*\n");
 
@@ -89,4 +173,8 @@ fn debug_outputs_step_by_step_tokens_model_input_and_error_visualization() {
 fn run_biors(args: &[&str], paths: &[&Path]) -> Value {
     let output = common::run_biors_paths(args, paths);
     serde_json::from_slice(&output.stdout).expect("valid JSON")
+}
+
+fn repo_root() -> std::path::PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..")
 }

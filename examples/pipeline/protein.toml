@@ -1,0 +1,21 @@
+schema_version = "biors.pipeline.v0"
+name = "protein-fixture-pipeline"
+
+[input]
+format = "fasta"
+path = "../protein.fasta"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "protein"
+
+[tokenize]
+profile = "protein-20"
+
+[export]
+format = "model-input-json"
+max_length = 8
+pad_token_id = 0
+padding = "fixed_length"

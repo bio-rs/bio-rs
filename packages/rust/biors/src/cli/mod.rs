@@ -5,6 +5,8 @@ mod diff;
 mod doctor;
 pub mod handlers;
 mod pipeline;
+mod pipeline_config;
+mod pipeline_output;
 mod workflow;
 pub use args::{
     BatchCommand, Cli, Command, FastaCommand, KindArg, PackageCommand, PaddingArg, SeqCommand,

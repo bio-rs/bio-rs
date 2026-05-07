@@ -57,6 +57,10 @@ as `observation_missing`, `output_checksum_mismatch`, and
 `output_content_mismatch` so callers can inspect fixture-level failures without
 parsing the human-readable `issue` field.
 
+## Pipeline
+
+- `pipeline.invalid_config`: a pipeline config is malformed, unsupported, or missing required legacy no-config arguments
+
 ## Taxonomy
 
 - `fasta.*`: sequence file envelope and record parsing errors

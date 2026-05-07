@@ -1,100 +1,83 @@
-use super::{workflow::workflow_output, PaddingArg};
+use super::{
+    pipeline_config::load_pipeline_config, pipeline_output::PipelineOutput,
+    workflow::workflow_output, PaddingArg,
+};
 use crate::errors::CliError;
 use crate::output::print_success;
-use biors_core::workflow::SequenceWorkflowOutput;
-use serde::Serialize;
 use std::path::PathBuf;
 
 pub(crate) fn run_pipeline(
-    max_length: usize,
+    config: Option<PathBuf>,
+    dry_run: bool,
+    explain_plan: bool,
+    max_length: Option<usize>,
     pad_token_id: u8,
     padding: PaddingArg,
-    path: PathBuf,
+    path: Option<PathBuf>,
 ) -> Result<(), CliError> {
-    let output = workflow_output("biors pipeline", max_length, pad_token_id, padding, path)?;
-    let pipeline = PipelineOutput::from_workflow(output);
+    let pipeline = match config {
+        Some(config_path) => {
+            if max_length.is_some() || path.is_some() {
+                return Err(CliError::Validation {
+                    code: "pipeline.invalid_config",
+                    message: "--config cannot be combined with --max-length or positional input"
+                        .to_string(),
+                    location: Some("pipeline".to_string()),
+                });
+            }
+            run_config_pipeline(config_path, dry_run, explain_plan)?
+        }
+        None => run_legacy_pipeline(max_length, pad_token_id, padding, path)?,
+    };
+
     print_success(
-        Some(pipeline.workflow.provenance.input_hash.clone()),
+        pipeline
+            .workflow
+            .as_ref()
+            .map(|workflow| workflow.provenance.input_hash.clone()),
         pipeline,
     )
 }
 
-#[derive(Debug, Serialize)]
-struct PipelineOutput {
-    pipeline: &'static str,
-    ready: bool,
-    steps: Vec<PipelineStep>,
-    workflow: SequenceWorkflowOutput,
+fn run_legacy_pipeline(
+    max_length: Option<usize>,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: Option<PathBuf>,
+) -> Result<PipelineOutput, CliError> {
+    let max_length = max_length.ok_or_else(|| CliError::Validation {
+        code: "pipeline.invalid_config",
+        message: "--max-length is required when --config is not used".to_string(),
+        location: Some("max_length".to_string()),
+    })?;
+    let path = path.ok_or_else(|| CliError::Validation {
+        code: "pipeline.invalid_config",
+        message: "input path is required when --config is not used".to_string(),
+        location: Some("path".to_string()),
+    })?;
+    let output = workflow_output("biors pipeline", max_length, pad_token_id, padding, path)?;
+    Ok(PipelineOutput::from_workflow(output))
 }
 
-#[derive(Debug, Serialize)]
-struct PipelineStep {
-    name: &'static str,
-    status: &'static str,
-    records: usize,
-    warning_count: usize,
-    error_count: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    output_sha256: Option<String>,
-}
-
-impl PipelineOutput {
-    fn from_workflow(workflow: SequenceWorkflowOutput) -> Self {
-        let validation = &workflow.validation;
-        let tokenization = &workflow.tokenization.summary;
-        let export_status = if workflow.model_ready {
-            "passed"
-        } else {
-            "blocked"
-        };
-        Self {
-            pipeline: "validate_tokenize_export.v0",
-            ready: workflow.model_ready,
-            steps: vec![
-                PipelineStep {
-                    name: "validate",
-                    status: if validation.error_count == 0 {
-                        "passed"
-                    } else {
-                        "failed"
-                    },
-                    records: validation.records,
-                    warning_count: validation.warning_count,
-                    error_count: validation.error_count,
-                    output_sha256: None,
-                },
-                PipelineStep {
-                    name: "tokenize",
-                    status: if tokenization.error_count == 0 {
-                        "passed"
-                    } else {
-                        "failed"
-                    },
-                    records: tokenization.records,
-                    warning_count: tokenization.warning_count,
-                    error_count: tokenization.error_count,
-                    output_sha256: None,
-                },
-                PipelineStep {
-                    name: "export",
-                    status: export_status,
-                    records: workflow
-                        .model_input
-                        .as_ref()
-                        .map(|input| input.records.len())
-                        .unwrap_or(0),
-                    warning_count: 0,
-                    error_count: if workflow.model_ready {
-                        0
-                    } else {
-                        workflow.readiness_issues.len()
-                    },
-                    output_sha256: workflow
-                        .model_ready
-                        .then(|| workflow.provenance.hashes.output_data_sha256.clone()),
-                },
-            ],
-            workflow,
-        }
+fn run_config_pipeline(
+    config_path: PathBuf,
+    dry_run: bool,
+    explain_plan: bool,
+) -> Result<PipelineOutput, CliError> {
+    let resolved = load_pipeline_config(&config_path)?;
+    if dry_run {
+        return Ok(PipelineOutput::dry_run(resolved, explain_plan));
     }
+    let workflow = workflow_output(
+        "biors pipeline --config",
+        resolved.config.export.max_length,
+        resolved.config.export.pad_token_id,
+        resolved.padding,
+        resolved.input_path.clone(),
+    )?;
+    Ok(PipelineOutput::from_config_workflow(
+        resolved,
+        explain_plan,
+        workflow,
+    ))
 }
