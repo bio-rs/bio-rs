@@ -2,6 +2,18 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.32.0 - 2026-05-07
+
+### Added
+
+- Added `biors_core::versioning` policy APIs for package manifest and pipeline
+  config schema lifecycles.
+- Defined deprecation, breaking-change, backward-compatibility, and migration
+  policies for schema-bearing artifacts.
+- Added a v0 to v1 package manifest migration plan and reserved
+  `biors.pipeline.v0` for the upcoming pipeline config MVP.
+- Documented schema versioning rules in `docs/schema-versioning.md`.
+
 ## 0.31.0 - 2026-05-07
 
 ### Added
