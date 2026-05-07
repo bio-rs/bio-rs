@@ -2,6 +2,20 @@
 
 All notable public behavior changes for bio-rs are recorded here.
 
+## 0.35.0 - 2026-05-07
+
+### Added
+
+- Added `biors package migrate <manifest|-> --to <schema>` for inspectable
+  package manifest schema migration plans.
+- Added `biors package compatibility <left-manifest> <right-manifest>` for
+  schema compatibility and migration-required checks.
+- Added `biors package diff <left-manifest> <right-manifest>` for canonical
+  package manifest content diffs with schema context.
+- Added `schemas/package-migration-output.v0.json`,
+  `schemas/package-compatibility-output.v0.json`, and
+  `schemas/package-diff-output.v0.json`.
+
 ## 0.34.0 - 2026-05-07
 
 ### Added
