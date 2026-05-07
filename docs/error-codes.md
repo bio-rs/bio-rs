@@ -36,6 +36,12 @@ Sequence validation warnings and errors are reported inside successful FASTA or
 
 - `dataset.no_inputs`: dataset inspection did not resolve any FASTA files from the provided paths, directories, or glob patterns
 - `dataset.invalid_glob`: a dataset glob pattern could not be interpreted as a UTF-8 file pattern
+- `dataset.invalid_metadata`: dataset metadata was not supplied as non-empty `key=value`
+
+## Cache
+
+- `cache.clean_requires_confirmation`: cache cleaning was requested without `--dry-run` or `--yes`
+- `cache.invalid_root`: cache cleaning was requested for a root path that is too broad to clean safely
 
 ## I/O
 
@@ -60,6 +66,10 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.conversion_missing_metadata`: conversion to manifest v1 is missing required research metadata
 - `package.conversion_layout_conflict`: conversion could not infer a v1 package layout that contains the existing artifact paths
 - `package.conversion_unsupported`: no conversion exists for the requested manifest schema transition
+- `package.init_exists`: package initialization would overwrite an existing manifest without `--force`
+- `package.init_invalid_path`: package initialization received an asset path that cannot be represented inside the package layout
+- `package.init_missing_metadata`: package initialization is missing required research metadata
+- `package.project_model_missing`: Python project conversion could not find an ONNX model and no `--model` override was supplied
 
 Package verification reports also expose per-fixture `issue_code` values such
 as `observation_missing`, `output_checksum_mismatch`, and
@@ -72,12 +82,17 @@ parsing the human-readable `issue` field.
 - `pipeline.invalid_lock_package`: a package manifest supplied for pipeline lock generation failed package validation
 - `pipeline.lock_requires_model_checksum`: a package manifest supplied for pipeline lock generation did not declare `model.checksum`
 
+## Tokenizer
+
+- `tokenizer.conversion_invalid_config`: a tokenizer conversion input was not a supported Hugging Face tokenizer config object
+
 ## Taxonomy
 
 - `fasta.*`: sequence file envelope and record parsing errors
 - sequence issue codes: per-record biological sequence validation diagnostics
 - `batch.*`: batch input expansion failures
 - `dataset.*`: shared dataset/file input resolution failures
+- `cache.*`: local artifact store inspection or cleaning failures
 - `json.*`: machine-readable input or output failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures

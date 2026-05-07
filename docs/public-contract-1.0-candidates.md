@@ -55,12 +55,14 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/model-input-output.v0.json`
 - `schemas/output-diff.v0.json`
 - `schemas/dataset-inspect-output.v0.json`
+- `schemas/cache-output.v0.json`
 - `schemas/pipeline-output.v0.json`
 - `schemas/pipeline-config.v0.json`
 - `schemas/pipeline-lock.v0.json`
 - `schemas/batch-validation-output.v0.json`
 - `schemas/sequence-debug-output.v0.json`
 - `schemas/tokenizer-inspect-output.v0.json`
+- `schemas/tokenizer-conversion-output.v0.json`
 - `schemas/sequence-workflow-output.v0.json`
 - `schemas/doctor-output.v0.json`
 - `schemas/fasta-validation-output.v0.json`
@@ -68,6 +70,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/package-bridge-output.v0.json`
 - `schemas/package-verify-output.v0.json`
 - `schemas/package-conversion-output.v0.json`
+- `schemas/package-skeleton-output.v0.json`
 - `schemas/package-migration-output.v0.json`
 - `schemas/package-compatibility-output.v0.json`
 - `schemas/package-diff-output.v0.json`

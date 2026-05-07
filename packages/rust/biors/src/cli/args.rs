@@ -1,10 +1,10 @@
+use super::package_args::PackageCommand;
 use biors_core::{
     model_input::PaddingPolicy,
-    package::SchemaVersion,
     sequence::{SequenceKind, SequenceKindSelection},
     tokenizer::ProteinTokenizerProfile,
 };
-use clap::{Args, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 use std::path::PathBuf;
 
@@ -24,6 +24,10 @@ pub enum Command {
     Batch {
         #[command(subcommand)]
         command: BatchCommand,
+    },
+    Cache {
+        #[command(subcommand)]
+        command: CacheCommand,
     },
     Completions {
         #[arg(value_enum)]
@@ -110,6 +114,11 @@ pub enum Command {
 
 #[derive(Debug, Subcommand)]
 pub enum TokenizerCommand {
+    ConvertHf {
+        path: PathBuf,
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
     Inspect {
         #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
         profile: TokenizerProfileArg,
@@ -129,6 +138,22 @@ pub enum BatchCommand {
 }
 
 #[derive(Debug, Subcommand)]
+pub enum CacheCommand {
+    Clean {
+        #[arg(long)]
+        root: Option<PathBuf>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        yes: bool,
+    },
+    Inspect {
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
 pub enum FastaCommand {
     Validate {
         #[arg(long, default_value_t = KindArg::Protein, value_enum)]
@@ -140,6 +165,14 @@ pub enum FastaCommand {
 #[derive(Debug, Subcommand)]
 pub enum DatasetCommand {
     Inspect {
+        #[arg(long, default_value = "local")]
+        source: String,
+        #[arg(long, default_value = "unversioned")]
+        version: String,
+        #[arg(long, default_value = "unspecified")]
+        split: String,
+        #[arg(long = "metadata")]
+        metadata: Vec<String>,
         #[arg(required = true)]
         inputs: Vec<PathBuf>,
     },
@@ -152,95 +185,6 @@ pub enum SeqCommand {
         kind: KindArg,
         path: PathBuf,
     },
-}
-
-#[derive(Debug, Subcommand)]
-pub enum PackageCommand {
-    Bridge {
-        path: PathBuf,
-    },
-    Compatibility {
-        left: PathBuf,
-        right: PathBuf,
-    },
-    Convert(Box<PackageConvertArgs>),
-    Diff {
-        left: PathBuf,
-        right: PathBuf,
-    },
-    Inspect {
-        path: PathBuf,
-    },
-    Migrate {
-        path: PathBuf,
-        #[arg(long, value_enum, default_value = "biors.package.v1")]
-        to: PackageSchemaArg,
-    },
-    Validate {
-        path: PathBuf,
-    },
-    Verify {
-        manifest: PathBuf,
-        observations: PathBuf,
-    },
-}
-
-#[derive(Debug, Args)]
-pub struct PackageConvertArgs {
-    pub path: PathBuf,
-    #[arg(long, value_enum, default_value = "biors.package.v1")]
-    pub to: PackageSchemaArg,
-    #[arg(long)]
-    pub output: Option<PathBuf>,
-    #[arg(long)]
-    pub license: Option<String>,
-    #[arg(long)]
-    pub citation: Option<String>,
-    #[arg(long)]
-    pub doi: Option<String>,
-    #[arg(long = "model-card")]
-    pub model_card: Option<String>,
-    #[arg(long = "model-card-summary")]
-    pub model_card_summary: Option<String>,
-    #[arg(long = "intended-use")]
-    pub intended_use: Vec<String>,
-    #[arg(long = "limitation")]
-    pub limitations: Vec<String>,
-    #[arg(long = "license-file")]
-    pub license_file: Option<String>,
-    #[arg(long = "citation-file")]
-    pub citation_file: Option<String>,
-    #[arg(long = "models-dir")]
-    pub models_dir: Option<String>,
-    #[arg(long = "tokenizers-dir")]
-    pub tokenizers_dir: Option<String>,
-    #[arg(long = "vocabs-dir")]
-    pub vocabs_dir: Option<String>,
-    #[arg(long = "pipelines-dir")]
-    pub pipelines_dir: Option<String>,
-    #[arg(long = "fixtures-dir")]
-    pub fixtures_dir: Option<String>,
-    #[arg(long = "observed-dir")]
-    pub observed_dir: Option<String>,
-    #[arg(long = "docs-dir")]
-    pub docs_dir: Option<String>,
-}
-
-#[derive(Debug, Clone, Copy, clap::ValueEnum)]
-pub enum PackageSchemaArg {
-    #[value(name = "biors.package.v0")]
-    BiorsPackageV0,
-    #[value(name = "biors.package.v1")]
-    BiorsPackageV1,
-}
-
-impl From<PackageSchemaArg> for SchemaVersion {
-    fn from(value: PackageSchemaArg) -> Self {
-        match value {
-            PackageSchemaArg::BiorsPackageV0 => Self::BiorsPackageV0,
-            PackageSchemaArg::BiorsPackageV1 => Self::BiorsPackageV1,
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]

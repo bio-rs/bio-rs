@@ -110,6 +110,12 @@ contracts, infers layout directories from existing package-relative paths, and
 requires explicit metadata options for license, citation, model card,
 intended-use, and limitations.
 
+`biors tokenizer convert-hf`, `biors package init`, and
+`biors package convert-project` cover the Python/Hugging Face project path.
+They write package layout, tokenizer config, pipeline config, docs, fixture
+references, and checksums without importing model artifact metadata beyond
+path and SHA-256. See [Package Conversion](package-conversion.md).
+
 `biors package compatibility <left-manifest> <right-manifest>` reports the
 schema transition from left to right, whether a migration is required, and
 whether both manifests describe the same package name.

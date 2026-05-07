@@ -3,8 +3,8 @@ use super::{
     TokenizerProfileArg,
 };
 use crate::cli::{
-    build_doctor_report, run_batch_command, run_dataset_command, run_debug, run_diff,
-    run_package_command, run_pipeline, run_workflow, PipelineRunOptions,
+    build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
+    run_diff, run_package_command, run_pipeline, run_workflow, PipelineRunOptions,
 };
 use crate::errors::CliError;
 use crate::input::{open_fasta_input, read_tokenizer_config};
@@ -24,6 +24,7 @@ use std::path::PathBuf;
 pub fn run(command: Command) -> Result<(), CliError> {
     match command {
         Command::Batch { command } => run_batch_command(command),
+        Command::Cache { command } => run_cache_command(command),
         Command::Completions { shell } => run_completions(shell),
         Command::Dataset { command } => run_dataset_command(command),
         Command::Debug { max_length, path } => run_debug(max_length, path),
@@ -147,11 +148,16 @@ fn run_tokenize(
 
 fn run_tokenizer_command(command: TokenizerCommand) -> Result<(), CliError> {
     match command {
+        TokenizerCommand::ConvertHf { path, output } => run_tokenizer_convert_hf(path, output),
         TokenizerCommand::Inspect { profile, config } => {
             let config = resolve_tokenizer_config(profile, config)?;
             print_success(None, inspect_protein_tokenizer_config(&config))
         }
     }
+}
+
+fn run_tokenizer_convert_hf(path: PathBuf, output: Option<PathBuf>) -> Result<(), CliError> {
+    crate::cli::tokenizer_convert::run_tokenizer_convert_hf(path, output)
 }
 
 fn resolve_tokenizer_config(

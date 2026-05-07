@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/cache-output.v0.json",
+  "title": "bio-rs cache data payload",
+  "type": "object",
+  "required": [
+    "action",
+    "root",
+    "exists",
+    "policy",
+    "layout",
+    "files",
+    "total_bytes",
+    "entries",
+    "removed_files",
+    "removed_bytes",
+    "dry_run"
+  ],
+  "properties": {
+    "action": { "enum": ["inspect", "clean"] },
+    "root": { "type": "string", "minLength": 1 },
+    "exists": { "type": "boolean" },
+    "policy": {
+      "type": "object",
+      "required": [
+        "environment_variable",
+        "default_root",
+        "portable_artifact_paths",
+        "clean_requires_dry_run_or_yes"
+      ],
+      "properties": {
+        "environment_variable": { "const": "BIORS_ARTIFACT_STORE" },
+        "default_root": { "const": ".biors/artifacts" },
+        "portable_artifact_paths": { "type": "boolean" },
+        "clean_requires_dry_run_or_yes": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "layout": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "purpose"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "files": { "type": "integer", "minimum": 0 },
+    "total_bytes": { "type": "integer", "minimum": 0 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "bytes"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "bytes": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "removed_files": { "type": "integer", "minimum": 0 },
+    "removed_bytes": { "type": "integer", "minimum": 0 },
+    "dry_run": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

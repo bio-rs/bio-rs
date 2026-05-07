@@ -102,11 +102,15 @@ Inspect tokenizer profiles and special token policy:
 
 ```bash
 biors tokenizer inspect --profile protein-20-special
+biors tokenizer convert-hf tokenizer_config.json --output tokenizers/protein-20-special.json
 ```
 
 The `protein-20-special` profile keeps the protein-20 residue IDs stable and
 adds `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24` for model-input
 contract tests and Python preprocessing parity fixtures.
+`tokenizer convert-hf` maps a Hugging Face `tokenizer_config.json` into the
+small bio-rs tokenizer config and reports the manifest tokenizer/preprocessing
+entries that should be used in a package.
 
 ## Build Model Input
 
@@ -163,7 +167,7 @@ first-difference metadata for mismatches.
 ## Validate Batches
 
 ```bash
-biors dataset inspect examples/
+biors dataset inspect --source local --version unversioned --split examples examples/
 biors batch validate --kind auto examples/
 biors batch validate --kind auto "examples/*.fasta"
 ```
@@ -174,6 +178,9 @@ extensions and skip unrelated files. Empty glob expansion returns
 `dataset.no_inputs` or `batch.no_inputs`, depending on the command. Batch
 validation emits one summary plus per-file validation summaries without
 retaining per-record validation payloads.
+Dataset inspection emits a descriptor (`source`, `version`, `split`), optional
+`--metadata key=value` pairs, file SHA-256 values, a dataset hash, and a
+dataset-to-sample mapping built from FASTA record IDs.
 
 ## Run A Pipeline Config
 
@@ -205,3 +212,34 @@ Package commands validate portable manifest assets, v1 layout and research
 metadata, SHA-256 checksums, and expected fixture outputs against observed
 output artifacts. See [Package Format](package-format.md) for the directory
 layout and manifest rules.
+
+## Convert A Python Project Into A Package Skeleton
+
+```bash
+biors package convert-project ./python-project \
+  --output ./protein-package \
+  --name protein-package \
+  --fixture-input examples/protein-package/fixtures/tiny.fasta \
+  --fixture-output examples/protein-package/fixtures/tiny.output.json \
+  --license CC0-1.0 \
+  --citation "Your package citation" \
+  --model-card-summary "What this package is intended to do." \
+  --intended-use "Local preprocessing parity checks" \
+  --limitation "Review before scientific inference"
+biors package validate ./protein-package/manifest.json
+```
+
+`package convert-project` scans for an ONNX model and `tokenizer_config.json`,
+converts supported Hugging Face tokenizer metadata to bio-rs tokenizer config,
+creates package docs, writes a pipeline config, records checksums, and leaves
+model artifact metadata beyond path/checksum to the execution backend layer.
+
+## Inspect The Local Artifact Store
+
+```bash
+biors cache inspect
+biors cache clean --dry-run
+```
+
+The default artifact store root is `.biors/artifacts`, or
+`BIORS_ARTIFACT_STORE` when set. Cleaning requires `--dry-run` or `--yes`.

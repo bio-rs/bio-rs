@@ -44,6 +44,7 @@ biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
 biors tokenizer inspect --profile protein-20-special
+biors dataset inspect --source uniprot --version 2026_02 --split train examples/
 ```
 
 Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
@@ -128,7 +129,10 @@ Current capabilities:
 - `batch validate` for multiple files, recursive directory inputs, quoted glob
   inputs, empty-glob errors, and memory-bounded validation summaries
 - `dataset inspect` for shared FASTA file/directory/glob input resolution
-  before validation or pipeline execution
+  before validation or pipeline execution, with dataset descriptors, sample
+  mapping, dataset hashes, and file-level SHA-256 provenance
+- `cache inspect` and guarded `cache clean` for the local artifact store policy
+  used by package and dataset workflows
 - `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
 - model-input safety checks for unresolved residues
 - explicit checked and unchecked model-input builders
@@ -136,6 +140,9 @@ Current capabilities:
 - package manifest inspect/validate
 - package manifest migration planning, schema compatibility checks, and canonical diffs
 - package manifest v0 to v1 conversion with explicit research metadata input
+- Hugging Face tokenizer config conversion to bio-rs tokenizer config
+- Python project to bio-rs package skeleton generation with manifest,
+  tokenizer, pipeline, fixture, docs, and checksum output
 - typed package validation issue codes
 - typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
 - runtime bridge planning reports
@@ -156,7 +163,9 @@ Current capabilities:
 - [Installation and distribution](docs/install.md) — cargo, binaries, completions
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Package format](docs/package-format.md) — manifest layout and research metadata
+- [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
+- [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
 - [Python interop](docs/python-interop.md)
@@ -243,6 +252,7 @@ packages/
 
 schemas/
   batch-validation-output.v0.json
+  cache-output.v0.json
   cli-error.v0.json
   cli-success.v0.json
   dataset-inspect-output.v0.json
@@ -263,8 +273,10 @@ schemas/
   package-manifest.v0.json
   package-manifest.v1.json
   package-migration-output.v0.json
+  package-skeleton-output.v0.json
   package-validation-report.v0.json
   package-verify-output.v0.json
+  tokenizer-conversion-output.v0.json
   tokenizer-inspect-output.v0.json
   tokenize-output.v0.json
 

@@ -7,11 +7,16 @@ All notable public behavior changes for bio-rs are recorded here.
 ### Added
 
 - Added `biors dataset inspect <path|directory|glob>...` for deterministic
-  FASTA input resolution before validation or pipeline execution.
+  FASTA input resolution before validation or pipeline execution, now including
+  dataset descriptors, metadata, sample mapping, dataset hashes, file SHA-256
+  provenance, and record counts.
+- Added `biors cache inspect` and guarded `biors cache clean` for the draft
+  local artifact store policy.
 - Added a shared input dataset resolver used by both `dataset inspect` and
   `batch validate`, preserving the existing batch glob error contract.
-- Added `schemas/dataset-inspect-output.v0.json` and CLI/schema coverage for
-  dataset inspection.
+- Added `schemas/dataset-inspect-output.v0.json`,
+  `schemas/cache-output.v0.json`, and CLI/schema coverage for dataset and
+  cache inspection.
 
 ## 0.36.0 - 2026-05-07
 
@@ -20,10 +25,18 @@ All notable public behavior changes for bio-rs are recorded here.
 - Added `biors package convert <manifest|-> --to biors.package.v1` for
   converting supported v0 package manifests to v1 manifests with explicit
   author-supplied research metadata.
+- Added `biors tokenizer convert-hf <tokenizer_config.json>` for converting
+  Hugging Face tokenizer config metadata into bio-rs tokenizer config and
+  package preprocessing fragments.
+- Added `biors package init` and `biors package convert-project` for creating
+  valid local package skeletons from explicit assets or Python project
+  directories.
 - Added optional converted manifest file writing with `--output`, manifest
   SHA-256 provenance, and inferred v1 package layout directories.
-- Added `schemas/package-conversion-output.v0.json` plus CLI and schema tests
-  for conversion success and missing metadata errors.
+- Added `schemas/package-conversion-output.v0.json`,
+  `schemas/package-skeleton-output.v0.json`, and
+  `schemas/tokenizer-conversion-output.v0.json` plus CLI and schema tests for
+  conversion success and missing metadata errors.
 
 ## 0.35.0 - 2026-05-07
 

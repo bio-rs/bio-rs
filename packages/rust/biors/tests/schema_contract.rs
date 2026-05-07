@@ -16,6 +16,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/model-input-output.v0.json",
         "schemas/batch-validation-output.v0.json",
         "schemas/dataset-inspect-output.v0.json",
+        "schemas/cache-output.v0.json",
         "schemas/doctor-output.v0.json",
         "schemas/output-diff.v0.json",
         "schemas/pipeline-output.v0.json",
@@ -23,12 +24,14 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/pipeline-lock.v0.json",
         "schemas/sequence-debug-output.v0.json",
         "schemas/tokenizer-inspect-output.v0.json",
+        "schemas/tokenizer-conversion-output.v0.json",
         "schemas/sequence-workflow-output.v0.json",
         "schemas/fasta-validation-output.v0.json",
         "schemas/package-inspect-output.v0.json",
         "schemas/package-bridge-output.v0.json",
         "schemas/package-verify-output.v0.json",
         "schemas/package-conversion-output.v0.json",
+        "schemas/package-skeleton-output.v0.json",
         "schemas/package-migration-output.v0.json",
         "schemas/package-compatibility-output.v0.json",
         "schemas/package-diff-output.v0.json",
@@ -192,6 +195,21 @@ fn cli_outputs_match_tooling_schemas() {
 
     let doctor = common::run_biors_paths(&["doctor"], &[]).stdout;
     assert_payload_matches_schema(&doctor, "schemas/doctor-output.v0.json");
+
+    let temp = common::TempDir::new("schema-tooling");
+    let hf_config = temp.write(
+        "tokenizer_config.json",
+        r#"{"tokenizer_class":"BertTokenizer","cls_token":"[CLS]","sep_token":"[SEP]"}"#,
+    );
+    let tokenizer_conversion =
+        common::run_biors_paths(&["tokenizer", "convert-hf"], &[&hf_config]).stdout;
+    assert_payload_matches_schema(
+        &tokenizer_conversion,
+        "schemas/tokenizer-conversion-output.v0.json",
+    );
+
+    let cache = common::run_biors_paths(&["cache", "inspect", "--root"], &[temp.path()]).stdout;
+    assert_payload_matches_schema(&cache, "schemas/cache-output.v0.json");
 }
 
 #[test]
@@ -214,6 +232,45 @@ fn cli_outputs_match_package_schemas() {
     let package_verify =
         common::run_biors_paths(&["package", "verify"], &[&manifest, &observations]).stdout;
     assert_payload_matches_schema(&package_verify, "schemas/package-verify-output.v0.json");
+
+    let temp = common::TempDir::new("schema-package-skeleton");
+    let project = temp.path().join("python-project");
+    fs::create_dir_all(&project).expect("create project");
+    fs::write(project.join("model.onnx"), b"onnx").expect("write model");
+    fs::write(
+        project.join("tokenizer_config.json"),
+        r#"{"tokenizer_class":"BertTokenizer","cls_token":"[CLS]","sep_token":"[SEP]"}"#,
+    )
+    .expect("write tokenizer config");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"ok":true}"#);
+    let output_dir = temp.path().join("package");
+    let skeleton = std::process::Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("convert-project")
+        .arg(&project)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("schema-package")
+        .arg("--license")
+        .arg("CC0-1.0")
+        .arg("--citation")
+        .arg("schema package fixture")
+        .arg("--model-card-summary")
+        .arg("Schema package fixture.")
+        .arg("--intended-use")
+        .arg("Schema validation")
+        .arg("--limitation")
+        .arg("Not for inference")
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .output()
+        .expect("run package convert-project")
+        .stdout;
+    assert_payload_matches_schema(&skeleton, "schemas/package-skeleton-output.v0.json");
 }
 
 #[test]

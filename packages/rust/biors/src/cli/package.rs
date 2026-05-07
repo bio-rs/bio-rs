@@ -1,5 +1,5 @@
 use super::PackageCommand;
-use crate::cli::run_package_convert;
+use crate::cli::{run_package_convert, run_package_convert_project, run_package_init};
 use crate::errors::{classify_validation_code, classify_verification_code, CliError};
 use crate::input::{read_fixture_observations, read_package_manifest};
 use crate::output::print_success;
@@ -15,7 +15,9 @@ pub(crate) fn run_package_command(command: PackageCommand) -> Result<(), CliErro
         PackageCommand::Bridge { path } => run_package_bridge(path),
         PackageCommand::Compatibility { left, right } => run_package_compatibility(left, right),
         PackageCommand::Convert(args) => run_package_convert(*args),
+        PackageCommand::ConvertProject(args) => run_package_convert_project(*args),
         PackageCommand::Diff { left, right } => run_package_diff(left, right),
+        PackageCommand::Init(args) => run_package_init(*args),
         PackageCommand::Inspect { path } => run_package_inspect(path),
         PackageCommand::Migrate { path, to } => run_package_migrate(path, to.into()),
         PackageCommand::Validate { path } => run_package_validate(path),

@@ -126,6 +126,83 @@ fn package_convert_reports_missing_v1_metadata() {
     );
 }
 
+#[test]
+fn package_convert_project_creates_valid_package_skeleton() {
+    let temp = TempDir::new("package-convert-project");
+    let project = temp.path().join("python-project");
+    std::fs::create_dir_all(&project).expect("create python project");
+    std::fs::write(project.join("model.onnx"), b"placeholder onnx").expect("write model");
+    std::fs::write(
+        project.join("tokenizer_config.json"),
+        r#"{
+  "tokenizer_class": "BertTokenizer",
+  "do_lower_case": false,
+  "cls_token": "[CLS]",
+  "sep_token": "[SEP]",
+  "pad_token": "[PAD]",
+  "unk_token": "[UNK]",
+  "mask_token": "[MASK]"
+}"#,
+    )
+    .expect("write tokenizer config");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("convert-project")
+        .arg(&project)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("protein-project")
+        .args(skeleton_metadata_args())
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .output()
+        .expect("run biors package convert-project");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["data"]["package"], "protein-project");
+    assert!(value["data"]["manifest_sha256"]
+        .as_str()
+        .expect("manifest hash")
+        .starts_with("sha256:"));
+
+    let manifest_path = output_dir.join("manifest.json");
+    let manifest: Value =
+        serde_json::from_slice(&std::fs::read(&manifest_path).expect("read generated manifest"))
+            .expect("manifest JSON");
+    assert_eq!(manifest["schema_version"], "biors.package.v1");
+    assert_eq!(manifest["tokenizer"]["name"], "protein-20-special");
+    assert_eq!(
+        manifest["preprocessing"][0]["config"]["path"],
+        "pipelines/protein.toml"
+    );
+
+    let validate = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .output()
+        .expect("validate generated package");
+    assert!(
+        validate.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&validate.stderr)
+    );
+}
+
 fn conversion_metadata_args() -> [&'static str; 16] {
     [
         "--license",
@@ -144,5 +221,20 @@ fn conversion_metadata_args() -> [&'static str; 16] {
         "docs/LICENSE.txt",
         "--citation-file",
         "docs/CITATION.cff",
+    ]
+}
+
+fn skeleton_metadata_args() -> [&'static str; 10] {
+    [
+        "--license",
+        "CC0-1.0",
+        "--citation",
+        "bio-rs converted fixture",
+        "--model-card-summary",
+        "Converted package fixture for CLI tests.",
+        "--intended-use",
+        "CLI conversion test",
+        "--limitation",
+        "Not for inference",
     ]
 }
