@@ -7,15 +7,15 @@ use biors_core::sequence::{
 #[test]
 fn sequence_kind_serializes_as_stable_lowercase_names() {
     assert_eq!(
-        serde_json::to_string(&SequenceKind::Protein).expect("serialize protein kind"),
+        serde_json::to_string(&SequenceKind::Protein).unwrap(),
         r#""protein""#
     );
     assert_eq!(
-        serde_json::to_string(&SequenceKind::Dna).expect("serialize DNA kind"),
+        serde_json::to_string(&SequenceKind::Dna).unwrap(),
         r#""dna""#
     );
     assert_eq!(
-        serde_json::to_string(&SequenceKind::Rna).expect("serialize RNA kind"),
+        serde_json::to_string(&SequenceKind::Rna).unwrap(),
         r#""rna""#
     );
     assert_eq!(SequenceKind::Dna.alphabet_name(), "dna-iupac");

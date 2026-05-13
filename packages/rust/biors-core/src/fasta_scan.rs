@@ -51,7 +51,7 @@ pub(crate) fn scan_fasta_reader<R: BufRead, S: FastaRecordSink>(
         state.scan_line_bytes(&raw_line, sink)?;
     }
 
-    if state.line_number == 0 || state.no_records_started() {
+    if state.no_records_started() {
         return Err(BioRsError::EmptyInput.into());
     }
 

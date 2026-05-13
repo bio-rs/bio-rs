@@ -89,22 +89,14 @@ fn run_doctor() -> Result<(), CliError> {
 
 fn run_fasta_command(command: FastaCommand) -> Result<(), CliError> {
     match command {
-        FastaCommand::Validate { kind, path } => run_fasta_validate(kind, path),
+        FastaCommand::Validate { kind, path } => run_sequence_validation(path, kind),
     }
 }
 
 fn run_seq_command(command: SeqCommand) -> Result<(), CliError> {
     match command {
-        SeqCommand::Validate { kind, path } => run_seq_validate(kind, path),
+        SeqCommand::Validate { kind, path } => run_sequence_validation(path, kind),
     }
-}
-
-fn run_fasta_validate(kind: KindArg, path: PathBuf) -> Result<(), CliError> {
-    run_sequence_validation(path, kind)
-}
-
-fn run_seq_validate(kind: KindArg, path: PathBuf) -> Result<(), CliError> {
-    run_sequence_validation(path, kind)
 }
 
 fn run_inspect(path: PathBuf) -> Result<(), CliError> {

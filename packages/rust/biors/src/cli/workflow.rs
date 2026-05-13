@@ -30,11 +30,12 @@ pub(crate) fn workflow_output(
     padding: PaddingArg,
     path: PathBuf,
 ) -> Result<SequenceWorkflowOutput, CliError> {
-    validate_model_input_policy(&ModelInputPolicy {
+    let policy = ModelInputPolicy {
         max_length,
         pad_token_id,
         padding: padding.into(),
-    })?;
+    };
+    validate_model_input_policy(&policy)?;
     let reader = open_fasta_input(&path)?;
     let input = parse_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path.clone(), error))?;
@@ -42,11 +43,7 @@ pub(crate) fn workflow_output(
     prepare_protein_model_input_workflow_with_invocation(
         input.input_hash,
         &input.records,
-        ModelInputPolicy {
-            max_length,
-            pad_token_id,
-            padding: padding.into(),
-        },
+        policy,
         invocation,
     )
     .map_err(CliError::from)

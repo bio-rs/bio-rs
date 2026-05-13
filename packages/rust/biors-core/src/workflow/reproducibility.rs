@@ -12,18 +12,14 @@ pub(super) const CORE_WORKFLOW_COMMAND: &str = "biors-core prepare_protein_model
 /// Command or API invocation captured in workflow provenance.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceWorkflowInvocation {
-    /// Stable command/API name.
     pub command: String,
-    /// Resolved arguments that affect workflow output.
     pub arguments: Vec<String>,
 }
 
 /// Reproducibility hashes included in workflow provenance.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceWorkflowHashes {
-    /// SHA-256 digest of the tokenizer vocabulary contract.
     pub vocabulary_sha256: String,
-    /// SHA-256 digest of workflow output content excluding hash values.
     pub output_data_sha256: String,
 }
 

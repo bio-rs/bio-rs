@@ -5,7 +5,6 @@ use super::{
 };
 use std::path::Path;
 
-/// Validate manifest fields and all package-relative artifact paths and checksums.
 pub fn validate_package_manifest_artifacts(
     manifest: &PackageManifest,
     base_dir: &Path,
@@ -159,14 +158,15 @@ fn validate_checksum_format(
     field: &str,
     checksum: Option<&str>,
 ) {
-    if let Some(checksum) = checksum {
-        if !is_sha256_checksum(checksum) {
-            report.push_issue(
-                PackageValidationIssueCode::InvalidChecksumFormat,
-                &format!("{field}.checksum"),
-                &format!("{field}.checksum must use sha256:<64 hex>"),
-            );
-        }
+    let Some(checksum) = checksum else {
+        return;
+    };
+    if !is_sha256_checksum(checksum) {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidChecksumFormat,
+            &format!("{field}.checksum"),
+            &format!("{field}.checksum must use sha256:<64 hex>"),
+        );
     }
 }
 

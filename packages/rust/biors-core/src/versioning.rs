@@ -179,10 +179,9 @@ pub fn manifest_schema_migration_plan(
 
 impl fmt::Display for PipelineConfigVersion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
-            Self::BiorsPipelineV0 => "biors.pipeline.v0",
-        };
-        f.write_str(value)
+        match self {
+            Self::BiorsPipelineV0 => f.write_str("biors.pipeline.v0"),
+        }
     }
 }
 

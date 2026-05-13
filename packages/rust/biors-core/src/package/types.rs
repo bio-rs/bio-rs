@@ -37,47 +37,42 @@ pub enum DataType {
 
 impl fmt::Display for SchemaVersion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
+        f.write_str(match self {
             Self::BiorsPackageV0 => "biors.package.v0",
             Self::BiorsPackageV1 => "biors.package.v1",
-        };
-        f.write_str(value)
+        })
     }
 }
 
 impl fmt::Display for ModelFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
+        f.write_str(match self {
             Self::Onnx => "onnx",
-        };
-        f.write_str(value)
+        })
     }
 }
 
 impl fmt::Display for RuntimeBackend {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
+        f.write_str(match self {
             Self::OnnxWebgpu => "onnx-webgpu",
-        };
-        f.write_str(value)
+        })
     }
 }
 
 impl fmt::Display for RuntimeTargetPlatform {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
+        f.write_str(match self {
             Self::BrowserWasmWebgpu => "browser-wasm-webgpu",
-        };
-        f.write_str(value)
+        })
     }
 }
 
 impl fmt::Display for DataType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
+        f.write_str(match self {
             Self::Uint8 => "uint8",
             Self::Float32 => "float32",
-        };
-        f.write_str(value)
+        })
     }
 }

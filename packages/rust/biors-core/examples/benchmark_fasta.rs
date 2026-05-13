@@ -1,4 +1,3 @@
-use biors_core::error::FastaReadError;
 use biors_core::fasta::parse_fasta_records_reader;
 use biors_core::tokenizer::{summarize_fasta_records_reader, tokenize_fasta_records_reader};
 use serde::Serialize;
@@ -49,7 +48,7 @@ fn run() -> Result<(), String> {
 
 fn benchmark_parse(input_path: &str) -> Result<BenchmarkResult, String> {
     let records = parse_fasta_records_reader(open_reader(input_path)?)
-        .map_err(render_fasta_read_error)?
+        .map_err(|e| e.to_string())?
         .records;
     Ok(BenchmarkResult {
         mode: "parse".to_string(),
@@ -64,7 +63,7 @@ fn benchmark_parse(input_path: &str) -> Result<BenchmarkResult, String> {
 
 fn benchmark_validate(input_path: &str) -> Result<BenchmarkResult, String> {
     let report = summarize_fasta_records_reader(open_reader(input_path)?)
-        .map_err(render_fasta_read_error)?
+        .map_err(|e| e.to_string())?
         .summary;
     Ok(BenchmarkResult {
         mode: "validate".to_string(),
@@ -79,7 +78,7 @@ fn benchmark_validate(input_path: &str) -> Result<BenchmarkResult, String> {
 
 fn benchmark_tokenize(input_path: &str) -> Result<BenchmarkResult, String> {
     let records = tokenize_fasta_records_reader(open_reader(input_path)?)
-        .map_err(render_fasta_read_error)?
+        .map_err(|e| e.to_string())?
         .records;
     Ok(BenchmarkResult {
         mode: "tokenize".to_string(),
@@ -102,10 +101,6 @@ fn open_reader(input_path: &str) -> Result<BufReader<File>, String> {
     let file = File::open(input_path)
         .map_err(|error| format!("failed to read '{input_path}': {error}"))?;
     Ok(BufReader::new(file))
-}
-
-fn render_fasta_read_error(error: FastaReadError) -> String {
-    error.to_string()
 }
 
 fn usage(reason: &str) -> String {

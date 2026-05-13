@@ -9,7 +9,6 @@ pub struct PackageManifestSummary {
     pub package_layout: Option<PackageDirectoryLayoutSummary>,
     pub metadata: Option<PackageMetadataSummary>,
     pub model_format: ModelFormat,
-    /// Whether the model artifact declares a checksum.
     pub has_model_checksum: bool,
     pub tokenizer: Option<String>,
     pub vocab: Option<String>,
@@ -57,19 +56,15 @@ pub struct PackageLayoutSummary {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Manifest validation result with human and structured issue forms.
 pub struct PackageValidationReport {
-    /// True when no structured validation issues were produced.
     pub valid: bool,
     /// Human-readable issue messages retained for compatibility.
     pub issues: Vec<String>,
-    /// Machine-readable issue details.
     pub structured_issues: Vec<PackageValidationIssue>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// One structured manifest validation issue.
 pub struct PackageValidationIssue {
     pub code: PackageValidationIssueCode,
-    /// Manifest field path associated with the issue.
     pub field: String,
     pub message: String,
 }
@@ -99,12 +94,10 @@ pub enum PackageValidationIssueCode {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Runtime bridge readiness report for a package manifest.
 pub struct RuntimeBridgeReport {
-    /// True when validation produced no blocking issues.
     pub ready: bool,
     pub backend: RuntimeBackend,
     pub target: RuntimeTargetPlatform,
     pub execution_provider: String,
-    /// Human-readable blocking validation issues.
     pub blocking_issues: Vec<String>,
 }
 

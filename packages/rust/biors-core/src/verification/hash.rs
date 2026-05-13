@@ -19,7 +19,6 @@ impl StableInputHasher {
         }
     }
 
-    /// Add raw input bytes to the hash.
     pub fn update(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.hash ^= u64::from(*byte);

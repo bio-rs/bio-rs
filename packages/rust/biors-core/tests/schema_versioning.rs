@@ -25,7 +25,7 @@ fn package_manifest_policy_defines_current_supported_and_deprecation_rules() {
     assert!(policy
         .backward_compatibility_rules
         .iter()
-        .any(|rule| { rule.contains("read all supported manifest versions") }));
+        .any(|rule| rule.contains("read all supported manifest versions")));
 }
 
 #[test]
@@ -50,11 +50,11 @@ fn manifest_compatibility_identifies_supported_migration_path() {
     assert!(plan
         .required_steps
         .iter()
-        .any(|step| { step.contains("package_layout") }));
+        .any(|step| step.contains("package_layout")));
     assert!(plan
         .required_steps
         .iter()
-        .any(|step| { step.contains("metadata") }));
+        .any(|step| step.contains("metadata")));
 }
 
 #[test]

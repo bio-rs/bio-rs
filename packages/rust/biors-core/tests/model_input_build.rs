@@ -66,7 +66,7 @@ fn rejects_model_input_for_sequences_with_ambiguous_or_invalid_residues() {
             padding: PaddingPolicy::FixedLength,
         },
     )
-    .expect_err("invalid tokenized sequence should not become model-ready input");
+    .expect_err("expected error for invalid sequence");
 
     assert_eq!(
         error,
