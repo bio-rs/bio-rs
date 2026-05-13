@@ -1,6 +1,6 @@
 //! Public schema versioning policies for package and pipeline contracts.
 
-use crate::package::{PipelineConfigVersion, SchemaVersion};
+pub use crate::package::{PipelineConfigVersion, SchemaVersion};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

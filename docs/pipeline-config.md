@@ -100,7 +100,7 @@ Unknown fields and unsupported values fail with `pipeline.invalid_config`.
 
 ## Crate Split Review
 
-`biors-pipeline` remains deferred in v0.37.1.
+`biors-pipeline` remains deferred in v0.37.3.
 
 Rationale:
 
