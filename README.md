@@ -6,11 +6,13 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/public-contract-1.0-candidates.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs turns biological sequences into validated, model-ready inputs for bio-AI workflows.
+bio-rs turns protein FASTA into validated, tokenized, model-ready inputs for bio-AI workflows.
 
 ```txt
-FASTA -> validated protein/DNA/RNA sequence -> protein token ids -> model-ready JSON
+FASTA -> validated protein sequence -> token IDs -> model-ready JSON
 ```
+
+DNA and RNA FASTA validation is also supported; tokenization is currently protein-only.
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
@@ -39,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.37.0
+cargo install biors --version 0.37.1
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -92,69 +94,45 @@ shape.
 
 ## What works today
 
-`biors-core` provides the Rust engine and data contracts.
+`biors-core` provides the Rust engine and data contracts. `biors` provides the CLI surface.
 
-`biors` provides the CLI surface.
+### Sequence handling
+- FASTA parsing and normalization with buffered reader APIs
+- Protein/DNA/RNA validation with per-record kind detection (`--kind auto`)
+- Line and record-index diagnostics with residue warning/error reporting
 
-Current capabilities:
+### Tokenization
+- `protein-20` tokenization with stable IDs
+- `protein-20-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
+- JSON tokenizer config loading and inspection
+- Hugging Face tokenizer config conversion
+- Positional token alignment preserved with explicit unknown-token IDs
 
-- FASTA parsing and normalization
-- shared FASTA parser/tokenizer scanner with an ASCII fast path and Unicode fallback
-- buffered reader APIs for FASTA parse/validate/tokenize paths
-- FASTA validation with line and record-index diagnostics
-- FASTA record identifier validation
-- protein-20 tokenization
-- `protein-20-special` tokenization with explicit UNK/PAD/CLS/SEP/MASK policy
-- tokenizer JSON config loading
-- tokenizer inspection JSON output
-- JSON vocab loading for tokenizer contracts
-- positional token alignment preserved with explicit unknown-token IDs for unresolved residues
-- residue warning/error reporting
-- model-ready input records
-- attention masks
-- padding/truncation policy
-- `model-input` CLI output
-- `workflow` CLI output that combines validation, tokenization, model input,
-  readiness issues, and reproducibility provenance
-- workflow provenance hashes for tokenizer vocabulary and output-content
-  reproducibility
-- `diff` CLI output for canonical JSON/raw output comparison with SHA-256
-  hashes and first-difference metadata
-- `pipeline` CLI output for no-config validate -> tokenize -> export workflow
-  composition
-- pipeline lockfile generation for config-driven workflows with package/model
-  and runtime provenance pins
-- `debug` CLI output for sequence -> token -> model-input step inspection and
-  compact residue error visualization
-- `batch validate` for multiple files, recursive directory inputs, quoted glob
-  inputs, empty-glob errors, and memory-bounded validation summaries
-- `dataset inspect` for shared FASTA file/directory/glob input resolution
-  before validation or pipeline execution, with dataset descriptors, sample
-  mapping, dataset hashes, and file-level SHA-256 provenance
-- `cache inspect` and guarded `cache clean` for the local artifact store policy
-  used by package and dataset workflows
-- `doctor` CLI diagnostics for platform, toolchain, WASM target, and committed fixture readiness
-- model-input safety checks for unresolved residues
-- explicit checked and unchecked model-input builders
-- writer-based CLI success JSON serialization to reduce peak allocations for large outputs
-- package manifest inspect/validate
-- package manifest migration planning, schema compatibility checks, and canonical diffs
-- package manifest v0 to v1 conversion with explicit research metadata input
-- Hugging Face tokenizer config conversion to bio-rs tokenizer config
-- Python project to bio-rs package skeleton generation with manifest,
-  tokenizer, pipeline, fixture, docs, and checksum output
-- typed package validation issue codes
-- typed package manifest enums for schema version, model format, runtime target, and tensor dtypes
-- runtime bridge planning reports
-- manifest-relative asset validation
-- package preprocessing steps can reference checked pipeline config artifacts
-- package path escape rejection for manifest and observation assets
-- SHA-256 package and fixture checksum verification
-- package fixture verification from observed artifact paths
-- structured package fixture mismatch issue codes and first-difference reports
-- committed FASTA, tokenizer, manifest, and verification fixtures
-- draft model-input contract and reference Python preprocessing parity fixtures
-- JSON success/error envelopes
+### Model input
+- `model-input` CLI: `input_ids`, `attention_mask`, and truncation metadata
+- `workflow` CLI: end-to-end validation → tokenization → model input with readiness issues and reproducibility provenance
+- `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/YAML/JSON) workflows with lockfile generation
+- `debug` CLI: step-by-step per-record inspection with compact residue markers
+- Checked and unchecked model-input builders with safety checks for unresolved residues
+
+### Batch and dataset operations
+- `batch validate`: multiple files, recursive directories, quoted globs
+- `dataset inspect`: dataset descriptors, sample mapping, file SHA-256 provenance
+- `cache inspect` and guarded `cache clean` for local artifact store
+
+### Package management
+- Manifest inspection, validation, and migration (v0 → v1)
+- Schema compatibility checks and canonical diffs
+- SHA-256 checksum verification and fixture verification
+- Python project to bio-rs package skeleton conversion
+- Runtime bridge planning reports
+- Typed validation issue codes and manifest enums
+
+### Utilities
+- `diff`: canonical JSON/raw comparison with SHA-256 hashes
+- `doctor`: platform, toolchain, WASM target, and fixture readiness
+- `completions`: shell completion generation
+- JSON success/error envelopes for all commands
 
 ## Documentation
 
@@ -255,13 +233,14 @@ schemas/
   cli-error.v0.json
   cli-success.v0.json
   dataset-inspect-output.v0.json
+  doctor-output.v0.json
   fasta-validation-output.v0.json
   inspect-output.v0.json
   model-input-output.v0.json
   output-diff.v0.json
-  pipeline-output.v0.json
   pipeline-config.v0.json
   pipeline-lock.v0.json
+  pipeline-output.v0.json
   sequence-workflow-output.v0.json
   sequence-debug-output.v0.json
   package-bridge-output.v0.json
@@ -283,6 +262,7 @@ examples/
   protein.fasta
   multi.fasta
   model-input-contract/
+    protein.fasta
     protein-20-special.config.json
     protein-20-special.expected.json
     reference-python-parity.json
