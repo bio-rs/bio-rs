@@ -1,6 +1,6 @@
 use crate::cli::PaddingArg;
 use crate::errors::CliError;
-use biors_core::versioning::PipelineConfigVersion;
+use biors_core::package::PipelineConfigVersion;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 

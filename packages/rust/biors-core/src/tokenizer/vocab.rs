@@ -2,6 +2,23 @@ use crate::sequence::PROTEIN_20;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
+/// Errors that can occur during tokenizer vocabulary operations.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TokenizerError {
+    /// Failed to parse vocabulary JSON.
+    InvalidVocabJson(String),
+}
+
+impl std::fmt::Display for TokenizerError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidVocabJson(msg) => write!(f, "invalid vocabulary JSON: {msg}"),
+        }
+    }
+}
+
+impl std::error::Error for TokenizerError {}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Token vocabulary and unknown-token policy.
 pub struct Vocabulary {
@@ -49,8 +66,8 @@ pub fn protein_20_vocabulary() -> &'static Vocabulary {
 }
 
 /// Load a vocabulary from its JSON representation.
-pub fn load_vocab_json(input: &str) -> Result<Vocabulary, serde_json::Error> {
-    serde_json::from_str(input)
+pub fn load_vocab_json(input: &str) -> Result<Vocabulary, TokenizerError> {
+    serde_json::from_str(input).map_err(|e| TokenizerError::InvalidVocabJson(e.to_string()))
 }
 
 /// Return the unknown-token policy used by the built-in `protein-20` vocabulary.

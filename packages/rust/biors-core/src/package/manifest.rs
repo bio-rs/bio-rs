@@ -1,5 +1,7 @@
-use super::{DataType, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion};
-use crate::versioning::PipelineConfigVersion;
+use super::{
+    DataType, ModelFormat, PipelineConfigVersion, RuntimeBackend, RuntimeTargetPlatform,
+    SchemaVersion,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

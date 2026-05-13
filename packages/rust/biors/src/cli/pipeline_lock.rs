@@ -1,9 +1,6 @@
 use super::pipeline_config::ResolvedPipelineConfig;
 use crate::errors::CliError;
-use biors_core::{
-    package::{sha256_digest, PackageManifest},
-    workflow::SequenceWorkflowOutput,
-};
+use biors_core::{hash::sha256_digest, package::PackageManifest, workflow::SequenceWorkflowOutput};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 

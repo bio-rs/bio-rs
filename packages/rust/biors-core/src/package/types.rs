@@ -35,6 +35,12 @@ pub enum DataType {
     Float32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PipelineConfigVersion {
+    #[serde(rename = "biors.pipeline.v0")]
+    BiorsPipelineV0,
+}
+
 impl fmt::Display for SchemaVersion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
@@ -74,5 +80,13 @@ impl fmt::Display for DataType {
             Self::Uint8 => "uint8",
             Self::Float32 => "float32",
         })
+    }
+}
+
+impl fmt::Display for PipelineConfigVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::BiorsPipelineV0 => f.write_str("biors.pipeline.v0"),
+        }
     }
 }

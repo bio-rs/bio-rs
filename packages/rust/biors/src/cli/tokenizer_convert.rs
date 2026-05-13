@@ -1,7 +1,7 @@
 use crate::errors::CliError;
 use crate::output::print_success;
 use biors_core::{
-    package::sha256_digest,
+    hash::sha256_digest,
     tokenizer::{
         protein_tokenizer_config_for_profile, ProteinTokenizerConfig, ProteinTokenizerProfile,
     },

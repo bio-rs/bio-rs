@@ -137,3 +137,6 @@ impl fmt::Display for ModelInputBuildError {
 }
 
 impl std::error::Error for ModelInputBuildError {}
+
+#[cfg(test)]
+mod tests;

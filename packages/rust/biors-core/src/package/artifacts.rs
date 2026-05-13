@@ -1,8 +1,9 @@
 use super::{
-    is_sha256_checksum, read_package_file, sha256_digest, validate_declared_layout,
-    validate_package_manifest, validate_package_relative_path, PackageManifest,
-    PackageValidationIssueCode, PackageValidationReport,
+    read_package_file, validate_declared_layout, validate_package_manifest,
+    validate_package_relative_path, PackageManifest, PackageValidationIssueCode,
+    PackageValidationReport,
 };
+use crate::hash::{is_sha256_checksum, sha256_digest};
 use std::path::Path;
 
 pub fn validate_package_manifest_artifacts(

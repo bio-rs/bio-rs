@@ -7,7 +7,8 @@
 
 pub mod error;
 pub mod fasta;
-mod fasta_scan;
+pub mod fasta_scan;
+pub mod hash;
 pub mod model_input;
 pub mod package;
 pub mod sequence;

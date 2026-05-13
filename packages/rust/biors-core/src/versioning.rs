@@ -1,8 +1,7 @@
 //! Public schema versioning policies for package and pipeline contracts.
 
-use crate::package::SchemaVersion;
+use crate::package::{PipelineConfigVersion, SchemaVersion};
 use serde::{Deserialize, Serialize};
-use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SchemaContractPolicy {
@@ -71,12 +70,6 @@ pub enum Compatibility {
     BackwardCompatible,
     MigrationRequired,
     Unsupported,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum PipelineConfigVersion {
-    #[serde(rename = "biors.pipeline.v0")]
-    BiorsPipelineV0,
 }
 
 pub fn package_manifest_policy() -> SchemaContractPolicy {
@@ -174,14 +167,6 @@ pub fn manifest_schema_migration_plan(
             required_steps: Vec::new(),
         }),
         _ => None,
-    }
-}
-
-impl fmt::Display for PipelineConfigVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::BiorsPipelineV0 => f.write_str("biors.pipeline.v0"),
-        }
     }
 }
 

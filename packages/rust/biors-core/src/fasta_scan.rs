@@ -157,7 +157,8 @@ impl FastaScanState {
 
 fn trim_fasta_line(line: &str) -> &str {
     if line.is_ascii() {
-        trim_ascii(line)
+        let trimmed = trim_ascii_bytes(line.as_bytes());
+        ascii_utf8_unchecked(trimmed)
     } else {
         line.trim()
     }
@@ -168,22 +169,6 @@ fn invalid_utf8_error(line: usize, error: std::str::Utf8Error) -> FastaReadError
         ErrorKind::InvalidData,
         format!("FASTA input contains invalid UTF-8 at line {line}: {error}"),
     ))
-}
-
-fn trim_ascii(line: &str) -> &str {
-    let bytes = line.as_bytes();
-    let mut start = 0;
-    let mut end = bytes.len();
-
-    while start < end && bytes[start].is_ascii_whitespace() {
-        start += 1;
-    }
-
-    while end > start && bytes[end - 1].is_ascii_whitespace() {
-        end -= 1;
-    }
-
-    &line[start..end]
 }
 
 fn trim_fasta_line_bytes(line: &[u8]) -> &[u8] {
@@ -214,31 +199,7 @@ fn trim_ascii_bytes(line: &[u8]) -> &[u8] {
 }
 
 fn fasta_id(header: &str) -> Option<String> {
-    if header.is_ascii() {
-        return fasta_id_ascii(header);
-    }
-
-    header.split_whitespace().next().map(str::to_string)
-}
-
-fn fasta_id_ascii(header: &str) -> Option<String> {
-    let bytes = header.as_bytes();
-    let mut start = 0;
-
-    while start < bytes.len() && bytes[start].is_ascii_whitespace() {
-        start += 1;
-    }
-
-    if start == bytes.len() {
-        return None;
-    }
-
-    let mut end = start;
-    while end < bytes.len() && !bytes[end].is_ascii_whitespace() {
-        end += 1;
-    }
-
-    Some(header[start..end].to_string())
+    fasta_id_bytes(header.as_bytes())
 }
 
 fn fasta_id_bytes(header: &[u8]) -> Option<String> {

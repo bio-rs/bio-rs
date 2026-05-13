@@ -1,7 +1,8 @@
+use biors_core::package::PipelineConfigVersion;
 use biors_core::package::SchemaVersion;
 use biors_core::versioning::{
     manifest_schema_compatibility, manifest_schema_migration_plan, package_manifest_policy,
-    pipeline_config_policy, Compatibility, PipelineConfigVersion, SchemaLifecycleStatus,
+    pipeline_config_policy, Compatibility, SchemaLifecycleStatus,
 };
 
 #[test]
