@@ -120,7 +120,7 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
             contract_version: Some(format!("{}.v0", tokenizer_profile.as_str())),
             config: Some(PipelineConfigArtifact {
                 path: pipeline_rel.clone(),
-                schema_version: biors_core::versioning::PipelineConfigVersion::BiorsPipelineV0,
+                schema_version: biors_core::package::PipelineConfigVersion::BiorsPipelineV0,
                 checksum: Some(file_sha256(&request.output_dir.join(&pipeline_rel))?),
             }),
         }],

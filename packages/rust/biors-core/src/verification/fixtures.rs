@@ -3,8 +3,9 @@ use super::{
     FixtureObservation, FixtureVerificationResult, PackageVerificationReport,
     VerificationIssueCode, VerificationStatus,
 };
+use crate::hash::sha256_digest;
 use crate::package::{
-    read_package_file, resolve_package_asset_path, sha256_digest, PackageFixture, PackageManifest,
+    read_package_file, resolve_package_asset_path, PackageFixture, PackageManifest,
 };
 use std::path::Path;
 

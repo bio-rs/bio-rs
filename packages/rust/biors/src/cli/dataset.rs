@@ -3,7 +3,7 @@ use crate::errors::CliError;
 use crate::input::{resolve_fasta_input_dataset, ResolvedInputDataset, ResolvedInputFile};
 use crate::output::print_success;
 use biors_core::{
-    fasta::parse_fasta_records_reader, package::sha256_digest, sequence::ProteinSequence,
+    fasta::parse_fasta_records_reader, hash::sha256_digest, sequence::ProteinSequence,
 };
 use serde::Serialize;
 use std::collections::BTreeMap;

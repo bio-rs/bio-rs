@@ -2,9 +2,10 @@ use crate::cli::package_skeleton::PackageSkeletonRequest;
 use crate::cli::tokenizer_convert::hf_config_to_biors_config;
 use crate::errors::CliError;
 use biors_core::{
+    hash::sha256_digest,
     package::{
-        sha256_digest, CitationMetadata, DocumentArtifact, LicenseMetadata, ModelCardMetadata,
-        PackageMetadata, TokenAsset,
+        CitationMetadata, DocumentArtifact, LicenseMetadata, ModelCardMetadata, PackageMetadata,
+        TokenAsset,
     },
     tokenizer::{ProteinTokenizerConfig, ProteinTokenizerProfile},
 };

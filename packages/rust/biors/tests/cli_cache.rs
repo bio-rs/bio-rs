@@ -9,8 +9,8 @@ use common::TempDir;
 fn cache_inspect_reports_artifact_store_policy() {
     let temp = TempDir::new("biors-cache");
     let root = temp.path().join(".biors/artifacts");
-    fs::create_dir_all(root.join("datasets")).expect("create cache dirs");
-    fs::write(root.join("datasets/example.fasta"), ">seq\nACDE\n").expect("write cache file");
+    fs::create_dir_all(root.join("datasets")).unwrap();
+    fs::write(root.join("datasets/example.fasta"), ">seq\nACDE\n").unwrap();
 
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("cache")
@@ -18,7 +18,7 @@ fn cache_inspect_reports_artifact_store_policy() {
         .arg("--root")
         .arg(&root)
         .output()
-        .expect("run biors cache inspect");
+        .unwrap();
 
     assert!(
         output.status.success(),
@@ -27,7 +27,7 @@ fn cache_inspect_reports_artifact_store_policy() {
     );
     assert!(output.stderr.is_empty());
 
-    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(value["data"]["action"], "inspect");
     assert_eq!(value["data"]["exists"], true);
     assert_eq!(value["data"]["files"], 1);
@@ -37,7 +37,7 @@ fn cache_inspect_reports_artifact_store_policy() {
     );
     assert!(value["data"]["layout"]
         .as_array()
-        .expect("layout")
+        .unwrap()
         .iter()
         .any(|entry| entry["name"] == "datasets/"));
 }
@@ -46,7 +46,7 @@ fn cache_inspect_reports_artifact_store_policy() {
 fn cache_clean_requires_dry_run_or_confirmation() {
     let temp = TempDir::new("biors-cache-clean");
     let root = temp.path().join(".biors/artifacts");
-    fs::create_dir_all(&root).expect("create cache root");
+    fs::create_dir_all(&root).unwrap();
 
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("--json")
@@ -55,10 +55,10 @@ fn cache_clean_requires_dry_run_or_confirmation() {
         .arg("--root")
         .arg(&root)
         .output()
-        .expect("run biors cache clean without confirmation");
+        .unwrap();
 
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stderr.is_empty());
-    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(value["error"]["code"], "cache.clean_requires_confirmation");
 }

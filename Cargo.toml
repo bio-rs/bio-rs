@@ -9,10 +9,10 @@ resolver = "2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bio-rs/bio-rs"
-version = "0.37.0"
+version = "0.37.2"
 
 [workspace.dependencies]
-biors-core = { version = "0.37.0", path = "packages/rust/biors-core" }
+biors-core = { version = "0.37.2", path = "packages/rust/biors-core" }
 clap = { version = "4.5.37", features = ["derive"] }
 clap_complete = "4.5.48"
 serde = { version = "1.0.219", features = ["derive"] }

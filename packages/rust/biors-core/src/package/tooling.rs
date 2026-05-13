@@ -1,5 +1,6 @@
 use super::{PackageDirectoryLayout, PackageManifest, PackageMetadata, SchemaVersion};
 use crate::{
+    error::Diagnostic,
     verification::{diff_output_bytes, OutputDiffReport},
     versioning::{manifest_schema_compatibility, manifest_schema_migration_plan, Compatibility},
 };
@@ -188,3 +189,35 @@ pub fn diff_package_manifests(
         diff: diff_output_bytes(left_path, right_path, left_bytes, right_bytes),
     }
 }
+
+impl std::fmt::Display for PackageManifestConversionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MissingConversionInput { from, to } => write!(
+                f,
+                "conversion from '{from}' to '{to}' requires v1 metadata and layout input"
+            ),
+            Self::Unsupported { from, to } => {
+                write!(f, "no package manifest conversion from '{from}' to '{to}'")
+            }
+        }
+    }
+}
+
+impl std::error::Error for PackageManifestConversionError {}
+
+impl Diagnostic for PackageManifestConversionError {
+    fn code(&self) -> &'static str {
+        match self {
+            Self::MissingConversionInput { .. } => "package.conversion_missing_metadata",
+            Self::Unsupported { .. } => "package.conversion_unsupported",
+        }
+    }
+
+    fn message(&self) -> String {
+        self.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests;

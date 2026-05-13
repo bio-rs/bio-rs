@@ -102,7 +102,7 @@ fn package_validate_fails_invalid_manifest() {
     assert_eq!(value["error"]["location"], "manifest");
     assert!(value["error"]["message"]
         .as_str()
-        .expect("message")
+        .unwrap()
         .contains("name is required"));
 }
 

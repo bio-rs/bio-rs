@@ -83,31 +83,14 @@ fn validates_v1_package_layout_and_metadata_contract() {
     let summary = inspect_package_manifest(&manifest);
 
     assert_eq!(summary.schema_version, SchemaVersion::BiorsPackageV1);
-    assert_eq!(
-        summary
-            .package_layout
-            .as_ref()
-            .expect("package layout")
-            .models,
-        "models"
-    );
-    assert_eq!(
-        summary.metadata.as_ref().expect("metadata").license,
-        "CC0-1.0"
-    );
-    assert_eq!(
-        summary.metadata.as_ref().expect("metadata").model_card,
-        "docs/model-card.md"
-    );
-    assert_eq!(
-        summary
-            .package_layout
-            .as_ref()
-            .expect("package layout")
-            .pipelines
-            .as_deref(),
-        Some("pipelines")
-    );
+
+    let layout = summary.package_layout.as_ref().expect("package layout");
+    let metadata = summary.metadata.as_ref().expect("metadata");
+
+    assert_eq!(layout.models, "models");
+    assert_eq!(metadata.license, "CC0-1.0");
+    assert_eq!(metadata.model_card, "docs/model-card.md");
+    assert_eq!(layout.pipelines.as_deref(), Some("pipelines"));
     assert_eq!(
         summary.layout.pipeline_configs,
         vec!["pipelines/protein.toml"]

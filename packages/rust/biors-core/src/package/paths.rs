@@ -5,13 +5,13 @@ use std::path::{Component, Path, PathBuf};
 /// Error type for package artifact path resolution and file reads.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PackageArtifactError {
-    /// Asset path is empty.
     EmptyPath,
-    /// Asset path is absolute.
-    AbsolutePath { path: String },
-    /// Asset path escapes the package root.
-    PathEscape { path: String },
-    /// Asset file could not be read.
+    AbsolutePath {
+        path: String,
+    },
+    PathEscape {
+        path: String,
+    },
     AssetReadFailed {
         path: String,
         resolved: String,

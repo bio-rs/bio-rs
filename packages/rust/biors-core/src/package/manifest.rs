@@ -1,9 +1,10 @@
-use super::{DataType, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion};
-use crate::versioning::PipelineConfigVersion;
+use super::{
+    DataType, ModelFormat, PipelineConfigVersion, RuntimeBackend, RuntimeTargetPlatform,
+    SchemaVersion,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// Portable package manifest for a biological AI model artifact.
 pub struct PackageManifest {
     pub schema_version: SchemaVersion,
     pub name: String,
@@ -27,7 +28,6 @@ pub struct PackageManifest {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// Declared portable package directory layout.
 pub struct PackageDirectoryLayout {
     pub manifest: String,
     pub models: String,

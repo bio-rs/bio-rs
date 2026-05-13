@@ -2,10 +2,13 @@ use super::PackageConvertArgs;
 use crate::errors::CliError;
 use crate::input::read_package_manifest;
 use crate::output::print_success;
-use biors_core::package::{
-    convert_package_manifest, sha256_digest, CitationMetadata, DocumentArtifact, LicenseMetadata,
-    ModelCardMetadata, PackageDirectoryLayout, PackageManifest, PackageManifestConversionError,
-    PackageManifestConversionInput, PackageMetadata, PipelineStep, SchemaVersion,
+use biors_core::{
+    hash::sha256_digest,
+    package::{
+        convert_package_manifest, CitationMetadata, DocumentArtifact, LicenseMetadata,
+        ModelCardMetadata, PackageDirectoryLayout, PackageManifest, PackageManifestConversionError,
+        PackageManifestConversionInput, PackageMetadata, PipelineStep, SchemaVersion,
+    },
 };
 use std::fs;
 

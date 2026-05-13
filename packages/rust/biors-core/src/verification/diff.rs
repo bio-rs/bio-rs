@@ -1,5 +1,6 @@
 use super::{ContentMismatchDiff, FirstDifference, OutputDiffReport};
-use crate::package::sha256_digest;
+use crate::hash::sha256_digest;
+use std::borrow::Cow;
 
 /// Build a canonical diff report for two outputs.
 pub fn diff_output_bytes(
@@ -47,10 +48,13 @@ pub(super) fn content_mismatch_diff(
     }
 }
 
-fn canonical_content_bytes(bytes: &[u8]) -> Vec<u8> {
+fn canonical_content_bytes(bytes: &[u8]) -> Cow<'_, [u8]> {
     match serde_json::from_slice::<serde_json::Value>(bytes) {
-        Ok(json) => serde_json::to_vec(&json).unwrap_or_else(|_| bytes.to_vec()),
-        Err(_) => bytes.to_vec(),
+        Ok(json) => match serde_json::to_vec(&json) {
+            Ok(vec) => Cow::Owned(vec),
+            Err(_) => Cow::Borrowed(bytes),
+        },
+        Err(_) => Cow::Borrowed(bytes),
     }
 }
 

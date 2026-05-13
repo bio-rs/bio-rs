@@ -1,11 +1,11 @@
 use super::{
-    is_sha256_checksum, read_package_file, sha256_digest, validate_declared_layout,
-    validate_package_manifest, validate_package_relative_path, PackageManifest,
-    PackageValidationIssueCode, PackageValidationReport,
+    read_package_file, validate_declared_layout, validate_package_manifest,
+    validate_package_relative_path, PackageManifest, PackageValidationIssueCode,
+    PackageValidationReport,
 };
+use crate::hash::{is_sha256_checksum, sha256_digest};
 use std::path::Path;
 
-/// Validate manifest fields and all package-relative artifact paths and checksums.
 pub fn validate_package_manifest_artifacts(
     manifest: &PackageManifest,
     base_dir: &Path,
@@ -159,14 +159,15 @@ fn validate_checksum_format(
     field: &str,
     checksum: Option<&str>,
 ) {
-    if let Some(checksum) = checksum {
-        if !is_sha256_checksum(checksum) {
-            report.push_issue(
-                PackageValidationIssueCode::InvalidChecksumFormat,
-                &format!("{field}.checksum"),
-                &format!("{field}.checksum must use sha256:<64 hex>"),
-            );
-        }
+    let Some(checksum) = checksum else {
+        return;
+    };
+    if !is_sha256_checksum(checksum) {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidChecksumFormat,
+            &format!("{field}.checksum"),
+            &format!("{field}.checksum must use sha256:<64 hex>"),
+        );
     }
 }
 

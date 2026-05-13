@@ -13,7 +13,6 @@ mod types;
 mod validation;
 
 pub use artifacts::validate_package_manifest_artifacts;
-pub use checksum::{is_sha256_checksum, sha256_digest};
 pub use manifest::{
     CitationMetadata, DataShape, DocumentArtifact, LicenseMetadata, ModelArtifact,
     ModelCardMetadata, PackageDirectoryLayout, PackageFixture, PackageManifest, PackageMetadata,
@@ -32,7 +31,10 @@ pub use tooling::{
     PackageManifestConversionOutput, PackageManifestDiffReport, PackageSchemaCompatibilityReport,
     PackageSchemaMigrationReport,
 };
-pub use types::{DataType, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion};
+pub use types::{
+    DataType, ModelFormat, PipelineConfigVersion, RuntimeBackend, RuntimeTargetPlatform,
+    SchemaVersion,
+};
 pub use validation::validate_package_manifest;
 
 pub(crate) use layout::validate_declared_layout;

@@ -20,77 +20,51 @@ const READINESS_ISSUE_CODE: &str = "sequence.not_model_ready";
 /// End-to-end protein sequence preparation output for model-input workflows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceWorkflowOutput {
-    /// Stable workflow contract name.
     pub workflow: String,
-    /// True when all records were validated, tokenized, and converted to model input.
     pub model_ready: bool,
-    /// Deterministic metadata needed to reproduce preprocessing.
     pub provenance: SequenceWorkflowProvenance,
-    /// Protein validation report over normalized records.
     pub validation: SequenceValidationReport,
-    /// Deterministic tokenization output and aggregate summary.
     pub tokenization: TokenizationWorkflowOutput,
-    /// Model-ready tensors when every record is valid.
     pub model_input: Option<ModelInput>,
-    /// Per-record reasons that prevented model-input generation.
     pub readiness_issues: Vec<SequenceWorkflowReadinessIssue>,
 }
 
 /// Reproducibility metadata for the workflow output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceWorkflowProvenance {
-    /// bio-rs core version used for preprocessing.
     pub biors_core_version: String,
-    /// Command or API entrypoint and resolved arguments used for this run.
     pub invocation: SequenceWorkflowInvocation,
-    /// Stable hash of the exact input bytes.
     pub input_hash: String,
-    /// Normalization policy applied before validation and tokenization.
     pub normalization: String,
-    /// Validation alphabet used by this workflow.
     pub validation_alphabet: String,
-    /// Tokenizer metadata used for deterministic token IDs.
     pub tokenizer: WorkflowTokenizerMetadata,
-    /// Model-input policy used to build arrays.
     pub model_input_policy: ModelInputPolicy,
-    /// Content hashes that make workflow outputs easier to reproduce.
     pub hashes: SequenceWorkflowHashes,
 }
 
 /// Tokenizer metadata included in workflow provenance.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WorkflowTokenizerMetadata {
-    /// Vocabulary/profile name.
     pub name: String,
-    /// Number of ordinary vocabulary tokens.
     pub vocab_size: usize,
-    /// Token ID emitted for unresolved residues.
     pub unknown_token_id: u8,
-    /// Policy used when ambiguous or unsupported residues are encountered.
     pub unknown_token_policy: UnknownTokenPolicy,
 }
 
 /// Tokenization section of a workflow output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenizationWorkflowOutput {
-    /// Aggregate tokenization summary.
     pub summary: ProteinBatchSummary,
-    /// Per-record tokenization details.
     pub records: Vec<TokenizedProtein>,
 }
 
 /// Reason a record could not be converted into model-ready input.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceWorkflowReadinessIssue {
-    /// Stable machine-readable readiness issue code.
     pub code: String,
-    /// Sequence identifier.
     pub id: String,
-    /// Number of validation/tokenization warnings.
     pub warning_count: usize,
-    /// Number of validation/tokenization errors.
     pub error_count: usize,
-    /// Human-readable readiness message.
     pub message: String,
 }
 

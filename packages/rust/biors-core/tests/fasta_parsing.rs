@@ -62,8 +62,8 @@ fn rejects_empty_fasta_identifier() {
 #[test]
 fn reader_fasta_path_reports_invalid_utf8_as_read_failure() {
     let raw = b">seq1\nAC\xff\n";
-    let error = parse_fasta_records_reader(Cursor::new(raw))
-        .expect_err("invalid UTF-8 should remain an I/O-style read failure");
+    let error =
+        parse_fasta_records_reader(Cursor::new(raw)).expect_err("invalid UTF-8 read failure");
 
     match error {
         FastaReadError::Io(error) => assert_eq!(error.kind(), ErrorKind::InvalidData),

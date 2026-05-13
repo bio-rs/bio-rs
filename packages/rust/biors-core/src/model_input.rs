@@ -9,7 +9,6 @@ pub struct ModelInputPolicy {
     pub max_length: usize,
     /// Token ID used when fixed-length padding is requested.
     pub pad_token_id: u8,
-    /// Padding behavior.
     pub padding: PaddingPolicy,
 }
 
@@ -26,16 +25,13 @@ pub enum PaddingPolicy {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Batch of model-ready input records.
 pub struct ModelInput {
-    /// Policy used to build the records.
     pub policy: ModelInputPolicy,
-    /// Per-sequence model input records.
     pub records: Vec<ModelInputRecord>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Model-ready representation of one tokenized protein.
 pub struct ModelInputRecord {
-    /// Sequence identifier.
     pub id: String,
     /// Token IDs after truncation and optional padding.
     pub input_ids: Vec<u8>,
@@ -49,17 +45,11 @@ pub struct ModelInputRecord {
 /// Errors returned by checked model-input builders.
 pub enum ModelInputBuildError {
     /// The model input policy is internally invalid.
-    InvalidPolicy {
-        /// Human-readable validation message.
-        message: String,
-    },
+    InvalidPolicy { message: String },
     /// A tokenized sequence still contains unresolved warnings or errors.
     InvalidTokenizedSequence {
-        /// Sequence identifier.
         id: String,
-        /// Number of tokenization warnings.
         warning_count: usize,
-        /// Number of tokenization errors.
         error_count: usize,
     },
 }
@@ -147,3 +137,6 @@ impl fmt::Display for ModelInputBuildError {
 }
 
 impl std::error::Error for ModelInputBuildError {}
+
+#[cfg(test)]
+mod tests;

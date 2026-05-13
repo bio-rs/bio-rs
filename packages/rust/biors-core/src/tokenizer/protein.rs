@@ -6,18 +6,14 @@ use super::{
 };
 use crate::sequence::{ProteinSequence, PROTEIN_20};
 
-/// Trait implemented by protein tokenizers.
 pub trait Tokenizer {
-    /// Alphabet name supported by this tokenizer.
     fn alphabet(&self) -> &'static str;
     /// Owned vocabulary for callers that need a serializable value.
     fn vocabulary(&self) -> Vocabulary;
-    /// Tokenize one protein sequence.
     fn tokenize(&self, protein: &ProteinSequence) -> TokenizedProtein;
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-/// Built-in tokenizer for the `protein-20` residue vocabulary.
 pub struct ProteinTokenizer;
 
 impl Tokenizer for ProteinTokenizer {
@@ -41,7 +37,6 @@ impl ProteinTokenizer {
     }
 }
 
-/// Tokenize one protein sequence with the built-in `protein-20` tokenizer.
 pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     tokenize_protein_with_config(
         protein,
@@ -52,7 +47,6 @@ pub fn tokenize_protein(protein: &ProteinSequence) -> TokenizedProtein {
     )
 }
 
-/// Tokenize one protein sequence with a profile-aware tokenizer config.
 pub fn tokenize_protein_with_config(
     protein: &ProteinSequence,
     config: &ProteinTokenizerConfig,
