@@ -1,0 +1,186 @@
+use biors_core::runtime::{
+    Backend, BackendCapabilities, BackendConfig, BackendExecutionError, ExecutionContext,
+    ExecutionMetadata, ExecutionResult, RuntimeCompatibilityIssueCode,
+};
+
+#[derive(Debug)]
+struct EchoBackend {
+    config: BackendConfig,
+    capabilities: BackendCapabilities,
+}
+
+impl Backend for EchoBackend {
+    fn config(&self) -> &BackendConfig {
+        &self.config
+    }
+
+    fn capabilities(&self) -> &BackendCapabilities {
+        &self.capabilities
+    }
+
+    fn execute(&self, context: ExecutionContext) -> Result<ExecutionResult, BackendExecutionError> {
+        if !self.capabilities.supports_input(&context.input_format) {
+            return Err(BackendExecutionError::unsupported_input(
+                &self.config.backend_id,
+                &context.input_format,
+            ));
+        }
+
+        Ok(ExecutionResult {
+            trace_id: context.trace_id,
+            output_format: context
+                .requested_output_format
+                .unwrap_or_else(|| "biors.echo.v0".to_string()),
+            payload: context.payload,
+            metadata: context.metadata,
+        })
+    }
+}
+
+#[test]
+fn backend_trait_executes_with_explicit_context_and_capabilities() {
+    let backend = EchoBackend {
+        config: BackendConfig {
+            backend_id: "echo-process".to_string(),
+            provider: "local-test".to_string(),
+            version: Some("0.1.0".to_string()),
+            model_artifact: Some("models/tiny.onnx".to_string()),
+        },
+        capabilities: BackendCapabilities {
+            deterministic: true,
+            supports_batch: false,
+            supports_streaming: false,
+            supported_inputs: vec!["biors.model-input.v0".to_string()],
+            supported_outputs: vec!["biors.echo.v0".to_string()],
+            max_input_bytes: Some(1024),
+        },
+    };
+
+    let context = ExecutionContext {
+        trace_id: Some("trace-runtime-001".to_string()),
+        input_format: "biors.model-input.v0".to_string(),
+        requested_output_format: Some("biors.echo.v0".to_string()),
+        payload: br#"{"input_ids":[1,2,3]}"#.to_vec(),
+        metadata: vec![ExecutionMetadata {
+            key: "sequence_id".to_string(),
+            value: "tiny-protein".to_string(),
+        }],
+    };
+
+    let result = backend.execute(context).expect("execution succeeds");
+
+    assert_eq!(backend.config().backend_id, "echo-process");
+    assert!(backend
+        .capabilities()
+        .supports_input("biors.model-input.v0"));
+    assert!(backend.capabilities().supports_output("biors.echo.v0"));
+    assert_eq!(result.trace_id.as_deref(), Some("trace-runtime-001"));
+    assert_eq!(result.output_format, "biors.echo.v0");
+    assert_eq!(result.payload, br#"{"input_ids":[1,2,3]}"#);
+    assert_eq!(result.metadata[0].key, "sequence_id");
+}
+
+#[test]
+fn execution_contracts_are_serializable_for_external_boundaries() {
+    let context = ExecutionContext {
+        trace_id: Some("trace-runtime-002".to_string()),
+        input_format: "biors.model-input.v0".to_string(),
+        requested_output_format: None,
+        payload: b"{}".to_vec(),
+        metadata: vec![ExecutionMetadata {
+            key: "record_count".to_string(),
+            value: "1".to_string(),
+        }],
+    };
+
+    let json = serde_json::to_value(&context).expect("serialize context");
+
+    assert_eq!(json["trace_id"], "trace-runtime-002");
+    assert_eq!(json["input_format"], "biors.model-input.v0");
+    assert_eq!(json["payload"], serde_json::json!([123, 125]));
+
+    let restored: ExecutionContext = serde_json::from_value(json).expect("deserialize context");
+    assert_eq!(restored.payload, b"{}");
+    assert_eq!(restored.metadata[0].value, "1");
+}
+
+#[test]
+fn unsupported_input_errors_name_the_backend_and_format() {
+    let error = BackendExecutionError::unsupported_input("echo-process", "unknown.v0");
+
+    assert_eq!(error.backend_id, "echo-process");
+    assert_eq!(error.code, "runtime.unsupported_input");
+    assert!(error.message.contains("unknown.v0"));
+    assert!(error.message.contains("echo-process"));
+}
+
+#[test]
+fn capabilities_report_all_context_compatibility_issues_before_execution() {
+    let capabilities = BackendCapabilities {
+        deterministic: true,
+        supports_batch: true,
+        supports_streaming: false,
+        supported_inputs: vec!["biors.model-input.v0".to_string()],
+        supported_outputs: vec!["biors.logits.v0".to_string()],
+        max_input_bytes: Some(4),
+    };
+    let context = ExecutionContext {
+        trace_id: Some("trace-runtime-003".to_string()),
+        input_format: "unknown.input.v0".to_string(),
+        requested_output_format: Some("unknown.output.v0".to_string()),
+        payload: b"too-large".to_vec(),
+        metadata: Vec::new(),
+    };
+
+    let report = capabilities.compatibility_report(&context);
+    let codes: Vec<_> = report.issues.iter().map(|issue| issue.code).collect();
+
+    assert!(!report.compatible);
+    assert_eq!(
+        codes,
+        vec![
+            RuntimeCompatibilityIssueCode::UnsupportedInput,
+            RuntimeCompatibilityIssueCode::UnsupportedOutput,
+            RuntimeCompatibilityIssueCode::PayloadTooLarge,
+        ]
+    );
+    assert!(report.issues[0].message.contains("unknown.input.v0"));
+    assert!(report.issues[1].message.contains("unknown.output.v0"));
+    assert!(report.issues[2].message.contains("9 bytes"));
+}
+
+#[test]
+fn execute_checked_rejects_incompatible_context_before_backend_execution() {
+    let backend = EchoBackend {
+        config: BackendConfig {
+            backend_id: "echo-process".to_string(),
+            provider: "local-test".to_string(),
+            version: None,
+            model_artifact: None,
+        },
+        capabilities: BackendCapabilities {
+            deterministic: true,
+            supports_batch: false,
+            supports_streaming: false,
+            supported_inputs: vec!["biors.model-input.v0".to_string()],
+            supported_outputs: vec!["biors.echo.v0".to_string()],
+            max_input_bytes: Some(4),
+        },
+    };
+    let context = ExecutionContext {
+        trace_id: None,
+        input_format: "biors.model-input.v0".to_string(),
+        requested_output_format: Some("biors.echo.v0".to_string()),
+        payload: b"too-large".to_vec(),
+        metadata: Vec::new(),
+    };
+
+    let error = backend
+        .execute_checked(context)
+        .expect_err("oversized payload should be rejected");
+
+    assert_eq!(error.backend_id, "echo-process");
+    assert_eq!(error.code, "runtime.payload_too_large");
+    assert!(error.message.contains("9 bytes"));
+    assert!(error.message.contains("limit is 4 bytes"));
+}
