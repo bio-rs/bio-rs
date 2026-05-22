@@ -34,7 +34,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `diff_output_bytes`, `OutputDiffReport`
 - `validate_package_manifest_artifacts`
 - `PackageManifest`, `PipelineConfigArtifact`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
-- `Backend`, `BackendConfig`, `BackendCapabilities`, `BackendCompatibilityReport`, `RuntimeCompatibilityIssue`, `RuntimeCompatibilityIssueCode`, `ExecutionContext`, `ExecutionResult`, `BackendExecutionError`
+- `Backend`, `BackendConfig`, `BackendCapabilities`, `BackendCompatibilityReport`, `RuntimeCompatibilityIssue`, `RuntimeCompatibilityIssueCode`, `ExecutionContext`, `ExecutionResult`, `BackendExecutionError`, `ExternalProcessBackend`, `ExternalProcessConfig`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
 - `BioRsError::code`
 
@@ -82,7 +82,7 @@ The following surfaces are candidates for stabilization before the first stable 
 ## Not Yet Stable
 
 - runtime bridge provider expansion beyond `onnx-webgpu`
-- concrete runtime backend implementations
+- concrete runtime backend implementations beyond the external process adapter
 - larger fixture verification formats
 - benchmark claims beyond the recorded baseline workload
 - independent `biors-core` and `biors` versioning outside isolated post-1.0 patch releases

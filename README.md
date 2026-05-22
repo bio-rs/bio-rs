@@ -125,7 +125,8 @@ shape.
 - Schema compatibility checks and canonical diffs
 - SHA-256 checksum verification and fixture verification
 - Python project to bio-rs package skeleton conversion
-- Runtime bridge planning reports and backend execution abstraction contracts
+- Runtime bridge planning reports, backend execution abstraction contracts, and
+  guarded external-process backend adapters
 - Typed validation issue codes and manifest enums
 
 ### Utilities
