@@ -111,7 +111,7 @@ pub enum PackageValidationIssueCode {
     LayoutMismatch,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 /// Runtime bridge readiness report for a package manifest.
 pub struct RuntimeBridgeReport {
     pub ready: bool,
@@ -123,6 +123,12 @@ pub struct RuntimeBridgeReport {
     pub execution_provider: String,
     pub compatibility_checks: Vec<BackendCompatibilityCheck>,
     pub blocking_issues: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backend_capabilities: Option<BackendCapabilitiesSummary>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub benchmark_evidence: Option<Vec<BenchmarkEvidence>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub regression_baseline: Option<RegressionBaseline>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -131,6 +137,43 @@ pub struct BackendCompatibilityCheck {
     pub code: String,
     pub passed: bool,
     pub message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Backend capability summary included in runtime bridge reports.
+pub struct BackendCapabilitiesSummary {
+    pub deterministic: bool,
+    pub supports_batch: bool,
+    pub supports_streaming: bool,
+    pub supported_inputs: Vec<String>,
+    pub supported_outputs: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// One benchmark evidence record for a backend.
+pub struct BenchmarkEvidence {
+    pub benchmark_name: String,
+    pub backend_id: String,
+    pub workload_description: String,
+    pub recorded_at: String,
+    pub metrics: Vec<BenchmarkMetric>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// One metric within a benchmark evidence record.
+pub struct BenchmarkMetric {
+    pub metric_name: String,
+    pub value: f64,
+    pub unit: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Regression baseline anchored to a backend and artifact checksum.
+pub struct RegressionBaseline {
+    pub baseline_name: String,
+    pub backend_id: String,
+    pub artifact_checksum: String,
+    pub benchmark_evidences: Vec<BenchmarkEvidence>,
 }
 
 impl From<&ModelArtifactMetadata> for ModelArtifactMetadataSummary {

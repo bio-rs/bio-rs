@@ -23,6 +23,8 @@ pub enum RuntimeBackend {
     OnnxWebgpu,
     #[serde(rename = "candle")]
     Candle,
+    #[serde(rename = "external-process")]
+    ExternalProcess,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -70,6 +72,7 @@ impl fmt::Display for RuntimeBackend {
         f.write_str(match self {
             Self::OnnxWebgpu => "onnx-webgpu",
             Self::Candle => "candle",
+            Self::ExternalProcess => "external-process",
         })
     }
 }

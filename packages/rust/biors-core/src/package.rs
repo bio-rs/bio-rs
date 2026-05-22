@@ -21,9 +21,10 @@ pub use manifest::{
     TokenAsset,
 };
 pub use reports::{
-    BackendCompatibilityCheck, ModelArtifactMetadataSummary, PackageDirectoryLayoutSummary,
-    PackageLayoutSummary, PackageManifestSummary, PackageMetadataSummary, PackageValidationIssue,
-    PackageValidationIssueCode, PackageValidationReport, RuntimeBridgeReport,
+    BackendCapabilitiesSummary, BackendCompatibilityCheck, BenchmarkEvidence, BenchmarkMetric,
+    ModelArtifactMetadataSummary, PackageDirectoryLayoutSummary, PackageLayoutSummary,
+    PackageManifestSummary, PackageMetadataSummary, PackageValidationIssue,
+    PackageValidationIssueCode, PackageValidationReport, RegressionBaseline, RuntimeBridgeReport,
 };
 pub use runtime::plan_runtime_bridge;
 pub use summary::inspect_package_manifest;

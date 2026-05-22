@@ -1,12 +1,16 @@
 use super::{
-    validate_package_manifest, BackendCompatibilityCheck, ModelArtifactMetadataSummary,
-    ModelFormat, PackageManifest, RuntimeBackend, RuntimeBridgeReport, RuntimeTargetPlatform,
+    validate_package_manifest, BackendCapabilitiesSummary, BackendCompatibilityCheck,
+    ModelArtifactMetadataSummary, ModelFormat, PackageManifest, RuntimeBackend,
+    RuntimeBridgeReport, RuntimeTargetPlatform,
 };
 
 /// Build a runtime bridge readiness report from a package manifest.
 pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
     let mut blocking_issues = validate_package_manifest(manifest).issues;
-    let compatibility_checks = vec![runtime_model_pair_check(manifest)];
+    let compatibility_checks = vec![
+        runtime_model_pair_check(manifest),
+        backend_capabilities_check(manifest),
+    ];
 
     blocking_issues.extend(
         compatibility_checks
@@ -43,6 +47,9 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
         execution_provider: provider,
         compatibility_checks,
         blocking_issues,
+        backend_capabilities: Some(backend_capabilities_for(manifest)),
+        benchmark_evidence: None,
+        regression_baseline: None,
     }
 }
 
@@ -60,6 +67,10 @@ fn runtime_model_pair_check(manifest: &PackageManifest) -> BackendCompatibilityC
         ) | (
             ModelFormat::Safetensors,
             RuntimeBackend::Candle,
+            RuntimeTargetPlatform::LocalCpu
+        ) | (
+            _,
+            RuntimeBackend::ExternalProcess,
             RuntimeTargetPlatform::LocalCpu
         )
     );
@@ -83,10 +94,66 @@ fn runtime_model_pair_check(manifest: &PackageManifest) -> BackendCompatibilityC
     }
 }
 
+fn backend_capabilities_check(manifest: &PackageManifest) -> BackendCompatibilityCheck {
+    let caps = backend_capabilities_for(manifest);
+    let passed = true;
+    let message = format!(
+        "backend capabilities: deterministic={}, supports_batch={}, supports_streaming={}, supported_inputs={:?}, supported_outputs={:?}",
+        caps.deterministic,
+        caps.supports_batch,
+        caps.supports_streaming,
+        caps.supported_inputs,
+        caps.supported_outputs,
+    );
+    BackendCompatibilityCheck {
+        code: "backend_capabilities".to_string(),
+        passed,
+        message,
+    }
+}
+
+fn backend_capabilities_for(manifest: &PackageManifest) -> BackendCapabilitiesSummary {
+    match (manifest.runtime.backend, manifest.runtime.target) {
+        (RuntimeBackend::Candle, RuntimeTargetPlatform::LocalCpu) => BackendCapabilitiesSummary {
+            deterministic: true,
+            supports_batch: true,
+            supports_streaming: false,
+            supported_inputs: vec!["biors.model-input.v0+json".to_string()],
+            supported_outputs: vec!["biors.candle.linear-probe.v0+json".to_string()],
+        },
+        (RuntimeBackend::ExternalProcess, RuntimeTargetPlatform::LocalCpu) => {
+            BackendCapabilitiesSummary {
+                deterministic: false,
+                supports_batch: true,
+                supports_streaming: false,
+                supported_inputs: vec!["biors.model-input.v0+json".to_string()],
+                supported_outputs: vec!["biors.execution-result.v0+json".to_string()],
+            }
+        }
+        (RuntimeBackend::OnnxWebgpu, RuntimeTargetPlatform::BrowserWasmWebgpu) => {
+            BackendCapabilitiesSummary {
+                deterministic: false,
+                supports_batch: true,
+                supports_streaming: false,
+                supported_inputs: vec!["biors.model-input.v0+json".to_string()],
+                supported_outputs: vec!["biors.execution-result.v0+json".to_string()],
+            }
+        }
+        _ => BackendCapabilitiesSummary {
+            deterministic: false,
+            supports_batch: false,
+            supports_streaming: false,
+            supported_inputs: vec![],
+            supported_outputs: vec![],
+        },
+    }
+}
+
 fn execution_provider(manifest: &PackageManifest) -> String {
     match (manifest.runtime.backend, manifest.runtime.target) {
         (RuntimeBackend::OnnxWebgpu, RuntimeTargetPlatform::BrowserWasmWebgpu) => "webgpu",
         (RuntimeBackend::Candle, RuntimeTargetPlatform::LocalCpu) => "candle-cpu",
+        (RuntimeBackend::ExternalProcess, RuntimeTargetPlatform::LocalCpu) => "external-process",
         _ => "unsupported",
     }
     .to_string()

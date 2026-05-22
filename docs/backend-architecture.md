@@ -50,6 +50,17 @@ The `0.41.0` scope connects package manifests to the runtime planning layer:
   match
 - no runtime launch command or backend-enabled CLI binary artifact
 
+The `0.42.0` scope expands the runtime compatibility matrix and reporting:
+
+- `ExternalProcess` represented in manifest `RuntimeBackend` enum
+- expanded backend compatibility matrix covering Candle CPU, ExternalProcess,
+  and ONNX/WebGPU planning targets
+- `BackendCapabilities` summary included in package bridge compatibility checks
+  (supported inputs/outputs, deterministic, batch, streaming flags)
+- benchmark metadata and regression baseline types added to package bridge
+  report structures
+- updated JSON schema for `package-bridge-output.v0.json`
+
 ## Runtime Contracts
 
 `Backend` owns three responsibilities:

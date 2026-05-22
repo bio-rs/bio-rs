@@ -27,7 +27,13 @@
       "minItems": 1,
       "items": { "$ref": "#/$defs/compatibilityCheck" }
     },
-    "blocking_issues": { "type": "array", "items": { "type": "string" } }
+    "blocking_issues": { "type": "array", "items": { "type": "string" } },
+    "backend_capabilities": { "$ref": "#/$defs/backendCapabilities" },
+    "benchmark_evidence": {
+      "type": ["array", "null"],
+      "items": { "$ref": "#/$defs/benchmarkEvidence" }
+    },
+    "regression_baseline": { "$ref": "#/$defs/regressionBaseline" }
   },
   "$defs": {
     "backendConfig": {
@@ -61,6 +67,80 @@
         "code": { "type": "string", "minLength": 1 },
         "passed": { "type": "boolean" },
         "message": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "backendCapabilities": {
+      "type": ["object", "null"],
+      "required": [
+        "deterministic",
+        "supports_batch",
+        "supports_streaming",
+        "supported_inputs",
+        "supported_outputs"
+      ],
+      "properties": {
+        "deterministic": { "type": "boolean" },
+        "supports_batch": { "type": "boolean" },
+        "supports_streaming": { "type": "boolean" },
+        "supported_inputs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "supported_outputs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "benchmarkEvidence": {
+      "type": "object",
+      "required": [
+        "benchmark_name",
+        "backend_id",
+        "workload_description",
+        "recorded_at",
+        "metrics"
+      ],
+      "properties": {
+        "benchmark_name": { "type": "string", "minLength": 1 },
+        "backend_id": { "type": "string", "minLength": 1 },
+        "workload_description": { "type": "string", "minLength": 1 },
+        "recorded_at": { "type": "string", "minLength": 1 },
+        "metrics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/benchmarkMetric" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "benchmarkMetric": {
+      "type": "object",
+      "required": ["metric_name", "value", "unit"],
+      "properties": {
+        "metric_name": { "type": "string", "minLength": 1 },
+        "value": { "type": "number" },
+        "unit": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "regressionBaseline": {
+      "type": ["object", "null"],
+      "required": [
+        "baseline_name",
+        "backend_id",
+        "artifact_checksum",
+        "benchmark_evidences"
+      ],
+      "properties": {
+        "baseline_name": { "type": "string", "minLength": 1 },
+        "backend_id": { "type": "string", "minLength": 1 },
+        "artifact_checksum": { "type": "string", "minLength": 1 },
+        "benchmark_evidences": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/benchmarkEvidence" }
+        }
       },
       "additionalProperties": false
     }

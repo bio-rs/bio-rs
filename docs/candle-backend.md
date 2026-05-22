@@ -81,6 +81,21 @@ The Candle crate does not reinterpret those manifests and does not add a browser
 runtime bridge. Backend compatibility mapping between Candle, ONNX, WebGPU, and
 future service runtimes belongs in the compatibility matrix phase.
 
+## Compatibility Matrix
+
+In `0.42.0`, the package bridge compatibility matrix includes Candle CPU as an
+implemented pair:
+
+- `safetensors` + `candle` + `local-cpu` -> `candle-cpu`
+
+The `BackendCapabilities` summary for Candle reports:
+
+- `deterministic: true`
+- `supports_batch: true`
+- `supports_streaming: false`
+- `supported_inputs`: `["biors.model-input.v0+json"]`
+- `supported_outputs`: `["biors.candle.linear-probe.v0+json"]`
+
 ## Benchmark
 
 The crate includes a Candle-specific Criterion benchmark:
