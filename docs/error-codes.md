@@ -76,6 +76,16 @@ as `observation_missing`, `output_checksum_mismatch`, and
 `output_content_mismatch` so callers can inspect fixture-level failures without
 parsing the human-readable `issue` field.
 
+## Runtime
+
+Runtime errors are Rust API errors in the `biors_core::runtime` abstraction.
+They are not emitted by the CLI until a concrete backend command exists.
+
+- `runtime.unsupported_input`: a backend does not accept the supplied input payload format
+- `runtime.unsupported_output`: a backend does not produce the requested output payload format
+- `runtime.payload_too_large`: a backend payload exceeds the declared byte limit
+- `runtime.execution_failed`: a backend failed while handling an execution context
+
 ## Pipeline
 
 - `pipeline.invalid_config`: a pipeline config is malformed, unsupported, or missing required legacy no-config arguments
@@ -96,3 +106,4 @@ parsing the human-readable `issue` field.
 - `json.*`: machine-readable input or output failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures
+- `runtime.*`: backend execution abstraction failures

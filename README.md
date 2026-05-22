@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.37.1
+cargo install biors --version 0.38.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -125,7 +125,7 @@ shape.
 - Schema compatibility checks and canonical diffs
 - SHA-256 checksum verification and fixture verification
 - Python project to bio-rs package skeleton conversion
-- Runtime bridge planning reports
+- Runtime bridge planning reports and backend execution abstraction contracts
 - Typed validation issue codes and manifest enums
 
 ### Utilities
@@ -142,6 +142,7 @@ shape.
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
+- [Backend architecture](docs/backend-architecture.md) — runtime abstraction boundary
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)

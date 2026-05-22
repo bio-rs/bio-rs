@@ -13,6 +13,7 @@ mod types;
 mod validation;
 
 pub use artifacts::validate_package_manifest_artifacts;
+pub use checksum::{is_sha256_checksum, sha256_digest};
 pub use manifest::{
     CitationMetadata, DataShape, DocumentArtifact, LicenseMetadata, ModelArtifact,
     ModelCardMetadata, PackageDirectoryLayout, PackageFixture, PackageManifest, PackageMetadata,
