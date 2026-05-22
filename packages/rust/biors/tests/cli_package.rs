@@ -173,7 +173,17 @@ fn package_bridge_outputs_runtime_plan() {
     assert_eq!(value["data"]["ready"], true);
     assert_eq!(value["data"]["backend"], "onnx-webgpu");
     assert_eq!(value["data"]["target"], "browser-wasm-webgpu");
+    assert_eq!(value["data"]["model_format"], "onnx");
+    assert_eq!(
+        value["data"]["model_metadata"]["name"],
+        "protein-seed-linear-probe"
+    );
     assert_eq!(value["data"]["execution_provider"], "webgpu");
+    assert_eq!(
+        value["data"]["compatibility_checks"][0]["code"],
+        "runtime_model_pair"
+    );
+    assert_eq!(value["data"]["compatibility_checks"][0]["passed"], true);
     assert_eq!(
         value["data"]["blocking_issues"]
             .as_array()

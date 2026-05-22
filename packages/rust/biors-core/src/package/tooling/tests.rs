@@ -18,6 +18,7 @@ fn minimal_manifest(name: &str, schema_version: SchemaVersion) -> PackageManifes
             format: ModelFormat::Onnx,
             path: "model.onnx".to_string(),
             checksum: None,
+            metadata: None,
         },
         tokenizer: None,
         vocab: None,

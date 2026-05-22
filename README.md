@@ -128,6 +128,8 @@ shape.
 - Runtime bridge planning reports, backend execution abstraction contracts, and
   guarded external-process backend adapters
 - Optional Candle backend crate for CPU safetensors linear-probe inference
+- Model artifact metadata and runtime/model compatibility checks in package
+  bridge reports
 - Typed validation issue codes and manifest enums
 
 ### Utilities

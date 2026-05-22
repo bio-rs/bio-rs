@@ -232,7 +232,7 @@ biors package validate ./protein-package/manifest.json
 `package convert-project` scans for an ONNX model and `tokenizer_config.json`,
 converts supported Hugging Face tokenizer metadata to bio-rs tokenizer config,
 creates package docs, writes a pipeline config, records checksums, and leaves
-model artifact metadata beyond path/checksum to the execution backend layer.
+optional model artifact metadata unset for the package author to fill in.
 
 ## Inspect The Local Artifact Store
 

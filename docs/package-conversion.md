@@ -4,9 +4,10 @@ This guide covers the package conversion path for Python and Hugging Face based
 projects.
 
 The conversion layer builds portable bio-rs package structure and records
-checksums. It does not inspect or import model artifact metadata beyond local
-path and SHA-256; model artifact metadata belongs to the execution backend
-layer.
+checksums. It does not infer optional model artifact metadata such as model
+name, version, architecture, task, source, or description. Package authors can
+add `model.metadata` after conversion when they want inspect and bridge reports
+to carry that context.
 
 ## Hugging Face Tokenizer Config
 

@@ -40,6 +40,16 @@ The `0.40.0` scope adds an optional Candle backend crate:
 - no Candle dependency in `biors-core`
 - no backend-enabled CLI binary artifact by default
 
+The `0.41.0` scope connects package manifests to the runtime planning layer:
+
+- optional model artifact metadata on package `model`
+- manifest support for ONNX/WebGPU and safetensors/Candle CPU compatibility
+  pairs
+- structured `package bridge` compatibility checks
+- explicit blocking issues when a model format, backend, and target do not
+  match
+- no runtime launch command or backend-enabled CLI binary artifact
+
 ## Runtime Contracts
 
 `Backend` owns three responsibilities:
@@ -173,9 +183,9 @@ with heavier dependencies.
 
 Concrete backend work belongs in later versions:
 
-- `0.41.0`: model artifact metadata and backend compatibility checks
+- later phases may add backend-specific CLI wiring once package
+  compatibility and artifact contracts are stable
 
-Until the compatibility and artifact phases land, package runtime bridge reports
-remain planning and compatibility surfaces. Candle execution is available only
-through the optional backend crate and is not wired into package manifests or
-the default CLI binary.
+Package runtime bridge reports remain planning and compatibility surfaces.
+Candle execution is available only through the optional backend crate and is not
+wired into the default CLI binary.

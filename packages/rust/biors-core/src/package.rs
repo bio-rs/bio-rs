@@ -16,13 +16,14 @@ pub use artifacts::validate_package_manifest_artifacts;
 pub use checksum::{is_sha256_checksum, sha256_digest};
 pub use manifest::{
     CitationMetadata, DataShape, DocumentArtifact, LicenseMetadata, ModelArtifact,
-    ModelCardMetadata, PackageDirectoryLayout, PackageFixture, PackageManifest, PackageMetadata,
-    PipelineConfigArtifact, PipelineStep, RuntimeTarget, TokenAsset,
+    ModelArtifactMetadata, ModelCardMetadata, PackageDirectoryLayout, PackageFixture,
+    PackageManifest, PackageMetadata, PipelineConfigArtifact, PipelineStep, RuntimeTarget,
+    TokenAsset,
 };
 pub use reports::{
-    PackageDirectoryLayoutSummary, PackageLayoutSummary, PackageManifestSummary,
-    PackageMetadataSummary, PackageValidationIssue, PackageValidationIssueCode,
-    PackageValidationReport, RuntimeBridgeReport,
+    BackendCompatibilityCheck, ModelArtifactMetadataSummary, PackageDirectoryLayoutSummary,
+    PackageLayoutSummary, PackageManifestSummary, PackageMetadataSummary, PackageValidationIssue,
+    PackageValidationIssueCode, PackageValidationReport, RuntimeBridgeReport,
 };
 pub use runtime::plan_runtime_bridge;
 pub use summary::inspect_package_manifest;

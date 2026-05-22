@@ -149,8 +149,8 @@ Package skeleton reports use `schemas/package-skeleton-output.v0.json`.
 `package init` and `package convert-project` create a local package layout,
 write docs and pipeline config, copy supplied fixture artifacts, and record
 SHA-256 checksums. Python project conversion scans for an ONNX model and
-`tokenizer_config.json`; model artifact metadata beyond path/checksum is not
-imported by this layer.
+`tokenizer_config.json`; optional model artifact metadata is left unset for
+the package author to fill in.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Sequence warnings and errors expose stable issue codes such

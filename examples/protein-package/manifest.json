@@ -44,7 +44,15 @@
   "model": {
     "format": "onnx",
     "path": "models/protein-seed.onnx",
-    "checksum": "sha256:2c1da72b15fab35bd6f1bb62f5037b936e26e6413a220fa9afe5a64bce0df68d"
+    "checksum": "sha256:2c1da72b15fab35bd6f1bb62f5037b936e26e6413a220fa9afe5a64bce0df68d",
+    "metadata": {
+      "name": "protein-seed-linear-probe",
+      "version": "fixture-0",
+      "architecture": "linear-probe",
+      "task": "classification",
+      "source": "local-fixture",
+      "description": "Tiny deterministic package fixture model used for local validation."
+    }
   },
   "tokenizer": {
     "name": "protein-20",
