@@ -1,0 +1,19 @@
+[package]
+name = "biors-python"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Python bindings for bio-rs core via PyO3."
+
+[lib]
+name = "biors"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py39"] }
+biors-core = { workspace = true }
+serde_json = { workspace = true }
+
+[features]
+default = []

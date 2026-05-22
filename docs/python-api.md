@@ -3,10 +3,9 @@
 bio-rs exposes its core preprocessing engine to Python through PyO3 bindings.
 This document describes the intended API surface for the `biors` Python package.
 
-> **Status:** The `biors-python` crate is planned for v0.44.0 implementation.
-> This document is a design contract for v0.43.0. It defines the API boundary
-> that the PyO3 bindings will implement. Until v0.44.0 ships, use the
-> [JSON boundary](python-interop.md) for Python interoperability.
+> **Status:** The `biors-python` crate was implemented in v0.44.0.
+> This document describes the released PyO3 API boundary.
+> For the JSON boundary approach (pre-v0.44.0), see [python-interop.md](python-interop.md).
 
 ## Installation
 

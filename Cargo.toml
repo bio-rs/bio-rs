@@ -3,6 +3,7 @@ members = [
     "packages/rust/biors",
     "packages/rust/biors-backend-candle",
     "packages/rust/biors-core",
+    "packages/rust/biors-python",
 ]
 resolver = "2"
 
@@ -10,10 +11,10 @@ resolver = "2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bio-rs/bio-rs"
-version = "0.43.0"
+version = "0.44.0"
 
 [workspace.dependencies]
-biors-core = { version = "0.43.0", path = "packages/rust/biors-core" }
+biors-core = { version = "0.44.0", path = "packages/rust/biors-core" }
 candle-core = { version = "0.10.2", default-features = false }
 clap = { version = "4.5.37", features = ["derive"] }
 clap_complete = "4.5.48"
