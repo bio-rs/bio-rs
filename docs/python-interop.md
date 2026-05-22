@@ -1,7 +1,11 @@
 # Python Interop
 
-bio-rs keeps Python interoperability at the JSON boundary for now. There is no
-PyO3 binding in this phase.
+bio-rs supports Python interoperability through two paths:
+
+1. **JSON boundary** (stable today) --- use `biors` CLI to produce JSON, then
+   adapt in Python.
+2. **PyO3 bindings** (planned for v0.44.0) --- direct `pip install biors` with
+   native Rust performance.
 
 ## Stable JSON Boundary
 
@@ -39,14 +43,24 @@ rows = table_rows(payload)
 # numpy.asarray([row["input_ids"] for row in rows], dtype="uint8")
 ```
 
+## PyO3 Bindings (Planned)
+
+The Python API surface is documented in [docs/python-api.md](python-api.md).
+It covers:
+
+- `pip install biors`
+- FASTA parsing, validation, tokenization, model input, workflow
+- Package manifest inspection and runtime bridge planning
+- NumPy-compatible output
+- Type stubs for IDE support
+- Jupyter notebook examples
+
+The actual `biors` PyPI package is planned for v0.44.0.
+The v0.43.0 release documents the intended API surface as a design contract.
+
 ## Reference Model Notes
 
 ESM and ProtBERT each have model-specific tokenizer expectations. The examples
 show safe JSON adaptation patterns, not a claim that bio-rs token IDs are a
 drop-in replacement for every model vocabulary. Confirm the target model
 contract before inference.
-
-## No PyO3
-
-No PyO3 binding is included. Keeping the boundary at JSON avoids Python ABI
-packaging complexity while the core Rust contracts are still maturing.

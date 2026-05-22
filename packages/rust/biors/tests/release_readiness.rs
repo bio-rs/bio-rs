@@ -272,7 +272,7 @@ fn python_interop_examples_are_present_and_dependency_light() {
     }
 
     let docs = fs::read_to_string(repo.join("docs/python-interop.md")).expect("read Python docs");
-    for expected in ["ESM", "ProtBERT", "pandas", "NumPy", "No PyO3"] {
+    for expected in ["ESM", "ProtBERT", "pandas", "NumPy", "PyO3"] {
         assert!(
             docs.contains(expected),
             "Python interop docs missing {expected}"

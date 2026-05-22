@@ -20,8 +20,17 @@ reports for invalid direct byte input. They do not assume that a caller-created
 The CLI still rejects invalid UTF-8 FASTA input as `io.read_failed` because
 FASTA reader paths are UTF-8 text contracts.
 
-## Optional Proof Of Concept
+## WASM API Design
 
-The current proof is compile-level: `cargo check -p biors-core --target
-wasm32-unknown-unknown --all-features`. A runtime WASM package is intentionally
-deferred until the core input and package contracts settle further.
+The browser-safe WASM API surface is documented in [docs/wasm-api.md](wasm-api.md).
+It covers:
+
+- `npm install @bio-rs/core-wasm`
+- Initialization and module loading
+- FASTA parsing, validation, tokenization, model input, workflow
+- Package manifest validation and runtime bridge planning
+- TypeScript interfaces for all exported types
+- Browser limitations (no filesystem, no external process)
+
+The actual `@bio-rs/core-wasm` npm package is planned for v0.45.0.
+The v0.43.0 release documents the intended API surface as a design contract.
