@@ -31,6 +31,15 @@ backend is a controlled adapter boundary for researchers who already have a
 local executable that can consume bio-rs model-input JSON and return a stable
 bio-rs execution result.
 
+The `0.40.0` scope adds an optional Candle backend crate:
+
+- `biors-backend-candle`
+- CPU safetensors loading through Candle
+- a deterministic linear-probe adapter for `ModelInput` JSON
+- a Candle-specific Criterion benchmark
+- no Candle dependency in `biors-core`
+- no backend-enabled CLI binary artifact by default
+
 ## Runtime Contracts
 
 `Backend` owns three responsibilities:
@@ -142,13 +151,13 @@ stdout and stderr from external tools as untrusted process output.
 
 ## Crate Split Review
 
-`crates/biors-runtime` is still not introduced in `0.39.0`.
+`crates/biors-runtime` is still not introduced in `0.40.0`.
 
 Rationale:
 
 - the runtime surface is still coupled to `biors-core` model-input and package
   compatibility work
-- the only implementation is a dependency-light external process adapter
+- the dependency-heavy Candle integration is isolated in `biors-backend-candle`
 - adding a crate now would add release coordination without reducing dependency
   weight for users
 
@@ -164,8 +173,9 @@ with heavier dependencies.
 
 Concrete backend work belongs in later versions:
 
-- `0.40.0`: optional Candle integration outside the default build
 - `0.41.0`: model artifact metadata and backend compatibility checks
 
-Until those versions land, package runtime bridge reports remain planning and
-compatibility surfaces, not proof that built-in inference was executed.
+Until the compatibility and artifact phases land, package runtime bridge reports
+remain planning and compatibility surfaces. Candle execution is available only
+through the optional backend crate and is not wired into package manifests or
+the default CLI binary.

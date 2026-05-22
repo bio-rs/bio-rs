@@ -35,6 +35,7 @@ The following surfaces are candidates for stabilization before the first stable 
 - `validate_package_manifest_artifacts`
 - `PackageManifest`, `PipelineConfigArtifact`, `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
 - `Backend`, `BackendConfig`, `BackendCapabilities`, `BackendCompatibilityReport`, `RuntimeCompatibilityIssue`, `RuntimeCompatibilityIssueCode`, `ExecutionContext`, `ExecutionResult`, `BackendExecutionError`, `ExternalProcessBackend`, `ExternalProcessConfig`
+- `biors-backend-candle`: `CandleBackend`, `CandleBackendConfig`, `CandleDevice`, `CandleInferenceOutput`, `CANDLE_MODEL_INPUT_FORMAT`, `CANDLE_OUTPUT_FORMAT`
 - `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
 - `BioRsError::code`
 
@@ -81,8 +82,10 @@ The following surfaces are candidates for stabilization before the first stable 
 
 ## Not Yet Stable
 
-- runtime bridge provider expansion beyond `onnx-webgpu`
+- package runtime bridge provider expansion beyond the current `onnx-webgpu`
+  planning target
 - concrete runtime backend implementations beyond the external process adapter
+  and optional Candle linear-probe crate
 - larger fixture verification formats
 - benchmark claims beyond the recorded baseline workload
 - independent `biors-core` and `biors` versioning outside isolated post-1.0 patch releases

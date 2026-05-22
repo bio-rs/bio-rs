@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.39.0
+cargo install biors --version 0.40.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -127,6 +127,7 @@ shape.
 - Python project to bio-rs package skeleton conversion
 - Runtime bridge planning reports, backend execution abstraction contracts, and
   guarded external-process backend adapters
+- Optional Candle backend crate for CPU safetensors linear-probe inference
 - Typed validation issue codes and manifest enums
 
 ### Utilities
@@ -144,6 +145,7 @@ shape.
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
 - [Backend architecture](docs/backend-architecture.md) — runtime abstraction boundary
+- [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)
@@ -163,7 +165,7 @@ These are roadmap directions, not current capabilities:
 
 - hosted web workflows
 - Python bindings
-- model inference backends
+- pretrained model-specific inference backends
 - package registry or plugin ecosystem
 - general-purpose chemistry tooling
 - structure tooling
@@ -226,8 +228,9 @@ cargo run -p biors-core --example tokenize
 ```txt
 packages/
   rust/
-    biors/       CLI
-    biors-core/  Core engine + contracts
+    biors/                 CLI
+    biors-backend-candle/  Optional Candle runtime backend
+    biors-core/            Core engine + contracts
 
 schemas/
   batch-validation-output.v0.json
