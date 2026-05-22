@@ -161,7 +161,7 @@ stdout and stderr from external tools as untrusted process output.
 
 ## Crate Split Review
 
-`crates/biors-runtime` is still not introduced in `0.40.0`.
+`crates/biors-runtime` is still not introduced in `0.41.0`.
 
 Rationale:
 
