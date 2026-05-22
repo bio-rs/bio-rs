@@ -1,6 +1,7 @@
 use super::{
     ModelArtifactMetadata, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion,
 };
+use crate::runtime::BackendConfig;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -118,6 +119,7 @@ pub struct RuntimeBridgeReport {
     pub target: RuntimeTargetPlatform,
     pub model_format: ModelFormat,
     pub model_metadata: Option<ModelArtifactMetadataSummary>,
+    pub backend_config: BackendConfig,
     pub execution_provider: String,
     pub compatibility_checks: Vec<BackendCompatibilityCheck>,
     pub blocking_issues: Vec<String>,

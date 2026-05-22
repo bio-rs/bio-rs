@@ -9,6 +9,7 @@
     "target",
     "model_format",
     "model_metadata",
+    "backend_config",
     "execution_provider",
     "compatibility_checks",
     "blocking_issues"
@@ -19,6 +20,7 @@
     "target": { "type": "string" },
     "model_format": { "type": "string" },
     "model_metadata": { "$ref": "#/$defs/modelArtifactMetadata" },
+    "backend_config": { "$ref": "#/$defs/backendConfig" },
     "execution_provider": { "type": "string" },
     "compatibility_checks": {
       "type": "array",
@@ -28,6 +30,17 @@
     "blocking_issues": { "type": "array", "items": { "type": "string" } }
   },
   "$defs": {
+    "backendConfig": {
+      "type": "object",
+      "required": ["backend_id", "provider"],
+      "properties": {
+        "backend_id": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] },
+        "model_artifact": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "modelArtifactMetadata": {
       "type": ["object", "null"],
       "required": ["name"],

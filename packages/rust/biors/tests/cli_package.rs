@@ -178,6 +178,16 @@ fn package_bridge_outputs_runtime_plan() {
         value["data"]["model_metadata"]["name"],
         "protein-seed-linear-probe"
     );
+    assert_eq!(
+        value["data"]["backend_config"]["backend_id"],
+        "protein-seed:onnx-webgpu"
+    );
+    assert_eq!(value["data"]["backend_config"]["provider"], "webgpu");
+    assert_eq!(value["data"]["backend_config"]["version"], "onnx-webgpu.v0");
+    assert_eq!(
+        value["data"]["backend_config"]["model_artifact"],
+        "models/protein-seed.onnx"
+    );
     assert_eq!(value["data"]["execution_provider"], "webgpu");
     assert_eq!(
         value["data"]["compatibility_checks"][0]["code"],

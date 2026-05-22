@@ -365,6 +365,16 @@ fn plans_supported_onnx_webgpu_runtime_bridge() {
     assert_eq!(report.backend, RuntimeBackend::OnnxWebgpu);
     assert_eq!(report.target, RuntimeTargetPlatform::BrowserWasmWebgpu);
     assert_eq!(report.model_format, ModelFormat::Onnx);
+    assert_eq!(report.backend_config.backend_id, "protein-seed:onnx-webgpu");
+    assert_eq!(report.backend_config.provider, "webgpu");
+    assert_eq!(
+        report.backend_config.version.as_deref(),
+        Some("onnx-webgpu.v0")
+    );
+    assert_eq!(
+        report.backend_config.model_artifact.as_deref(),
+        Some("models/protein-seed.onnx")
+    );
     assert_eq!(report.execution_provider, "webgpu");
     assert!(report
         .compatibility_checks

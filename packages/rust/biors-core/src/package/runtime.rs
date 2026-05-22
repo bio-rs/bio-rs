@@ -15,6 +15,20 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
             .map(|check| check.message.clone()),
     );
 
+    let backend_id = format!("{}:{}", manifest.name, manifest.runtime.backend);
+    let provider = execution_provider(manifest);
+    let version = manifest
+        .runtime
+        .version
+        .clone()
+        .or_else(|| Some(format!("{}.v0", manifest.runtime.backend)));
+    let backend_config = crate::runtime::BackendConfig {
+        backend_id,
+        provider: provider.clone(),
+        version,
+        model_artifact: Some(manifest.model.path.clone()),
+    };
+
     RuntimeBridgeReport {
         ready: blocking_issues.is_empty(),
         backend: manifest.runtime.backend,
@@ -25,7 +39,8 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
             .metadata
             .as_ref()
             .map(ModelArtifactMetadataSummary::from),
-        execution_provider: execution_provider(manifest),
+        backend_config,
+        execution_provider: provider,
         compatibility_checks,
         blocking_issues,
     }
