@@ -2,7 +2,7 @@
 
 The `@bio-rs/core-wasm` package exposes a browser-safe subset of `biors-core` as a WebAssembly module. You can parse FASTA, validate sequences, tokenize proteins, build model inputs, inspect package manifests, and plan runtime bridges, all without leaving the browser.
 
-> **Status:** The WASM binding API is documented here as a **design contract for v0.43.0**. The actual `@bio-rs/core-wasm` npm package and `biors-wasm` crate are planned for the v0.45.0 release cycle. Until then, `biors-core` already compiles for `wasm32-unknown-unknown`, which proves the subset is browser-safe at the type level.
+> **Status:** The `biors-wasm` crate and `@bio-rs/biors-wasm` npm package were implemented in v0.45.0. `biors-core` continues to compile for `wasm32-unknown-unknown`, and the WASM binding layer is now available for browser and Node.js consumers.
 
 ---
 

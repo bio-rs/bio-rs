@@ -1,6 +1,6 @@
 # biors-core Rust API Reference
 
-Version: 0.44.0
+Version: 0.45.0
 
 This document is the comprehensive public API reference for `biors-core`, the Rust engine behind bio-rs. It covers every public module, type, trait, and function exposed by the crate.
 
@@ -39,7 +39,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-biors-core = "0.44.0"
+biors-core = "0.45.0"
 ```
 
 The crate depends on:
@@ -128,7 +128,7 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 
 ### Module: `fasta_scan`
 
-The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.44.0, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
+The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.45.0, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
 
 ### Module: `hash`
 
@@ -893,4 +893,4 @@ The `examples/python/` directory in the repository contains reference scripts sh
 
 ---
 
-This document reflects the public API of `biors-core` as of version 0.44.0. If you find a discrepancy between this reference and the source, the source is the authority.
+This document reflects the public API of `biors-core` as of version 0.45.0. If you find a discrepancy between this reference and the source, the source is the authority.

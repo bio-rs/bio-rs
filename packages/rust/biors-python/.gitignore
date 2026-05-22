@@ -1,0 +1,18 @@
+# Python binding artifacts
+*.so
+*.abi3.so
+*.pyd
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter notebooks (examples should be in docs/ or examples/ at repo root)
+*.ipynb
+
+# PyO3 / maturin build artifacts
+target/
+Cargo.lock
