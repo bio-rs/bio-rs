@@ -1,8 +1,9 @@
 # Backend Architecture
 
-Phase 7 starts with an execution abstraction in `biors-core::runtime`.
+Phase 7 starts with execution contracts and guarded local backend integration in
+`biors-core::runtime`.
 
-The `0.38.0` scope is intentionally narrow:
+The `0.38.0` scope introduced the core contracts:
 
 - define the `Backend` trait
 - define `BackendConfig`
@@ -13,8 +14,22 @@ The `0.38.0` scope is intentionally narrow:
 - define preflight compatibility reporting before execution
 - keep concrete backend implementations out of the default build
 
-This version does not run model inference. It creates the contract that future
-backends must implement.
+The `0.39.0` scope adds a guarded external-process backend for adapters that
+already exist as local tools, scripts, or research binaries:
+
+- `ExternalProcessBackend`
+- `ExternalProcessConfig`
+- direct process execution without shell interpolation
+- JSON stdin/stdout protocol for `ExecutionContext` and `ExecutionResult`
+- timeout enforcement
+- bounded stdout and stderr capture
+- non-zero exit, invalid output, and process I/O error codes
+- process timing and byte-count metadata on successful results
+
+This still does not add a built-in model inference engine. The external process
+backend is a controlled adapter boundary for researchers who already have a
+local executable that can consume bio-rs model-input JSON and return a stable
+bio-rs execution result.
 
 ## Runtime Contracts
 
@@ -50,33 +65,107 @@ stable `BackendExecutionError` before backend-specific execution starts. Backend
 authors should expose the checked path to callers unless they have already
 performed equivalent validation at a higher layer.
 
+## External Process Backend
+
+`ExternalProcessBackend` runs one configured child process per execution. The
+child receives a serialized `ExecutionContext` on stdin and must write a
+serialized `ExecutionResult` to stdout.
+
+The backend intentionally avoids shell execution. `ExternalProcessConfig.program`
+and `ExternalProcessConfig.args` are passed directly to the operating system, so
+paths and arguments are not interpreted through shell quoting, expansion, pipes,
+or redirection.
+
+`ExternalProcessConfig` defaults are conservative:
+
+- parent environment is not inherited
+- only explicitly listed environment variables are passed to the child
+- one execution has a wall-clock timeout
+- stdout and stderr are drained with byte limits
+- stderr content is not copied into process-exit error messages
+
+The invocation contract is intentionally small:
+
+- stdin: one JSON `ExecutionContext`
+- stdout: one JSON `ExecutionResult`
+- stderr: unstructured diagnostic output, counted but not copied into stable
+  errors
+- exit status: zero means stdout is parsed; non-zero maps to
+  `runtime.process_exit_failed`
+
+If a child exits before reading stdin, the backend reports the process exit
+failure instead of masking it behind a broken-pipe write. Stream limit failures
+are reported before JSON parsing or process-exit details so oversized output is
+classified as a resource-policy failure.
+
+## Observability Draft
+
+Successful results receive wrapper metadata:
+
+- `external_process.elapsed_millis`
+- `external_process.stdout_bytes`
+- `external_process.stderr_bytes`
+- `external_process.exit_status`
+
+These values are intended for trace correlation and operational diagnostics.
+They are not benchmark claims.
+
+The caller-supplied `ExecutionContext.trace_id` is propagated through successful
+results when the child omits a trace identifier. Failed executions return stable
+`BackendExecutionError` codes that include the backend id for log correlation.
+
+## Security Boundary
+
+The external process backend is a process-control boundary, not a full sandbox.
+It prevents shell interpolation, constrains inherited environment by default,
+enforces timeout, and bounds captured output.
+
+Current resource policy:
+
+- wall-clock timeout is enforced per execution
+- stdout and stderr bytes are bounded and drained before classification
+- CPU, memory, GPU, network, and file descriptor limits are not enforced by
+  bio-rs
+
+Current environment and file-access policy:
+
+- parent environment is not inherited unless explicitly configured
+- child environment variables must be explicitly listed when inheritance is off
+- `current_dir` only selects the child working directory; it is not a file
+  sandbox
+- bio-rs does not implement seccomp, container isolation, chroot, network
+  filtering, filesystem allowlists, or GPU policy
+
+Run untrusted adapters inside an OS sandbox, container, virtual machine, or
+cluster policy before exposing them to user-supplied biological data. Treat
+stdout and stderr from external tools as untrusted process output.
+
 ## Crate Split Review
 
-`crates/biors-runtime` is not introduced in `0.38.0`.
+`crates/biors-runtime` is still not introduced in `0.39.0`.
 
 Rationale:
 
-- the abstraction is still small and coupled to `biors-core` model-input and
-  package compatibility work
-- there is no independently published runtime implementation yet
+- the runtime surface is still coupled to `biors-core` model-input and package
+  compatibility work
+- the only implementation is a dependency-light external process adapter
 - adding a crate now would add release coordination without reducing dependency
   weight for users
 
-The code is isolated under `packages/rust/biors-core/src/runtime.rs` so a future
-split can move the contracts without dragging package, CLI, or benchmark code
-into a backend crate.
+The code is isolated under `packages/rust/biors-core/src/runtime/` so a future
+split can move the contracts and adapters without dragging package, CLI, or
+benchmark code into a backend crate.
 
-Revisit the split when at least one concrete backend exists outside
-`biors-core`, such as an external process backend or an optional Candle backend.
+Revisit the split when at least one concrete backend needs to live outside
+`biors-core`, such as an optional Candle backend or a provider-specific adapter
+with heavier dependencies.
 
 ## Backend Boundaries
 
 Concrete backend work belongs in later versions:
 
-- `0.39.0`: external process invocation, stdout/stderr/result parsing, timeout
-  and sandbox policy
 - `0.40.0`: optional Candle integration outside the default build
 - `0.41.0`: model artifact metadata and backend compatibility checks
 
 Until those versions land, package runtime bridge reports remain planning and
-compatibility surfaces, not proof that inference was executed.
+compatibility surfaces, not proof that built-in inference was executed.

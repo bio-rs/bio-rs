@@ -85,6 +85,13 @@ They are not emitted by the CLI until a concrete backend command exists.
 - `runtime.unsupported_output`: a backend does not produce the requested output payload format
 - `runtime.payload_too_large`: a backend payload exceeds the declared byte limit
 - `runtime.execution_failed`: a backend failed while handling an execution context
+- `runtime.process_spawn_failed`: an external process backend could not start the configured program
+- `runtime.process_io_failed`: an external process backend failed while writing stdin, reading output, or waiting for the child
+- `runtime.process_timeout`: an external process exceeded the configured wall-clock timeout and was terminated
+- `runtime.process_exit_failed`: an external process exited with a non-zero status
+- `runtime.process_stdout_too_large`: an external process wrote more stdout than the configured result limit
+- `runtime.process_stderr_too_large`: an external process wrote more stderr than the configured diagnostic limit
+- `runtime.process_invalid_output`: an external process stdout payload was not a valid `ExecutionResult` JSON document
 
 ## Pipeline
 
