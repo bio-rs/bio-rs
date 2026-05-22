@@ -78,6 +78,50 @@ Package metadata is intentionally explicit. A researcher should be able to
 inspect the package and know whether the artifact can be redistributed, how to
 cite it, and what the model card says before running inference.
 
+## Model Artifact Metadata
+
+Package manifests can attach optional model artifact metadata directly to the
+`model` section:
+
+```json
+{
+  "model": {
+    "format": "onnx",
+    "path": "models/protein-seed.onnx",
+    "checksum": "sha256:...",
+    "metadata": {
+      "name": "protein-seed-linear-probe",
+      "version": "fixture-0",
+      "architecture": "linear-probe",
+      "task": "classification",
+      "source": "local-fixture",
+      "description": "Tiny deterministic package fixture model."
+    }
+  }
+}
+```
+
+`metadata.name` is required when the metadata object is present. The remaining
+fields are optional and are intended for inspect output, bridge planning, and
+future package registry surfaces. They are descriptive metadata, not execution
+instructions.
+
+## Runtime Compatibility
+
+`biors package bridge` now reports deterministic compatibility checks between
+the model artifact format and the declared runtime backend/target pair. Current
+planning pairs are:
+
+| Model format | Runtime backend | Runtime target | Execution provider |
+| --- | --- | --- | --- |
+| `onnx` | `onnx-webgpu` | `browser-wasm-webgpu` | `webgpu` |
+| `safetensors` | `candle` | `local-cpu` | `candle-cpu` |
+
+An incompatible pair, such as `onnx` with `candle/local-cpu`, produces a
+blocking issue in the bridge report. This is a compatibility contract only; it
+does not launch a browser, start a service, or link the optional Candle backend
+into the default CLI binary.
+
 Preprocessing steps may also reference a checked pipeline config artifact:
 
 ```json
@@ -113,8 +157,8 @@ intended-use, and limitations.
 `biors tokenizer convert-hf`, `biors package init`, and
 `biors package convert-project` cover the Python/Hugging Face project path.
 They write package layout, tokenizer config, pipeline config, docs, fixture
-references, and checksums without importing model artifact metadata beyond
-path and SHA-256. See [Package Conversion](package-conversion.md).
+references, and checksums while leaving optional `model.metadata` for the
+package author to fill in. See [Package Conversion](package-conversion.md).
 
 `biors package compatibility <left-manifest> <right-manifest>` reports the
 schema transition from left to right, whether a migration is required, and

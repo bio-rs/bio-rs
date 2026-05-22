@@ -14,6 +14,7 @@ fn minimal_manifest() -> PackageManifest {
             format: ModelFormat::Onnx,
             path: "model.onnx".into(),
             checksum: None,
+            metadata: None,
         },
         tokenizer: None,
         vocab: None,
@@ -43,6 +44,27 @@ fn validate_package_manifest_accepts_minimal_valid_manifest() {
     assert!(report.valid);
     assert!(report.issues.is_empty());
     assert!(report.structured_issues.is_empty());
+}
+
+#[test]
+fn validate_package_manifest_rejects_empty_model_metadata_name() {
+    let mut manifest = minimal_manifest();
+    manifest.model.metadata = Some(biors_core::package::ModelArtifactMetadata {
+        name: " ".into(),
+        version: None,
+        architecture: None,
+        task: None,
+        source: None,
+        description: None,
+    });
+
+    let report = validate_package_manifest(&manifest);
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::RequiredField
+            && issue.field == "model.metadata.name"
+    }));
 }
 
 #[test]

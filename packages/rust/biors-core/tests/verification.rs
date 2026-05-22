@@ -16,6 +16,7 @@ fn manifest() -> PackageManifest {
             format: ModelFormat::Onnx,
             path: "models/protein-seed.onnx".to_string(),
             checksum: None,
+            metadata: None,
         },
         tokenizer: None,
         vocab: None,

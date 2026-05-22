@@ -10,6 +10,9 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     push_required_issue(&mut report, "name", &manifest.name);
     validate_v1_contract(&mut report, manifest);
     push_required_issue(&mut report, "model.path", &manifest.model.path);
+    if let Some(metadata) = &manifest.model.metadata {
+        push_required_issue(&mut report, "model.metadata.name", &metadata.name);
+    }
     validate_fixture_list(&mut report, manifest);
     validate_optional_shape(
         &mut report,

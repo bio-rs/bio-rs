@@ -10,6 +10,7 @@
     "metadata",
     "model_format",
     "has_model_checksum",
+    "model_metadata",
     "runtime_backend",
     "runtime_target",
     "preprocessing_steps",
@@ -47,6 +48,19 @@
     },
     "model_format": { "type": "string" },
     "has_model_checksum": { "type": "boolean" },
+    "model_metadata": {
+      "type": ["object", "null"],
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] },
+        "architecture": { "type": ["string", "null"] },
+        "task": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "tokenizer": { "type": ["string", "null"] },
     "vocab": { "type": ["string", "null"] },
     "runtime_backend": { "type": "string" },

@@ -1,6 +1,7 @@
 use super::{
-    PackageDirectoryLayout, PackageDirectoryLayoutSummary, PackageLayoutSummary, PackageManifest,
-    PackageManifestSummary, PackageMetadata, PackageMetadataSummary,
+    ModelArtifactMetadataSummary, PackageDirectoryLayout, PackageDirectoryLayoutSummary,
+    PackageLayoutSummary, PackageManifest, PackageManifestSummary, PackageMetadata,
+    PackageMetadataSummary,
 };
 
 /// Build a compact summary of a package manifest for inspect-style output.
@@ -12,6 +13,11 @@ pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSu
         metadata: manifest.metadata.as_ref().map(metadata_summary),
         model_format: manifest.model.format,
         has_model_checksum: manifest.model.checksum.is_some(),
+        model_metadata: manifest
+            .model
+            .metadata
+            .as_ref()
+            .map(ModelArtifactMetadataSummary::from),
         tokenizer: manifest
             .tokenizer
             .as_ref()

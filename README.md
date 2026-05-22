@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.40.0
+cargo install biors --version 0.41.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -128,6 +128,8 @@ shape.
 - Runtime bridge planning reports, backend execution abstraction contracts, and
   guarded external-process backend adapters
 - Optional Candle backend crate for CPU safetensors linear-probe inference
+- Model artifact metadata and runtime/model compatibility checks in package
+  bridge reports
 - Typed validation issue codes and manifest enums
 
 ### Utilities

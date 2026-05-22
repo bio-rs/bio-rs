@@ -55,16 +55,16 @@ configured backend id.
 
 ## Device And Feature Policy
 
-The `0.40.0` backend supports CPU execution. CUDA, Metal, Accelerate, MKL, and
-other device-specific Candle features remain out of the default workspace build.
-Those should be added behind explicit crate features only after platform CI and
-artifact policy are defined.
+The backend currently supports CPU execution. CUDA, Metal, Accelerate, MKL,
+and other device-specific Candle features remain out of the default workspace
+build. Those should be added behind explicit crate features only after platform
+CI and artifact policy are defined.
 
 ## Core And CLI Separation
 
 `biors-core` does not depend on Candle. The `biors` CLI does not link this
 backend by default and no backend-enabled binary artifact is produced in
-`0.40.0`.
+`0.41.0`.
 
 Rationale:
 

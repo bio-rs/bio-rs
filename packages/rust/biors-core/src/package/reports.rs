@@ -1,4 +1,6 @@
-use super::{ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion};
+use super::{
+    ModelArtifactMetadata, ModelFormat, RuntimeBackend, RuntimeTargetPlatform, SchemaVersion,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -10,6 +12,7 @@ pub struct PackageManifestSummary {
     pub metadata: Option<PackageMetadataSummary>,
     pub model_format: ModelFormat,
     pub has_model_checksum: bool,
+    pub model_metadata: Option<ModelArtifactMetadataSummary>,
     pub tokenizer: Option<String>,
     pub vocab: Option<String>,
     pub runtime_backend: RuntimeBackend,
@@ -40,6 +43,22 @@ pub struct PackageMetadataSummary {
     pub license: String,
     pub citation: String,
     pub model_card: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Compact model artifact metadata returned by inspect and runtime planning.
+pub struct ModelArtifactMetadataSummary {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub architecture: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -97,8 +116,32 @@ pub struct RuntimeBridgeReport {
     pub ready: bool,
     pub backend: RuntimeBackend,
     pub target: RuntimeTargetPlatform,
+    pub model_format: ModelFormat,
+    pub model_metadata: Option<ModelArtifactMetadataSummary>,
     pub execution_provider: String,
+    pub compatibility_checks: Vec<BackendCompatibilityCheck>,
     pub blocking_issues: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// One deterministic runtime compatibility decision.
+pub struct BackendCompatibilityCheck {
+    pub code: String,
+    pub passed: bool,
+    pub message: String,
+}
+
+impl From<&ModelArtifactMetadata> for ModelArtifactMetadataSummary {
+    fn from(metadata: &ModelArtifactMetadata) -> Self {
+        Self {
+            name: metadata.name.clone(),
+            version: metadata.version.clone(),
+            architecture: metadata.architecture.clone(),
+            task: metadata.task.clone(),
+            source: metadata.source.clone(),
+            description: metadata.description.clone(),
+        }
+    }
 }
 
 impl PackageValidationReport {

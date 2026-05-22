@@ -13,18 +13,24 @@ pub enum SchemaVersion {
 pub enum ModelFormat {
     #[serde(rename = "onnx")]
     Onnx,
+    #[serde(rename = "safetensors")]
+    Safetensors,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RuntimeBackend {
     #[serde(rename = "onnx-webgpu")]
     OnnxWebgpu,
+    #[serde(rename = "candle")]
+    Candle,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RuntimeTargetPlatform {
     #[serde(rename = "browser-wasm-webgpu")]
     BrowserWasmWebgpu,
+    #[serde(rename = "local-cpu")]
+    LocalCpu,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +60,7 @@ impl fmt::Display for ModelFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::Onnx => "onnx",
+            Self::Safetensors => "safetensors",
         })
     }
 }
@@ -62,6 +69,7 @@ impl fmt::Display for RuntimeBackend {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::OnnxWebgpu => "onnx-webgpu",
+            Self::Candle => "candle",
         })
     }
 }
@@ -70,6 +78,7 @@ impl fmt::Display for RuntimeTargetPlatform {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::BrowserWasmWebgpu => "browser-wasm-webgpu",
+            Self::LocalCpu => "local-cpu",
         })
     }
 }

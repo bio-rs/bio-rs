@@ -3,13 +3,54 @@
   "$id": "https://bio-rs.dev/schemas/package-bridge-output.v0.json",
   "title": "bio-rs package bridge data payload",
   "type": "object",
-  "required": ["ready", "backend", "target", "execution_provider", "blocking_issues"],
+  "required": [
+    "ready",
+    "backend",
+    "target",
+    "model_format",
+    "model_metadata",
+    "execution_provider",
+    "compatibility_checks",
+    "blocking_issues"
+  ],
   "properties": {
     "ready": { "type": "boolean" },
     "backend": { "type": "string" },
     "target": { "type": "string" },
+    "model_format": { "type": "string" },
+    "model_metadata": { "$ref": "#/$defs/modelArtifactMetadata" },
     "execution_provider": { "type": "string" },
+    "compatibility_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/compatibilityCheck" }
+    },
     "blocking_issues": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "modelArtifactMetadata": {
+      "type": ["object", "null"],
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] },
+        "architecture": { "type": ["string", "null"] },
+        "task": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "compatibilityCheck": {
+      "type": "object",
+      "required": ["code", "passed", "message"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": false
 }

@@ -110,6 +110,7 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
             format: ModelFormat::Onnx,
             path: model_rel.clone(),
             checksum: Some(file_sha256(&request.output_dir.join(&model_rel))?),
+            metadata: None,
         },
         tokenizer: Some(tokenizer_asset),
         vocab: None,
