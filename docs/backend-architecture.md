@@ -172,7 +172,8 @@ stdout and stderr from external tools as untrusted process output.
 
 ## Crate Split Review
 
-`crates/biors-runtime` is still not introduced in `0.41.0`.
+`crates/biors-runtime` is still not introduced in the current Phase 7 release
+line.
 
 Rationale:
 
@@ -186,16 +187,11 @@ The code is isolated under `packages/rust/biors-core/src/runtime/` so a future
 split can move the contracts and adapters without dragging package, CLI, or
 benchmark code into a backend crate.
 
-Revisit the split when at least one concrete backend needs to live outside
-`biors-core`, such as an optional Candle backend or a provider-specific adapter
-with heavier dependencies.
+Revisit the split when more than one concrete backend needs shared runtime
+infrastructure outside `biors-core`, or when a provider-specific adapter needs
+heavier dependencies that do not belong in the core crate.
 
 ## Backend Boundaries
-
-Concrete backend work belongs in later versions:
-
-- later phases may add backend-specific CLI wiring once package
-  compatibility and artifact contracts are stable
 
 Package runtime bridge reports remain planning and compatibility surfaces.
 Candle execution is available only through the optional backend crate and is not

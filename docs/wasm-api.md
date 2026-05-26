@@ -1,203 +1,162 @@
 # WASM API
 
-The `@bio-rs/core-wasm` package exposes a browser-safe subset of `biors-core` as a WebAssembly module. You can parse FASTA, validate sequences, tokenize proteins, build model inputs, inspect package manifests, and plan runtime bridges, all without leaving the browser.
+`@bio-rs/biors-wasm` exposes a browser-safe and Node.js-safe subset of
+`biors-core` as a WebAssembly module. It supports FASTA parsing, sequence
+validation, protein tokenization, model-input construction, and the standard
+protein preprocessing workflow.
 
-> **Status:** The `biors-wasm` crate and `@bio-rs/biors-wasm` npm package were implemented in v0.45.0. `biors-core` continues to compile for `wasm32-unknown-unknown`, and the WASM binding layer is now available for browser and Node.js consumers.
-
----
+> **Status:** The `biors-wasm` crate is implemented in this repository. npm
+> publishing is tracked separately from the Rust crates.io release workflow.
 
 ## Installation
 
 ```bash
-npm install @bio-rs/core-wasm
+npm install @bio-rs/biors-wasm
 ```
 
-The package contains the compiled `.wasm` binary, JS glue, and TypeScript definitions. No external runtime dependencies are required.
-
----
+The package contains the `.wasm` binary, JS glue, and TypeScript declarations.
+No hosted service or external runtime is required.
 
 ## Initialization
 
-Every application must call the async `init` function once before using any other API. This fetches and instantiates the WebAssembly module.
+Call `init` once before using the exported functions.
 
 ```javascript
-import init, { parseFasta, validateFasta } from '@bio-rs/core-wasm';
+import init, { parseFasta } from "@bio-rs/biors-wasm";
 
-async function main() {
-  await init();
+await init();
 
-  const records = parseFasta('>seq1\nACDEFGHIKLMNPQRSTVWY\n');
-  console.log(records);
-}
-
-main();
+const bytes = new TextEncoder().encode(">seq1\nACDEFGHIKLMNPQRSTVWY\n");
+const records = parseFasta(bytes);
+console.log(records[0].id);
 ```
 
-In bundlers like Vite, Webpack, or Rollup, `init` resolves the `.wasm` file automatically through the package's JS glue. In Node.js or test runners, you may need to pass an explicit path or buffer.
-
----
+Bundlers such as Vite, Webpack, and Rollup usually resolve the `.wasm` asset
+through the generated package glue. Node.js and custom test runners may need to
+pass an explicit module path or buffer to `init`.
 
 ## API Reference
 
-### `fasta`
+### `parseFasta(bytes: Uint8Array): FastaRecord[]`
 
-Parse and validate FASTA text.
-
-#### `parseFasta(fastaText: string): ProteinSequence[]`
-
-Parse a FASTA string into an array of protein sequence records. Returns an empty array when the input is empty or contains no valid records. Throws `BioRsError` on malformed FASTA that cannot be structurally parsed.
+Parses UTF-8 FASTA bytes into records.
 
 ```javascript
 const records = parseFasta(
-  '>sp|P12345|AATM_RABIT\nACDEFGHIKLMNPQRSTVWY\n>sp|P67890|AATM_MOUSE\nMKWLLKGLA\n'
+  new TextEncoder().encode(">sp|P01308|INS_HUMAN\nMALWMRLLPLLALLALWGPDPAAA\n")
 );
 ```
 
-#### `validateFasta(fastaText: string, kind: string): ValidationReport`
-
-Validate FASTA text for a specific sequence kind. `kind` accepts `"protein"`, `"dna"`, `"rna"`, or `"auto"`. The report contains per-record diagnostics, residue-level issues, and a top-level `valid` boolean.
-
-```javascript
-const report = validateFasta('>seq1\nACDEFGHIKLMNPQRSTVWY\n', 'protein');
-console.log(report.valid);   // true
-console.log(report.records); // per-record details
-```
-
----
-
-### `tokenizer`
-
-Tokenize protein sequences into stable integer IDs.
-
-#### `tokenize(records: ProteinSequence[], profile: string): TokenizedRecord[]`
-
-Tokenize an array of parsed protein sequences using a named profile. Built-in profiles include `"protein-20"` and `"protein-20-special"`.
-
-```javascript
-const tokenized = tokenize(records, 'protein-20-special');
-console.log(tokenized[0].tokens); // [2, 3, 4, ...]
-```
-
-The `"protein-20-special"` profile emits special tokens for CLS, SEP, PAD, MASK, and UNK. Token IDs are stable across versions for the same profile name.
-
----
-
-### `modelInput`
-
-Build padded, truncated, model-ready inputs from tokenized records.
-
-#### `buildModelInput(tokenized: TokenizedRecord[], maxLength: number): ModelInput`
-
-Convert tokenized records into a batch-ready `ModelInput` object with `input_ids`, `attention_mask`, and truncation metadata. Sequences longer than `maxLength` are truncated from the right. Shorter sequences are padded to `maxLength` using the profile's PAD token.
-
-```javascript
-const modelInput = buildModelInput(tokenized, 512);
-console.log(modelInput.records[0].input_ids);
-console.log(modelInput.records[0].attention_mask);
-```
-
----
-
-### `workflow`
-
-Run end-to-end validation, tokenization, and model-input preparation in a single call.
-
-#### `runWorkflow(config: WorkflowConfig): WorkflowOutput`
-
-Execute the standard protein model-input workflow. The config accepts the FASTA text, tokenizer profile, and model-input policy. The output includes parsed records, tokenized records, model-ready inputs, readiness issues, and provenance metadata.
-
-```javascript
-const output = runWorkflow({
-  fastaText: '>seq1\nACDEFGHIKLMNPQRSTVWY\n',
-  profile: 'protein-20-special',
-  maxLength: 512,
-});
-
-console.log(output.modelInput.records[0].input_ids);
-console.log(output.provenance.inputHash);
-console.log(output.readinessIssues);
-```
-
----
-
-### `package`
-
-Validate and inspect bio-rs package manifests in the browser.
-
-#### `validateManifest(manifestJson: string): ValidationReport`
-
-Validate a package manifest JSON string against the bio-rs package schema. Returns a structured report with typed issue codes, severity levels, and paths into the manifest.
-
-```javascript
-const report = validateManifest(manifestJson);
-console.log(report.valid);
-console.log(report.issues);
-```
-
-#### `planRuntimeBridge(manifestJson: string): RuntimeBridgeReport`
-
-Plan a runtime bridge from a package manifest. The report describes backend compatibility, model artifact metadata, runtime target alignment, and any capability gaps between the manifest's declared runtime and the current environment.
-
-```javascript
-const bridge = planRuntimeBridge(manifestJson);
-console.log(bridge.compatible);
-console.log(bridge.backendCapabilities);
-```
-
----
-
-## TypeScript Interfaces
-
-These interfaces describe the serde payloads returned by the WASM functions. They are maintained alongside the JSON schemas in `schemas/` and the Rust struct definitions in `biors-core`.
-
-### `ProteinSequence`
+Returned records contain:
 
 ```typescript
-interface ProteinSequence {
+interface FastaRecord {
   id: string;
-  description: string | null;
   sequence: string;
-  kind: 'protein' | 'dna' | 'rna' | 'unknown';
 }
 ```
 
-### `ValidationReport`
+### `validateFasta(bytes: Uint8Array, kind: string): ValidationReport`
+
+Validates FASTA bytes for `"protein"`, `"dna"`, `"rna"`, or `"auto"`.
+
+```javascript
+const report = validateFasta(bytes, "protein");
+console.log(report.valid_records, report.error_count);
+```
+
+The report shape matches the core sequence validation schema:
 
 ```typescript
-interface ValidationIssue {
-  code: string;
-  severity: 'error' | 'warning' | 'info';
+interface SequenceValidationIssue {
+  symbol: string;
+  position: number;
+  kind: "protein" | "dna" | "rna";
+  code: "ambiguous_symbol" | "invalid_symbol";
   message: string;
-  path: string | null;
-  line: number | null;
+}
+
+interface ValidatedSequence {
+  id: string;
+  sequence: string;
+  kind: "protein" | "dna" | "rna";
+  alphabet: string;
+  valid: boolean;
+  warnings: SequenceValidationIssue[];
+  errors: SequenceValidationIssue[];
 }
 
 interface ValidationReport {
-  valid: boolean;
-  records: ValidationRecord[];
-  issues: ValidationIssue[];
-}
-
-interface ValidationRecord {
-  id: string;
-  valid: boolean;
-  kind: string;
-  issues: ValidationIssue[];
+  records: number;
+  valid_records: number;
+  warning_count: number;
+  error_count: number;
+  kind_counts: {
+    protein: number;
+    dna: number;
+    rna: number;
+  };
+  sequences: ValidatedSequence[];
 }
 ```
 
-### `TokenizedRecord`
+### `tokenize(records: FastaRecord[], profile: string): TokenizeOutput`
+
+Tokenizes parsed FASTA records with `"protein-20"` or
+`"protein-20-special"`.
+
+```javascript
+const tokenized = tokenize(records, "protein-20");
+console.log(tokenized.records[0].tokens);
+```
 
 ```typescript
+interface ResidueIssue {
+  residue: string;
+  position: number;
+}
+
 interface TokenizedRecord {
   id: string;
   tokens: number[];
-  tokenCount: number;
-  profile: string;
+  length: number;
+  alphabet: string;
+  valid: boolean;
+  warnings: ResidueIssue[];
+  errors: ResidueIssue[];
+}
+
+interface TokenizeOutput {
+  inputIds: number[][];
+  attentionMask: number[][];
+  ids: string[];
+  records: TokenizedRecord[];
 }
 ```
 
-### `ModelInput`
+### `buildModelInput(tokenized: TokenizedRecord[], maxLength: number): ModelInputOutput`
+
+Builds model-ready records with the compatibility default of no padding.
+
+```javascript
+const modelInput = buildModelInput(tokenized.records, 512);
+console.log(modelInput.records[0].input_ids);
+```
+
+### `buildModelInputWithPolicy(tokenized, maxLength, padTokenId, padding): ModelInputOutput`
+
+Builds model-ready records with an explicit padding policy.
+
+```javascript
+const modelInput = buildModelInputWithPolicy(
+  tokenized.records,
+  512,
+  0,
+  "fixed_length"
+);
+```
+
+`padding` must be `"no_padding"` or `"fixed_length"`.
 
 ```typescript
 interface ModelInputRecord {
@@ -205,208 +164,163 @@ interface ModelInputRecord {
   input_ids: number[];
   attention_mask: number[];
   truncated: boolean;
-  originalLength: number;
 }
 
-interface ModelInput {
+interface ModelInputOutput {
+  policy: {
+    max_length: number;
+    pad_token_id: number;
+    padding: "fixed_length" | "no_padding";
+  };
   records: ModelInputRecord[];
-  maxLength: number;
-  paddingTokenId: number;
 }
 ```
 
-### `WorkflowConfig`
+### `runWorkflow(config: WorkflowConfig): WorkflowOutput`
+
+Runs validation, tokenization, model-input generation, and reproducibility
+metadata generation in one call.
+
+```javascript
+const workflow = runWorkflow({
+  fastaBytes: bytes,
+  maxLength: 512,
+  padding: "fixed_length",
+  padTokenId: 0,
+});
+
+if (workflow.model_ready && workflow.model_input) {
+  console.log(workflow.model_input.records[0].input_ids);
+}
+
+console.log(workflow.provenance.input_hash);
+```
 
 ```typescript
 interface WorkflowConfig {
-  fastaText: string;
-  profile: string;
+  fastaBytes: Uint8Array;
+  kind?: "auto" | "protein" | "dna" | "rna";
+  profile?: "protein-20" | "protein-20-special";
   maxLength: number;
-}
-```
-
-### `WorkflowOutput`
-
-```typescript
-interface WorkflowProvenance {
-  inputHash: string;
-  profile: string;
-  timestamp: string;
-  version: string;
+  padding?: "fixed_length" | "no_padding";
+  padTokenId?: number;
 }
 
 interface WorkflowReadinessIssue {
   code: string;
-  severity: 'error' | 'warning';
+  id: string;
+  warning_count: number;
+  error_count: number;
   message: string;
 }
 
 interface WorkflowOutput {
-  records: ProteinSequence[];
-  tokenized: TokenizedRecord[];
-  modelInput: ModelInput;
-  provenance: WorkflowProvenance;
-  readinessIssues: WorkflowReadinessIssue[];
+  workflow: string;
+  model_ready: boolean;
+  validation: ValidationReport;
+  tokenization: {
+    summary: {
+      records: number;
+      total_length: number;
+      valid_records: number;
+      warning_count: number;
+      error_count: number;
+    };
+    records: TokenizedRecord[];
+  };
+  model_input: ModelInputOutput | null;
+  readiness_issues: WorkflowReadinessIssue[];
+  provenance: {
+    biors_core_version: string;
+    invocation: {
+      command: string;
+      arguments: string[];
+    };
+    input_hash: string;
+    normalization: string;
+    validation_alphabet: string;
+    tokenizer: {
+      name: string;
+      vocab_size: number;
+      unknown_token_id: number;
+      unknown_token_policy: string;
+    };
+    model_input_policy: {
+      max_length: number;
+      pad_token_id: number;
+      padding: "fixed_length" | "no_padding";
+    };
+    hashes: {
+      vocabulary_sha256: string;
+      output_data_sha256: string;
+    };
+  };
 }
 ```
 
-### `RuntimeBridgeReport`
-
-```typescript
-interface BackendCapabilitiesSummary {
-  backend: string;
-  target: string;
-  supportsFp16: boolean;
-  supportsWebGpu: boolean;
-}
-
-interface RuntimeBridgeReport {
-  compatible: boolean;
-  backendCapabilities: BackendCapabilitiesSummary;
-  modelArtifact: ModelArtifactMetadata | null;
-  issues: ValidationIssue[];
-}
-
-interface ModelArtifactMetadata {
-  name: string;
-  version: string;
-  architecture: string;
-  task: string;
-  source: string;
-}
-```
-
----
-
-## Browser Package Manifest Workflow
-
-Because the WASM build has no filesystem access, the browser-side workflow for package validation is slightly different from the CLI workflow:
-
-1. **JavaScript loads the files.** Use `fetch`, `FileReader`, or drag-and-drop to read `manifest.json` and any artifacts into memory as strings or `Uint8Array` buffers.
-2. **WASM validates the manifest.** Pass the manifest JSON string to `validateManifest`. The WASM side checks schema compliance, required fields, checksum formats, and cross-reference consistency.
-3. **JavaScript displays the report.** Render `ValidationReport.issues` in the UI. Because artifact contents are already in memory, you can verify SHA-256 hashes with standard Web Crypto APIs if needed.
-
-```javascript
-async function validatePackageInBrowser(manifestFile, artifactFiles) {
-  await init();
-
-  // 1. JS loads files
-  const manifestText = await manifestFile.text();
-
-  // 2. WASM validates manifest structure
-  const report = validateManifest(manifestText);
-
-  // 3. JS verifies artifact hashes with Web Crypto
-  for (const file of artifactFiles) {
-    const buffer = await file.arrayBuffer();
-    const hash = await crypto.subtle.digest('SHA-256', buffer);
-    // compare against manifest checksums
-  }
-
-  return report;
-}
-```
-
-This split keeps the Rust side focused on schema and policy logic while the browser handles I/O.
-
----
-
-## Limitations
-
-The WASM subset is intentionally smaller than the native Rust API. These capabilities are **not available** in the browser build:
-
-| Capability | Status in WASM | Reason |
-|---|---|---|
-| Filesystem access | Not available | Browsers have no `std::fs`. All input must be passed as in-memory strings or `Uint8Array`. |
-| External process spawning | Not available | Browsers cannot run `std::process::Command`. The `runtime` module is hidden. |
-| Network I/O | Not available | No `std::net`. Use `fetch` in JavaScript, then pass the result to WASM. |
-| Thread spawning | Not available | No `std::thread`. All computation is single-threaded inside the WASM module. |
-| Package artifact reads | Not available | `read_package_file` and `validate_package_manifest_artifacts` are hidden. JS must load bytes. |
-| Reader-based FASTA APIs | Not available | `parse_fasta_records_reader` and `validate_fasta_reader` require `BufRead`. Use string variants. |
-
-If you need any of these, use the `biors` CLI, the native Rust crate, or the planned Python bindings instead.
-
----
-
-## Performance Notes
-
-- **String vs. bytes:** For FASTA text under a few megabytes, passing a JavaScript `string` is fine. For very large FASTA files, consider loading the file as a `Uint8Array`, decoding it to a string in a worker, and then passing the string to WASM. The boundary cost is dominated by UTF-8 validation and copy, not by the Rust parse itself.
-- **Zero copy is not guaranteed:** `wasm-bindgen` copies data across the JS/WASM boundary. Large `ModelInput` batches will allocate on both sides.
-- **Tokenization is fast:** The protein-20 tokenizer is a small lookup table. In benchmarks, `biors-core` tokenizes at over 200 MB/s on native targets. Browser performance depends on the JS engine and WASM runtime but should be competitive with pure-JS tokenizers for typical inputs.
-- **Avoid repeated `init` calls:** `init` is idempotent in most glue layers, but calling it more than once wastes time. Initialize once at application startup.
-
----
+`kind` and `profile` are accepted in `WorkflowConfig` for API stability. The
+current workflow is the protein model-input workflow and uses protein
+validation plus the default core tokenizer internally.
 
 ## Complete Example
 
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>bio-rs WASM Demo</title>
-</head>
-<body>
-  <input type="file" id="fastaFile" accept=".fasta,.fa,.txt">
-  <pre id="output"></pre>
+```javascript
+import init, {
+  parseFasta,
+  validateFasta,
+  tokenize,
+  buildModelInputWithPolicy,
+  runWorkflow,
+} from "@bio-rs/biors-wasm";
 
-  <script type="module">
-    import init, {
-      parseFasta,
-      validateFasta,
-      tokenize,
-      buildModelInput,
-      runWorkflow,
-    } from '@bio-rs/core-wasm';
+await init();
 
-    async function main() {
-      await init();
+const fastaText = `>sp|P01308|INS_HUMAN
+MALWMRLLPLLALLALWGPDPAAA
+>sp|P68871|HBB_HUMAN
+MVHLTPEEKSAVTALWGKVNVDEVGGEALGR
+`;
+const bytes = new TextEncoder().encode(fastaText);
 
-      document.getElementById('fastaFile').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+const records = parseFasta(bytes);
+const validation = validateFasta(bytes, "protein");
 
-        const text = await file.text();
+if (validation.error_count > 0) {
+  throw new Error(`FASTA has ${validation.error_count} validation errors`);
+}
 
-        // Validate
-        const validation = validateFasta(text, 'auto');
-        if (!validation.valid) {
-          document.getElementById('output').textContent =
-            'Validation failed:\n' + JSON.stringify(validation.issues, null, 2);
-          return;
-        }
+const tokenized = tokenize(records, "protein-20");
+const modelInput = buildModelInputWithPolicy(
+  tokenized.records,
+  512,
+  0,
+  "fixed_length"
+);
 
-        // Parse and tokenize
-        const records = parseFasta(text);
-        const tokenized = tokenize(records, 'protein-20-special');
-        const modelInput = buildModelInput(tokenized, 512);
+const workflow = runWorkflow({
+  fastaBytes: bytes,
+  maxLength: 512,
+  padding: "fixed_length",
+  padTokenId: 0,
+});
 
-        // Or use the workflow shortcut
-        const workflow = runWorkflow({
-          fastaText: text,
-          profile: 'protein-20-special',
-          maxLength: 512,
-        });
-
-        document.getElementById('output').textContent = JSON.stringify({
-          recordCount: records.length,
-          firstTokens: tokenized[0]?.tokens,
-          firstInputIds: modelInput.records[0]?.input_ids,
-          provenance: workflow.provenance,
-        }, null, 2);
-      });
-    }
-
-    main();
-  </script>
-</body>
-</html>
+console.log({
+  ids: tokenized.ids,
+  firstTokens: tokenized.records[0]?.tokens,
+  firstInputLength: modelInput.records[0]?.input_ids.length,
+  modelReady: workflow.model_ready,
+  inputHash: workflow.provenance.input_hash,
+});
 ```
 
----
+## Boundary
 
-## Design Reference
+The WASM package does not currently export package-manifest validation or
+runtime bridge planning helpers. Use the native Rust crate, CLI, or Python JSON
+helpers for those schema-rich reports.
 
-The WASM API boundary was designed in `docs/superpowers/specs/2026-05-22-phase7-external-interface-0.43-design.md`. That document contains the full module-by-module safety audit, the compatibility matrix across Rust native, WASM, and Python targets, and the implementation roadmap.
+## Related Documents
 
-For questions about the native Rust API, see `docs/rust-api.md` (planned). For Python interop, see `docs/python-interop.md` and `docs/python-api.md` (planned).
+- [WASM Readiness](wasm-readiness.md)
+- [Rust API](rust-api.md)
+- [Phase 7 Status](phase7-status.md)

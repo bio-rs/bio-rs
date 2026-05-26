@@ -6,6 +6,10 @@ This benchmark measures the Rust core library directly. It excludes `biors` CLI
 startup and JSON serialization overhead so the result reflects the engine's raw
 FASTA throughput.
 
+This is the latest committed numeric baseline. Use the `bio-rs` version
+listed below as the measured version, and rerun the benchmark before making
+new numeric claims for later releases.
+
 ## Environment
 
 - Date: 2026-05-06 (UTC)

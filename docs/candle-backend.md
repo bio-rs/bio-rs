@@ -64,7 +64,7 @@ CI and artifact policy are defined.
 
 `biors-core` does not depend on Candle. The `biors` CLI does not link this
 backend by default and no backend-enabled binary artifact is produced in
-`0.41.0`.
+the current Phase 7 release line.
 
 Rationale:
 

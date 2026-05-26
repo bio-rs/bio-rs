@@ -1,6 +1,6 @@
 # biors-core Rust API Reference
 
-Version: 0.47.0
+Version: 0.47.1
 
 This document is the comprehensive public API reference for `biors-core`, the Rust engine behind bio-rs. It covers every public module, type, trait, and function exposed by the crate.
 
@@ -40,7 +40,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-biors-core = "0.47.0"
+biors-core = "0.47.1"
 ```
 
 The crate depends on:
@@ -129,7 +129,7 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 
 ### Module: `fasta_scan`
 
-The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.47.0, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
+The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.47.1, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
 
 ### Module: `hash`
 
@@ -944,14 +944,13 @@ The repository CI builds `biors-core` for `wasm32-unknown-unknown` on every comm
 
 ### Python bindings
 
-Python bindings are a roadmap item, not a current capability. When they arrive, they will likely expose a thin FFI layer over the `sequence`, `tokenizer`, and `model_input` modules. For now, the recommended Python interop path is:
-
-1. Use `biors-core` directly in Rust.
-2. Serialize the output with `serde_json`.
-3. Load the JSON in Python.
-
-The `examples/python/` directory in the repository contains reference scripts showing how to consume bio-rs JSON output from Python.
+The `biors-python` crate exposes a PyO3 binding layer over the sequence,
+tokenizer, model-input, workflow, package validation, and runtime bridge
+planning contracts. The JSON CLI boundary remains the most stable integration
+path for production automation; the Python package source is available for local
+notebook and pipeline integration while PyPI release automation is tracked
+separately.
 
 ---
 
-This document reflects the public API of `biors-core` as of version 0.47.0. If you find a discrepancy between this reference and the source, the source is the authority.
+This document reflects the public API of `biors-core` as of version 0.47.1. If you find a discrepancy between this reference and the source, the source is the authority.

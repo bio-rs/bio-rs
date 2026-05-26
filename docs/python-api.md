@@ -1,11 +1,10 @@
 # Python API Reference
 
-bio-rs exposes its core preprocessing engine to Python through PyO3 bindings.
-This document describes the intended API surface for the `biors` Python package.
+`biors-python` exposes the core bio-rs FASTA, validation, tokenization, model
+input, package-manifest, and runtime-planning surfaces through PyO3.
 
-> **Status:** The `biors-python` crate was implemented in v0.44.0.
-> This document describes the released PyO3 API boundary.
-> For the JSON boundary approach (pre-v0.44.0), see [python-interop.md](python-interop.md).
+> **Status:** The `biors-python` crate is implemented in this repository. PyPI
+> publishing is tracked separately from the Rust crates.io release workflow.
 
 ## Installation
 
@@ -16,829 +15,188 @@ pip install biors
 Requirements:
 
 - Python 3.9 or later
-- NumPy (optional, for array conversion)
+- No Rust toolchain on the install side when using a published wheel
 
-The package publishes a single abi3 wheel compatible with Python 3.9+.
-No Rust toolchain is needed on the install side.
+For local development:
 
-## API Overview
+```bash
+cd packages/rust/biors-python
+maturin develop
+pytest
+```
 
-The `biors` module exposes pure computation functions and plain data classes.
-All types are immutable (`frozen` pyclasses) and thread-safe. Errors map to
-standard Python exceptions:
+## Data Classes
 
-- `ValueError` for validation and tokenization errors
-- `OSError` for filesystem I/O errors
-- `RuntimeError` for backend execution errors
+The current Python boundary intentionally returns small immutable PyO3 classes.
+For full schema-rich JSON reports, use the Rust CLI or core crate.
 
-### Module Summary
+| Type | Attributes |
+| --- | --- |
+| `ProteinSequence` | `id: str`, `sequence: str` |
+| `SequenceValidationReport` | `records: int`, `valid_records: int`, `warning_count: int`, `error_count: int` |
+| `TokenizedProtein` | `id: str`, `tokens: list[int]`, `length: int` |
+| `ModelInput` | `records: list[ModelInputRecord]` |
+| `ModelInputRecord` | `id: str`, `input_ids: list[int]`, `attention_mask: list[int]`, `truncated: bool` |
+| `SequenceWorkflowOutput` | `model_ready: bool`, `records: list[ModelInputRecord]` |
 
-| Module | Key Functions |
-|--------|---------------|
-| `biors` (top-level) | `parse_fasta_records`, `validate_fasta_input`, `tokenize_fasta_records`, `tokenize_protein`, `build_model_inputs_checked`, `prepare_workflow` |
-| `biors` (package) | `PackageManifest`, `validate_package_manifest`, `read_package_file`, `plan_runtime_bridge` |
+Errors are raised as `ValueError` for malformed FASTA, invalid padding policy,
+invalid package JSON, or model-input records that are not model-ready.
 
-## Top-Level Functions
-
-### `biors.parse_fasta_records(fasta_text: str) -> list[ProteinSequence]`
-
-Parse a FASTA string into a list of `ProteinSequence` records.
+## FASTA Parsing
 
 ```python
 import biors
 
-fasta = """>sp|P01308|INS_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKT
->sp|P68871|HBB_HUMAN Hemoglobin subunit beta OS=Homo sapiens OX=9606 GN=HBB PE=1 SV=2
-MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH
+fasta_text = """>sp|P01308|INS_HUMAN
+MALWMRLLPLLALLALWGPDPAAA
+>sp|P68871|HBB_HUMAN
+MVHLTPEEKSAVTALWGKVNVDEVGGEALGR
 """
 
-records = biors.parse_fasta_records(fasta)
-for rec in records:
-    print(rec.id, len(rec.sequence))
+records = biors.parse_fasta_records(fasta_text)
+for record in records:
+    print(record.id, len(record.sequence))
 ```
 
-**Returns:**
-A list of `ProteinSequence` objects. Each object has:
+### `parse_fasta_records(fasta_text: str) -> list[ProteinSequence]`
 
-- `id` (`str`): the record header identifier
-- `sequence` (`str`): the normalized sequence string
-- `kind` (`str`): detected sequence kind (`"protein"`, `"dna"`, or `"rna"`)
+Parses FASTA text and returns record identifiers plus normalized sequence
+strings. Malformed input raises `ValueError`.
 
-**Raises:**
-`ValueError` if the FASTA text is malformed.
-
----
-
-### `biors.validate_fasta_input(fasta_text: str) -> SequenceValidationReport`
-
-Validate FASTA text and return a structured report with per-record diagnostics.
+## Validation
 
 ```python
-report = biors.validate_fasta_input(fasta)
-print(f"Records: {report.records}, Valid: {report.valid_records}")
-print(f"Warnings: {report.warning_count}, Errors: {report.error_count}")
-
-for seq in report.sequences:
-    print(f"  {seq.id}: valid={seq.valid}, kind={seq.kind}")
-    for issue in seq.errors:
-        print(f"    Error at position {issue.position}: {issue.symbol} -> {issue.message}")
+report = biors.validate_fasta_input(fasta_text)
+print(report.valid_records, report.records)
+print(report.warning_count, report.error_count)
 ```
 
-**Returns:**
-A `SequenceValidationReport` with these attributes:
+### `validate_fasta_input(fasta_text: str) -> SequenceValidationReport`
 
-- `records` (`int`): total number of records parsed
-- `valid_records` (`int`): number of records that passed validation
-- `warning_count` (`int`): total warnings across all records
-- `error_count` (`int`): total errors across all records
-- `kind_counts` (`dict[str, int]`): counts by kind (`protein`, `dna`, `rna`)
-- `sequences` (`list[ValidatedSequence]`): per-record detail
+Returns a compact validation summary for FASTA input. The current Python class
+does not expose per-residue diagnostics; use the Rust CLI JSON output when a
+notebook needs residue-level warnings and errors.
 
-Each `ValidatedSequence` has:
-
-- `id` (`str`), `sequence` (`str`), `kind` (`str`), `alphabet` (`str`), `valid` (`bool`)
-- `warnings` (`list[SequenceIssue]`)
-- `errors` (`list[SequenceIssue]`)
-
-Each `SequenceIssue` has:
-
-- `symbol` (`str`): the problematic residue character
-- `position` (`int`): 1-based position in the sequence
-- `kind` (`str`): sequence kind
-- `code` (`str`): issue code (`"ambiguous_symbol"` or `"invalid_symbol"`)
-- `message` (`str`): human-readable description
-
----
-
-### `biors.tokenize_fasta_records(fasta_text: str) -> list[TokenizedProtein]`
-
-Parse and tokenize all records in a FASTA string using the default
-`protein-20` tokenizer.
+## Tokenization
 
 ```python
-tokenized = biors.tokenize_fasta_records(fasta)
-for t in tokenized:
-    print(t.id, t.tokens[:10])
+tokenized = biors.tokenize_fasta_records(fasta_text)
+for record in tokenized:
+    print(record.id, record.length, record.tokens[:8])
+
+single = biors.tokenize_protein("ACDEFGHIK")
+print(single.tokens)
 ```
 
-**Returns:**
-A list of `TokenizedProtein` objects with:
+### `tokenize_fasta_records(fasta_text: str) -> list[TokenizedProtein]`
 
-- `id` (`str`): record identifier
-- `length` (`int`): number of residues
-- `alphabet` (`str`): tokenizer profile name
-- `valid` (`bool`): whether the record passed validation
-- `tokens` (`list[int]`): token ID list (0-19 for protein-20)
-- `warnings` (`list[ResidueIssue]`)
-- `errors` (`list[ResidueIssue]`)
+Parses and tokenizes all FASTA records with the default `protein-20` tokenizer.
 
-Each `ResidueIssue` has:
+### `tokenize_protein(sequence: str) -> TokenizedProtein`
 
-- `residue` (`str`): the residue character
-- `position` (`int`): 1-based position
+Tokenizes one protein sequence. The returned record id is `"user"`.
 
----
-
-### `biors.tokenize_protein(sequence: str) -> TokenizedProtein`
-
-Tokenize a single protein sequence string.
+## Model Input
 
 ```python
-t = biors.tokenize_protein("MALWMRLLPLLALLALWGPDPAAA")
-print(t.tokens)
-# [12, 0, 10, 18, 12, 16, 10, 10, 13, 10, 10, 10, 0, 10, 10, 18, 6, 15, 3, 15, 0, 0, 0]
-```
-
-**Returns:**
-A single `TokenizedProtein`.
-
----
-
-### `biors.build_model_inputs_checked(tokenized: list[TokenizedProtein], policy: ModelInputPolicy) -> ModelInput`
-
-Build model-ready inputs from tokenized records with safety checks.
-
-```python
-policy = biors.ModelInputPolicy(
+model_input = biors.build_model_inputs_checked(
+    tokenized,
     max_length=512,
-    pad_token_id=20,
+    pad_token_id=0,
     padding="fixed_length",
 )
 
-model_input = biors.build_model_inputs_checked(tokenized, policy)
-print(f"Records: {len(model_input.records)}")
-for rec in model_input.records:
-    print(rec.id, rec.truncated)
+first = model_input.records[0]
+print(first.id, len(first.input_ids), len(first.attention_mask), first.truncated)
 ```
 
-**Parameters:**
+### `build_model_inputs_checked(tokenized, max_length, pad_token_id=0, padding="no_padding") -> ModelInput`
 
-- `tokenized`: list of `TokenizedProtein` objects
-- `policy`: a `ModelInputPolicy` instance
+Builds model-ready token arrays from tokenized protein records.
 
-**Returns:**
-A `ModelInput` with:
+Parameters:
 
-- `policy` (`ModelInputPolicy`): the policy used
-- `records` (`list[ModelInputRecord]`): per-record model input
+- `tokenized`: `list[TokenizedProtein]`
+- `max_length`: positive maximum token count per record
+- `pad_token_id`: token id used when fixed-length padding is enabled
+- `padding`: `"no_padding"` or `"fixed_length"`
 
-Each `ModelInputRecord` has:
+`"no_padding"` truncates to `max_length` and preserves each record's resulting
+length. `"fixed_length"` pads every record to `max_length` and sets padding
+positions to `0` in `attention_mask`.
 
-- `id` (`str`)
-- `input_ids` (`list[int]`): token IDs, padded or truncated to `max_length`
-- `attention_mask` (`list[int]`): `1` for real tokens, `0` for padding
-- `truncated` (`bool`): whether the sequence was truncated
-
-**Raises:**
-`ValueError` if the tokenized list contains unresolved residues that would
-produce an unsafe model input.
-
----
-
-### `biors.prepare_workflow(input_hash: str, records: list[ProteinSequence], policy: ModelInputPolicy) -> SequenceWorkflowOutput`
-
-Run the full end-to-end workflow: validation, tokenization, model input
-building, and provenance generation.
+## End-To-End Workflow
 
 ```python
-records = biors.parse_fasta_records(fasta)
-policy = biors.ModelInputPolicy(max_length=512, pad_token_id=20, padding="fixed_length")
-output = biors.prepare_workflow("fnv1a64:abc123...", records, policy)
+records = biors.parse_fasta_records(fasta_text)
+output = biors.prepare_workflow(
+    input_hash="sha256:example",
+    records=records,
+    max_length=512,
+    pad_token_id=0,
+    padding="fixed_length",
+)
 
 print(output.model_ready)
-print(output.provenance.biors_core_version)
-print(output.provenance.input_hash)
+print(output.records[0].input_ids[:8])
 ```
 
-**Returns:**
-A `SequenceWorkflowOutput` with:
+### `prepare_workflow(input_hash, records, max_length, pad_token_id=0, padding="no_padding") -> SequenceWorkflowOutput`
 
-- `workflow` (`str`): workflow identifier (`"protein_model_input.v0"`)
-- `model_ready` (`bool`): whether all records are ready for model inference
-- `provenance` (`SequenceWorkflowProvenance`): reproducibility metadata
-- `validation` (`ValidationSummary`): validation results
-- `tokenization` (`TokenizationSummary`): tokenization results
-- `model_input` (`ModelInput | None`): the built model input, or `None` if not ready
-- `readiness_issues` (`list[ReadinessIssue]`): blocking issues if `model_ready` is `False`
+Runs the standard protein validation, tokenization, and model-input workflow for
+records already parsed by `parse_fasta_records`.
 
-The `SequenceWorkflowProvenance` has:
+The compact Python output exposes:
 
-- `biors_core_version` (`str`)
-- `invocation` (`dict`): command and arguments
-- `input_hash` (`str`): FNV-1a64 hash of the input
-- `normalization` (`str`): normalization strategy used
-- `validation_alphabet` (`str`)
-- `tokenizer` (`dict`): tokenizer name, vocab size, unknown token ID, policy
-- `model_input_policy` (`dict`): the policy settings
-- `hashes` (`dict`): vocabulary and output data SHA-256 hashes
+- `model_ready`: `True` when all records can be converted into model input
+- `records`: model-input records when ready, or an empty list when unresolved
+  validation/tokenization issues block model input
 
----
+## Package And Runtime Planning
 
-## Package Manifest API
-
-### `biors.PackageManifest`
-
-A frozen PyO3 class representing a bio-rs package manifest (v1 schema).
+These functions return JSON strings because package validation and runtime
+bridge reports are schema-rich compatibility documents.
 
 ```python
-manifest = biors.PackageManifest(
-    schema_version="biors.package.v1",
-    name="my-protein-model",
-    package_layout={...},
-    metadata={...},
-    model={...},
-    preprocessing=[...],
-    postprocessing=[...],
-    runtime={...},
-    fixtures=[...],
-)
-```
-
-**Attributes:**
-
-- `schema_version` (`str`): always `"biors.package.v1"`
-- `name` (`str`): package name
-- `package_layout` (`dict`): directory layout with keys `manifest`, `models`, `tokenizers`, `vocabs`, `pipelines`, `fixtures`, `observed`, `docs`
-- `metadata` (`dict`): `license`, `citation`, `model_card`
-- `model` (`dict`): model artifact with `format`, `path`, optional `checksum` and `metadata`
-- `tokenizer` (`dict | None`): tokenizer asset
-- `vocab` (`dict | None`): vocabulary asset
-- `preprocessing` (`list[dict]`): pipeline steps
-- `postprocessing` (`list[dict]`): pipeline steps
-- `runtime` (`dict`): `backend`, `target`, optional `version`
-- `expected_input` (`dict | None`): shape descriptor
-- `expected_output` (`dict | None`): shape descriptor
-- `fixtures` (`list[dict]`): test fixtures
-
----
-
-### `biors.validate_package_manifest(manifest_json: str) -> PackageValidationReport`
-
-Validate a package manifest JSON string.
-
-```python
-with open("manifest.json") as f:
-    manifest_json = f.read()
-
-report = biors.validate_package_manifest(manifest_json)
-print(report.valid)
-for issue in report.structured_issues:
-    print(issue.code, issue.field, issue.message)
-```
-
-**Returns:**
-A `PackageValidationReport` with:
-
-- `valid` (`bool`)
-- `issues` (`list[str]`): human-readable issue strings
-- `structured_issues` (`list[StructuredIssue]`): typed issues with `code`, `field`, `message`
-
-Issue codes include: `required_field`, `missing_fixture`, `invalid_shape`,
-`invalid_checksum_format`, `checksum_mismatch`, `invalid_asset_path`,
-`asset_read_failed`, `layout_mismatch`.
-
----
-
-### `biors.read_package_file(base_dir: str, path: str) -> bytes`
-
-Read a file from a package directory. This is the Python-safe equivalent of
-`biors_core::package::paths::read_package_file`.
-
-```python
-data = biors.read_package_file("examples/protein-package", "models/model.onnx")
-print(len(data))
-```
-
-**Returns:**
-`bytes` containing the file contents.
-
-**Raises:**
-`OSError` if the file does not exist or cannot be read.
-
----
-
-### `biors.plan_runtime_bridge(manifest_json: str) -> RuntimeBridgeReport`
-
-Plan a runtime bridge from a package manifest. This returns a report that
-describes whether the local environment can run the model described in the
-manifest.
-
-```python
-report = biors.plan_runtime_bridge(manifest_json)
-print(report.ready)
-print(report.backend)
-print(report.target)
-print(report.model_format)
-print(report.blocking_issues)
-
-for check in report.compatibility_checks:
-    print(check.code, check.passed, check.message)
-```
-
-**Returns:**
-A `RuntimeBridgeReport` with:
-
-- `ready` (`bool`): whether the environment can execute the model
-- `backend` (`str`): backend identifier
-- `target` (`str`): runtime target
-- `model_format` (`str`): model artifact format
-- `model_metadata` (`dict | None`): name, version, architecture, task, source, description
-- `backend_config` (`dict`): `backend_id`, `provider`, optional `version` and `model_artifact`
-- `execution_provider` (`str`): execution provider name
-- `compatibility_checks` (`list[dict]`): each with `code`, `passed`, `message`
-- `blocking_issues` (`list[str]`): issues preventing execution
-- `backend_capabilities` (`dict | None`): `deterministic`, `supports_batch`, `supports_streaming`, `supported_inputs`, `supported_outputs`
-- `benchmark_evidence` (`list[dict] | None`): benchmark records
-- `regression_baseline` (`dict | None`): baseline metadata
-
-## NumPy Integration
-
-Token IDs from `biors` are returned as Python `list[int]`. Converting to NumPy
-arrays is straightforward and lets you feed directly into PyTorch, TensorFlow,
-or JAX workflows.
-
-### Converting token IDs to NumPy arrays
-
-```python
-import biors
-import numpy as np
-
-fasta = """>sp|P01308|INS_HUMAN
-MALWMRLLPLLALLALWGPDPAAA
-"""
-
-tokenized = biors.tokenize_fasta_records(fasta)
-
-# List of 1D arrays (variable length)
-arrays = [np.array(t.tokens, dtype=np.uint8) for t in tokenized]
-print(arrays[0])
-# array([12,  0, 10, 18, 12, 16, 10, 10, 13, 10, 10, 10,  0, 10, 10, 18,
-#         6, 15,  3, 15,  0,  0,  0], dtype=uint8)
-
-# Stacked 2D array (if all sequences are the same length or padded)
-model_input = biors.build_model_inputs_checked(
-    tokenized,
-    biors.ModelInputPolicy(max_length=512, pad_token_id=20, padding="fixed_length"),
-)
-input_ids = np.array([r.input_ids for r in model_input.records], dtype=np.uint16)
-attention_mask = np.array([r.attention_mask for r in model_input.records], dtype=np.uint8)
-print(input_ids.shape)       # (n_records, 512)
-print(attention_mask.shape)  # (n_records, 512)
-```
-
-### PyTorch tensor conversion
-
-```python
-import torch
-
-input_ids_tensor = torch.from_numpy(input_ids)
-attention_mask_tensor = torch.from_numpy(attention_mask)
-print(input_ids_tensor.dtype)  # torch.int64 or torch.int32 depending on numpy dtype
-```
-
-### Performance note
-
-The `biors` Rust core processes FASTA at roughly 200-350M residues per second.
-Conversion to NumPy is a shallow copy for simple dtypes. For large batches,
-the NumPy conversion overhead is usually negligible compared to model inference.
-
-## Type Stubs
-
-The `biors` package includes a `biors.pyi` stub file for IDE support. This
-enables autocompletion, type checking with mypy, and inline documentation in
-VS Code, PyCharm, and Jupyter.
-
-### Stub file location
-
-```
-biors/
-  __init__.py
-  biors.pyi
-```
-
-### Key stub signatures
-
-```python
-from typing import List, Dict, Optional
-
-class ProteinSequence:
-    id: str
-    sequence: str
-    kind: str
-
-class SequenceIssue:
-    symbol: str
-    position: int
-    kind: str
-    code: str
-    message: str
-
-class ValidatedSequence:
-    id: str
-    sequence: str
-    kind: str
-    alphabet: str
-    valid: bool
-    warnings: List[SequenceIssue]
-    errors: List[SequenceIssue]
-
-class SequenceValidationReport:
-    records: int
-    valid_records: int
-    warning_count: int
-    error_count: int
-    kind_counts: Dict[str, int]
-    sequences: List[ValidatedSequence]
-
-class ResidueIssue:
-    residue: str
-    position: int
-
-class TokenizedProtein:
-    id: str
-    length: int
-    alphabet: str
-    valid: bool
-    tokens: List[int]
-    warnings: List[ResidueIssue]
-    errors: List[ResidueIssue]
-
-class ModelInputPolicy:
-    max_length: int
-    pad_token_id: int
-    padding: str
-
-class ModelInputRecord:
-    id: str
-    input_ids: List[int]
-    attention_mask: List[int]
-    truncated: bool
-
-class ModelInput:
-    policy: ModelInputPolicy
-    records: List[ModelInputRecord]
-
-class SequenceWorkflowProvenance:
-    biors_core_version: str
-    invocation: Dict
-    input_hash: str
-    normalization: str
-    validation_alphabet: str
-    tokenizer: Dict
-    model_input_policy: Dict
-    hashes: Dict
-
-class ReadinessIssue:
-    code: str
-    id: str
-    warning_count: int
-    error_count: int
-    message: str
-
-class SequenceWorkflowOutput:
-    workflow: str
-    model_ready: bool
-    provenance: SequenceWorkflowProvenance
-    validation: Dict
-    tokenization: Dict
-    model_input: Optional[ModelInput]
-    readiness_issues: List[ReadinessIssue]
-
-class PackageValidationReport:
-    valid: bool
-    issues: List[str]
-    structured_issues: List[Dict]
-
-class RuntimeBridgeReport:
-    ready: bool
-    backend: str
-    target: str
-    model_format: str
-    model_metadata: Optional[Dict]
-    backend_config: Dict
-    execution_provider: str
-    compatibility_checks: List[Dict]
-    blocking_issues: List[str]
-    backend_capabilities: Optional[Dict]
-    benchmark_evidence: Optional[List[Dict]]
-    regression_baseline: Optional[Dict]
-
-class PackageManifest:
-    schema_version: str
-    name: str
-    package_layout: Dict
-    metadata: Dict
-    model: Dict
-    tokenizer: Optional[Dict]
-    vocab: Optional[Dict]
-    preprocessing: List[Dict]
-    postprocessing: List[Dict]
-    runtime: Dict
-    expected_input: Optional[Dict]
-    expected_output: Optional[Dict]
-    fixtures: List[Dict]
-
-def parse_fasta_records(fasta_text: str) -> List[ProteinSequence]: ...
-def validate_fasta_input(fasta_text: str) -> SequenceValidationReport: ...
-def tokenize_fasta_records(fasta_text: str) -> List[TokenizedProtein]: ...
-def tokenize_protein(sequence: str) -> TokenizedProtein: ...
-def build_model_inputs_checked(
-    tokenized: List[TokenizedProtein], policy: ModelInputPolicy
-) -> ModelInput: ...
-def prepare_workflow(
-    input_hash: str, records: List[ProteinSequence], policy: ModelInputPolicy
-) -> SequenceWorkflowOutput: ...
-def validate_package_manifest(manifest_json: str) -> PackageValidationReport: ...
-def read_package_file(base_dir: str, path: str) -> bytes: ...
-def plan_runtime_bridge(manifest_json: str) -> RuntimeBridgeReport: ...
-```
-
-## Complete Working Example
-
-This script reads a FASTA file, validates it, tokenizes the records, builds
-model inputs, and prints a summary.
-
-```python
-#!/usr/bin/env python3
-"""End-to-end bio-rs Python API demo."""
-
 import json
-import biors
 
-FASTA = """>sp|P01308|INS_HUMAN Insulin
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKT
->sp|P68871|HBB_HUMAN Hemoglobin subunit beta
-MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH
-"""
+report = json.loads(biors.validate_package_manifest(manifest_json))
+bridge = json.loads(biors.plan_runtime_bridge(manifest_json))
 
-def main():
-    # Parse
-    records = biors.parse_fasta_records(FASTA)
-    print(f"Parsed {len(records)} records")
+print(report["valid"])
+print(bridge["compatible"])
+```
 
-    # Validate
-    report = biors.validate_fasta_input(FASTA)
-    print(f"Valid: {report.valid_records}/{report.records}")
-    if report.error_count > 0:
-        print("Errors found; stopping.")
-        return
+### `validate_package_manifest(manifest_json: str) -> str`
 
-    # Tokenize
-    tokenized = biors.tokenize_fasta_records(FASTA)
-    for t in tokenized:
-        print(f"  {t.id}: {t.length} residues -> {len(t.tokens)} tokens")
+Parses a package manifest JSON document and returns the package validation report
+as a JSON string.
 
-    # Build model input
-    policy = biors.ModelInputPolicy(
-        max_length=512,
-        pad_token_id=20,
-        padding="fixed_length",
-    )
-    model_input = biors.build_model_inputs_checked(tokenized, policy)
-    print(f"Model input records: {len(model_input.records)}")
+### `plan_runtime_bridge(manifest_json: str) -> str`
 
-    # Full workflow with provenance
-    output = biors.prepare_workflow("fnv1a64:demo123", records, policy)
-    print(f"Model ready: {output.model_ready}")
-    print(f"Core version: {output.provenance.biors_core_version}")
-    print(f"Input hash: {output.provenance.input_hash}")
+Parses a package manifest JSON document and returns the runtime bridge
+compatibility report as a JSON string.
 
-    # Package manifest validation (optional)
-    manifest = {
-        "schema_version": "biors.package.v1",
-        "name": "demo-package",
-        "package_layout": {
-            "manifest": "manifest.json",
-            "models": "models",
-            "tokenizers": "tokenizers",
-            "vocabs": "vocabs",
-            "pipelines": "pipelines",
-            "fixtures": "fixtures",
-            "observed": "observed",
-            "docs": "docs",
-        },
-        "metadata": {
-            "license": {"expression": "MIT"},
-            "citation": {"preferred_citation": "Doe et al. 2024"},
-            "model_card": {
-                "path": "docs/model-card.md",
-                "summary": "Demo model",
-                "intended_use": ["research"],
-                "limitations": ["not for clinical use"],
-            },
-        },
-        "model": {"format": "onnx", "path": "models/model.onnx"},
-        "preprocessing": [],
-        "postprocessing": [],
-        "runtime": {"backend": "onnx-webgpu", "target": "browser-wasm-webgpu"},
-        "fixtures": [
-            {
-                "name": "basic",
-                "input": "fixtures/input.fasta",
-                "expected_output": "fixtures/expected.json",
-            }
-        ],
+## Notebook Pattern
+
+For Jupyter or pandas-heavy work, keep the boundary explicit:
+
+```python
+rows = [
+    {
+        "id": record.id,
+        "length": record.length,
+        "tokens": record.tokens,
     }
-    manifest_json = json.dumps(manifest)
-    pkg_report = biors.validate_package_manifest(manifest_json)
-    print(f"Manifest valid: {pkg_report.valid}")
-
-    bridge = biors.plan_runtime_bridge(manifest_json)
-    print(f"Runtime bridge ready: {bridge.ready}")
-    if not bridge.ready:
-        for issue in bridge.blocking_issues:
-            print(f"  Blocker: {issue}")
-
-if __name__ == "__main__":
-    main()
+    for record in biors.tokenize_fasta_records(fasta_text)
+]
 ```
 
-## Jupyter Notebook Snippets
+The package does not currently depend on NumPy. Convert `input_ids` and
+`attention_mask` to NumPy arrays in notebook code when needed.
 
-These cells work in a standard Jupyter or JupyterLab notebook.
+## Related Documents
 
-### Cell 1: Installation and import
-
-```python
-# In a fresh environment:
-# !pip install biors numpy pandas
-
-import biors
-import numpy as np
-import pandas as pd
-```
-
-### Cell 2: Parse and inspect FASTA
-
-```python
-fasta = """>sp|P01308|INS_HUMAN Insulin
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKT
->sp|P68871|HBB_HUMAN Hemoglobin subunit beta
-MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH
-"""
-
-records = biors.parse_fasta_records(fasta)
-df = pd.DataFrame([{"id": r.id, "length": len(r.sequence), "kind": r.kind} for r in records])
-df
-```
-
-### Cell 3: Validate and visualize issues
-
-```python
-report = biors.validate_fasta_input(fasta)
-
-issue_rows = []
-for seq in report.sequences:
-    for issue in seq.warnings:
-        issue_rows.append({
-            "id": seq.id,
-            "position": issue.position,
-            "symbol": issue.symbol,
-            "code": issue.code,
-            "severity": "warning",
-        })
-    for issue in seq.errors:
-        issue_rows.append({
-            "id": seq.id,
-            "position": issue.position,
-            "symbol": issue.symbol,
-            "code": issue.code,
-            "severity": "error",
-        })
-
-if issue_rows:
-    issues_df = pd.DataFrame(issue_rows)
-    display(issues_df)
-else:
-    print("No issues found.")
-```
-
-### Cell 4: Tokenize and convert to NumPy
-
-```python
-tokenized = biors.tokenize_fasta_records(fasta)
-
-# Build a DataFrame of token IDs (padded display)
-max_len = max(len(t.tokens) for t in tokenized)
-token_df = pd.DataFrame(
-    [{"id": t.id, "tokens": t.tokens, "length": t.length} for t in tokenized]
-)
-display(token_df)
-
-# Convert to NumPy for downstream ML
-input_ids = np.array([t.tokens for t in tokenized], dtype=object)  # ragged
-print("Ragged array shape:", input_ids.shape)
-```
-
-### Cell 5: Build model inputs and stack for PyTorch
-
-```python
-policy = biors.ModelInputPolicy(max_length=512, pad_token_id=20, padding="fixed_length")
-model_input = biors.build_model_inputs_checked(tokenized, policy)
-
-# Stack to 2D arrays
-input_ids_2d = np.array([r.input_ids for r in model_input.records], dtype=np.uint16)
-attention_mask_2d = np.array([r.attention_mask for r in model_input.records], dtype=np.uint8)
-truncated = np.array([r.truncated for r in model_input.records], dtype=bool)
-
-print("input_ids shape:", input_ids_2d.shape)
-print("attention_mask shape:", attention_mask_2d.shape)
-print("truncated:", truncated)
-
-# Ready for PyTorch
-# import torch
-# torch_input_ids = torch.from_numpy(input_ids_2d)
-```
-
-### Cell 6: Full workflow with provenance
-
-```python
-import hashlib
-
-input_hash = "fnv1a64:" + hashlib.sha256(fasta.encode()).hexdigest()[:16]
-output = biors.prepare_workflow(input_hash, records, policy)
-
-print("Model ready:", output.model_ready)
-print("Core version:", output.provenance.biors_core_version)
-print("Tokenizer:", output.provenance.tokenizer["name"])
-print("Vocab SHA-256:", output.provenance.hashes["vocabulary_sha256"])
-
-if not output.model_ready:
-    for issue in output.readiness_issues:
-        print("Readiness issue:", issue.message)
-```
-
-### Cell 7: Package manifest inspection
-
-```python
-import json
-
-manifest = {
-    "schema_version": "biors.package.v1",
-    "name": "my-model",
-    "package_layout": {
-        "manifest": "manifest.json",
-        "models": "models",
-        "tokenizers": "tokenizers",
-        "vocabs": "vocabs",
-        "pipelines": "pipelines",
-        "fixtures": "fixtures",
-        "observed": "observed",
-        "docs": "docs",
-    },
-    "metadata": {
-        "license": {"expression": "MIT"},
-        "citation": {"preferred_citation": "Demo 2024"},
-        "model_card": {
-            "path": "docs/model-card.md",
-            "summary": "Demo",
-            "intended_use": ["research"],
-            "limitations": ["not for clinical use"],
-        },
-    },
-    "model": {"format": "onnx", "path": "models/model.onnx"},
-    "preprocessing": [],
-    "postprocessing": [],
-    "runtime": {"backend": "candle", "target": "local-cpu"},
-    "fixtures": [
-        {"name": "test", "input": "fixtures/in.fasta", "expected_output": "fixtures/out.json"}
-    ],
-}
-
-report = biors.validate_package_manifest(json.dumps(manifest))
-print("Valid:", report.valid)
-
-bridge = biors.plan_runtime_bridge(json.dumps(manifest))
-print("Bridge ready:", bridge.ready)
-print("Backend:", bridge.backend)
-print("Target:", bridge.target)
-```
-
-## Design Reference
-
-This API surface is specified in
-`docs/superpowers/specs/2026-05-22-phase7-external-interface-0.43-design.md`.
-The design document defines the Python-safe subset of `biors-core` and maps
-Rust types to Pythonic equivalents.
-
-Key design decisions:
-
-- **String-based FASTA input:** Python passes FASTA text as `str`, not file
-  paths or generic readers. This mirrors the WASM-safe subset and avoids
-  lifetime complexity at the PyO3 boundary.
-- **Immutable data classes:** All exposed types use `#[pyclass(frozen)]` so
-  they are safe to share across Python threads.
-- **List-of-int tokens:** `Vec<u8>` token IDs convert to Python `list[int]`.
-  NumPy conversion is left to the caller so the core binding stays lightweight.
-- **Filesystem access enabled:** Unlike the WASM binding, the Python binding
-  exposes `read_package_file` because Python has native filesystem access.
-- **Error transparency:** Rust `Result` types convert to Python exceptions
-  through PyO3's automatic mapping.
-
-## See Also
-
-- [Python Interop](python-interop.md) for the JSON boundary approach (current v0.43.0)
-- [WASM API](wasm-api.md) for the browser-safe binding subset
-- [Package Format](package-format.md) for manifest schema details
-- [CLI Contract](cli-contract.md) for the command-line interface
+- [Python Interop](python-interop.md)
+- [Rust API](rust-api.md)
+- [Phase 7 Status](phase7-status.md)

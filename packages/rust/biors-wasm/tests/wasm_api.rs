@@ -56,6 +56,14 @@ fn test_build_model_input() {
 }
 
 #[wasm_bindgen_test]
+fn test_build_model_input_with_policy() {
+    let tokenized = js_sys::JSON::parse(r#"[{"id":"seq1","tokens":[0,1,2,3],"length":4,"alphabet":"protein-20","valid":true,"warnings":[],"errors":[]}]"#).unwrap();
+    let result =
+        biors_wasm::build_model_input_with_policy(tokenized, 8, 21, "fixed_length".to_string());
+    assert!(result.is_ok());
+}
+
+#[wasm_bindgen_test]
 fn test_run_workflow() {
     let config = js_sys::JSON::parse(r#"{"fastaBytes":[62,115,101,113,49,10,65,67,68,69,10],"maxLength":8,"padding":"fixed_length","padTokenId":0}"#).unwrap();
     let result = biors_wasm::run_workflow(config);

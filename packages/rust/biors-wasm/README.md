@@ -5,7 +5,13 @@ WebAssembly/JavaScript bindings for [bio-rs](https://github.com/bio-rs/bio-rs) c
 ## Usage
 
 ```javascript
-import init, { parseFasta, validateFasta, tokenize, buildModelInput, runWorkflow } from "@bio-rs/biors-wasm";
+import init, {
+  parseFasta,
+  validateFasta,
+  tokenize,
+  buildModelInputWithPolicy,
+  runWorkflow,
+} from "@bio-rs/biors-wasm";
 
 await init();
 
@@ -15,11 +21,9 @@ const bytes = new TextEncoder().encode(fastaText);
 const parsed = parseFasta(bytes);
 const validated = validateFasta(bytes, "protein");
 const tokenized = tokenize(parsed, "protein-20");
-const modelInput = buildModelInput(tokenized.records, 8);
+const modelInput = buildModelInputWithPolicy(tokenized.records, 8, 0, "fixed_length");
 const workflow = runWorkflow({
   fastaBytes: bytes,
-  kind: "protein",
-  profile: "protein-20",
   maxLength: 8,
   padding: "fixed_length",
   padTokenId: 0,

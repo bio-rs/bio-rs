@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.47.0
+cargo install biors --version 0.47.1
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -55,7 +55,8 @@ Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.
 
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
 
-Latest recorded FASTA benchmark baseline:
+Latest recorded FASTA benchmark baseline (recorded on `biors-core v0.20.0`;
+rerun the benchmark before making new numeric claims for later versions):
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
@@ -90,7 +91,9 @@ Benchmark details:
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
 bio-rs is faster than Biopython across every FASTA workload or researcher input
-shape.
+shape. The `0.47.1` patch reduces allocation in protein validation and
+fixed-length model-input construction, but the benchmark artifact has not been
+regenerated for that patch.
 
 ## What works today
 
@@ -134,6 +137,13 @@ shape.
   bundling a server runtime
 - Typed validation issue codes and manifest enums
 
+### External interfaces
+- `biors-python`: PyO3 bindings for Python integration and notebook workflows
+- `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions
+- `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
+- `service contract`: offline JSON route/schema contract for caller-owned
+  service hosts
+
 ### Utilities
 - `diff`: canonical JSON/raw comparison with SHA-256 hashes
 - `doctor`: platform, toolchain, WASM target, and fixture readiness
@@ -156,7 +166,10 @@ shape.
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
 - [Python interop](docs/python-interop.md)
+- [Python API](docs/python-api.md)
 - [WASM readiness](docs/wasm-readiness.md)
+- [WASM API](docs/wasm-api.md)
+- [Phase 7 status](docs/phase7-status.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [Schema versioning](docs/schema-versioning.md)
@@ -169,7 +182,6 @@ shape.
 These are roadmap directions, not current capabilities:
 
 - hosted web workflows
-- Python bindings
 - pretrained model-specific inference backends
 - package registry or plugin ecosystem
 - general-purpose chemistry tooling
@@ -236,6 +248,9 @@ packages/
     biors/                 CLI
     biors-backend-candle/  Optional Candle runtime backend
     biors-core/            Core engine + contracts
+    biors-mcp-server/      Local MCP server
+    biors-python/          PyO3 bindings
+    biors-wasm/            WASM/JS bindings
 
 schemas/
   batch-validation-output.v0.json

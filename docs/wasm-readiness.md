@@ -25,12 +25,12 @@ FASTA reader paths are UTF-8 text contracts.
 The browser-safe WASM API surface is documented in [docs/wasm-api.md](wasm-api.md).
 It covers:
 
-- `npm install @bio-rs/core-wasm`
+- `npm install @bio-rs/biors-wasm`
 - Initialization and module loading
 - FASTA parsing, validation, tokenization, model input, workflow
-- Package manifest validation and runtime bridge planning
 - TypeScript interfaces for all exported types
 - Browser limitations (no filesystem, no external process)
 
-The actual `@bio-rs/core-wasm` npm package is planned for v0.45.0.
-The v0.43.0 release documents the intended API surface as a design contract.
+The `@bio-rs/biors-wasm` package source is implemented in-repo with TypeScript
+definitions. npm registry publication is tracked separately from the Rust
+crates.io release workflow.

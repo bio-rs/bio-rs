@@ -15,10 +15,13 @@ Requires Python 3.9+.
 ```python
 import biors
 
-# Parse FASTA text
-records = biors.parse_fasta_records(
-    ">seq1\nACDEFGHIKLMNPQRSTVWY\n>seq2\nMKWVTFISLLFLFSSAYSRGVFRRDAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQCP"
+fasta_text = (
+    ">seq1\nACDEFGHIKLMNPQRSTVWY\n"
+    ">seq2\nMKWVTFISLLFLFSSAYSRGVFRRDAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQCP\n"
 )
+
+# Parse FASTA text
+records = biors.parse_fasta_records(fasta_text)
 
 # Validate
 report = biors.validate_fasta_input(fasta_text)
@@ -30,7 +33,12 @@ for t in tokenized:
     print(t.id, t.tokens)
 
 # Build model input
-model_input = biors.build_model_inputs_checked(tokenized, max_length=512)
+model_input = biors.build_model_inputs_checked(
+    tokenized,
+    max_length=512,
+    pad_token_id=0,
+    padding="fixed_length",
+)
 for r in model_input.records:
     print(r.id, r.input_ids, r.attention_mask)
 
@@ -39,6 +47,8 @@ output = biors.prepare_workflow(
     input_hash="sha256:abc123",
     records=records,
     max_length=512,
+    pad_token_id=0,
+    padding="fixed_length",
 )
 print(f"Model ready: {output.model_ready}")
 ```

@@ -6,7 +6,7 @@ fresh checkout.
 ## Install
 
 ```bash
-cargo install biors --version 0.47.0
+cargo install biors --version 0.47.1
 biors --version
 biors doctor
 ```
@@ -193,7 +193,7 @@ biors pipeline \
   --write-lock examples/pipeline/pipeline.lock
 ```
 
-Pipeline configs support TOML, YAML, and JSON. The static MVP runs parse,
+Pipeline configs support TOML, YAML, and JSON. The static workflow runs parse,
 normalize, validate, tokenize, and export stages. `--write-lock` records a
 reproducible execution lock with config, input, vocabulary, output, model, and
 backend pins when package context is supplied. See

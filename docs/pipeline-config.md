@@ -88,7 +88,7 @@ pad_token_id = 0
 padding = "fixed_length"
 ```
 
-The MVP intentionally supports one static workflow:
+The current config contract intentionally supports one static workflow:
 
 1. parse FASTA input
 2. normalize sequence records with `strip_ascii_whitespace_uppercase`
@@ -100,11 +100,12 @@ Unknown fields and unsupported values fail with `pipeline.invalid_config`.
 
 ## Crate Split Review
 
-`biors-pipeline` remains deferred in v0.41.0.
+`biors-pipeline` remains deferred as of the current Phase 7 release line.
 
 Rationale:
 
-- The config MVP is a thin CLI orchestration layer over the existing workflow.
+- The config contract is a thin CLI orchestration layer over the existing
+  workflow.
 - The reusable policy surface is already in `biors_core::versioning`.
 - A new crate would add release coordination before the pipeline model has more
   than one workflow backend.

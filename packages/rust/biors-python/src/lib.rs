@@ -2,7 +2,7 @@ use biors_core::{fasta, model_input, package, sequence, tokenizer, workflow};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-#[pyclass]
+#[pyclass(name = "ProteinSequence")]
 #[derive(Clone, Debug)]
 pub struct PyProteinSequence {
     #[pyo3(get)]
@@ -11,7 +11,7 @@ pub struct PyProteinSequence {
     pub sequence: String,
 }
 
-#[pyclass]
+#[pyclass(name = "SequenceValidationReport")]
 #[derive(Clone, Debug)]
 pub struct PySequenceValidationReport {
     #[pyo3(get)]
@@ -24,38 +24,38 @@ pub struct PySequenceValidationReport {
     pub error_count: usize,
 }
 
-#[pyclass]
+#[pyclass(name = "TokenizedProtein")]
 #[derive(Clone, Debug)]
 pub struct PyTokenizedProtein {
     #[pyo3(get)]
     pub id: String,
     #[pyo3(get)]
-    pub tokens: Vec<u8>,
+    pub tokens: Vec<usize>,
     #[pyo3(get)]
     pub length: usize,
 }
 
-#[pyclass]
+#[pyclass(name = "ModelInput")]
 #[derive(Clone, Debug)]
 pub struct PyModelInput {
     #[pyo3(get)]
     pub records: Vec<PyModelInputRecord>,
 }
 
-#[pyclass]
+#[pyclass(name = "ModelInputRecord")]
 #[derive(Clone, Debug)]
 pub struct PyModelInputRecord {
     #[pyo3(get)]
     pub id: String,
     #[pyo3(get)]
-    pub input_ids: Vec<u8>,
+    pub input_ids: Vec<usize>,
     #[pyo3(get)]
-    pub attention_mask: Vec<u8>,
+    pub attention_mask: Vec<usize>,
     #[pyo3(get)]
     pub truncated: bool,
 }
 
-#[pyclass]
+#[pyclass(name = "SequenceWorkflowOutput")]
 #[derive(Clone, Debug)]
 pub struct PySequenceWorkflowOutput {
     #[pyo3(get)]
@@ -97,7 +97,7 @@ fn tokenize_fasta_records(fasta_text: &str) -> PyResult<Vec<PyTokenizedProtein>>
         .into_iter()
         .map(|r| PyTokenizedProtein {
             id: r.id,
-            tokens: r.tokens,
+            tokens: r.tokens.into_iter().map(usize::from).collect(),
             length: r.length,
         })
         .collect())
@@ -112,33 +112,49 @@ fn tokenize_protein(sequence: &str) -> PyResult<PyTokenizedProtein> {
     let record = tokenizer::tokenize_protein(&protein);
     Ok(PyTokenizedProtein {
         id: record.id,
-        tokens: record.tokens,
+        tokens: record.tokens.into_iter().map(usize::from).collect(),
         length: record.length,
     })
 }
 
 #[pyfunction]
+#[pyo3(signature = (tokenized, max_length, pad_token_id=0, padding="no_padding"))]
 fn build_model_inputs_checked(
     tokenized: Vec<PyTokenizedProtein>,
     max_length: usize,
+    pad_token_id: u8,
+    padding: &str,
 ) -> PyResult<PyModelInput> {
     let policy = model_input::ModelInputPolicy {
         max_length,
-        pad_token_id: 0,
-        padding: model_input::PaddingPolicy::NoPadding,
+        pad_token_id,
+        padding: parse_padding_policy(padding)?,
     };
     let proteins: Vec<tokenizer::TokenizedProtein> = tokenized
         .into_iter()
-        .map(|t| tokenizer::TokenizedProtein {
-            id: t.id,
-            length: t.length,
-            alphabet: "protein".to_string(),
-            valid: true,
-            tokens: t.tokens,
-            warnings: vec![],
-            errors: vec![],
+        .map(|t| {
+            let tokens = t
+                .tokens
+                .into_iter()
+                .map(|token| {
+                    u8::try_from(token).map_err(|_| {
+                        PyValueError::new_err(format!(
+                            "token id {token} is outside the supported 0..=255 range"
+                        ))
+                    })
+                })
+                .collect::<PyResult<Vec<_>>>()?;
+            Ok(tokenizer::TokenizedProtein {
+                id: t.id,
+                length: t.length,
+                alphabet: "protein".to_string(),
+                valid: true,
+                tokens,
+                warnings: vec![],
+                errors: vec![],
+            })
         })
-        .collect();
+        .collect::<PyResult<Vec<_>>>()?;
     let model_input = model_input::build_model_inputs_checked(&proteins, policy)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
     let records = model_input
@@ -146,8 +162,8 @@ fn build_model_inputs_checked(
         .into_iter()
         .map(|r| PyModelInputRecord {
             id: r.id,
-            input_ids: r.input_ids,
-            attention_mask: r.attention_mask,
+            input_ids: r.input_ids.into_iter().map(usize::from).collect(),
+            attention_mask: r.attention_mask.into_iter().map(usize::from).collect(),
             truncated: r.truncated,
         })
         .collect();
@@ -155,15 +171,18 @@ fn build_model_inputs_checked(
 }
 
 #[pyfunction]
+#[pyo3(signature = (input_hash, records, max_length, pad_token_id=0, padding="no_padding"))]
 fn prepare_workflow(
     input_hash: String,
     records: Vec<PyProteinSequence>,
     max_length: usize,
+    pad_token_id: u8,
+    padding: &str,
 ) -> PyResult<PySequenceWorkflowOutput> {
     let policy = model_input::ModelInputPolicy {
         max_length,
-        pad_token_id: 0,
-        padding: model_input::PaddingPolicy::NoPadding,
+        pad_token_id,
+        padding: parse_padding_policy(padding)?,
     };
     let sequences: Vec<sequence::ProteinSequence> = records
         .into_iter()
@@ -179,8 +198,8 @@ fn prepare_workflow(
             .into_iter()
             .map(|r| PyModelInputRecord {
                 id: r.id,
-                input_ids: r.input_ids,
-                attention_mask: r.attention_mask,
+                input_ids: r.input_ids.into_iter().map(usize::from).collect(),
+                attention_mask: r.attention_mask.into_iter().map(usize::from).collect(),
                 truncated: r.truncated,
             })
             .collect()
@@ -207,6 +226,16 @@ fn plan_runtime_bridge(manifest_json: &str) -> PyResult<String> {
         .map_err(|e| PyValueError::new_err(format!("invalid JSON: {e}")))?;
     let report = package::plan_runtime_bridge(&manifest);
     serde_json::to_string(&report).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+fn parse_padding_policy(padding: &str) -> PyResult<model_input::PaddingPolicy> {
+    match padding {
+        "fixed_length" => Ok(model_input::PaddingPolicy::FixedLength),
+        "no_padding" => Ok(model_input::PaddingPolicy::NoPadding),
+        other => Err(PyValueError::new_err(format!(
+            "invalid padding: '{other}'. Expected 'fixed_length' or 'no_padding'"
+        ))),
+    }
 }
 
 #[pymodule]

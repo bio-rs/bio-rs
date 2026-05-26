@@ -7,6 +7,7 @@ export {
     validateFasta,
     tokenize,
     buildModelInput,
+    buildModelInputWithPolicy,
     runWorkflow,
     default as init,
 } from "./biors_wasm.js";
@@ -33,5 +34,11 @@ declare module "./biors_wasm.js" {
     export function validateFasta(bytes: Uint8Array, kind: string): ValidationReport;
     export function tokenize(records: FastaRecord[], profile: string): TokenizeOutput;
     export function buildModelInput(tokenized: TokenizedRecord[], maxLength: number): ModelInputOutput;
+    export function buildModelInputWithPolicy(
+        tokenized: TokenizedRecord[],
+        maxLength: number,
+        padTokenId: number,
+        padding: "fixed_length" | "no_padding"
+    ): ModelInputOutput;
     export function runWorkflow(config: WorkflowConfig): WorkflowOutput;
 }

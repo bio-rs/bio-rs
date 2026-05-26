@@ -59,7 +59,7 @@ fn manifest_compatibility_identifies_supported_migration_path() {
 }
 
 #[test]
-fn pipeline_config_policy_is_versioned_before_config_mvp() {
+fn pipeline_config_policy_is_versioned_before_config_contract() {
     let policy = pipeline_config_policy();
 
     assert_eq!(policy.contract, "pipeline_config");

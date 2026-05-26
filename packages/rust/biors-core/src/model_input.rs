@@ -103,11 +103,20 @@ fn model_input_from_tokenized(
     policy: &ModelInputPolicy,
 ) -> ModelInputRecord {
     let end = tokenized.tokens.len().min(policy.max_length);
-    let mut input_ids = tokenized.tokens[..end].to_vec();
-    let mut attention_mask = vec![1; input_ids.len()];
     let truncated = tokenized.tokens.len() > policy.max_length;
 
-    if policy.padding == PaddingPolicy::FixedLength {
+    let output_len = match policy.padding {
+        PaddingPolicy::FixedLength => policy.max_length,
+        PaddingPolicy::NoPadding => end,
+    };
+
+    let mut input_ids = Vec::with_capacity(output_len);
+    input_ids.extend_from_slice(&tokenized.tokens[..end]);
+
+    let mut attention_mask = Vec::with_capacity(output_len);
+    attention_mask.resize(end, 1);
+
+    if matches!(policy.padding, PaddingPolicy::FixedLength) {
         input_ids.resize(policy.max_length, policy.pad_token_id);
         attention_mask.resize(policy.max_length, 0);
     }

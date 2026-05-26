@@ -13,8 +13,8 @@ pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence
 }
 
 pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> ValidatedSequence {
-    let mut warnings = Vec::with_capacity(sequence.len());
-    let mut errors = Vec::with_capacity(sequence.len());
+    let mut warnings = Vec::new();
+    let mut errors = Vec::new();
 
     if sequence.is_ascii() {
         for (index, byte) in sequence.iter().enumerate() {

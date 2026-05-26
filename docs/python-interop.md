@@ -2,10 +2,10 @@
 
 bio-rs supports Python interoperability through two paths:
 
-1. **JSON boundary** (stable today) --- use `biors` CLI to produce JSON, then
+1. **JSON boundary** --- use `biors` CLI to produce JSON, then
    adapt in Python.
-2. **PyO3 bindings** (planned for v0.44.0) --- direct `pip install biors` with
-   native Rust performance.
+2. **PyO3 bindings** --- use the `biors-python` crate/package source for direct
+   native Rust preprocessing from Python.
 
 ## Stable JSON Boundary
 
@@ -43,20 +43,20 @@ rows = table_rows(payload)
 # numpy.asarray([row["input_ids"] for row in rows], dtype="uint8")
 ```
 
-## PyO3 Bindings (Planned)
+## PyO3 Bindings
 
 The Python API surface is documented in [docs/python-api.md](python-api.md).
 It covers:
 
-- `pip install biors`
+- local `maturin develop` integration and the `pip install biors` package flow
+  once PyPI publication is enabled
 - FASTA parsing, validation, tokenization, model input, workflow
 - Package manifest inspection and runtime bridge planning
-- NumPy-compatible output
-- Type stubs for IDE support
-- Jupyter notebook examples
+- list-based outputs that adapt directly to NumPy, pandas, PyTorch, and
+  notebook code
 
-The actual `biors` PyPI package is planned for v0.44.0.
-The v0.43.0 release documents the intended API surface as a design contract.
+The `biors-python` crate is implemented in-repo. Registry publication is tracked
+separately from the Rust crates.io release workflow.
 
 ## Reference Model Notes
 

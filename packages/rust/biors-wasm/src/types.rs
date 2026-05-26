@@ -91,6 +91,11 @@ export interface ModelInputRecord {
 }
 
 export interface ModelInputOutput {
+    policy: {
+        max_length: number;
+        pad_token_id: number;
+        padding: "fixed_length" | "no_padding";
+    };
     records: ModelInputRecord[];
 }
 "#;

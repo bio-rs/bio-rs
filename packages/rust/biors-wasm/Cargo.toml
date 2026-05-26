@@ -13,7 +13,7 @@ categories = ["science", "wasm"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-biors-core = { workspace = true, default-features = false }
+biors-core = { workspace = true }
 wasm-bindgen = "0.2.118"
 serde = { workspace = true }
 serde_json = { workspace = true }

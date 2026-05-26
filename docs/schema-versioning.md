@@ -60,7 +60,7 @@ the required steps for tooling and future CLI helpers.
 ## Pipeline Config Versioning
 
 Pipeline configs use `schema_version: "biors.pipeline.v0"` starting with the
-config MVP. Pipeline config readers must parse the schema tag before
+config contract. Pipeline config readers must parse the schema tag before
 normalization or validation. Unknown schema versions must be rejected with a
 stable validation error.
 
