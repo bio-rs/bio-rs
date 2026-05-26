@@ -1,5 +1,5 @@
 use super::{
-    Cli, Command, FastaCommand, KindArg, PaddingArg, SeqCommand, TokenizerCommand,
+    Cli, Command, FastaCommand, KindArg, PaddingArg, SeqCommand, ServiceCommand, TokenizerCommand,
     TokenizerProfileArg,
 };
 use crate::cli::{
@@ -12,6 +12,7 @@ use crate::output::print_success;
 use biors_core::{
     model_input::{build_model_inputs_checked, ModelInputPolicy},
     sequence::validate_fasta_reader_with_kind_and_hash,
+    service::current_service_interface_document,
     tokenizer::{
         inspect_protein_tokenizer_config, protein_tokenizer_config_for_profile,
         summarize_fasta_records_reader, tokenize_fasta_records_reader,
@@ -61,6 +62,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
             path,
         }),
         Command::Seq { command } => run_seq_command(command),
+        Command::Service { command } => run_service_command(command),
         Command::Tokenize {
             profile,
             config,
@@ -96,6 +98,12 @@ fn run_fasta_command(command: FastaCommand) -> Result<(), CliError> {
 fn run_seq_command(command: SeqCommand) -> Result<(), CliError> {
     match command {
         SeqCommand::Validate { kind, path } => run_sequence_validation(path, kind),
+    }
+}
+
+fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
+    match command {
+        ServiceCommand::Contract => print_success(None, current_service_interface_document()),
     }
 }
 

@@ -90,6 +90,10 @@ pub enum Command {
         #[command(subcommand)]
         command: SeqCommand,
     },
+    Service {
+        #[command(subcommand)]
+        command: ServiceCommand,
+    },
     Tokenize {
         #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
         profile: TokenizerProfileArg,
@@ -185,6 +189,11 @@ pub enum SeqCommand {
         kind: KindArg,
         path: PathBuf,
     },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ServiceCommand {
+    Contract,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]

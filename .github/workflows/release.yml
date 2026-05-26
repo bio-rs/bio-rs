@@ -58,6 +58,10 @@ jobs:
 
           echo "biors-core $version did not appear in crates index in time" >&2
           exit 1
+      - name: Dry-run publish biors-mcp-server
+        run: cargo publish --locked -p biors-mcp-server --dry-run
+      - name: Publish biors-mcp-server
+        run: cargo publish --locked -p biors-mcp-server --token ${{ secrets.CRATES_IO_TOKEN }}
       - name: Dry-run publish biors-backend-candle
         run: cargo publish --locked -p biors-backend-candle --dry-run
       - name: Publish biors-backend-candle

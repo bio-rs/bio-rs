@@ -13,6 +13,7 @@ pub mod model_input;
 pub mod package;
 pub mod runtime;
 pub mod sequence;
+pub mod service;
 pub mod tokenizer;
 pub mod verification;
 pub mod versioning;

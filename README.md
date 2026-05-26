@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.46.0
+cargo install biors --version 0.47.0
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -130,6 +130,8 @@ shape.
 - Optional Candle backend crate for CPU safetensors linear-probe inference
 - Model artifact metadata and runtime/model compatibility checks in package
   bridge reports
+- Transport-agnostic service interface contract for service hosts, without
+  bundling a server runtime
 - Typed validation issue codes and manifest enums
 
 ### Utilities
@@ -148,6 +150,7 @@ shape.
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
 - [Backend architecture](docs/backend-architecture.md) — runtime abstraction boundary
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
+- [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)

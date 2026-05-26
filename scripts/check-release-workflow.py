@@ -14,6 +14,8 @@ def main() -> None:
         "- name: Dry-run publish biors-core",
         "- name: Publish biors-core",
         "- name: Wait for biors-core index",
+        "- name: Dry-run publish biors-mcp-server",
+        "- name: Publish biors-mcp-server",
         "- name: Dry-run publish biors-backend-candle",
         "- name: Publish biors-backend-candle",
         "- name: Wait for biors-backend-candle index",

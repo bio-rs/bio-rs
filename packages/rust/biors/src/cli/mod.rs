@@ -20,7 +20,7 @@ pub(crate) mod tokenizer_convert;
 mod workflow;
 pub use args::{
     BatchCommand, CacheCommand, Cli, Command, DatasetCommand, FastaCommand, KindArg, PaddingArg,
-    SeqCommand, TokenizerCommand, TokenizerProfileArg,
+    SeqCommand, ServiceCommand, TokenizerCommand, TokenizerProfileArg,
 };
 pub(crate) use batch::run_batch_command;
 pub(crate) use cache::run_cache_command;

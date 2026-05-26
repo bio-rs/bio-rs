@@ -35,6 +35,7 @@ fn machine_readable_schemas_are_valid_json() {
         "schemas/package-migration-output.v0.json",
         "schemas/package-compatibility-output.v0.json",
         "schemas/package-diff-output.v0.json",
+        "schemas/service-interface-output.v0.json",
         "schemas/package-manifest.v0.json",
         "schemas/package-manifest.v1.json",
         "schemas/package-validation-report.v0.json",
@@ -195,6 +196,9 @@ fn cli_outputs_match_tooling_schemas() {
 
     let doctor = common::run_biors_paths(&["doctor"], &[]).stdout;
     assert_payload_matches_schema(&doctor, "schemas/doctor-output.v0.json");
+
+    let service = common::run_biors_paths(&["service", "contract"], &[]).stdout;
+    assert_payload_matches_schema(&service, "schemas/service-interface-output.v0.json");
 
     let temp = common::TempDir::new("schema-tooling");
     let hf_config = temp.write(

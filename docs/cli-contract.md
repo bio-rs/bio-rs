@@ -35,6 +35,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
 - `biors pipeline --config <toml|yaml|json> [--dry-run] [--explain-plan]`
 - `biors pipeline --config <toml|yaml|json> [--package <manifest>] --write-lock <pipeline.lock>`
+- `biors service contract`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
 `workflow` runs protein FASTA validation, deterministic `protein-20`
@@ -64,6 +65,10 @@ benchmark records can be tied back to the exact released binary.
 `biors doctor` emits local readiness diagnostics for platform identity,
 available Rust/Cargo toolchains, optional WASM target support, and committed
 demo/package fixtures.
+`biors service contract` emits the transport-agnostic service interface
+contract. It lists deterministic operations, JSON schema names, file access
+policy, runtime/package boundaries, and offline OpenAPI direction without
+starting a service runtime.
 `batch validate` accepts multiple file paths, directories, and quoted glob
 patterns. Directory inputs recurse into nested folders, include common FASTA
 file extensions, and ignore unrelated files. Empty glob expansion fails with
@@ -176,6 +181,7 @@ include `provided_inputs`, descriptor, metadata, resolved file count, total
 byte count, sample count, dataset hash, deterministic `resolved_files`, and
 sample mapping lists.
 Cache payloads use `schemas/cache-output.v0.json`.
+Service interface payloads use `schemas/service-interface-output.v0.json`.
 
 Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
 Tokenizer config files reject unknown top-level fields so preprocessing

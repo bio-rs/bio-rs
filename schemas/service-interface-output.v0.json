@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-interface-output.v0.json",
+  "title": "bio-rs service interface contract data payload",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "service_name",
+    "service_version",
+    "server_runtime",
+    "transport_model",
+    "runtime_separation",
+    "openapi",
+    "routes"
+  ],
+  "properties": {
+    "schema_version": { "const": "biors.service_interface.v0" },
+    "service_name": { "const": "bio-rs" },
+    "service_version": { "type": "string", "minLength": 1 },
+    "server_runtime": { "const": "not_included" },
+    "transport_model": { "const": "transport_agnostic_json_contract" },
+    "runtime_separation": {
+      "type": "object",
+      "required": [
+        "core_contract_owner",
+        "service_runtime_owner",
+        "permitted_in_core",
+        "forbidden_in_core"
+      ],
+      "properties": {
+        "core_contract_owner": { "const": "biors-core" },
+        "service_runtime_owner": { "type": "string", "minLength": 1 },
+        "permitted_in_core": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "forbidden_in_core": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "contains": { "const": "network listener" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "openapi": {
+      "type": "object",
+      "required": ["status", "title", "version", "schema_base_uri", "notes"],
+      "properties": {
+        "status": { "const": "offline_contract" },
+        "title": { "const": "bio-rs service interface" },
+        "version": { "type": "string", "minLength": 1 },
+        "schema_base_uri": {
+          "type": "string",
+          "pattern": "^https://bio-rs\\.dev/schemas/$"
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "routes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "operation_id",
+          "domain",
+          "method",
+          "path",
+          "request_schema",
+          "response_schema",
+          "deterministic",
+          "idempotent",
+          "file_access",
+          "runtime_boundary"
+        ],
+        "properties": {
+          "operation_id": { "type": "string", "minLength": 1 },
+          "domain": {
+            "enum": ["sequence", "tokenizer", "model_input", "package", "runtime"]
+          },
+          "method": { "const": "POST" },
+          "path": { "type": "string", "pattern": "^/v0/" },
+          "request_schema": { "type": "string", "pattern": "\\.v0\\.json$" },
+          "response_schema": { "type": "string", "pattern": "\\.v0\\.json$" },
+          "deterministic": { "const": true },
+          "idempotent": { "const": true },
+          "file_access": {
+            "enum": ["read_only_input", "package_read_only"]
+          },
+          "runtime_boundary": {
+            "enum": ["core_deterministic", "package_contract", "runtime_planning_only"]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

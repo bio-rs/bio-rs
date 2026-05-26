@@ -1,6 +1,6 @@
 # biors-core Rust API Reference
 
-Version: 0.46.0
+Version: 0.47.0
 
 This document is the comprehensive public API reference for `biors-core`, the Rust engine behind bio-rs. It covers every public module, type, trait, and function exposed by the crate.
 
@@ -19,6 +19,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
   - [`package`](#module-package)
   - [`runtime`](#module-runtime)
   - [`sequence`](#module-sequence)
+  - [`service`](#module-service)
   - [`tokenizer`](#module-tokenizer)
   - [`verification`](#module-verification)
   - [`versioning`](#module-versioning)
@@ -39,7 +40,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-biors-core = "0.46.0"
+biors-core = "0.47.0"
 ```
 
 The crate depends on:
@@ -128,7 +129,7 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 
 ### Module: `fasta_scan`
 
-The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.46.0, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
+The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.47.0, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
 
 ### Module: `hash`
 
@@ -385,6 +386,66 @@ The `runtime` module defines backend abstraction contracts and provides a guarde
 - `pub const DEFAULT_PROCESS_TIMEOUT_MILLIS: u64 = 30_000`
 - `pub const DEFAULT_STDOUT_LIMIT_BYTES: usize = 16 * 1024 * 1024`
 - `pub const DEFAULT_STDERR_LIMIT_BYTES: usize = 1024 * 1024`
+
+### Module: `service`
+
+The `service` module defines a transport-agnostic service interface contract for
+embedding bio-rs in a caller-owned service host. It does not include an HTTP
+server, network listener, authentication, rate limiting, or deployment runtime.
+
+#### Constants
+
+- **`SERVICE_INTERFACE_SCHEMA_VERSION`** — current service contract schema
+  version, `biors.service_interface.v0`.
+
+#### Types
+
+- **`ServiceInterfaceDocument`** — top-level service contract.
+  - `pub schema_version: String`
+  - `pub service_name: String`
+  - `pub service_version: String`
+  - `pub server_runtime: String`
+  - `pub transport_model: String`
+  - `pub runtime_separation: RuntimeServiceSeparation`
+  - `pub openapi: OpenApiDirection`
+  - `pub routes: Vec<ServiceRoute>`
+
+- **`RuntimeServiceSeparation`** — explicit ownership split between
+  `biors-core` and the embedding service host.
+  - `pub core_contract_owner: String`
+  - `pub service_runtime_owner: String`
+  - `pub permitted_in_core: Vec<String>`
+  - `pub forbidden_in_core: Vec<String>`
+
+- **`OpenApiDirection`** — offline OpenAPI generation guidance.
+  - `pub status: String`
+  - `pub title: String`
+  - `pub version: String`
+  - `pub schema_base_uri: String`
+  - `pub notes: Vec<String>`
+
+- **`ServiceRoute`** — one deterministic service operation contract.
+  - `pub operation_id: String`
+  - `pub domain: String`
+  - `pub method: String`
+  - `pub path: String`
+  - `pub request_schema: String`
+  - `pub response_schema: String`
+  - `pub deterministic: bool`
+  - `pub idempotent: bool`
+  - `pub file_access: String`
+  - `pub runtime_boundary: String`
+
+#### Functions
+
+- `pub fn current_service_interface_document() -> ServiceInterfaceDocument`
+  Build the current service interface document using the crate version.
+
+- `pub fn service_interface_document(version: impl Into<String>) -> ServiceInterfaceDocument`
+  Build a service interface document for a provided version string.
+
+- `pub fn service_routes() -> Vec<ServiceRoute>`
+  Return the stable v0 operation list for service hosts.
 
 ### Module: `sequence`
 
@@ -893,4 +954,4 @@ The `examples/python/` directory in the repository contains reference scripts sh
 
 ---
 
-This document reflects the public API of `biors-core` as of version 0.46.0. If you find a discrepancy between this reference and the source, the source is the authority.
+This document reflects the public API of `biors-core` as of version 0.47.0. If you find a discrepancy between this reference and the source, the source is the authority.
