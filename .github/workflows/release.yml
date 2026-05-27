@@ -128,6 +128,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - name: Download Python distributions
         uses: actions/download-artifact@v8
@@ -135,7 +137,13 @@ jobs:
           pattern: python-dist-*
           path: dist
           merge-multiple: true
-      - name: Publish Python distributions to PyPI
+      - name: Publish Python distributions to PyPI with token
+        if: env.PYPI_API_TOKEN != ''
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ env.PYPI_API_TOKEN }}
+      - name: Publish Python distributions to PyPI with trusted publishing
+        if: env.PYPI_API_TOKEN == ''
         uses: pypa/gh-action-pypi-publish@release/v1
 
   publish-wasm-npm:
@@ -146,6 +154,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
@@ -164,7 +174,13 @@ jobs:
         run: wasm-pack test --node packages/rust/biors-wasm
       - name: Build npm package
         run: scripts/build-wasm-npm-package.sh
-      - name: Publish npm package
+      - name: Publish npm package with token
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+        run: npm publish packages/rust/biors-wasm/pkg --access public
+      - name: Publish npm package with trusted publishing
+        if: env.NPM_TOKEN == ''
         run: npm publish packages/rust/biors-wasm/pkg --access public
 
   build-release-binaries:

@@ -139,7 +139,7 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "biors"
-version = "0.47.2"
+version = "0.47.3"
 dependencies = [
  "biors-core",
  "clap",
@@ -153,7 +153,7 @@ dependencies = [
 
 [[package]]
 name = "biors-backend-candle"
-version = "0.47.2"
+version = "0.47.3"
 dependencies = [
  "biors-core",
  "candle-core",
@@ -164,7 +164,7 @@ dependencies = [
 
 [[package]]
 name = "biors-core"
-version = "0.47.2"
+version = "0.47.3"
 dependencies = [
  "criterion",
  "serde",
@@ -174,7 +174,7 @@ dependencies = [
 
 [[package]]
 name = "biors-mcp-server"
-version = "0.47.2"
+version = "0.47.3"
 dependencies = [
  "biors-core",
  "rmcp",
@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "biors-python"
-version = "0.47.2"
+version = "0.47.3"
 dependencies = [
  "biors-core",
  "pyo3",
@@ -194,7 +194,7 @@ dependencies = [
 
 [[package]]
 name = "biors-wasm"
-version = "0.47.2"
+version = "0.47.3"
 dependencies = [
  "biors-core",
  "console_error_panic_hook",

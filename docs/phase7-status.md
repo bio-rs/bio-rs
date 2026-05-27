@@ -50,7 +50,7 @@ External binding surfaces published by this repository's tag release workflow:
 
 The committed FASTA benchmark is the latest recorded public baseline. It should
 remain the source for numeric throughput claims until rerun and committed with
-new environment metadata. The `0.47.2` patch adds benchmark coverage for
+new environment metadata. The `0.47.3` patch adds benchmark coverage for
 fixed-length model-input construction and reduces repeated ASCII classification
 in reader FASTA scanning; no new throughput claim is made until the benchmark
 artifact is regenerated.

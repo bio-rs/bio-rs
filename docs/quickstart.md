@@ -6,7 +6,7 @@ fresh checkout.
 ## Install
 
 ```bash
-cargo install biors --version 0.47.2
+cargo install biors --version 0.47.3
 biors --version
 biors doctor
 ```
