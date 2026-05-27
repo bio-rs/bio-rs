@@ -21,6 +21,10 @@ def main() -> None:
         "- name: Wait for biors-backend-candle index",
         "- name: Dry-run publish biors",
         "- name: Publish biors",
+        "publish-python:",
+        "- name: Publish Python distributions to PyPI",
+        "publish-wasm-npm:",
+        "- name: Publish npm package",
         "create-github-release:",
         "- name: Download binary artifacts",
         "- name: Create release if missing",
@@ -40,8 +44,11 @@ def main() -> None:
     required_text = [
         "x86_64-unknown-linux-gnu",
         "aarch64-apple-darwin",
-        "actions/upload-artifact@v4",
-        "actions/download-artifact@v4",
+        "actions/upload-artifact@v7",
+        "actions/download-artifact@v8",
+        "pypa/gh-action-pypi-publish@release/v1",
+        "npm publish packages/rust/biors-wasm/pkg --access public",
+        "wasm-pack test --node packages/rust/biors-wasm",
         "dist/*.tar.gz",
     ]
     workflow_text = "\n".join(lines)
