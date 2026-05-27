@@ -73,7 +73,7 @@ impl FastaScanState {
         sink: &mut S,
     ) -> Result<(), FastaReadError> {
         let line_number = self.line_number;
-        let raw_line = trim_fasta_line_bytes(raw_line);
+        let (raw_line, line_is_ascii) = trim_fasta_line_bytes(raw_line);
 
         if raw_line.is_empty() {
             return Ok(());
@@ -81,10 +81,12 @@ impl FastaScanState {
 
         if raw_line[0] == b'>' {
             let header = &raw_line[1..];
-            let next_id = fasta_id_bytes(header).ok_or(BioRsError::MissingIdentifier {
-                line: line_number,
-                record_index: self.current_record_index,
-            })?;
+            let next_id = fasta_id_bytes_with_ascii(header, line_is_ascii).ok_or(
+                BioRsError::MissingIdentifier {
+                    line: line_number,
+                    record_index: self.current_record_index,
+                },
+            )?;
             if let Some(id) = self.current_id.replace(next_id) {
                 sink.finish_record(id, self.current_header_line, self.current_record_index)?;
                 self.current_record_index += 1;
@@ -97,7 +99,7 @@ impl FastaScanState {
             return Err(BioRsError::MissingHeader { line: line_number }.into());
         }
 
-        if raw_line.is_ascii() {
+        if line_is_ascii {
             // ASCII FASTA sequence lines stay on the byte-level path so tokenization
             // and validation do not pay Unicode decoding overhead. Non-ASCII lines
             // intentionally fall back to UTF-8 validation below.
@@ -171,15 +173,16 @@ fn invalid_utf8_error(line: usize, error: std::str::Utf8Error) -> FastaReadError
     ))
 }
 
-fn trim_fasta_line_bytes(line: &[u8]) -> &[u8] {
-    if line.is_ascii() {
-        trim_ascii_bytes(line)
+fn trim_fasta_line_bytes(line: &[u8]) -> (&[u8], bool) {
+    let line_is_ascii = line.is_ascii();
+    if line_is_ascii {
+        (trim_ascii_bytes(line), true)
     } else {
         let mut end = line.len();
         while end > 0 && matches!(line[end - 1], b'\n' | b'\r') {
             end -= 1;
         }
-        &line[..end]
+        (&line[..end], false)
     }
 }
 
@@ -203,7 +206,11 @@ fn fasta_id(header: &str) -> Option<String> {
 }
 
 fn fasta_id_bytes(header: &[u8]) -> Option<String> {
-    if header.is_ascii() {
+    fasta_id_bytes_with_ascii(header, header.is_ascii())
+}
+
+fn fasta_id_bytes_with_ascii(header: &[u8], header_is_ascii: bool) -> Option<String> {
+    if header_is_ascii {
         return fasta_id_ascii_bytes(header);
     }
 

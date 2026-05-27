@@ -1,5 +1,10 @@
 use biors_core::{
-    parse_fasta_records_reader, tokenize_fasta_records_reader, validate_fasta_reader,
+    model_input::{build_model_inputs_checked, ModelInputPolicy, PaddingPolicy},
+    parse_fasta_records_reader,
+    sequence::ProteinSequence,
+    tokenize_fasta_records_reader,
+    tokenizer::TokenizedProtein,
+    validate_fasta_reader,
 };
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use std::io::Cursor;
@@ -46,6 +51,19 @@ static HUMAN_PROTEOME_DATA: LazyLock<Vec<u8>> = LazyLock::new(|| generate_fasta(
 static LARGE_FASTA_DATA: LazyLock<Vec<u8>> = LazyLock::new(|| generate_fasta(180_000, 554, 500));
 
 static MANY_SHORT_DATA: LazyLock<Vec<u8>> = LazyLock::new(|| generate_fasta(20_000, 48, 0));
+
+static MODEL_INPUT_RECORDS: LazyLock<Vec<TokenizedProtein>> = LazyLock::new(|| {
+    (0..4096)
+        .map(|index| {
+            let sequence = generate_sequence(index as u64, 256);
+            let protein = ProteinSequence {
+                id: format!("seq_{index}"),
+                sequence,
+            };
+            biors_core::tokenize_protein(&protein)
+        })
+        .collect()
+});
 
 fn benchmark_parse_human_proteome(c: &mut Criterion) {
     let data = &*HUMAN_PROTEOME_DATA;
@@ -173,6 +191,25 @@ fn benchmark_tokenize_many_short_records(c: &mut Criterion) {
     group.finish();
 }
 
+fn benchmark_model_input_fixed_length(c: &mut Criterion) {
+    let records = &*MODEL_INPUT_RECORDS;
+    let policy = ModelInputPolicy {
+        max_length: 512,
+        pad_token_id: 0,
+        padding: PaddingPolicy::FixedLength,
+    };
+    let mut group = c.benchmark_group("model_input_fixed_length");
+    group.throughput(Throughput::Elements(records.len() as u64));
+    group.bench_function(BenchmarkId::new("build", "4096_x_512"), |b| {
+        b.iter(|| {
+            let result = build_model_inputs_checked(black_box(records), black_box(policy.clone()))
+                .expect("valid model input");
+            black_box(result);
+        })
+    });
+    group.finish();
+}
+
 criterion_group!(
     benches,
     benchmark_parse_human_proteome,
@@ -184,5 +221,6 @@ criterion_group!(
     benchmark_parse_many_short_records,
     benchmark_validate_many_short_records,
     benchmark_tokenize_many_short_records,
+    benchmark_model_input_fixed_length,
 );
 criterion_main!(benches);
