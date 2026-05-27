@@ -3,8 +3,8 @@
 `biors-python` exposes the core bio-rs FASTA, validation, tokenization, model
 input, package-manifest, and runtime-planning surfaces through PyO3.
 
-> **Status:** The `biors-python` crate is implemented in this repository. PyPI
-> publishing is tracked separately from the Rust crates.io release workflow.
+> **Status:** The `biors-python` crate is implemented in this repository and is
+> published to PyPI by the tag release workflow.
 
 ## Installation
 

@@ -21,8 +21,8 @@ runtime planning, and backend packaging are in scope.
 | `0.41.0` | Model artifact metadata and compatibility | Implemented | package manifest metadata, artifact hashes, runtime compatibility checks, and package bridge reports |
 | `0.42.0` | Backend compatibility matrix | Implemented | package compatibility matrix and reproducibility/report linkage in package bridge outputs |
 | `0.43.0` | External interface API review | Implemented | `docs/rust-api.md`, `docs/python-api.md`, and `docs/wasm-api.md` |
-| `0.44.0` | Python binding candidate | Implemented as local PyO3 crate | `packages/rust/biors-python`, Python API tests, and `docs/python-api.md` |
-| `0.45.0` | WASM/JS API candidate | Implemented as WASM crate/package source | `packages/rust/biors-wasm`, `index.d.ts`, and `docs/wasm-api.md` |
+| `0.44.0` | Python binding candidate | Implemented and release-workflow published | `packages/rust/biors-python`, Python API tests, and `docs/python-api.md` |
+| `0.45.0` | WASM/JS API candidate | Implemented and release-workflow published | `packages/rust/biors-wasm`, `index.d.ts`, and `docs/wasm-api.md` |
 | `0.46.0` | Agent-callable tool interface | Implemented | `biors-mcp-server` crate, MCP tests, and crates.io package |
 | `0.47.0` | Service interface design | Implemented as offline contract | `biors service contract`, `biors_core::service`, and `schemas/service-interface-output.v0.json` |
 
@@ -41,23 +41,19 @@ integration work before model inference. Current guarantees:
 - crates.io publication for `biors`, `biors-core`, `biors-backend-candle`, and
   `biors-mcp-server`
 
-Candidate surfaces that are implemented in-repo but not yet independently
-published by this repository's release workflow:
+External binding surfaces published by this repository's tag release workflow:
 
-- `biors-python` PyO3 package source and tests
-- `@bio-rs/biors-wasm` package source and TypeScript definitions
-
-Those bindings are suitable for local integration testing and downstream package
-work, but their registry publication should use dedicated PyPI/npm release
-workflows before they are described as independently published artifacts.
+- `biors-python` PyO3 wheels/source distribution on PyPI
+- `@bio-rs/biors-wasm` package with TypeScript definitions on npm
 
 ## Performance Status
 
 The committed FASTA benchmark is the latest recorded public baseline. It should
 remain the source for numeric throughput claims until rerun and committed with
-new environment metadata. The `0.47.1` patch reduces unnecessary allocation in
-valid protein validation and fixed-length model-input construction; no new
-throughput claim is made until the benchmark artifact is regenerated.
+new environment metadata. The `0.47.2` patch adds benchmark coverage for
+fixed-length model-input construction and reduces repeated ASCII classification
+in reader FASTA scanning; no new throughput claim is made until the benchmark
+artifact is regenerated.
 
 ## Deferred
 

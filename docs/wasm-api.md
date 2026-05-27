@@ -5,8 +5,8 @@
 validation, protein tokenization, model-input construction, and the standard
 protein preprocessing workflow.
 
-> **Status:** The `biors-wasm` crate is implemented in this repository. npm
-> publishing is tracked separately from the Rust crates.io release workflow.
+> **Status:** The `biors-wasm` crate is implemented in this repository and is
+> published to npm by the tag release workflow.
 
 ## Installation
 

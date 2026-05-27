@@ -49,14 +49,13 @@ The Python API surface is documented in [docs/python-api.md](python-api.md).
 It covers:
 
 - local `maturin develop` integration and the `pip install biors` package flow
-  once PyPI publication is enabled
 - FASTA parsing, validation, tokenization, model input, workflow
 - Package manifest inspection and runtime bridge planning
 - list-based outputs that adapt directly to NumPy, pandas, PyTorch, and
   notebook code
 
-The `biors-python` crate is implemented in-repo. Registry publication is tracked
-separately from the Rust crates.io release workflow.
+The `biors-python` crate is implemented in-repo. Tag releases build Python
+wheels for Linux, macOS, and Windows and publish them to PyPI.
 
 ## Reference Model Notes
 

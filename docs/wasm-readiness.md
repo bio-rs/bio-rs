@@ -32,5 +32,5 @@ It covers:
 - Browser limitations (no filesystem, no external process)
 
 The `@bio-rs/biors-wasm` package source is implemented in-repo with TypeScript
-definitions. npm registry publication is tracked separately from the Rust
-crates.io release workflow.
+definitions. Tag releases build the package with `wasm-pack`, run WASM tests,
+and publish it to npm.

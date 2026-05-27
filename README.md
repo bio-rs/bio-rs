@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.47.1
+cargo install biors --version 0.47.2
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -91,9 +91,10 @@ Benchmark details:
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
 bio-rs is faster than Biopython across every FASTA workload or researcher input
-shape. The `0.47.1` patch reduces allocation in protein validation and
-fixed-length model-input construction, but the benchmark artifact has not been
-regenerated for that patch.
+shape. The `0.47.2` patch keeps those numeric claims pinned to the latest
+committed benchmark artifact while adding benchmark coverage for fixed-length
+model-input construction and reducing repeated ASCII classification in reader
+FASTA scanning.
 
 ## What works today
 
