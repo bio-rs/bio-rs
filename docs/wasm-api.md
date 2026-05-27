@@ -1,12 +1,13 @@
 # WASM API
 
-`@bio-rs/biors-wasm` exposes a browser-safe and Node.js-safe subset of
+`biors-wasm` exposes a browser-safe and Node.js-safe subset of
 `biors-core` as a WebAssembly module. It supports FASTA parsing, sequence
 validation, protein tokenization, model-input construction, and the standard
 protein preprocessing workflow.
 
-> **Status:** The `biors-wasm` crate is implemented in this repository and is
-> published to npm by the tag release workflow.
+> **Status:** The `biors-wasm` crate is implemented in this repository. Tag
+> releases build and test the npm package artifact, but npm publication remains
+> a tracked TODO until npm scope/package ownership is configured.
 
 ## Installation
 
@@ -14,8 +15,11 @@ protein preprocessing workflow.
 npm install @bio-rs/biors-wasm
 ```
 
-The package contains the `.wasm` binary, JS glue, and TypeScript declarations.
-No hosted service or external runtime is required.
+This is the intended package name once npm publication is enabled. The release
+workflow currently verifies the package artifact with `wasm-pack` and
+`npm pack --dry-run`; npm publication is tracked as follow-up work. The package
+artifact contains the `.wasm` binary, JS glue, and TypeScript declarations. No
+hosted service or external runtime is required.
 
 ## Initialization
 

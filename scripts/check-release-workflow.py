@@ -24,9 +24,9 @@ def main() -> None:
         "publish-python:",
         "- name: Publish Python distributions to PyPI with token",
         "- name: Publish Python distributions to PyPI with trusted publishing",
-        "publish-wasm-npm:",
-        "- name: Publish npm package with token",
-        "- name: Publish npm package with trusted publishing",
+        "verify-wasm-npm:",
+        "- name: Test WASM package",
+        "- name: Build npm package",
         "create-github-release:",
         "- name: Download binary artifacts",
         "- name: Create release if missing",
@@ -50,9 +50,8 @@ def main() -> None:
         "actions/download-artifact@v8",
         "pypa/gh-action-pypi-publish@release/v1",
         "PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}",
-        "NPM_TOKEN: ${{ secrets.NPM_TOKEN }}",
-        "npm publish packages/rust/biors-wasm/pkg --access public",
         "wasm-pack test --node packages/rust/biors-wasm",
+        "scripts/build-wasm-npm-package.sh",
         "dist/*.tar.gz",
     ]
     workflow_text = "\n".join(lines)

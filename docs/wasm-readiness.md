@@ -25,12 +25,14 @@ FASTA reader paths are UTF-8 text contracts.
 The browser-safe WASM API surface is documented in [docs/wasm-api.md](wasm-api.md).
 It covers:
 
-- `npm install @bio-rs/biors-wasm`
+- the intended `npm install @bio-rs/biors-wasm` package name after npm
+  publication is enabled
 - Initialization and module loading
 - FASTA parsing, validation, tokenization, model input, workflow
 - TypeScript interfaces for all exported types
 - Browser limitations (no filesystem, no external process)
 
-The `@bio-rs/biors-wasm` package source is implemented in-repo with TypeScript
-definitions. Tag releases build the package with `wasm-pack`, run WASM tests,
-and publish it to npm.
+The `biors-wasm` package source is implemented in-repo with TypeScript
+definitions. Tag releases build the package with `wasm-pack` and run WASM
+tests. npm publication is intentionally left as a TODO until npm package
+ownership/trusted publishing is configured.
