@@ -1,4 +1,5 @@
 /target/
+packages/rust/biors-wasm/pkg/
 .venv-bench/
 **/*.rs.bk
 .DS_Store

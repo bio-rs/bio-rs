@@ -1,7 +1,5 @@
 use wasm_bindgen_test::*;
 
-wasm_bindgen_test_configure!(run_in_browser);
-
 #[wasm_bindgen_test]
 fn test_parse_fasta() {
     let fasta = ">seq1\nACDE\n>seq2\nFGHI\n";
@@ -65,7 +63,17 @@ fn test_build_model_input_with_policy() {
 
 #[wasm_bindgen_test]
 fn test_run_workflow() {
-    let config = js_sys::JSON::parse(r#"{"fastaBytes":[62,115,101,113,49,10,65,67,68,69,10],"maxLength":8,"padding":"fixed_length","padTokenId":0}"#).unwrap();
-    let result = biors_wasm::run_workflow(config);
+    let config = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &config,
+        &"fastaBytes".into(),
+        &js_sys::Uint8Array::from(">seq1\nACDE\n".as_bytes()).into(),
+    )
+    .unwrap();
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"padding".into(), &"fixed_length".into()).unwrap();
+    js_sys::Reflect::set(&config, &"padTokenId".into(), &0.into()).unwrap();
+
+    let result = biors_wasm::run_workflow(config.into());
     assert!(result.is_ok());
 }
