@@ -22,7 +22,7 @@ runtime planning, and backend packaging are in scope.
 | `0.42.0` | Backend compatibility matrix | Implemented | package compatibility matrix and reproducibility/report linkage in package bridge outputs |
 | `0.43.0` | External interface API review | Implemented | `docs/rust-api.md`, `docs/python-api.md`, and `docs/wasm-api.md` |
 | `0.44.0` | Python binding candidate | Implemented and release-workflow published | `packages/rust/biors-python`, Python API tests, and `docs/python-api.md` |
-| `0.45.0` | WASM/JS API candidate | Implemented; npm artifact verified, publication TODO | `packages/rust/biors-wasm`, `index.d.ts`, and `docs/wasm-api.md` |
+| `0.45.0` | WASM/JS API candidate | Implemented and npm-published | `packages/rust/biors-wasm`, `index.d.ts`, and `docs/wasm-api.md` |
 | `0.46.0` | Agent-callable tool interface | Implemented | `biors-mcp-server` crate, MCP tests, and crates.io package |
 | `0.47.0` | Service interface design | Implemented as offline contract | `biors service contract`, `biors_core::service`, and `schemas/service-interface-output.v0.json` |
 
@@ -44,9 +44,8 @@ integration work before model inference. Current guarantees:
 External binding surfaces covered by this repository's tag release workflow:
 
 - `biors-python` PyO3 wheels/source distribution on PyPI
-- `@bio-rs/biors-wasm` package build/test artifact with TypeScript definitions;
-  npm publication remains a TODO until package ownership/trusted publishing is
-  configured
+- `@bio-rs/biors-wasm` package with TypeScript definitions on npm; future tag
+  releases publish it from GitHub Actions through npm trusted publishing
 
 ## Performance Status
 

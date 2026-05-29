@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate release workflow invariants that affect crates.io publication."""
+"""Validate release workflow invariants that affect package publication."""
 
 from pathlib import Path
 
@@ -24,9 +24,10 @@ def main() -> None:
         "publish-python:",
         "- name: Publish Python distributions to PyPI with token",
         "- name: Publish Python distributions to PyPI with trusted publishing",
-        "verify-wasm-npm:",
+        "publish-wasm-npm:",
         "- name: Test WASM package",
         "- name: Build npm package",
+        "- name: Publish npm package with trusted publishing",
         "create-github-release:",
         "- name: Download binary artifacts",
         "- name: Create release if missing",
@@ -52,6 +53,7 @@ def main() -> None:
         "PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}",
         "wasm-pack test --node packages/rust/biors-wasm",
         "scripts/build-wasm-npm-package.sh",
+        "npm publish packages/rust/biors-wasm/pkg --access public",
         "dist/*.tar.gz",
     ]
     workflow_text = "\n".join(lines)

@@ -146,13 +146,14 @@ jobs:
         if: env.PYPI_API_TOKEN == ''
         uses: pypa/gh-action-pypi-publish@release/v1
 
-  verify-wasm-npm:
-    name: Verify WASM npm Package
+  publish-wasm-npm:
+    name: Publish WASM Package to npm
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     needs: release-readiness
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
@@ -171,6 +172,8 @@ jobs:
         run: wasm-pack test --node packages/rust/biors-wasm
       - name: Build npm package
         run: scripts/build-wasm-npm-package.sh
+      - name: Publish npm package with trusted publishing
+        run: npm publish packages/rust/biors-wasm/pkg --access public
 
   build-release-binaries:
     name: Build Release Binary (${{ matrix.target }})
@@ -217,7 +220,7 @@ jobs:
     needs:
       - publish-crates
       - publish-python
-      - verify-wasm-npm
+      - publish-wasm-npm
       - build-release-binaries
     permissions:
       contents: write

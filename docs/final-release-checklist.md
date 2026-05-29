@@ -87,6 +87,17 @@ python3 scripts/check-release-workflow.py
 This checks crates publish order, release creation order, and binary artifact
 packaging configuration.
 
+## npm Trusted Publishing
+
+The WASM package release job uses npm trusted publishing. Before tagging a
+release that changes `packages/rust/biors-wasm`, verify the npm package
+settings for `@bio-rs/biors-wasm` allow GitHub Actions publishing from:
+
+- GitHub organization/user: `bio-rs`
+- GitHub repository: `bio-rs`
+- Workflow filename: `release.yml`
+- Allowed action: `npm publish`
+
 ## Public Demo Dry Run
 
 Run the installed or release binary through:

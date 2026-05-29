@@ -6,8 +6,8 @@ validation, protein tokenization, model-input construction, and the standard
 protein preprocessing workflow.
 
 > **Status:** The `biors-wasm` crate is implemented in this repository. Tag
-> releases build and test the npm package artifact, but npm publication remains
-> a tracked TODO until npm scope/package ownership is configured.
+> releases build, test, and publish the npm package through npm trusted
+> publishing.
 
 ## Installation
 
@@ -15,11 +15,8 @@ protein preprocessing workflow.
 npm install @bio-rs/biors-wasm
 ```
 
-This is the intended package name once npm publication is enabled. The release
-workflow currently verifies the package artifact with `wasm-pack` and
-`npm pack --dry-run`; npm publication is tracked as follow-up work. The package
-artifact contains the `.wasm` binary, JS glue, and TypeScript declarations. No
-hosted service or external runtime is required.
+The package contains the `.wasm` binary, JS glue, and TypeScript declarations.
+No hosted service or external runtime is required.
 
 ## Initialization
 
