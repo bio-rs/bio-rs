@@ -51,14 +51,17 @@ package manifest field changed without a matching test and doc update.
 ## Dependency Policy
 
 The final release gate runs `scripts/check-dependency-policy.py` through
-`scripts/check.sh`. Before tagging, review any `Cargo.toml` or `Cargo.lock`
-change against [docs/dependency-policy.md](dependency-policy.md), including:
+`scripts/check.sh` and runs `scripts/check-security-audit.sh` directly with
+`cargo-deny`. Before tagging, review any `Cargo.toml` or `Cargo.lock` change
+against [docs/dependency-policy.md](dependency-policy.md), including:
 
 - whether `biors-core` still has only its approved normal dependencies
 - whether optional Candle, MCP, Python, and WASM dependencies remain isolated in
   their package-specific crates
 - whether `cargo tree --locked -p biors-core --duplicates` and
   `cargo tree --locked -p biors --duplicates` remain clean
+- whether `cargo-deny` advisory, license, source, and duplicate-version findings
+  are resolved or explicitly documented before tagging
 - why any new dependency is needed and whether it affects the default CLI/core
   install path
 

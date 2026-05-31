@@ -71,6 +71,8 @@ def main() -> None:
         "npm publish packages/rust/biors-wasm/pkg --access public",
         "tar -C dist -czf \"${{ matrix.archive }}\" biors README.md LICENSE-APACHE LICENSE-MIT",
         "scripts/check-registry-versions.py",
+        "cargo install --locked cargo-deny",
+        "scripts/check-security-audit.sh",
         "dist/*.tar.gz",
     ]
     workflow_text = "\n".join(lines)

@@ -23,9 +23,10 @@ Run:
 
 ```bash
 python3 scripts/check-dependency-policy.py
+scripts/check-security-audit.sh
 ```
 
-The script fails if:
+The local dependency policy script fails if:
 
 - `biors-core` gains normal dependencies outside its budget.
 - `biors-core` or `biors` directly depends on optional integration crates.
@@ -33,12 +34,15 @@ The script fails if:
 - `cargo tree --locked -p biors-core --duplicates` or
   `cargo tree --locked -p biors --duplicates` reports duplicate dependencies.
 
-This gate is also run by `scripts/check-fast.sh` and `scripts/check.sh`.
+This policy gate is also run by `scripts/check-fast.sh` and `scripts/check.sh`.
+The security audit script requires `cargo-deny` and is run by
+`scripts/check-final-release.sh` and the release workflow. It checks RustSec
+advisories, license allowlist compliance, duplicate-version warnings, wildcard
+dependencies, and unknown source registries/git dependencies.
 
 ## Review Notes
 
 When a PR or release changes `Cargo.lock` or any `Cargo.toml`, record why the
-dependency is needed, which crate owns it, and whether it changes the default
-CLI/core dependency tree. If advisory/license tooling such as `cargo deny`,
-`cargo machete`, or `cargo udeps` is adopted later, keep those checks additive
-to this boundary policy rather than replacing it.
+dependency is needed, which crate owns it, whether it changes the default
+CLI/core dependency tree, and how any `cargo-deny` advisory or license finding
+was resolved.

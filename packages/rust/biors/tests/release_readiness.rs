@@ -279,6 +279,7 @@ fn final_release_checklist_covers_required_gates() {
 
     for expected in [
         "scripts/check.sh",
+        "scripts/check-security-audit.sh",
         "cargo build --locked --release -p biors",
         "BIORS_BIN=target/release/biors sh scripts/launch-demo.sh",
         "scripts/check-install-smoke.sh",

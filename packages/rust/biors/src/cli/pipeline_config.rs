@@ -83,7 +83,7 @@ fn parse_pipeline_config(path: &Path, contents: &str) -> Result<PipelineConfig, 
     match extension(path).as_deref() {
         Some("json") => serde_json::from_str(contents).map_err(invalid_config),
         Some("toml") => toml::from_str(contents).map_err(invalid_config),
-        Some("yaml") | Some("yml") => serde_yml::from_str(contents).map_err(invalid_config),
+        Some("yaml") | Some("yml") => serde_norway::from_str(contents).map_err(invalid_config),
         Some(extension) => Err(CliError::Validation {
             code: "pipeline.invalid_config",
             message: format!("unsupported pipeline config extension: {extension}"),

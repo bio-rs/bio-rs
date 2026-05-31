@@ -7,6 +7,9 @@ cd "$repo_root"
 echo "==> release workflow dry run"
 python3 scripts/check-release-workflow.py
 
+echo "==> dependency security audit"
+scripts/check-security-audit.sh
+
 echo "==> full release gate"
 scripts/check.sh
 
