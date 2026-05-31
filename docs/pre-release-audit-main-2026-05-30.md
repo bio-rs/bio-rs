@@ -38,7 +38,7 @@ The core Rust/CLI checks pass, but the binding/package/release surfaces still ha
 
 Delete or rewrite these before release:
 
-- `biors-wasm-design-v0.45.0.md`: stale root-level WASM design doc, superseded by current WASM docs.
+- `biors-wasm-design-v0.45.0.md`: complete in follow-up A-009; stale root-level WASM design doc removed.
 - `scripts/benchmark_hyperfine.py` and `scripts/biopython_bench.py`: old benchmark path that can overwrite current benchmark artifacts with the wrong schema.
 - `packages/rust/biors-core/src/package/checksum.rs`: duplicate checksum re-export module unless intentionally kept as public API.
 - `pub mod fasta_scan`: make it private or expose a deliberate public scanner API.
@@ -238,6 +238,8 @@ Required fix:
 ### A-009: Root-level WASM design document is stale and likely should not ship as current docs
 
 Severity: documentation cleanup before release.
+
+Status: Complete in follow-up (2026-05-31 KST). The unreferenced root-level `biors-wasm-design-v0.45.0.md` file was removed; current WASM public documentation remains in `docs/wasm-api.md`, `docs/wasm-readiness.md`, and `packages/rust/biors-wasm/README.md`.
 
 Evidence:
 
