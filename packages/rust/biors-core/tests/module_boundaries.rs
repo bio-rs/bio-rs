@@ -15,7 +15,6 @@ fn package_facade_delegates_to_focused_modules() {
 
     for module in [
         "mod artifacts;",
-        "mod checksum;",
         "mod manifest;",
         "mod reports;",
         "mod runtime;",

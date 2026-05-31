@@ -315,15 +315,6 @@ The `package` module is the largest surface in `biors-core`. It handles manifest
 - `pub fn resolve_package_asset_path(base_dir: &Path, relative_path: &str) -> Result<PathBuf, PackageArtifactError>`
   Resolve a package-relative path.
 
-- `pub fn sha256_bytes_digest(bytes: &[u8]) -> String`
-  Raw byte-for-byte SHA-256 digest for package artifacts and files.
-
-- `pub fn sha256_digest(bytes: &[u8]) -> String`
-  Compatibility alias for canonical JSON hashing.
-
-- `pub fn is_sha256_checksum(checksum: &str) -> bool`
-  Validate checksum format.
-
 ### Module: `runtime`
 
 The `runtime` module defines backend abstraction contracts and provides a guarded external-process backend adapter.

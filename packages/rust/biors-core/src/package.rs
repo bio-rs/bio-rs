@@ -1,7 +1,6 @@
 //! Portable package manifest inspection, validation, artifact checks, and runtime planning.
 
 mod artifacts;
-mod checksum;
 mod layout;
 mod manifest;
 mod paths;
@@ -13,7 +12,6 @@ mod types;
 mod validation;
 
 pub use artifacts::validate_package_manifest_artifacts;
-pub use checksum::{is_sha256_checksum, sha256_bytes_digest, sha256_digest};
 pub use manifest::{
     CitationMetadata, DataShape, DocumentArtifact, LicenseMetadata, ModelArtifact,
     ModelArtifactMetadata, ModelCardMetadata, PackageDirectoryLayout, PackageFixture,
