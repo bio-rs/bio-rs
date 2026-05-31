@@ -140,12 +140,54 @@ pub(crate) fn write_docs(
     })
 }
 
+pub(crate) fn planned_write_paths(
+    request: &PackageSkeletonRequest,
+) -> Result<Vec<PathBuf>, CliError> {
+    let (config, _) = match &request.tokenizer_config {
+        Some(path) => read_tokenizer_config(path)?,
+        None => (
+            biors_core::tokenizer::protein_tokenizer_config_for_profile(
+                ProteinTokenizerProfile::Protein20,
+            ),
+            Vec::new(),
+        ),
+    };
+
+    Ok(vec![
+        request.output_dir.join("manifest.json"),
+        request
+            .output_dir
+            .join(asset_target_rel(&request.model, "models")?),
+        request
+            .output_dir
+            .join(asset_target_rel(&request.fixture_input, "fixtures")?),
+        request
+            .output_dir
+            .join(asset_target_rel(&request.fixture_output, "fixtures")?),
+        request
+            .output_dir
+            .join(format!("tokenizers/{}.json", config.profile.as_str())),
+        request.output_dir.join("pipelines/protein.toml"),
+        request.output_dir.join("docs/LICENSE.txt"),
+        request.output_dir.join("docs/CITATION.cff"),
+        request.output_dir.join("docs/model-card.md"),
+    ])
+}
+
 pub(crate) fn copy_asset(
     source: &Path,
     output_dir: &Path,
     target_dir: &str,
     created_files: &mut Vec<String>,
 ) -> Result<String, CliError> {
+    let rel = asset_target_rel(source, target_dir)?;
+    let target = output_dir.join(&rel);
+    std::fs::copy(source, &target).map_err(CliError::Write)?;
+    created_files.push(target.display().to_string());
+    Ok(rel)
+}
+
+fn asset_target_rel(source: &Path, target_dir: &str) -> Result<String, CliError> {
     let file_name = source
         .file_name()
         .and_then(|name| name.to_str())
@@ -154,11 +196,7 @@ pub(crate) fn copy_asset(
             message: "asset path must have a UTF-8 file name".to_string(),
             location: Some(source.display().to_string()),
         })?;
-    let rel = format!("{target_dir}/{file_name}");
-    let target = output_dir.join(&rel);
-    std::fs::copy(source, &target).map_err(CliError::Write)?;
-    created_files.push(target.display().to_string());
-    Ok(rel)
+    Ok(format!("{target_dir}/{file_name}"))
 }
 
 pub(crate) fn file_sha256(path: &Path) -> Result<String, CliError> {

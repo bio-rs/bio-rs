@@ -1,5 +1,5 @@
 use crate::cli::package_skeleton_files::{
-    copy_asset, file_sha256, fixture_name, validate_required_list, write_docs,
+    copy_asset, file_sha256, fixture_name, planned_write_paths, validate_required_list, write_docs,
     write_pipeline_config, write_tokenizer_config,
 };
 use crate::errors::CliError;
@@ -10,6 +10,7 @@ use biors_core::package::{
     SchemaVersion,
 };
 use serde::Serialize;
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 #[derive(Debug, Serialize)]
@@ -43,14 +44,13 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
     validate_required_list("--intended-use", &request.intended_use)?;
     validate_required_list("--limitation", &request.limitations)?;
 
-    let manifest_path = request.output_dir.join("manifest.json");
-    if manifest_path.exists() && !request.force {
-        return Err(CliError::Validation {
-            code: "package.init_exists",
-            message: "package manifest already exists; pass --force to overwrite".to_string(),
-            location: Some(manifest_path.display().to_string()),
-        });
+    let write_paths = planned_write_paths(&request)?;
+    reject_duplicate_write_paths(&write_paths)?;
+    if !request.force {
+        reject_existing_write_paths(&write_paths)?;
     }
+
+    let manifest_path = request.output_dir.join("manifest.json");
 
     for dir in [
         "models",
@@ -163,4 +163,44 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
         notes,
     };
     print_success(None, output)
+}
+
+fn reject_existing_write_paths(write_paths: &[PathBuf]) -> Result<(), CliError> {
+    let collisions: Vec<_> = write_paths.iter().filter(|path| path.exists()).collect();
+    if !collisions.is_empty() {
+        let locations = collisions
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        return Err(CliError::Validation {
+            code: "package.init_exists",
+            message:
+                "package initialization would overwrite existing files; pass --force to overwrite"
+                    .to_string(),
+            location: Some(locations),
+        });
+    }
+    Ok(())
+}
+
+fn reject_duplicate_write_paths(write_paths: &[PathBuf]) -> Result<(), CliError> {
+    let mut seen = BTreeSet::new();
+    let mut duplicates = BTreeSet::new();
+    for path in write_paths {
+        let key = path.display().to_string();
+        if !seen.insert(key.clone()) {
+            duplicates.insert(key);
+        }
+    }
+
+    if duplicates.is_empty() {
+        return Ok(());
+    }
+
+    Err(CliError::Validation {
+        code: "package.init_invalid_path",
+        message: "package initialization has duplicate target paths".to_string(),
+        location: Some(duplicates.into_iter().collect::<Vec<_>>().join(", ")),
+    })
 }
