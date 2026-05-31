@@ -42,28 +42,31 @@ fn write_probe_weights(path: &PathBuf) {
 }
 
 fn model_input_payload() -> Vec<u8> {
+    model_input_payload_with_record(ModelInputRecord {
+        id: "protein-a".to_string(),
+        input_ids: vec![1, 2, 0, 0],
+        attention_mask: vec![1, 1, 0, 0],
+        truncated: false,
+    })
+}
+
+fn model_input_payload_with_record(record: ModelInputRecord) -> Vec<u8> {
     let input = ModelInput {
         policy: ModelInputPolicy {
             max_length: 4,
             pad_token_id: 0,
             padding: PaddingPolicy::FixedLength,
         },
-        records: vec![ModelInputRecord {
-            id: "protein-a".to_string(),
-            input_ids: vec![1, 2, 0, 0],
-            attention_mask: vec![1, 1, 0, 0],
-            truncated: false,
-        }],
+        records: vec![record],
     };
     serde_json::to_vec(&input).expect("model input payload")
 }
 
-#[test]
-fn candle_backend_loads_safetensors_and_scores_model_input_payload() {
-    let weights_path = fixture_path("linear-probe");
+fn candle_backend(name: &str) -> CandleBackend {
+    let weights_path = fixture_path(name);
     write_probe_weights(&weights_path);
 
-    let backend = CandleBackend::from_safetensors(CandleBackendConfig {
+    CandleBackend::from_safetensors(CandleBackendConfig {
         backend_id: "candle-linear-probe".to_string(),
         weights_path,
         device: CandleDevice::Cpu,
@@ -72,7 +75,12 @@ fn candle_backend_loads_safetensors_and_scores_model_input_payload() {
         projection_bias_tensor: Some("projection.bias".to_string()),
         max_input_bytes: Some(16 * 1024),
     })
-    .expect("load candle backend");
+    .expect("load candle backend")
+}
+
+#[test]
+fn candle_backend_loads_safetensors_and_scores_model_input_payload() {
+    let backend = candle_backend("linear-probe");
 
     let result = backend
         .execute_checked(ExecutionContext {
@@ -97,4 +105,82 @@ fn candle_backend_loads_safetensors_and_scores_model_input_payload() {
     assert_eq!(output.records[0].id, "protein-a");
     assert_eq!(output.records[0].values, vec![0.75, 0.25]);
     assert!(!output.records[0].truncated);
+}
+
+#[test]
+fn candle_backend_rejects_non_binary_attention_mask() {
+    let error = execute_payload_expect_error(
+        model_input_payload_with_record(ModelInputRecord {
+            id: "protein-a".to_string(),
+            input_ids: vec![1, 2, 0],
+            attention_mask: vec![1, 2, 0],
+            truncated: false,
+        }),
+        "non-binary-mask",
+    );
+
+    assert!(error.contains("model_input.non_binary_attention_mask"));
+    assert!(error.contains("attention_mask[1] is 2"));
+}
+
+#[test]
+fn candle_backend_rejects_attention_mask_length_mismatch() {
+    let error = execute_payload_expect_error(
+        model_input_payload_with_record(ModelInputRecord {
+            id: "protein-a".to_string(),
+            input_ids: vec![1, 2],
+            attention_mask: vec![1],
+            truncated: false,
+        }),
+        "length-mismatch",
+    );
+
+    assert!(error.contains("model_input.length_mismatch"));
+    assert!(error.contains("2 input ids but 1 attention-mask values"));
+}
+
+#[test]
+fn candle_backend_rejects_empty_unmasked_tokens() {
+    let error = execute_payload_expect_error(
+        model_input_payload_with_record(ModelInputRecord {
+            id: "protein-a".to_string(),
+            input_ids: vec![0, 0],
+            attention_mask: vec![0, 0],
+            truncated: false,
+        }),
+        "empty-mask",
+    );
+
+    assert!(error.contains("model_input.empty_attention_mask"));
+    assert!(error.contains("has no unmasked tokens"));
+}
+
+#[test]
+fn candle_backend_rejects_token_ids_outside_embedding_vocab() {
+    let error = execute_payload_expect_error(
+        model_input_payload_with_record(ModelInputRecord {
+            id: "protein-a".to_string(),
+            input_ids: vec![4],
+            attention_mask: vec![1],
+            truncated: false,
+        }),
+        "token-out-of-range",
+    );
+
+    assert!(error.contains("candle.token_id_out_of_range"));
+    assert!(error.contains("token id 4 exceeds embedding vocabulary size 4"));
+}
+
+fn execute_payload_expect_error(payload: Vec<u8>, fixture_name: &str) -> String {
+    let backend = candle_backend(fixture_name);
+    let error = backend
+        .execute_checked(ExecutionContext {
+            trace_id: Some(format!("trace-{fixture_name}")),
+            input_format: CANDLE_MODEL_INPUT_FORMAT.to_string(),
+            requested_output_format: Some(CANDLE_OUTPUT_FORMAT.to_string()),
+            payload,
+            metadata: Vec::new(),
+        })
+        .expect_err("payload should be rejected");
+    error.to_string()
 }

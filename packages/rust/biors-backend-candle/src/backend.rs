@@ -3,7 +3,7 @@ use crate::error::{candle_error, CandleBackendError};
 use crate::output::{CandleInferenceOutput, CandleInferenceRecord};
 use crate::tensor::{take_tensor, validate_model_tensors};
 use crate::{CANDLE_MODEL_INPUT_FORMAT, CANDLE_OUTPUT_FORMAT};
-use biors_core::model_input::{ModelInput, ModelInputRecord};
+use biors_core::model_input::{validate_model_input_payload, ModelInput, ModelInputRecord};
 use biors_core::runtime::{
     Backend, BackendCapabilities, BackendConfig, BackendExecutionError, ExecutionContext,
     ExecutionMetadata, ExecutionResult,
@@ -74,6 +74,10 @@ impl CandleBackend {
         &self,
         input: &ModelInput,
     ) -> Result<CandleInferenceOutput, CandleBackendError> {
+        validate_model_input_payload(input).map_err(|error| {
+            CandleBackendError::new(error.code(), format!("invalid ModelInput payload: {error}"))
+        })?;
+
         let records = input
             .records
             .iter()
@@ -86,18 +90,6 @@ impl CandleBackend {
         &self,
         record: &ModelInputRecord,
     ) -> Result<CandleInferenceRecord, CandleBackendError> {
-        if record.input_ids.len() != record.attention_mask.len() {
-            return Err(CandleBackendError::new(
-                "candle.invalid_model_input",
-                format!(
-                    "record '{}' has {} input ids but {} attention-mask values",
-                    record.id,
-                    record.input_ids.len(),
-                    record.attention_mask.len()
-                ),
-            ));
-        }
-
         let vocab_size = self.embedding.dims()[0];
         let ids = record
             .input_ids
@@ -111,13 +103,6 @@ impl CandleBackend {
                 }
             })
             .collect::<Vec<_>>();
-
-        if ids.is_empty() {
-            return Err(CandleBackendError::new(
-                "candle.empty_attention_mask",
-                format!("record '{}' has no unmasked tokens", record.id),
-            ));
-        }
 
         if let Some(token_id) = ids
             .iter()

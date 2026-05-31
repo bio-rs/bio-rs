@@ -56,6 +56,21 @@ pub enum ModelInputBuildError {
     },
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+/// Errors returned when validating already-built model-input payloads.
+pub enum ModelInputPayloadError {
+    /// One record has different input ID and attention-mask lengths.
+    LengthMismatch {
+        id: String,
+        input_ids: usize,
+        attention_mask: usize,
+    },
+    /// Attention masks must contain only `0` and `1`.
+    NonBinaryAttentionMask { id: String, index: usize, value: u8 },
+    /// A record has no tokens selected by its attention mask.
+    EmptyUnmaskedTokens { id: String },
+}
+
 /// Build model input without rejecting unresolved tokenization warnings or errors.
 pub fn build_model_inputs_unchecked(
     tokenized: &[TokenizedProtein],
@@ -100,6 +115,37 @@ pub fn validate_model_input_policy(policy: &ModelInputPolicy) -> Result<(), Mode
         return Err(ModelInputBuildError::InvalidPolicy {
             message: "max_length must be greater than zero".to_string(),
         });
+    }
+
+    Ok(())
+}
+
+/// Validate an already-built model-input payload received at an integration boundary.
+pub fn validate_model_input_payload(input: &ModelInput) -> Result<(), ModelInputPayloadError> {
+    for record in &input.records {
+        if record.input_ids.len() != record.attention_mask.len() {
+            return Err(ModelInputPayloadError::LengthMismatch {
+                id: record.id.clone(),
+                input_ids: record.input_ids.len(),
+                attention_mask: record.attention_mask.len(),
+            });
+        }
+
+        for (index, value) in record.attention_mask.iter().copied().enumerate() {
+            if value != 0 && value != 1 {
+                return Err(ModelInputPayloadError::NonBinaryAttentionMask {
+                    id: record.id.clone(),
+                    index,
+                    value,
+                });
+            }
+        }
+
+        if !record.attention_mask.contains(&1) {
+            return Err(ModelInputPayloadError::EmptyUnmaskedTokens {
+                id: record.id.clone(),
+            });
+        }
     }
 
     Ok(())
@@ -157,6 +203,40 @@ impl fmt::Display for ModelInputBuildError {
 }
 
 impl std::error::Error for ModelInputBuildError {}
+
+impl ModelInputPayloadError {
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::LengthMismatch { .. } => "model_input.length_mismatch",
+            Self::NonBinaryAttentionMask { .. } => "model_input.non_binary_attention_mask",
+            Self::EmptyUnmaskedTokens { .. } => "model_input.empty_attention_mask",
+        }
+    }
+}
+
+impl fmt::Display for ModelInputPayloadError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::LengthMismatch {
+                id,
+                input_ids,
+                attention_mask,
+            } => write!(
+                f,
+                "record '{id}' has {input_ids} input ids but {attention_mask} attention-mask values"
+            ),
+            Self::NonBinaryAttentionMask { id, index, value } => write!(
+                f,
+                "record '{id}' attention_mask[{index}] is {value}, expected 0 or 1"
+            ),
+            Self::EmptyUnmaskedTokens { id } => {
+                write!(f, "record '{id}' has no unmasked tokens")
+            }
+        }
+    }
+}
+
+impl std::error::Error for ModelInputPayloadError {}
 
 #[cfg(test)]
 mod tests;

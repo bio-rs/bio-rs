@@ -1,6 +1,7 @@
 use crate::model_input::{
-    build_model_inputs_checked, build_model_inputs_unchecked, validate_model_input_policy,
-    ModelInputBuildError, ModelInputPolicy, PaddingPolicy, TokenizedProtein,
+    build_model_inputs_checked, build_model_inputs_unchecked, validate_model_input_payload,
+    validate_model_input_policy, ModelInput, ModelInputBuildError, ModelInputPayloadError,
+    ModelInputPolicy, ModelInputRecord, PaddingPolicy, TokenizedProtein,
 };
 use crate::sequence::ResidueIssue;
 
@@ -263,4 +264,56 @@ fn multiple_records_mixed_issues_unchecked() {
     assert_eq!(model_input.records[1].input_ids, vec![3, 4, 5, 0]);
     assert_eq!(model_input.records[1].attention_mask, vec![1, 1, 1, 0]);
     assert!(!model_input.records[1].truncated);
+}
+
+#[test]
+fn validate_model_input_payload_rejects_length_mismatch() {
+    let input = model_input_payload("seq1", vec![1, 2], vec![1]);
+    let result = validate_model_input_payload(&input);
+
+    assert!(
+        matches!(result, Err(ModelInputPayloadError::LengthMismatch { id, input_ids, attention_mask })
+            if id == "seq1" && input_ids == 2 && attention_mask == 1
+        )
+    );
+}
+
+#[test]
+fn validate_model_input_payload_rejects_non_binary_attention_mask() {
+    let input = model_input_payload("seq2", vec![1, 2, 0], vec![1, 2, 0]);
+    let result = validate_model_input_payload(&input);
+
+    assert!(
+        matches!(result, Err(ModelInputPayloadError::NonBinaryAttentionMask { id, index, value })
+            if id == "seq2" && index == 1 && value == 2
+        )
+    );
+}
+
+#[test]
+fn validate_model_input_payload_rejects_empty_unmasked_tokens() {
+    let input = model_input_payload("seq3", vec![0, 0], vec![0, 0]);
+    let result = validate_model_input_payload(&input);
+
+    assert!(
+        matches!(result, Err(ModelInputPayloadError::EmptyUnmaskedTokens { id }) if id == "seq3")
+    );
+}
+
+#[test]
+fn validate_model_input_payload_accepts_binary_masked_records() {
+    let input = model_input_payload("seq4", vec![1, 2, 0], vec![1, 1, 0]);
+    assert!(validate_model_input_payload(&input).is_ok());
+}
+
+fn model_input_payload(id: &str, input_ids: Vec<u8>, attention_mask: Vec<u8>) -> ModelInput {
+    ModelInput {
+        policy: make_policy(input_ids.len().max(1), PaddingPolicy::FixedLength),
+        records: vec![ModelInputRecord {
+            id: id.to_string(),
+            input_ids,
+            attention_mask,
+            truncated: false,
+        }],
+    }
 }
