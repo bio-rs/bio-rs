@@ -25,7 +25,8 @@ Archive names follow:
 biors-vX.Y.Z-<target>.tar.gz
 ```
 
-Each archive contains a single `biors` binary.
+Each archive contains the `biors` binary, `README.md`, `LICENSE-APACHE`, and
+`LICENSE-MIT`.
 
 ## Shell Completions
 

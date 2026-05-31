@@ -136,6 +136,11 @@ jobs:
       - name: Build source distribution
         if: runner.os == 'Linux'
         run: maturin sdist --manifest-path packages/rust/biors-python/Cargo.toml --out dist
+      - name: Check Python distribution license files
+        run: python scripts/check-release-artifact-contents.py python-dist dist
+      - name: Check Python source distribution license files
+        if: runner.os == 'Linux'
+        run: python scripts/check-release-artifact-contents.py python-dist dist --require-sdist
       - name: Upload Python distributions
         uses: actions/upload-artifact@v7
         with:
@@ -199,6 +204,8 @@ jobs:
         run: wasm-pack test --node packages/rust/biors-wasm
       - name: Build npm package
         run: scripts/build-wasm-npm-package.sh
+      - name: Check npm package artifact contents
+        run: python scripts/check-release-artifact-contents.py wasm-package packages/rust/biors-wasm/pkg
       - name: Publish npm package with trusted publishing
         run: npm publish packages/rust/biors-wasm/pkg --access public
 
@@ -235,7 +242,10 @@ jobs:
         run: |
           mkdir -p dist
           cp "target/${{ matrix.target }}/release/biors" dist/biors
-          tar -C dist -czf "${{ matrix.archive }}" biors
+          cp README.md LICENSE-APACHE LICENSE-MIT dist/
+          tar -C dist -czf "${{ matrix.archive }}" biors README.md LICENSE-APACHE LICENSE-MIT
+      - name: Check binary archive contents
+        run: python scripts/check-release-artifact-contents.py binary-tarball "${{ matrix.archive }}"
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7
         with:

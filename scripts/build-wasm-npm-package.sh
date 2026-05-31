@@ -62,17 +62,4 @@ const merged = {
 fs.writeFileSync(generatedPath, `${JSON.stringify(merged, null, 2)}\n`);
 NODE
 
-pack_output="$(npm pack "$PKG_DIR" --dry-run --json)"
-printf '%s\n' "$pack_output"
-
-node - "$pack_output" <<'NODE'
-const pack = JSON.parse(process.argv[2]);
-const files = new Set(pack[0].files.map((file) => file.path));
-const required = ["LICENSE-APACHE", "LICENSE-MIT"];
-const missing = required.filter((file) => !files.has(file));
-
-if (missing.length > 0) {
-  console.error(`npm package dry-run is missing required file(s): ${missing.join(", ")}`);
-  process.exit(1);
-}
-NODE
+python3 "$ROOT_DIR/scripts/check-release-artifact-contents.py" wasm-package "$PKG_DIR"
