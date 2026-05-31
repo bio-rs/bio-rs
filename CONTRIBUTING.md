@@ -26,7 +26,8 @@ cargo build
 2. Keep changes focused (single concern per PR).
 3. Add or update tests before behavior changes when possible.
 4. Run `scripts/check-fast.sh` while iterating.
-5. Run the full check script before pushing.
+5. Run the surface-specific checks for the files you changed.
+6. Run the full check script before pushing.
 
 ## Choosing an issue
 
@@ -80,6 +81,27 @@ Run lint only:
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
+## Surface-specific checks
+
+Start with `scripts/check-fast.sh` for normal iteration. Add the checks below
+when your change touches that surface:
+
+| Surface | Run when changed | Checks |
+| --- | --- | --- |
+| Rust core, CLI, schemas | `packages/rust/biors-core`, `packages/rust/biors`, `schemas/`, CLI docs | `cargo test -p biors-core`, `cargo test -p biors`, `scripts/check-fast.sh` |
+| Python bindings | `packages/rust/biors-python`, Python API docs, Python examples | `maturin build --manifest-path packages/rust/biors-python/Cargo.toml`, `python3 scripts/test-python-wheel.py <wheel>` |
+| WASM/npm bindings | `packages/rust/biors-wasm`, `docs/wasm-api.md`, npm package metadata | `wasm-pack test --node packages/rust/biors-wasm`, `scripts/check-package-artifacts.sh` |
+| MCP service | `packages/rust/biors-mcp-server`, MCP JSON contracts | `cargo test -p biors-mcp-server --all-targets` |
+| Package/release artifacts | `examples/protein-package`, package schemas, release workflow, install docs | `scripts/check-package-artifacts.sh`, `python3 scripts/check-release-workflow.py` |
+| Benchmarks | `benches/`, `benchmarks/`, performance docs or claims | `cargo bench -p biors-core --bench fasta_workloads`, `scripts/check-benchmark-docs.sh` |
+| Dependencies/security | `Cargo.toml`, `Cargo.lock`, dependency policy, release gates | `python3 scripts/check-dependency-policy.py`, `scripts/check-security-audit.sh` |
+
+Run `scripts/check.sh` before pushing a PR that changes more than docs. For
+release-affecting changes, also review
+[docs/final-release-checklist.md](docs/final-release-checklist.md); it is the
+source of truth for packaging, registry, checksum, provenance, and install-flow
+preflight.
+
 ## Scope expectations
 
 Current contribution priority areas:
@@ -89,11 +111,13 @@ Current contribution priority areas:
 - protein-20 tokenizer behavior and diagnostics
 - stable sequence workflow JSON and provenance contracts
 - model-input contract fixtures and tokenizer config parity tests
+- Python, WASM/npm, and MCP binding contract parity
 - manifest validation/reporting clarity
 - typed package validation issue codes
 - fixture verification UX and reporting
-- CLI and JSON contract coverage
+- CLI, JSON schema, and package artifact contract coverage
 - reproducible benchmark coverage
+- dependency-light release surfaces and isolated optional integrations
 
 ## Benchmarks
 
@@ -130,10 +154,13 @@ If proposing larger roadmap work, open an issue first to align scope.
 Before opening a PR:
 
 - [ ] Tests added/updated for changed behavior
-- [ ] `scripts/check.sh` passes locally
+- [ ] `scripts/check-fast.sh` passes locally while iterating
+- [ ] Surface-specific checks above run for changed Python/WASM/MCP/package/release/dependency areas
+- [ ] `scripts/check.sh` passes locally before pushing non-doc changes
 - [ ] Benchmark report is regenerated when benchmark JSON changes
 - [ ] README/docs updated when public behavior changed
 - [ ] Benchmarks updated when making performance claims
+- [ ] Dependency, package artifact, and release workflow checks run when those surfaces changed
 - [ ] PR description explains **what changed** and **why**
 
 ## Reporting bugs

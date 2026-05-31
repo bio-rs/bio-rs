@@ -259,6 +259,29 @@ fn github_templates_cover_promoted_release_surfaces() {
     }
 }
 
+#[test]
+fn contributing_docs_cover_promoted_surface_checks() {
+    let repo = common::repo_root();
+    let contributing = fs::read_to_string(repo.join("CONTRIBUTING.md")).expect("read contributing");
+
+    for expected in [
+        "Surface-specific checks",
+        "Python bindings",
+        "WASM/npm bindings",
+        "MCP service",
+        "Package/release artifacts",
+        "Dependencies/security",
+        "scripts/check-package-artifacts.sh",
+        "scripts/check-security-audit.sh",
+        "docs/final-release-checklist.md",
+    ] {
+        assert!(
+            contributing.contains(expected),
+            "CONTRIBUTING.md missing promoted surface guidance: {expected}"
+        );
+    }
+}
+
 fn workspace_package_version(repo: &Path) -> String {
     let workspace_manifest =
         fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");
