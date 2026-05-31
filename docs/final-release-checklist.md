@@ -123,6 +123,15 @@ Tagged release jobs must inspect package contents before upload or publish:
 The release workflow enforces these checks with
 `scripts/check-release-artifact-contents.py`.
 
+Release packaging tools are pinned in `scripts/release-tool-versions.env` and
+mirrored in `.github/workflows/release.yml`. Before tagging, record the pinned
+`maturin`, `wasm-pack`, and Node.js versions in release notes or artifact
+provenance, and rerun:
+
+```bash
+python3 scripts/check-release-workflow.py
+```
+
 The local final release gate also runs:
 
 ```bash

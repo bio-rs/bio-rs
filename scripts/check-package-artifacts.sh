@@ -4,12 +4,20 @@ set -eu
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
+. scripts/release-tool-versions.env
+
 artifact_root="${BIORS_PACKAGE_ARTIFACT_DIR:-target/package-artifacts}"
 python_dist="$artifact_root/python-dist"
 
 echo "==> Python wheel and sdist artifacts"
 if ! command -v maturin >/dev/null 2>&1; then
-  echo "maturin is required. Install with: python -m pip install 'maturin>=1.0,<2.0'" >&2
+  echo "maturin is required. Install with: python -m pip install 'maturin==$BIORS_RELEASE_MATURIN_VERSION'" >&2
+  exit 1
+fi
+maturin_version="$(maturin --version | awk '{print $2}')"
+if [ "$maturin_version" != "$BIORS_RELEASE_MATURIN_VERSION" ]; then
+  echo "maturin $BIORS_RELEASE_MATURIN_VERSION is required; found $maturin_version" >&2
+  echo "Install with: python -m pip install 'maturin==$BIORS_RELEASE_MATURIN_VERSION'" >&2
   exit 1
 fi
 rm -rf "$python_dist"

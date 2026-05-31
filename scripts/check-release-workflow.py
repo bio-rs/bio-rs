@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 WORKFLOW = Path(".github/workflows/release.yml")
+RELEASE_TOOL_VERSIONS = Path("scripts/release-tool-versions.env")
 UNUSED_RELEASE_TEMPLATE = Path(".github/release_template.md")
 RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c"
 
@@ -16,6 +17,7 @@ def main() -> None:
             "keep GitHub --generate-notes as the release body source of truth"
         )
 
+    tool_versions = read_release_tool_versions()
     lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
 
     publish_order = [
@@ -64,6 +66,12 @@ def main() -> None:
         positions.append((marker, matching_lines[0]))
 
     required_text = [
+        f"BIORS_RELEASE_MATURIN_VERSION: '{tool_versions['BIORS_RELEASE_MATURIN_VERSION']}'",
+        f"BIORS_RELEASE_WASM_PACK_VERSION: '{tool_versions['BIORS_RELEASE_WASM_PACK_VERSION']}'",
+        f"BIORS_RELEASE_NODE_VERSION: '{tool_versions['BIORS_RELEASE_NODE_VERSION']}'",
+        "node-version: ${{ env.BIORS_RELEASE_NODE_VERSION }}",
+        '"maturin==${BIORS_RELEASE_MATURIN_VERSION}"',
+        'cargo install wasm-pack --locked --version "${BIORS_RELEASE_WASM_PACK_VERSION}"',
         "x86_64-unknown-linux-gnu",
         "aarch64-apple-darwin",
         "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
@@ -88,6 +96,8 @@ def main() -> None:
     for text in required_text:
         if text not in workflow_text:
             raise SystemExit(f"release workflow is missing binary packaging text: {text}")
+
+    assert_release_tool_scripts_use_pins(tool_versions)
 
     assert_rust_toolchain_for_cargo_jobs(lines)
 
@@ -145,6 +155,49 @@ def workflow_jobs(lines: list[str]) -> dict[str, list[str]]:
             jobs[current].append(line)
 
     return jobs
+
+
+def read_release_tool_versions() -> dict[str, str]:
+    versions = {}
+    for line in RELEASE_TOOL_VERSIONS.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        key, value = line.split("=", 1)
+        versions[key] = value
+
+    required = {
+        "BIORS_RELEASE_MATURIN_VERSION",
+        "BIORS_RELEASE_WASM_PACK_VERSION",
+        "BIORS_RELEASE_NODE_VERSION",
+    }
+    missing = sorted(required - versions.keys())
+    if missing:
+        raise SystemExit(f"release tool versions file is missing: {', '.join(missing)}")
+    return versions
+
+
+def assert_release_tool_scripts_use_pins(tool_versions: dict[str, str]) -> None:
+    package_artifacts = Path("scripts/check-package-artifacts.sh").read_text(encoding="utf-8")
+    wasm_package = Path("scripts/build-wasm-npm-package.sh").read_text(encoding="utf-8")
+
+    for text, name, script in [
+        (
+            "maturin==$BIORS_RELEASE_MATURIN_VERSION",
+            "maturin pin",
+            package_artifacts,
+        ),
+        (
+            "cargo install wasm-pack --locked --version $BIORS_RELEASE_WASM_PACK_VERSION",
+            "wasm-pack pin",
+            wasm_package,
+        ),
+    ]:
+        if text not in script:
+            raise SystemExit(f"release tool local script is missing {name}: {text}")
+
+    for key, version in tool_versions.items():
+        if not version or version.count(".") < 2:
+            raise SystemExit(f"{key} must be pinned to an exact patch version, got {version!r}")
 
 
 if __name__ == "__main__":
