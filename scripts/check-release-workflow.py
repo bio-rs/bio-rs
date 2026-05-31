@@ -11,6 +11,8 @@ def main() -> None:
     lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
 
     publish_order = [
+        "pre-tag-registry-check:",
+        "- name: Check package versions are unpublished",
         "- name: Dry-run publish biors-core",
         "- name: Publish biors-core",
         "- name: Wait for biors-core index",
@@ -54,6 +56,7 @@ def main() -> None:
         "wasm-pack test --node packages/rust/biors-wasm",
         "scripts/build-wasm-npm-package.sh",
         "npm publish packages/rust/biors-wasm/pkg --access public",
+        "scripts/check-registry-versions.py",
         "dist/*.tar.gz",
     ]
     workflow_text = "\n".join(lines)

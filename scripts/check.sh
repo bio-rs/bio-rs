@@ -21,6 +21,7 @@ python3 -m py_compile \
   scripts/benchmark_fasta_vs_biopython.py \
   scripts/compare-benchmark-artifacts.py \
   scripts/check-benchmark-artifact.py \
+  scripts/check-registry-versions.py \
   scripts/check-module-size.py \
   scripts/check-release-workflow.py \
   scripts/benchmark_large_file_streaming.py \
