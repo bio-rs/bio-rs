@@ -177,6 +177,7 @@ name = "biors-mcp-server"
 version = "0.47.4"
 dependencies = [
  "biors-core",
+ "criterion",
  "rmcp",
  "serde",
  "serde_json",

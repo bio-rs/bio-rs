@@ -39,9 +39,12 @@ FEATURE_COVERAGE = [
     },
     {
         "feature": "mcp_service_contract",
-        "status": "partial_numeric_regression_guard",
-        "claim_scope": "Service contract CLI timing only; MCP server request overhead is still not benchmarked.",
-        "evidence": ["benchmarks/cli_surfaces.json workload cli_service_contract"],
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed service-contract CLI and in-process MCP request overhead timings only; no network throughput claim.",
+        "evidence": [
+            "benchmarks/cli_surfaces.json workload cli_service_contract",
+            "benchmarks/mcp_server.json",
+        ],
     },
     {
         "feature": "package_validation_bridge",

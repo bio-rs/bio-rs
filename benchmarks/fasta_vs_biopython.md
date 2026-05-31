@@ -70,7 +70,7 @@ new numeric claims for later releases.
 | `cli_dataset_inspect` | `numeric_regression_guard` | Committed CLI regression guard timing only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_dataset_inspect_many_file` |
 | `python_bindings` | `numeric_regression_guard` | Committed Python binding regression guard timing only; no public throughput claim. | `benchmarks/python_bindings.json` |
 | `wasm_bindings` | `numeric_regression_guard` | Committed Node.js WASM binding regression timings only; no browser or public throughput claim. | `benchmarks/wasm_bindings.json` |
-| `mcp_service_contract` | `partial_numeric_regression_guard` | Service contract CLI timing only; MCP server request overhead is still not benchmarked. | `benchmarks/cli_surfaces.json workload cli_service_contract` |
+| `mcp_service_contract` | `numeric_regression_guard` | Committed service-contract CLI and in-process MCP request overhead timings only; no network throughput claim. | `benchmarks/cli_surfaces.json workload cli_service_contract`<br>`benchmarks/mcp_server.json` |
 | `package_validation_bridge` | `numeric_regression_guard` | Committed package validation and bridge CLI regression timings only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_package_validate_example`<br>`benchmarks/cli_surfaces.json workload cli_package_bridge_example` |
 | `candle_cpu_linear_probe` | `numeric_regression_guard` | Committed optional Candle CPU backend smoke timing only; no broad backend throughput claim. | `benchmarks/backend_smoke.json` |
 
