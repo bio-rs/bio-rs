@@ -81,6 +81,19 @@ Tagged release jobs must inspect package contents before upload or publish:
 The release workflow enforces these checks with
 `scripts/check-release-artifact-contents.py`.
 
+The local final release gate also runs:
+
+```bash
+scripts/check-package-artifacts.sh
+```
+
+That script builds the Python wheel/sdist, installs the built wheel into a clean
+venv and runs pytest, runs WASM tests, builds the npm WASM package with dry-run
+content inspection, verifies the `biors-core` crate package, and creates local
+tarballs for the crates that depend on the same-release `biors-core` package.
+The dependent Rust crate publish dry-runs remain in the release workflow after
+`biors-core` is visible in the crates.io index.
+
 ## Registry Preflight
 
 The tag workflow runs `scripts/check-registry-versions.py` before publishing
@@ -119,6 +132,7 @@ The final release gate runs:
 
 ```bash
 scripts/check-install-smoke.sh
+scripts/check-package-artifacts.sh
 ```
 
 That installs `biors` from the local package path with `--locked`, verifies the

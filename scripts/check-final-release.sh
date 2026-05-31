@@ -18,3 +18,6 @@ BIORS_BIN=target/release/biors sh scripts/launch-demo.sh
 
 echo "==> install flow final test"
 scripts/check-install-smoke.sh
+
+echo "==> package artifact final test"
+scripts/check-package-artifacts.sh

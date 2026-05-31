@@ -282,6 +282,7 @@ fn final_release_checklist_covers_required_gates() {
         "cargo build --locked --release -p biors",
         "BIORS_BIN=target/release/biors sh scripts/launch-demo.sh",
         "scripts/check-install-smoke.sh",
+        "scripts/check-package-artifacts.sh",
         "python3 scripts/check-release-workflow.py",
     ] {
         assert!(
