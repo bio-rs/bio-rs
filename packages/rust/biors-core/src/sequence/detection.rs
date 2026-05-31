@@ -1,7 +1,12 @@
-use super::{AlphabetPolicy, SequenceKind, SymbolClass};
+use super::{AlphabetPolicy, SequenceKind, SequenceKindDetection, SymbolClass};
 
 /// Detect the most likely sequence kind from normalized biological symbols.
 pub fn detect_sequence_kind(sequence: &str) -> SequenceKind {
+    detect_sequence_kind_with_metadata(sequence).selected_kind
+}
+
+/// Detect the most likely sequence kind and return tie-break metadata.
+pub fn detect_sequence_kind_with_metadata(sequence: &str) -> SequenceKindDetection {
     let mut evidence = KindEvidence::default();
 
     if sequence.is_ascii() {
@@ -77,24 +82,38 @@ impl KindEvidence {
             && rna == SymbolClass::Invalid;
     }
 
-    fn detect(self) -> SequenceKind {
+    fn detect(self) -> SequenceKindDetection {
         let min_errors = self
             .protein_errors
             .min(self.dna_errors)
             .min(self.rna_errors);
-
-        if self.has_protein_only_symbol && self.protein_errors == min_errors {
-            return SequenceKind::Protein;
-        }
-        if self.has_u && !self.has_t && self.rna_errors == min_errors {
-            return SequenceKind::Rna;
+        let mut candidate_kinds = Vec::new();
+        if self.protein_errors == min_errors {
+            candidate_kinds.push(SequenceKind::Protein);
         }
         if self.dna_errors == min_errors {
-            return SequenceKind::Dna;
+            candidate_kinds.push(SequenceKind::Dna);
         }
         if self.rna_errors == min_errors {
-            return SequenceKind::Rna;
+            candidate_kinds.push(SequenceKind::Rna);
         }
-        SequenceKind::Protein
+
+        let selected_kind = if self.has_protein_only_symbol && self.protein_errors == min_errors {
+            SequenceKind::Protein
+        } else if self.has_u && !self.has_t && self.rna_errors == min_errors {
+            SequenceKind::Rna
+        } else if self.dna_errors == min_errors {
+            SequenceKind::Dna
+        } else if self.rna_errors == min_errors {
+            SequenceKind::Rna
+        } else {
+            SequenceKind::Protein
+        };
+
+        SequenceKindDetection {
+            selected_kind,
+            ambiguous: candidate_kinds.len() > 1,
+            candidate_kinds,
+        }
     }
 }

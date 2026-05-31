@@ -66,7 +66,11 @@ biors seq validate examples/protein.fasta
 
 Use this for mixed biological FASTA. It defaults to `--kind auto`, assigns
 Protein, DNA, or RNA per record, and reports `kind_counts` plus kind-specific
-warnings and errors.
+warnings and errors. Short or alphabet-overlapping sequences such as `ACGT`
+can be valid under more than one kind; auto-detected records include
+`auto_detection.candidate_kinds` and `auto_detection.ambiguous` so you can
+rerun with explicit `--kind protein|dna|rna` when the biological context is
+known.
 
 ## Run The Launch Demo
 

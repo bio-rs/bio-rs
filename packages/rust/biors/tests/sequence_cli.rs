@@ -45,6 +45,22 @@ fn seq_validate_defaults_to_auto_detected_sequence_kinds() {
 }
 
 #[test]
+fn seq_validate_auto_reports_ambiguous_kind_detection() {
+    let output = run_with_stdin(["seq", "validate", "-"], ">ambiguous\nACGT\n");
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["data"]["sequences"][0]["kind"], "dna");
+    assert_eq!(
+        value["data"]["sequences"][0]["auto_detection"]["candidate_kinds"],
+        serde_json::json!(["protein", "dna"])
+    );
+    assert_eq!(
+        value["data"]["sequences"][0]["auto_detection"]["ambiguous"],
+        true
+    );
+}
+
+#[test]
 fn seq_validate_kind_override_uses_kind_specific_messages() {
     let output = run_with_stdin(
         ["seq", "validate", "--kind", "rna", "-"],

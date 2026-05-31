@@ -1,10 +1,10 @@
 use crate::error::{BioRsError, FastaReadError};
 use crate::fasta_scan::{scan_fasta_reader, scan_fasta_str, FastaRecordSink};
 use crate::sequence::{
-    append_normalized_sequence, append_normalized_sequence_bytes, detect_sequence_kind,
-    summarize_validated_sequence_records, KindAwareSequenceValidationReport,
-    KindAwareSequenceValidationSummary, SequenceKindSelection, SequenceRecord,
-    ValidatedSequenceRecord,
+    append_normalized_sequence, append_normalized_sequence_bytes,
+    detect_sequence_kind_with_metadata, summarize_validated_sequence_records,
+    KindAwareSequenceValidationReport, KindAwareSequenceValidationSummary, SequenceKindSelection,
+    SequenceRecord, ValidatedSequenceRecord,
 };
 use crate::verification::StableInputHasher;
 use serde::{Deserialize, Serialize};
@@ -118,13 +118,18 @@ impl FastaRecordSink for KindAwareValidatedRecordSink {
         }
 
         let sequence = std::mem::take(&mut self.current_sequence);
-        let kind = self
+        let (kind, auto_detection) = self
             .selection
             .explicit_kind()
-            .unwrap_or_else(|| detect_sequence_kind(&sequence));
+            .map(|kind| (kind, None))
+            .unwrap_or_else(|| {
+                let detection = detect_sequence_kind_with_metadata(&sequence);
+                (detection.selected_kind, Some(detection))
+            });
         let record = SequenceRecord { id, sequence, kind };
-        self.sequences
-            .push(crate::sequence::validate_sequence_record(&record));
+        let mut validated = crate::sequence::validate_sequence_record(&record);
+        validated.auto_detection = auto_detection;
+        self.sequences.push(validated);
         Ok(())
     }
 }
@@ -176,7 +181,7 @@ impl FastaRecordSink for KindAwareValidationSummarySink {
         let kind = self
             .selection
             .explicit_kind()
-            .unwrap_or_else(|| detect_sequence_kind(&sequence));
+            .unwrap_or_else(|| detect_sequence_kind_with_metadata(&sequence).selected_kind);
         let record = SequenceRecord { id, sequence, kind };
         let validated = crate::sequence::validate_sequence_record(&record);
         self.summary.add_record(&validated);

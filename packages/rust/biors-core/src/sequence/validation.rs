@@ -107,6 +107,7 @@ pub fn validate_sequence_record(record: &SequenceRecord) -> ValidatedSequenceRec
         sequence,
         kind: record.kind,
         alphabet: policy.name().to_string(),
+        auto_detection: None,
         valid: warnings.is_empty() && errors.is_empty(),
         warnings,
         errors,

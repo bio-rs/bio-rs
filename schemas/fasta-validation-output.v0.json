@@ -36,6 +36,7 @@
           "sequence": { "type": "string" },
           "kind": { "enum": ["protein", "dna", "rna"] },
           "alphabet": { "enum": ["protein-20", "dna-iupac", "rna-iupac"] },
+          "auto_detection": { "$ref": "#/$defs/autoDetection" },
           "valid": { "type": "boolean" },
           "warnings": { "$ref": "#/$defs/sequenceIssues" },
           "errors": { "$ref": "#/$defs/sequenceIssues" }
@@ -45,6 +46,20 @@
     }
   },
   "$defs": {
+    "autoDetection": {
+      "type": "object",
+      "required": ["selected_kind", "candidate_kinds", "ambiguous"],
+      "properties": {
+        "selected_kind": { "enum": ["protein", "dna", "rna"] },
+        "candidate_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["protein", "dna", "rna"] }
+        },
+        "ambiguous": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "sequenceIssues": {
       "type": "array",
       "items": {

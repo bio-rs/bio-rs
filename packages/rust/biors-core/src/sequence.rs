@@ -10,7 +10,7 @@ mod types;
 mod validation;
 
 pub use alphabet::{AlphabetPolicy, SymbolClass};
-pub use detection::detect_sequence_kind;
+pub use detection::{detect_sequence_kind, detect_sequence_kind_with_metadata};
 pub use kind::{SequenceKind, SequenceKindSelection};
 pub use normalization::normalize_sequence;
 pub(crate) use normalization::{
@@ -26,9 +26,9 @@ pub(crate) use residue::{
 pub use residue::{AMBIGUOUS_RESIDUES, PROTEIN_20, PROTEIN_20_RESIDUES};
 pub use types::{
     KindAwareSequenceValidationReport, KindAwareSequenceValidationSummary, ProteinSequence,
-    ResidueIssue, SequenceKindCounts, SequenceRecord, SequenceValidationIssue,
-    SequenceValidationIssueCode, SequenceValidationReport, ValidatedSequence,
-    ValidatedSequenceRecord,
+    ResidueIssue, SequenceKindCounts, SequenceKindDetection, SequenceRecord,
+    SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
+    ValidatedSequence, ValidatedSequenceRecord,
 };
 pub(crate) use validation::validate_protein_sequence_owned;
 pub use validation::{validate_protein_sequence, validate_sequence_record};

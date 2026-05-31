@@ -101,7 +101,10 @@ and special-token policy as JSON.
 FASTA validation defaults to the protein policy for pre-0.14 compatibility.
 Passing `--kind dna`, `--kind rna`, or `--kind protein` applies one policy to
 all records; `--kind auto` assigns `protein`, `dna`, or `rna` per record and
-defaults ambiguous nucleotide-only ties such as `ACGN` to DNA.
+defaults ambiguous nucleotide-only ties such as `ACGN` to DNA. Auto-detected
+records include `auto_detection.selected_kind`,
+`auto_detection.candidate_kinds`, and `auto_detection.ambiguous` so callers can
+spot short or alphabet-overlapping sequences and rerun with an explicit kind.
 `seq validate` uses the same output contract but defaults to `--kind auto` for
 mixed biological sequence batches.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
@@ -161,8 +164,11 @@ SHA-256 checksums. Python project conversion scans for an ONNX model and
 the package author to fill in.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
-`alphabet` fields. Sequence warnings and errors expose stable issue codes such
-as `ambiguous_symbol` and `invalid_symbol` plus human-readable messages.
+`alphabet` fields. Records produced by `--kind auto` also include
+`auto_detection` metadata with the selected kind, equally plausible candidate
+kinds, and an ambiguity flag. Sequence warnings and errors expose stable issue
+codes such as `ambiguous_symbol` and `invalid_symbol` plus human-readable
+messages.
 
 Workflow payloads use `schemas/sequence-workflow-output.v0.json`. The
 provenance section records the `biors-core` version, input hash, normalization

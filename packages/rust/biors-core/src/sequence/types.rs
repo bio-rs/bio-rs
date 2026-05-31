@@ -78,6 +78,17 @@ pub struct SequenceRecord {
     pub kind: SequenceKind,
 }
 
+/// Metadata explaining per-record automatic sequence-kind detection.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SequenceKindDetection {
+    /// Kind selected by the deterministic auto-detection tie-break rules.
+    pub selected_kind: SequenceKind,
+    /// Kinds with the same minimum invalid-symbol count before tie-breaking.
+    pub candidate_kinds: Vec<SequenceKind>,
+    /// True when more than one kind was equally plausible before tie-breaking.
+    pub ambiguous: bool,
+}
+
 impl SequenceRecord {
     /// Build a normalized sequence record for kind-aware validation.
     pub fn new(id: impl Into<String>, sequence: impl AsRef<str>, kind: SequenceKind) -> Self {
@@ -176,6 +187,9 @@ pub struct ValidatedSequenceRecord {
     pub kind: SequenceKind,
     /// Alphabet policy used for validation.
     pub alphabet: String,
+    /// Auto-detection metadata, present only when the caller used auto kind selection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_detection: Option<SequenceKindDetection>,
     /// True when the sequence has no warnings and no errors.
     pub valid: bool,
     /// Ambiguous but recognized symbols for the selected kind.

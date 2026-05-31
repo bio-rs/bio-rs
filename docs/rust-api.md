@@ -485,8 +485,11 @@ The `sequence` module handles biological sequence types, normalization, alphabet
   - `pub fn ambiguous(symbol: char, position: usize, kind: SequenceKind) -> Self`
   - `pub fn invalid(symbol: char, position: usize, kind: SequenceKind) -> Self`
 
+- **`SequenceKindDetection`** — Auto-detection metadata for kind-aware validation.
+  - `pub selected_kind: SequenceKind`, `pub candidate_kinds: Vec<SequenceKind>`, `pub ambiguous: bool`
+
 - **`ValidatedSequenceRecord`** — Kind-aware validation result.
-  - `pub id: String`, `pub sequence: String`, `pub kind: SequenceKind`, `pub alphabet: String`, `pub valid: bool`, `pub warnings: Vec<SequenceValidationIssue>`, `pub errors: Vec<SequenceValidationIssue>`
+  - `pub id: String`, `pub sequence: String`, `pub kind: SequenceKind`, `pub alphabet: String`, `pub auto_detection: Option<SequenceKindDetection>`, `pub valid: bool`, `pub warnings: Vec<SequenceValidationIssue>`, `pub errors: Vec<SequenceValidationIssue>`
 
 - **`SequenceKindCounts`** — `pub protein: usize`, `pub dna: usize`, `pub rna: usize` with `pub fn increment(&mut self, kind: SequenceKind)`
 
@@ -519,6 +522,9 @@ The `sequence` module handles biological sequence types, normalization, alphabet
 
 - `pub fn detect_sequence_kind(sequence: &str) -> SequenceKind`
   Detect the most likely sequence kind from normalized symbols.
+
+- `pub fn detect_sequence_kind_with_metadata(sequence: &str) -> SequenceKindDetection`
+  Detect the most likely sequence kind and return candidate-kind ambiguity metadata.
 
 - `pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence`
   Validate one protein against the protein-20 policy.
