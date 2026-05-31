@@ -1,4 +1,9 @@
-use biors_core::sequence::{SequenceKind, SequenceKindSelection};
+use biors_core::{
+    model_input::{ModelInputPolicy, PaddingPolicy},
+    sequence::{SequenceKind, SequenceKindSelection},
+    verification::stable_input_hash,
+    workflow::SequenceWorkflowInvocation,
+};
 use rmcp::{
     handler::server::wrapper::Parameters,
     model::{CallToolResult, Content, ErrorData as McpError},
@@ -31,12 +36,18 @@ pub struct ValidateParams {
 pub struct WorkflowParams {
     /// FASTA text for the workflow.
     pub fasta_text: String,
-    /// Sequence kind: "auto", "protein", "dna", or "rna".
+    /// Sequence kind: "auto" or "protein". DNA/RNA workflows are not model-input ready yet.
     #[serde(default = "default_auto_kind")]
     pub kind: String,
     /// Maximum token length per record.
     #[serde(default = "default_max_length")]
     pub max_length: usize,
+    /// Token ID used for fixed-length padding.
+    #[serde(default)]
+    pub pad_token_id: u8,
+    /// Padding policy: "fixed_length" or "no_padding".
+    #[serde(default = "default_padding")]
+    pub padding: String,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
@@ -64,6 +75,10 @@ fn default_max_length() -> usize {
     512
 }
 
+fn default_padding() -> String {
+    "fixed_length".to_string()
+}
+
 fn map_kind(kind: &str) -> Result<SequenceKindSelection, McpError> {
     match kind {
         "auto" => Ok(SequenceKindSelection::Auto),
@@ -74,6 +89,58 @@ fn map_kind(kind: &str) -> Result<SequenceKindSelection, McpError> {
             "invalid kind",
             Some(serde_json::json!({"kind": kind, "expected": ["auto", "protein", "dna", "rna"]})),
         )),
+    }
+}
+
+fn map_padding(padding: &str) -> Result<PaddingPolicy, McpError> {
+    match padding {
+        "fixed_length" => Ok(PaddingPolicy::FixedLength),
+        "no_padding" => Ok(PaddingPolicy::NoPadding),
+        _ => Err(McpError::invalid_params(
+            "invalid padding",
+            Some(
+                serde_json::json!({"padding": padding, "expected": ["fixed_length", "no_padding"]}),
+            ),
+        )),
+    }
+}
+
+fn ensure_protein_workflow_kind(params: &WorkflowParams) -> Result<(), McpError> {
+    let selection = map_kind(&params.kind)?;
+    let report = biors_core::sequence::kind_validation::validate_fasta_input_with_kind(
+        &params.fasta_text,
+        selection,
+    )
+    .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+
+    if report.kind_counts.dna > 0 || report.kind_counts.rna > 0 {
+        return Err(McpError::invalid_params(
+            "unsupported workflow kind",
+            Some(serde_json::json!({
+                "kind": params.kind,
+                "detected_kind_counts": report.kind_counts,
+                "supported": ["auto protein-only input", "protein"],
+                "message": "MCP workflow currently supports protein model-input workflows only"
+            })),
+        ));
+    }
+
+    Ok(())
+}
+
+fn workflow_invocation(params: &WorkflowParams) -> SequenceWorkflowInvocation {
+    SequenceWorkflowInvocation {
+        command: "biors-mcp workflow".to_string(),
+        arguments: vec![
+            "--kind".to_string(),
+            params.kind.clone(),
+            "--max-length".to_string(),
+            params.max_length.to_string(),
+            "--pad-token-id".to_string(),
+            params.pad_token_id.to_string(),
+            "--padding".to_string(),
+            params.padding.clone(),
+        ],
     }
 }
 
@@ -145,18 +212,22 @@ impl BiorsMcpServer {
         &self,
         Parameters(params): Parameters<WorkflowParams>,
     ) -> Result<CallToolResult, McpError> {
+        ensure_protein_workflow_kind(&params)?;
         let records = biors_core::fasta::parse_fasta_records(&params.fasta_text)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
-        let policy = biors_core::model_input::ModelInputPolicy {
+        let policy = ModelInputPolicy {
             max_length: params.max_length,
-            pad_token_id: 0,
-            padding: biors_core::model_input::PaddingPolicy::NoPadding,
+            pad_token_id: params.pad_token_id,
+            padding: map_padding(&params.padding)?,
         };
 
-        let input_hash = biors_core::hash::sha256_digest(params.fasta_text.as_bytes());
-        let output = biors_core::workflow::prepare_protein_model_input_workflow(
-            input_hash, &records, policy,
+        let input_hash = stable_input_hash(&params.fasta_text);
+        let output = biors_core::workflow::prepare_protein_model_input_workflow_with_invocation(
+            input_hash,
+            &records,
+            policy,
+            workflow_invocation(&params),
         )
         .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
