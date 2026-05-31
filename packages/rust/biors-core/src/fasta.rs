@@ -10,6 +10,9 @@ use crate::verification::StableInputHasher;
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 
+mod inspection;
+pub use inspection::{inspect_fasta_records_reader, FastaRecordMetadata, InspectedFastaInput};
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParsedFastaInput {
     pub input_hash: String,

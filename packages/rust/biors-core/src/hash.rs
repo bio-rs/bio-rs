@@ -1,6 +1,27 @@
 use sha2::{Digest, Sha256};
 use std::borrow::Cow;
 
+/// Incrementally compute a raw byte-for-byte SHA-256 digest.
+#[derive(Default)]
+pub(crate) struct Sha256ByteHasher {
+    inner: Sha256,
+}
+
+impl Sha256ByteHasher {
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
+    pub(crate) fn update(&mut self, bytes: &[u8]) {
+        self.inner.update(bytes);
+    }
+
+    pub(crate) fn finalize(self) -> String {
+        let digest = self.inner.finalize();
+        format!("sha256:{digest:x}")
+    }
+}
+
 /// Compute a raw byte-for-byte SHA-256 digest string in `sha256:<hex>` form.
 pub fn sha256_bytes_digest(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);

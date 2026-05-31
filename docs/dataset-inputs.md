@@ -37,6 +37,11 @@ The output includes:
 This mapping is intentionally local and deterministic. It does not upload or
 resolve biological data through external services.
 
+`dataset inspect` streams each FASTA file while computing file SHA-256 values
+and per-record sample metadata, so it does not retain full sequence records in
+memory. The final JSON can still be large for many-record datasets because
+`samples[]` intentionally contains one entry per FASTA record.
+
 ## Local Artifact Store
 
 The default local artifact store root is:

@@ -3,13 +3,13 @@ use crate::errors::CliError;
 use crate::input::{resolve_fasta_input_dataset, ResolvedInputDataset, ResolvedInputFile};
 use crate::output::print_success;
 use biors_core::{
-    fasta::parse_fasta_records_reader,
-    hash::{sha256_bytes_digest, sha256_canonical_json_digest},
-    sequence::ProteinSequence,
+    fasta::{inspect_fasta_records_reader, FastaRecordMetadata},
+    hash::sha256_canonical_json_digest,
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
-use std::io::Cursor;
+use std::fs::File;
+use std::io::BufReader;
 
 #[derive(Debug, Clone, Serialize)]
 struct DatasetDescriptor {
@@ -129,23 +129,22 @@ fn inspect_dataset_file(
     file: ResolvedInputFile,
     descriptor: &DatasetDescriptor,
 ) -> Result<InspectedDatasetFile, CliError> {
-    let bytes = std::fs::read(&file.path).map_err(|source| CliError::Read {
+    let reader = File::open(&file.path).map_err(|source| CliError::Read {
         path: file.path.clone(),
         source,
     })?;
-    let sha256 = sha256_bytes_digest(&bytes);
-    let records = parse_fasta_records_reader(Cursor::new(&bytes))
-        .map_err(|error| CliError::from_fasta_read(file.path.clone(), error))?
-        .records;
+    let inspected = inspect_fasta_records_reader(BufReader::new(reader))
+        .map_err(|error| CliError::from_fasta_read(file.path.clone(), error))?;
     let path = file.path.display().to_string();
-    let samples = samples_from_records(descriptor, &path, &sha256, &records);
+    let samples = samples_from_records(descriptor, &path, &inspected.sha256, &inspected.records);
+    let records = inspected.records.len();
 
     Ok(InspectedDatasetFile {
         file: DatasetFile {
             path,
             bytes: file.bytes,
-            sha256,
-            records: records.len(),
+            sha256: inspected.sha256,
+            records,
         },
         samples,
     })
@@ -155,7 +154,7 @@ fn samples_from_records(
     descriptor: &DatasetDescriptor,
     file_path: &str,
     file_sha256: &str,
-    records: &[ProteinSequence],
+    records: &[FastaRecordMetadata],
 ) -> Vec<DatasetSample> {
     records
         .iter()
@@ -166,7 +165,7 @@ fn samples_from_records(
             record_index,
             file_path: file_path.to_string(),
             file_sha256: file_sha256.to_string(),
-            sequence_length: record.sequence.len(),
+            sequence_length: record.length,
         })
         .collect()
 }
