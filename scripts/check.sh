@@ -27,6 +27,7 @@ python3 -m py_compile \
   scripts/check-cli-benchmark-artifact.py \
   scripts/check-python-benchmark-artifact.py \
   scripts/check-registry-versions.py \
+  scripts/check-dependency-policy.py \
   scripts/check-module-size.py \
   scripts/check-release-workflow.py \
   scripts/benchmark_large_file_streaming.py \
@@ -46,6 +47,9 @@ python3 scripts/check-benchmark-artifact.py
 
 echo "==> release workflow"
 python3 scripts/check-release-workflow.py
+
+echo "==> dependency policy"
+python3 scripts/check-dependency-policy.py
 
 echo "==> cargo check --workspace --all-targets --all-features"
 cargo check --locked --workspace --all-targets --all-features

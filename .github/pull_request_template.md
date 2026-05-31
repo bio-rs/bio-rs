@@ -17,6 +17,11 @@
 - [ ] Docs/README updated (if needed)
 - [ ] Benchmarks updated (if performance claim is made)
 
+## Dependency Review
+
+- [ ] `Cargo.toml` / `Cargo.lock` changes are justified, or no dependency files changed
+- [ ] Default `biors-core` / `biors` dependency tree impact reviewed
+
 ## Benchmark / Evidence (if applicable)
 
 - Data source (file/command):

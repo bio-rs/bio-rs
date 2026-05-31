@@ -31,6 +31,20 @@ The public contract candidates remain:
 Before tagging, check whether any CLI flag, JSON field, schema, error code, or
 package manifest field changed without a matching test and doc update.
 
+## Dependency Policy
+
+The final release gate runs `scripts/check-dependency-policy.py` through
+`scripts/check.sh`. Before tagging, review any `Cargo.toml` or `Cargo.lock`
+change against [docs/dependency-policy.md](dependency-policy.md), including:
+
+- whether `biors-core` still has only its approved normal dependencies
+- whether optional Candle, MCP, Python, and WASM dependencies remain isolated in
+  their package-specific crates
+- whether `cargo tree --locked -p biors-core --duplicates` and
+  `cargo tree --locked -p biors --duplicates` remain clean
+- why any new dependency is needed and whether it affects the default CLI/core
+  install path
+
 ## Breaking Change Cleanup
 
 No known breaking cleanup is deferred for the current pre-1.0 contract set.

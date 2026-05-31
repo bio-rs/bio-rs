@@ -21,6 +21,7 @@ One or two sentences describing what this release makes possible.
 - `scripts/check.sh`:
 - Release workflow:
 - Crates.io or binary artifact:
+- Dependency policy / `Cargo.lock` review:
 
 ## Closed issues
 
