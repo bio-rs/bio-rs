@@ -100,6 +100,19 @@ async fn test_workflow_tool_reports_non_model_ready_residues() {
 }
 
 #[tokio::test]
+async fn test_workflow_tool_rejects_empty_sequence_records() {
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "fasta_text".to_string(),
+        serde_json::Value::String(">empty\n".to_string()),
+    );
+    args.insert("max_length".to_string(), serde_json::json!(8));
+
+    let error = call_tool_error("workflow", args).await;
+    assert!(error.contains("missing sequence") || error.contains("empty"));
+}
+
+#[tokio::test]
 async fn test_workflow_tool_rejects_unsupported_kind_and_padding() {
     let mut dna_args = serde_json::Map::new();
     dna_args.insert(

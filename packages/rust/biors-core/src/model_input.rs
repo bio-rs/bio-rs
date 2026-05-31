@@ -46,6 +46,8 @@ pub struct ModelInputRecord {
 pub enum ModelInputBuildError {
     /// The model input policy is internally invalid.
     InvalidPolicy { message: String },
+    /// A tokenized sequence has no model input tokens.
+    EmptyTokenizedSequence { id: String },
     /// A tokenized sequence still contains unresolved warnings or errors.
     InvalidTokenizedSequence {
         id: String,
@@ -75,6 +77,11 @@ pub fn build_model_inputs_checked(
     validate_model_input_policy(&policy)?;
 
     for record in tokenized {
+        if record.tokens.is_empty() {
+            return Err(ModelInputBuildError::EmptyTokenizedSequence {
+                id: record.id.clone(),
+            });
+        }
         if !record.warnings.is_empty() || !record.errors.is_empty() {
             return Err(ModelInputBuildError::InvalidTokenizedSequence {
                 id: record.id.clone(),
@@ -133,6 +140,10 @@ impl fmt::Display for ModelInputBuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidPolicy { message } => write!(f, "invalid model input policy: {message}"),
+            Self::EmptyTokenizedSequence { id } => write!(
+                f,
+                "sequence '{id}' is empty and cannot be converted into model input"
+            ),
             Self::InvalidTokenizedSequence {
                 id,
                 warning_count,

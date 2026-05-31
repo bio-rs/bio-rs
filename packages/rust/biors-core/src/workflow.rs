@@ -160,19 +160,29 @@ fn provenance(
 fn readiness_issues(tokenized: &[TokenizedProtein]) -> Vec<SequenceWorkflowReadinessIssue> {
     tokenized
         .iter()
-        .filter(|record| !record.warnings.is_empty() || !record.errors.is_empty())
+        .filter(|record| {
+            record.tokens.is_empty() || !record.warnings.is_empty() || !record.errors.is_empty()
+        })
         .map(|record| {
             let warning_count = record.warnings.len();
             let error_count = record.errors.len();
+            let message = if record.tokens.is_empty() {
+                format!(
+                    "sequence '{}' is not model-ready: empty sequences cannot be converted into model input",
+                    record.id
+                )
+            } else {
+                format!(
+                    "sequence '{}' is not model-ready: {warning_count} warnings and {error_count} errors must be resolved before model-input generation",
+                    record.id
+                )
+            };
             SequenceWorkflowReadinessIssue {
                 code: READINESS_ISSUE_CODE.to_string(),
                 id: record.id.clone(),
                 warning_count,
                 error_count,
-                message: format!(
-                    "sequence '{}' is not model-ready: {warning_count} warnings and {error_count} errors must be resolved before model-input generation",
-                    record.id
-                ),
+                message,
             }
         })
         .collect()
@@ -242,5 +252,31 @@ mod tests {
         assert_eq!(output.validation.warning_count, 1);
         assert_eq!(output.validation.error_count, 1);
         assert_eq!(output.readiness_issues[0].code, READINESS_ISSUE_CODE);
+    }
+
+    #[test]
+    fn workflow_marks_direct_empty_sequence_not_model_ready() {
+        let output = prepare_protein_model_input_workflow(
+            "fnv1a64:0000000000000000".to_string(),
+            &[ProteinSequence {
+                id: "empty".to_string(),
+                sequence: Vec::new(),
+            }],
+            ModelInputPolicy {
+                max_length: 6,
+                pad_token_id: 0,
+                padding: PaddingPolicy::FixedLength,
+            },
+        )
+        .expect("workflow output");
+
+        assert!(!output.model_ready);
+        assert!(output.model_input.is_none());
+        assert_eq!(output.validation.records, 1);
+        assert_eq!(output.readiness_issues[0].code, READINESS_ISSUE_CODE);
+        assert_eq!(output.readiness_issues[0].id, "empty");
+        assert!(output.readiness_issues[0]
+            .message
+            .contains("empty sequences"));
     }
 }

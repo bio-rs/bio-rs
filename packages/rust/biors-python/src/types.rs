@@ -10,6 +10,14 @@ pub struct PyProteinSequence {
     pub sequence: String,
 }
 
+#[pymethods]
+impl PyProteinSequence {
+    #[new]
+    fn new(id: String, sequence: String) -> Self {
+        Self { id, sequence }
+    }
+}
+
 #[pyclass(name = "SequenceValidationReport")]
 #[derive(Clone, Debug)]
 pub struct PySequenceValidationReport {

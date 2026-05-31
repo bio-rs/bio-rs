@@ -65,6 +65,16 @@ fn test_build_model_input_with_policy() {
 }
 
 #[wasm_bindgen_test]
+fn test_build_model_input_rejects_empty_token_sequence() {
+    let tokenized = js_sys::JSON::parse(
+        r#"[{"id":"empty","tokens":[],"length":0,"alphabet":"protein-20","valid":true,"warnings":[],"errors":[]}]"#,
+    )
+    .unwrap();
+    let error = biors_wasm::build_model_input(tokenized, 8).expect_err("empty tokens fail");
+    assert!(error.as_string().unwrap().contains("empty"));
+}
+
+#[wasm_bindgen_test]
 fn test_run_workflow() {
     let config = workflow_config(">seq1\nACDE\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();

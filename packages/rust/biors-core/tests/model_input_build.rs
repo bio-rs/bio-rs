@@ -2,7 +2,7 @@ use biors_core::model_input::{
     build_model_inputs_checked, build_model_inputs_unchecked, ModelInputBuildError,
     ModelInputPolicy, PaddingPolicy,
 };
-use biors_core::tokenizer::tokenize_fasta_records;
+use biors_core::tokenizer::{tokenize_fasta_records, TokenizedProtein};
 
 #[test]
 fn builds_deterministic_model_input_with_attention_mask() {
@@ -74,6 +74,36 @@ fn rejects_model_input_for_sequences_with_ambiguous_or_invalid_residues() {
             id: "seq1".to_string(),
             warning_count: 1,
             error_count: 1,
+        }
+    );
+}
+
+#[test]
+fn rejects_model_input_for_empty_tokenized_sequences() {
+    let tokenized = vec![TokenizedProtein {
+        id: "empty".to_string(),
+        length: 0,
+        alphabet: "protein-20".to_string(),
+        valid: true,
+        tokens: Vec::new(),
+        warnings: Vec::new(),
+        errors: Vec::new(),
+    }];
+
+    let error = build_model_inputs_checked(
+        &tokenized,
+        ModelInputPolicy {
+            max_length: 8,
+            pad_token_id: 0,
+            padding: PaddingPolicy::FixedLength,
+        },
+    )
+    .expect_err("expected error for empty tokenized sequence");
+
+    assert_eq!(
+        error,
+        ModelInputBuildError::EmptyTokenizedSequence {
+            id: "empty".to_string(),
         }
     );
 }

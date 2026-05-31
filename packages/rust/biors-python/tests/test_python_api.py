@@ -89,6 +89,12 @@ def test_prepare_workflow():
     assert len(output.records) == 1
     assert len(output.records[0].input_ids) == 10
 
+def test_prepare_workflow_marks_direct_empty_sequence_not_model_ready():
+    records = [biors.ProteinSequence("empty", "")]
+    output = biors.prepare_workflow("hash-empty", records, max_length=10, padding="fixed_length")
+    assert output.model_ready == False
+    assert output.records == []
+
 def test_prepare_workflow_from_fasta_computes_input_hash_internally():
     fasta = ">seq1\nACDEFG"
     output = biors.prepare_workflow_from_fasta(
