@@ -143,6 +143,8 @@ jobs:
       - name: Check Python source distribution license files
         if: runner.os == 'Linux'
         run: python scripts/check-release-artifact-contents.py python-dist dist --require-sdist
+      - name: Test installed Python wheel
+        run: python scripts/test-python-wheel.py --dist-dir dist
       - name: Upload Python distributions
         uses: actions/upload-artifact@v7
         with:

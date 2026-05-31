@@ -29,7 +29,9 @@ python3 -m py_compile \
   scripts/check-registry-versions.py \
   scripts/check-dependency-policy.py \
   scripts/check-module-size.py \
+  scripts/check-release-artifact-contents.py \
   scripts/check-release-workflow.py \
+  scripts/test-python-wheel.py \
   scripts/benchmark_large_file_streaming.py \
   scripts/render_benchmark_report.py \
   scripts/render_cli_benchmark_report.py \
