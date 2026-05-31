@@ -113,6 +113,43 @@ async fn test_workflow_tool_rejects_empty_sequence_records() {
 }
 
 #[tokio::test]
+async fn test_sequence_tools_classify_invalid_fasta_as_invalid_params() {
+    for tool_name in ["tokenize", "validate", "workflow"] {
+        let mut args = serde_json::Map::new();
+        args.insert(
+            "fasta_text".to_string(),
+            serde_json::Value::String("ACDE\n".to_string()),
+        );
+        if tool_name == "workflow" {
+            args.insert("max_length".to_string(), serde_json::json!(8));
+        }
+
+        let error = call_tool_error_debug(tool_name, args).await;
+        assert!(
+            error.contains("ErrorCode(-32602)"),
+            "{tool_name} did not return invalid params code: {error}"
+        );
+        assert!(
+            error.contains("fasta.missing_header"),
+            "{tool_name} did not include FASTA diagnostic code: {error}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_validate_tool_classifies_empty_input_as_invalid_params() {
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "fasta_text".to_string(),
+        serde_json::Value::String("".to_string()),
+    );
+
+    let error = call_tool_error_debug("validate", args).await;
+    assert!(error.contains("ErrorCode(-32602)"));
+    assert!(error.contains("fasta.empty_input"));
+}
+
+#[tokio::test]
 async fn test_workflow_tool_rejects_unsupported_kind_and_padding() {
     let mut dna_args = serde_json::Map::new();
     dna_args.insert(
@@ -243,6 +280,18 @@ async fn call_tool_error(name: &str, args: serde_json::Map<String, serde_json::V
         .await
         .expect_err("tool call should fail")
         .to_string()
+}
+
+async fn call_tool_error_debug(
+    name: &str,
+    args: serde_json::Map<String, serde_json::Value>,
+) -> String {
+    format!(
+        "{:?}",
+        call_tool(name, args)
+            .await
+            .expect_err("tool call should fail")
+    )
 }
 
 async fn call_tool(

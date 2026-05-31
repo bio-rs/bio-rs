@@ -1,4 +1,5 @@
 use biors_core::{
+    error::BioRsError,
     model_input::{ModelInputPolicy, PaddingPolicy},
     sequence::{SequenceKind, SequenceKindSelection},
     verification::stable_input_hash,
@@ -105,13 +106,23 @@ fn map_padding(padding: &str) -> Result<PaddingPolicy, McpError> {
     }
 }
 
+fn fasta_invalid_params(error: BioRsError) -> McpError {
+    McpError::invalid_params(
+        error.to_string(),
+        Some(serde_json::json!({
+            "code": error.code(),
+            "location": error.location(),
+        })),
+    )
+}
+
 fn ensure_protein_workflow_kind(params: &WorkflowParams) -> Result<(), McpError> {
     let selection = map_kind(&params.kind)?;
     let report = biors_core::sequence::kind_validation::validate_fasta_input_with_kind(
         &params.fasta_text,
         selection,
     )
-    .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+    .map_err(fasta_invalid_params)?;
 
     if report.kind_counts.dna > 0 || report.kind_counts.rna > 0 {
         return Err(McpError::invalid_params(
@@ -158,7 +169,7 @@ impl BiorsMcpServer {
         Parameters(params): Parameters<TokenizeParams>,
     ) -> Result<CallToolResult, McpError> {
         let records = biors_core::fasta::parse_fasta_records(&params.fasta_text)
-            .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+            .map_err(fasta_invalid_params)?;
 
         let config = match params.profile.as_str() {
             "protein-20" => biors_core::tokenizer::ProteinTokenizerConfig {
@@ -202,7 +213,7 @@ impl BiorsMcpServer {
             &params.fasta_text,
             selection,
         )
-        .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+        .map_err(fasta_invalid_params)?;
 
         json_response(&report)
     }
@@ -214,7 +225,7 @@ impl BiorsMcpServer {
     ) -> Result<CallToolResult, McpError> {
         ensure_protein_workflow_kind(&params)?;
         let records = biors_core::fasta::parse_fasta_records(&params.fasta_text)
-            .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+            .map_err(fasta_invalid_params)?;
 
         let policy = ModelInputPolicy {
             max_length: params.max_length,
