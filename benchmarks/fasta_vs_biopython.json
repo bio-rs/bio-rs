@@ -33,8 +33,7 @@
     {
       "label": "human_reference_proteome",
       "dataset": {
-        "source": "user-provided FASTA",
-        "path_hint": "/private/tmp/UP000005640_9606.ebi.fasta",
+        "source": "EBI QfO reference proteomes",
         "shape_profile": "human_reference_proteome",
         "records": 20659,
         "total_residues": 11456034,
@@ -43,7 +42,13 @@
         "invalid_residues": 0,
         "file_size_bytes": 13735094,
         "fasta_sha256": "bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36",
-        "path": "/private/tmp/UP000005640_9606.ebi.fasta"
+        "path": "UP000005640_9606.fasta",
+        "proteome_id": "UP000005640",
+        "taxonomy_id": "9606",
+        "source_release": "QfO_release_2025_04",
+        "source_date": "2025-10-25",
+        "download_url": "https://ftp.ebi.ac.uk/pub/databases/reference_proteomes/QfO/Eukaryota/UP000005640_9606.fasta",
+        "downloaded_fasta_sha256": "bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36"
       },
       "benchmarks": {
         "pure_parse": {
@@ -303,7 +308,10 @@
         "invalid_residues": 0,
         "file_size_bytes": 123615846,
         "fasta_sha256": "c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f",
-        "path": "human_proteome_x110.fasta"
+        "path": "human_proteome_x110.fasta",
+        "base_source_release": "QfO_release_2025_04",
+        "base_source_date": "2025-10-25",
+        "base_fasta_sha256": "bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36"
       },
       "benchmarks": {
         "pure_parse": {
@@ -563,7 +571,10 @@
         "invalid_residues": 0,
         "file_size_bytes": 1228890,
         "fasta_sha256": "cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61",
-        "path": "many_short_records.fasta"
+        "path": "many_short_records.fasta",
+        "base_source_release": "QfO_release_2025_04",
+        "base_source_date": "2025-10-25",
+        "base_fasta_sha256": "bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36"
       },
       "benchmarks": {
         "pure_parse": {
@@ -822,7 +833,10 @@
         "invalid_residues": 0,
         "file_size_bytes": 972013,
         "fasta_sha256": "da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e",
-        "path": "single_long_sequence.fasta"
+        "path": "single_long_sequence.fasta",
+        "base_source_release": "QfO_release_2025_04",
+        "base_source_date": "2025-10-25",
+        "base_fasta_sha256": "bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36"
       },
       "benchmarks": {
         "pure_parse": {

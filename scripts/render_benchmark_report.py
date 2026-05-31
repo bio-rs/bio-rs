@@ -143,10 +143,22 @@ def dataset_section(index: int, dataset: dict) -> list[str]:
         lines.append(f"- Proteome ID: `{info['proteome_id']}`")
     if "taxonomy_id" in info:
         lines.append(f"- Taxonomy ID: `{info['taxonomy_id']}` (`Homo sapiens`)")
+    if "source_release" in info:
+        lines.append(f"- Source release: `{info['source_release']}`")
+    if "source_date" in info:
+        lines.append(f"- Source date: `{info['source_date']}`")
     if "download_url" in info:
         lines.append(f"- URL: `{info['download_url']}`")
+    if "downloaded_fasta_sha256" in info:
+        lines.append(f"- Downloaded FASTA SHA256: `{info['downloaded_fasta_sha256']}`")
     if "downloaded_gz_sha256" in info:
         lines.append(f"- Downloaded archive SHA256: `{info['downloaded_gz_sha256']}`")
+    if "base_source_release" in info:
+        lines.append(f"- Base source release: `{info['base_source_release']}`")
+    if "base_source_date" in info:
+        lines.append(f"- Base source date: `{info['base_source_date']}`")
+    if "base_fasta_sha256" in info:
+        lines.append(f"- Base FASTA SHA256: `{info['base_fasta_sha256']}`")
     if "repeat_count" in info:
         lines.append(
             f"- Construction: repeated the same real human proteome `{info['repeat_count']}x` "

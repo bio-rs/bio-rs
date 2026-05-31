@@ -13,11 +13,9 @@ invoking a small `biors-core` benchmark example binary.
 from __future__ import annotations
 
 import argparse
-import gzip
 import hashlib
 import json
 import platform
-import shutil
 import statistics
 import subprocess
 import sys
@@ -37,9 +35,11 @@ TOKEN_SET = set(ALPHABET)
 AMBIGUOUS_SET = set("XBZJUO")
 UNKNOWN_TOKEN_ID = 20
 BENCHMARK_SCHEMA_VERSION = "biors.benchmark.fasta_vs_biopython.v1"
-UNIPROT_HUMAN_PROTEOME_GZ_URL = (
-    "https://ftp.uniprot.org/pub/databases/uniprot/current_release/"
-    "knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz"
+REFERENCE_PROTEOME_RELEASE = "QfO_release_2025_04"
+REFERENCE_PROTEOME_SOURCE_DATE = "2025-10-25"
+REFERENCE_PROTEOME_FASTA_URL = (
+    "https://ftp.ebi.ac.uk/pub/databases/reference_proteomes/QfO/"
+    "Eukaryota/UP000005640_9606.fasta"
 )
 
 
@@ -97,19 +97,16 @@ def sha256_of_json(value: object) -> str:
     return f"sha256:{hashlib.sha256(payload).hexdigest()}"
 
 
-def download_uniprot_human_proteome(destination_fasta: Path) -> dict[str, str]:
-    gz_path = destination_fasta.with_suffix(destination_fasta.suffix + ".gz")
-    urllib.request.urlretrieve(UNIPROT_HUMAN_PROTEOME_GZ_URL, gz_path)
-
-    with gzip.open(gz_path, "rb") as source, destination_fasta.open("wb") as target:
-        shutil.copyfileobj(source, target)
-
+def download_reference_human_proteome(destination_fasta: Path) -> dict[str, str]:
+    urllib.request.urlretrieve(REFERENCE_PROTEOME_FASTA_URL, destination_fasta)
     return {
-        "source": "UniProt reference proteome",
+        "source": "EBI QfO reference proteomes",
         "proteome_id": "UP000005640",
         "taxonomy_id": "9606",
-        "download_url": UNIPROT_HUMAN_PROTEOME_GZ_URL,
-        "downloaded_gz_sha256": sha256_of_file(gz_path),
+        "source_release": REFERENCE_PROTEOME_RELEASE,
+        "source_date": REFERENCE_PROTEOME_SOURCE_DATE,
+        "download_url": REFERENCE_PROTEOME_FASTA_URL,
+        "downloaded_fasta_sha256": sha256_of_file(destination_fasta),
     }
 
 
@@ -571,6 +568,17 @@ def recorded_dataset_path(fasta_path: Path, provenance: dict) -> str:
     return fasta_path.name
 
 
+def add_base_provenance(
+    provenance: dict[str, int | str],
+    base_provenance: dict[str, str],
+    base_fasta: Path,
+) -> None:
+    provenance["base_source_release"] = base_provenance.get("source_release", "user_provided")
+    if "source_date" in base_provenance:
+        provenance["base_source_date"] = base_provenance["source_date"]
+    provenance["base_fasta_sha256"] = sha256_of_file(base_fasta)
+
+
 def main() -> int:
     args = parse_args()
 
@@ -579,7 +587,7 @@ def main() -> int:
 
         if args.input is None:
             human_fasta = tmp_path / "UP000005640_9606.fasta"
-            human_provenance = download_uniprot_human_proteome(human_fasta)
+            human_provenance = download_reference_human_proteome(human_fasta)
         else:
             human_fasta = args.input
             human_provenance = {
@@ -594,6 +602,7 @@ def main() -> int:
             large_fasta = tmp_path / f"human_proteome_x{args.large_min_mb}.fasta"
             large_provenance = ensure_large_fasta(human_fasta, large_fasta, args.large_min_mb)
             large_provenance["shape_profile"] = "large_repeated_proteome"
+            add_base_provenance(large_provenance, human_provenance, human_fasta)
         else:
             large_fasta = args.large_input
             large_provenance = {
@@ -612,6 +621,7 @@ def main() -> int:
             records=args.shape_profile_records,
             record_length=args.short_record_length,
         )
+        add_base_provenance(many_short_provenance, human_provenance, human_fasta)
 
         single_long_fasta = tmp_path / "single_long_sequence.fasta"
         single_long_provenance = ensure_single_long_fasta(
@@ -619,6 +629,7 @@ def main() -> int:
             single_long_fasta,
             min_residues=args.shape_profile_records * args.short_record_length,
         )
+        add_base_provenance(single_long_provenance, human_provenance, human_fasta)
 
         harness = ensure_benchmark_harness()
 

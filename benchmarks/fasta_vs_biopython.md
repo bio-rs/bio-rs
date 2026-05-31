@@ -27,8 +27,14 @@ new numeric claims for later releases.
 
 ### 1. Human Reference Proteome
 
-- Source: user-provided FASTA
+- Source: EBI QfO reference proteomes
 - Shape profile: `human_reference_proteome`
+- Proteome ID: `UP000005640`
+- Taxonomy ID: `9606` (`Homo sapiens`)
+- Source release: `QfO_release_2025_04`
+- Source date: `2025-10-25`
+- URL: `https://ftp.ebi.ac.uk/pub/databases/reference_proteomes/QfO/Eukaryota/UP000005640_9606.fasta`
+- Downloaded FASTA SHA256: `bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36`
 - FASTA SHA256: `bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36`
 - Shape: 20,659 records, 11,456,034 residues, 13,735,094 bytes
 - Residue composition: 11,455,955 canonical, 79 ambiguous, 0 invalid
@@ -37,6 +43,9 @@ new numeric claims for later releases.
 
 - Source: repeated_uniprot_human_proteome
 - Shape profile: `large_repeated_proteome`
+- Base source release: `QfO_release_2025_04`
+- Base source date: `2025-10-25`
+- Base FASTA SHA256: `bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36`
 - Construction: repeated the same real human proteome `9x` to exceed `110 MB`
 - FASTA SHA256: `c44228388807ec9ac03dbc66516a8e459302336bf2a3391c6b10e75692c9774f`
 - Shape: 185,931 records, 103,104,306 residues, 123,615,846 bytes
@@ -46,6 +55,9 @@ new numeric claims for later releases.
 
 - Source: synthetic_many_short_records_from_uniprot_human_proteome
 - Shape profile: `many_short_records`
+- Base source release: `QfO_release_2025_04`
+- Base source date: `2025-10-25`
+- Base FASTA SHA256: `bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36`
 - Construction: `20,000` records of `48` residues
 - FASTA SHA256: `cb8049118f95a518cc63a4d6c9e0b07e04ab989013f4dfb436368c2108e7ce61`
 - Shape: 20,000 records, 960,000 residues, 1,228,890 bytes
@@ -55,6 +67,9 @@ new numeric claims for later releases.
 
 - Source: synthetic_single_long_sequence_from_uniprot_human_proteome
 - Shape profile: `single_long_sequence`
+- Base source release: `QfO_release_2025_04`
+- Base source date: `2025-10-25`
+- Base FASTA SHA256: `bf4860fdb87c9a96d3576675bdb0b3c889ac727696e73a07410c7e965aa1fc36`
 - Construction: one sequence with `960,000` residues
 - FASTA SHA256: `da1455be67cb58e7a60ad883bf38d8523cdeb777ca10bf4c45f1ceb986ed264e`
 - Shape: 1 records, 960,000 residues, 972,013 bytes

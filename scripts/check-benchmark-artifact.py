@@ -56,6 +56,7 @@ def main() -> int:
         for field in required_dataset_fields:
             if field not in metadata:
                 raise AssertionError(f"missing dataset field {field} in {dataset.get('label')}")
+        validate_dataset_provenance(metadata, dataset["label"])
         for workload in required_workloads:
             if workload not in dataset["benchmarks"]:
                 raise AssertionError(f"missing workload {workload} in {dataset['label']}")
@@ -108,6 +109,33 @@ def validate_feature_coverage(feature_coverage: object) -> None:
             raise AssertionError(f"{feature} must describe benchmark claim scope")
         if not entry["evidence"]:
             raise AssertionError(f"{feature} must list benchmark evidence or the gap")
+
+
+def validate_dataset_provenance(metadata: dict, label: str) -> None:
+    for key, value in metadata.items():
+        if isinstance(value, str) and "current_release" in value:
+            raise AssertionError(
+                f"{label} metadata field {key} must not use an unpinned current_release URL"
+            )
+
+    source = metadata.get("source")
+    if source == "EBI QfO reference proteomes":
+        required = [
+            "source_release",
+            "source_date",
+            "download_url",
+            "downloaded_fasta_sha256",
+        ]
+        if metadata["downloaded_fasta_sha256"] != metadata["fasta_sha256"]:
+            raise AssertionError(f"{label} downloaded FASTA SHA256 must match fasta_sha256")
+    elif "base_proteome_id" in metadata:
+        required = ["base_source_release", "base_fasta_sha256"]
+    else:
+        required = []
+
+    for field in required:
+        if not metadata.get(field):
+            raise AssertionError(f"{label} missing benchmark provenance field {field}")
 
 
 if __name__ == "__main__":
