@@ -16,6 +16,7 @@ DEFAULT_FILES = [
     "scripts/check-python-benchmark-artifact.py",
     "scripts/check-registry-versions.py",
     "scripts/check-dependency-policy.py",
+    "scripts/check-github-actions-pinning.py",
     "scripts/check-module-size.py",
     "scripts/check-release-artifact-contents.py",
     "scripts/check-release-workflow.py",

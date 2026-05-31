@@ -10,6 +10,7 @@ import tomllib
 
 MSRV = "1.88"
 TOOLCHAIN = "1.88.0"
+RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c"
 WORKFLOWS = [
     Path(".github/workflows/ci.yml"),
     Path(".github/workflows/release.yml"),
@@ -48,8 +49,8 @@ def main() -> int:
 
     for workflow in WORKFLOWS:
         text = workflow.read_text(encoding="utf-8")
-        if f"dtolnay/rust-toolchain@{TOOLCHAIN}" not in text:
-            errors.append(f"{workflow} must install dtolnay/rust-toolchain@{TOOLCHAIN}")
+        if RUST_TOOLCHAIN_ACTION not in text:
+            errors.append(f"{workflow} must install pinned Rust toolchain action {RUST_TOOLCHAIN_ACTION}")
 
     if errors:
         for error in errors:

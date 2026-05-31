@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 WORKFLOW = Path(".github/workflows/release.yml")
-RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@1.88.0"
+RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c"
 
 
 def main() -> None:
@@ -59,9 +59,9 @@ def main() -> None:
     required_text = [
         "x86_64-unknown-linux-gnu",
         "aarch64-apple-darwin",
-        "actions/upload-artifact@v7",
-        "actions/download-artifact@v8",
-        "pypa/gh-action-pypi-publish@release/v1",
+        "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+        "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+        "pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b",
         "PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}",
         "wasm-pack test --node packages/rust/biors-wasm",
         "scripts/build-wasm-npm-package.sh",

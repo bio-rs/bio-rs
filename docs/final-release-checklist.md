@@ -65,6 +65,17 @@ against [docs/dependency-policy.md](dependency-policy.md), including:
 - why any new dependency is needed and whether it affects the default CLI/core
   install path
 
+## GitHub Actions Pinning
+
+Release and CI workflow actions are pinned to commit SHAs. When updating an
+action, resolve the new tag or branch to an immutable commit, update the
+workflow reference, and rerun:
+
+```bash
+python3 scripts/check-github-actions-pinning.py
+python3 scripts/check-release-workflow.py
+```
+
 ## Breaking Change Cleanup
 
 The current blocker queue is the local pre-release audit ledger at

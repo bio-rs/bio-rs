@@ -29,6 +29,9 @@ python3 scripts/check-benchmark-artifact.py
 echo "==> release workflow"
 python3 scripts/check-release-workflow.py
 
+echo "==> github actions pinning"
+python3 scripts/check-github-actions-pinning.py
+
 echo "==> dependency policy"
 python3 scripts/check-dependency-policy.py
 
