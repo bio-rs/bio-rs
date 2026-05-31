@@ -15,15 +15,15 @@ FEATURE_COVERAGE = [
     },
     {
         "feature": "cli_workflow",
-        "status": "not_benchmarked",
-        "claim_scope": "No numeric performance claim.",
-        "evidence": ["missing committed CLI workflow benchmark artifact"],
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed CLI regression guard timing only; no public throughput claim.",
+        "evidence": ["benchmarks/cli_surfaces.json workload cli_workflow_fixed_length"],
     },
     {
         "feature": "cli_dataset_inspect",
-        "status": "not_benchmarked",
-        "claim_scope": "No numeric performance claim.",
-        "evidence": ["missing committed CLI dataset inspect benchmark artifact"],
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed CLI regression guard timing only; no public throughput claim.",
+        "evidence": ["benchmarks/cli_surfaces.json workload cli_dataset_inspect_many_file"],
     },
     {
         "feature": "python_bindings",

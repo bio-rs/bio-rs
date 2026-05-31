@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+"""Record small CLI surface benchmark artifacts for release regression guards."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import platform
+import shutil
+import statistics
+import subprocess
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+from render_cli_benchmark_report import render_report
+
+SCHEMA_VERSION = "biors.benchmark.cli_surfaces.v1"
+RESULT_PATH = Path("benchmarks/cli_surfaces.json")
+REPORT_PATH = Path("benchmarks/cli_surfaces.md")
+WORK_DIR = Path(".benchmark-cli-surfaces")
+ALPHABET = b"ACDEFGHIKLMNPQRSTVWY"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--loops", type=int, default=7)
+    parser.add_argument("--bin", type=Path, default=Path("target/release/biors"))
+    parser.add_argument("--no-build", action="store_true")
+    return parser.parse_args()
+
+
+def command_output(command: list[str]) -> str | None:
+    try:
+        completed = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return completed.stdout.strip()
+
+
+def environment() -> dict[str, str | None]:
+    return {
+        "os": platform.platform(),
+        "machine": platform.machine(),
+        "processor": platform.processor() or None,
+        "python": platform.python_version(),
+        "rustc": command_output(["rustc", "--version"]),
+        "cargo": command_output(["cargo", "--version"]),
+        "biors": cargo_package_version("biors"),
+        "git_commit": command_output(["git", "rev-parse", "HEAD"]),
+    }
+
+
+def cargo_package_version(package_name: str) -> str | None:
+    output = command_output(["cargo", "metadata", "--no-deps", "--format-version", "1"])
+    if output is None:
+        return None
+    metadata = json.loads(output)
+    for package in metadata.get("packages", []):
+        if package.get("name") == package_name:
+            return str(package.get("version"))
+    return None
+
+
+def ensure_binary(binary: Path, no_build: bool) -> Path:
+    if not no_build:
+        subprocess.run(["cargo", "build", "--release", "-p", "biors"], check=True)
+    if not binary.exists():
+        raise FileNotFoundError(f"biors binary not found: {binary}")
+    return binary
+
+
+def sequence(seed: int, length: int) -> bytes:
+    result = bytearray()
+    value = seed
+    for _ in range(length):
+        value = (value * 6364136223846793005 + 1) & ((1 << 64) - 1)
+        result.append(ALPHABET[(value >> 32) % len(ALPHABET)])
+    return bytes(result)
+
+
+def write_fasta(path: Path, *, records: int, length: int) -> dict[str, int | str]:
+    residues = 0
+    with path.open("wb") as handle:
+        for index in range(records):
+            handle.write(f">seq_{index}\n".encode())
+            seq = sequence(index, length)
+            residues += len(seq)
+            for offset in range(0, len(seq), 60):
+                handle.write(seq[offset : offset + 60])
+                handle.write(b"\n")
+    return {
+        "path": path.name,
+        "records": records,
+        "total_residues": residues,
+        "file_size_bytes": path.stat().st_size,
+        "sha256": sha256_file(path),
+    }
+
+
+def write_many_file_dataset(root: Path, *, files: int, records_per_file: int, length: int) -> dict:
+    root.mkdir()
+    total_bytes = 0
+    total_records = 0
+    total_residues = 0
+    hashes = []
+    for file_index in range(files):
+        path = root / f"sample_{file_index:03}.fasta"
+        info = write_fasta(path, records=records_per_file, length=length)
+        total_bytes += int(info["file_size_bytes"])
+        total_records += int(info["records"])
+        total_residues += int(info["total_residues"])
+        hashes.append(f"{path.name}:{info['sha256']}")
+    return {
+        "path": root.name,
+        "files": files,
+        "records": total_records,
+        "total_residues": total_residues,
+        "file_size_bytes": total_bytes,
+        "sha256": sha256_text("\n".join(hashes)),
+    }
+
+
+def sha256_file(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    return f"sha256:{hasher.hexdigest()}"
+
+
+def sha256_text(value: str) -> str:
+    return f"sha256:{hashlib.sha256(value.encode()).hexdigest()}"
+
+
+def sha256_json_bytes(bytes_: bytes) -> str:
+    value = json.loads(bytes_)
+    canonical = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    return f"sha256:{hashlib.sha256(canonical).hexdigest()}"
+
+
+def timed_command(command: list[str], loops: int) -> dict:
+    warmup = subprocess.run(
+        command,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    seconds = []
+    stdout_bytes = 0
+    for _ in range(loops):
+        start = time.perf_counter()
+        completed = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        seconds.append(time.perf_counter() - start)
+        stdout_bytes = len(completed.stdout)
+    return {
+        "command": command,
+        "output_hash": sha256_json_bytes(warmup.stdout),
+        "seconds": seconds,
+        "summary": {
+            "mean_s": statistics.mean(seconds),
+            "median_s": statistics.median(seconds),
+            "min_s": min(seconds),
+            "max_s": max(seconds),
+            "stdout_bytes": stdout_bytes,
+        },
+    }
+
+
+def main() -> int:
+    args = parse_args()
+    binary = ensure_binary(args.bin, args.no_build)
+
+    if WORK_DIR.exists():
+        shutil.rmtree(WORK_DIR)
+    WORK_DIR.mkdir()
+    try:
+        workflow_fasta = WORK_DIR / "workflow.fasta"
+        workflow_input = write_fasta(workflow_fasta, records=256, length=128)
+        dataset_dir = WORK_DIR / "dataset"
+        dataset_input = write_many_file_dataset(
+            dataset_dir,
+            files=32,
+            records_per_file=8,
+            length=96,
+        )
+
+        workloads = [
+            {
+                "name": "cli_workflow_fixed_length",
+                "surface": "cli_workflow",
+                "input": workflow_input,
+                "result": timed_command(
+                    [
+                        str(binary),
+                        "workflow",
+                        "--max-length",
+                        "160",
+                        str(workflow_fasta),
+                    ],
+                    args.loops,
+                ),
+            },
+            {
+                "name": "cli_dataset_inspect_many_file",
+                "surface": "cli_dataset_inspect",
+                "input": dataset_input,
+                "result": timed_command(
+                    [
+                        str(binary),
+                        "dataset",
+                        "inspect",
+                        "--source",
+                        "synthetic",
+                        "--version",
+                        "benchmark",
+                        "--split",
+                        "train",
+                        str(dataset_dir),
+                    ],
+                    args.loops,
+                ),
+            },
+        ]
+    finally:
+        shutil.rmtree(WORK_DIR, ignore_errors=True)
+
+    result = {
+        "schema_version": SCHEMA_VERSION,
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "loops": args.loops,
+        "methodology": {
+            "scope": "CLI regression guard timings on deterministic synthetic FASTA inputs; not a public throughput claim",
+            "surfaces": ["cli_workflow", "cli_dataset_inspect"],
+            "binary": str(binary),
+        },
+        "environment": environment(),
+        "workloads": workloads,
+    }
+
+    RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n")
+    REPORT_PATH.write_text(render_report(result))
+    print(f"Wrote CLI benchmark results to {RESULT_PATH}")
+    print(f"Wrote CLI benchmark report to {REPORT_PATH}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

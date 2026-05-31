@@ -1,0 +1,101 @@
+{
+  "schema_version": "biors.benchmark.cli_surfaces.v1",
+  "generated_at_utc": "2026-05-31T14:20:53.154485+00:00",
+  "loops": 5,
+  "methodology": {
+    "scope": "CLI regression guard timings on deterministic synthetic FASTA inputs; not a public throughput claim",
+    "surfaces": [
+      "cli_workflow",
+      "cli_dataset_inspect"
+    ],
+    "binary": "target/release/biors"
+  },
+  "environment": {
+    "os": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.14.4",
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "biors": "0.47.4",
+    "git_commit": "59e7f7a53544dd6237c75b7f2277c06c837a451c"
+  },
+  "workloads": [
+    {
+      "name": "cli_workflow_fixed_length",
+      "surface": "cli_workflow",
+      "input": {
+        "path": "workflow.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:46a05a64d6bc3bfdeb9f7f62ea2c71959fc079baa6ca0f4560bb2043681d6b44"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "workflow",
+          "--max-length",
+          "160",
+          ".benchmark-cli-surfaces/workflow.fasta"
+        ],
+        "output_hash": "sha256:6965bcbb1a9eab6990d9ab3028dc09100d26abac1def55adf80a8daf5973e17f",
+        "seconds": [
+          0.07608608296141028,
+          0.09281066665425897,
+          0.07636441709473729,
+          0.07679604180157185,
+          0.07558333408087492
+        ],
+        "summary": {
+          "mean_s": 0.07952810851857066,
+          "median_s": 0.07636441709473729,
+          "min_s": 0.07558333408087492,
+          "max_s": 0.09281066665425897,
+          "stdout_bytes": 1930154
+        }
+      }
+    },
+    {
+      "name": "cli_dataset_inspect_many_file",
+      "surface": "cli_dataset_inspect",
+      "input": {
+        "path": "dataset",
+        "files": 32,
+        "records": 256,
+        "total_residues": 24576,
+        "file_size_bytes": 26880,
+        "sha256": "sha256:60c34049f480567abcd9dbdc7126515882d2906091dbdbe43bf823ce06f7c611"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "dataset",
+          "inspect",
+          "--source",
+          "synthetic",
+          "--version",
+          "benchmark",
+          "--split",
+          "train",
+          ".benchmark-cli-surfaces/dataset"
+        ],
+        "output_hash": "sha256:5da03eb58d1a9f3a86f24956549af4be63e01dddc2651a25bc1018ba86127689",
+        "seconds": [
+          0.008178708609193563,
+          0.00812529120594263,
+          0.008542832918465137,
+          0.007969625294208527,
+          0.00759662501513958
+        ],
+        "summary": {
+          "mean_s": 0.008082616608589888,
+          "median_s": 0.00812529120594263,
+          "min_s": 0.00759662501513958,
+          "max_s": 0.008542832918465137,
+          "stdout_bytes": 110161
+        }
+      }
+    }
+  ]
+}
