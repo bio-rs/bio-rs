@@ -259,6 +259,8 @@ Required fix:
 
 Severity: packaging cleanup before npm release promotion.
 
+Status: Complete in follow-up (2026-05-31 KST). `scripts/build-wasm-npm-package.sh` now copies both root license files into the generated npm package, suppresses the build-time missing-license warning with temporary crate-local license copies, and verifies `npm pack --dry-run --json` contains `LICENSE-APACHE` and `LICENSE-MIT`.
+
 Evidence:
 
 - `scripts/build-wasm-npm-package.sh` completed successfully.

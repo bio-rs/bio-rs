@@ -9,6 +9,8 @@
     "directory": "packages/rust/biors-wasm"
   },
   "files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
     "biors_wasm_bg.wasm",
     "biors_wasm.js",
     "biors_wasm.d.ts",
