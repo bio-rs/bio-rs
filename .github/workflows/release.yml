@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.88.0
         with:
           components: rustfmt, clippy
       - name: Cache Cargo
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.88.0
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.88.0
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
       - name: Dry-run publish biors-core
@@ -130,7 +130,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.88.0
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -197,7 +197,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.88.0
         with:
           targets: wasm32-unknown-unknown
       - name: Set up Node.js
@@ -239,7 +239,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.88.0
         with:
           targets: ${{ matrix.target }}
       - name: Cache Cargo

@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 description = "Python bindings for bio-rs core via PyO3."
 
 [lib]

@@ -19,6 +19,7 @@ DEFAULT_FILES = [
     "scripts/check-module-size.py",
     "scripts/check-release-artifact-contents.py",
     "scripts/check-release-workflow.py",
+    "scripts/check-rust-version-policy.py",
     "scripts/test-python-wheel.py",
     "scripts/benchmark_large_file_streaming.py",
     "scripts/render_benchmark_report.py",

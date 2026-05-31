@@ -24,8 +24,7 @@ pub fn tokenize(records: JsValue, profile: String) -> Result<JsValue, JsValue> {
         },
         _ => {
             return Err(JsValue::from_str(&format!(
-                "invalid profile: '{}'. Expected 'protein-20' or 'protein-20-special'",
-                profile
+                "invalid profile: '{profile}'. Expected 'protein-20' or 'protein-20-special'"
             )))
         }
     };

@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 description = "Optional Candle backend adapter for bio-rs runtime execution contracts."
 readme = "../../../README.md"
 keywords = ["bioinformatics", "candle", "inference", "ai"]

@@ -25,8 +25,7 @@ pub fn build_model_input_with_policy(
         "no_padding" => PaddingPolicy::NoPadding,
         other => {
             return Err(JsValue::from_str(&format!(
-                "invalid padding: '{}'. Expected 'fixed_length' or 'no_padding'",
-                other
+                "invalid padding: '{other}'. Expected 'fixed_length' or 'no_padding'"
             )))
         }
     };

@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 description = "Command-line tools for bio-rs biological AI model input workflows."
 readme = "../../../README.md"
 keywords = ["bioinformatics", "protein", "cli", "ai"]

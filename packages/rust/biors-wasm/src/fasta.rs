@@ -34,8 +34,7 @@ pub fn validate_fasta(bytes: &[u8], kind: String) -> Result<JsValue, JsValue> {
         "rna" => SequenceKindSelection::Explicit(SequenceKind::Rna),
         _ => {
             return Err(JsValue::from_str(&format!(
-                "invalid kind: '{}'. Expected 'auto', 'protein', 'dna', or 'rna'",
-                kind
+                "invalid kind: '{kind}'. Expected 'auto', 'protein', 'dna', or 'rna'"
             )))
         }
     };

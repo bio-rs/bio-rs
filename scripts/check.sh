@@ -32,6 +32,9 @@ python3 scripts/check-release-workflow.py
 echo "==> dependency policy"
 python3 scripts/check-dependency-policy.py
 
+echo "==> rust version policy"
+python3 scripts/check-rust-version-policy.py
+
 echo "==> cargo check --workspace --all-targets --all-features"
 cargo check --locked --workspace --all-targets --all-features
 

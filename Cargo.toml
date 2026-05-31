@@ -13,6 +13,7 @@ resolver = "2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bio-rs/bio-rs"
+rust-version = "1.88"
 version = "0.47.4"
 
 [workspace.dependencies]

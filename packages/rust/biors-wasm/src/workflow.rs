@@ -24,8 +24,7 @@ pub fn run_workflow(config: JsValue) -> Result<JsValue, JsValue> {
         Some("fixed_length") => PaddingPolicy::FixedLength,
         Some(other) => {
             return Err(JsValue::from_str(&format!(
-                "invalid padding: '{}'. Expected 'fixed_length' or 'no_padding'",
-                other
+                "invalid padding: '{other}'. Expected 'fixed_length' or 'no_padding'"
             )))
         }
     };
@@ -51,8 +50,7 @@ fn ensure_supported_workflow_kind(kind: Option<&str>, fasta_bytes: &[u8]) -> Res
             "unsupported workflow kind: runWorkflow currently supports protein model-input workflows only",
         )),
         Some(other) => Err(JsValue::from_str(&format!(
-            "invalid kind: '{}'. Expected 'auto' or 'protein'",
-            other
+            "invalid kind: '{other}'. Expected 'auto' or 'protein'"
         ))),
     }
 }
@@ -84,24 +82,23 @@ fn ensure_default_workflow_profile(profile: Option<&str>) -> Result<(), JsValue>
             "unsupported workflow profile: runWorkflow currently supports protein-20 only",
         )),
         Some(other) => Err(JsValue::from_str(&format!(
-            "invalid profile: '{}'. Expected 'protein-20'",
-            other
+            "invalid profile: '{other}'. Expected 'protein-20'"
         ))),
     }
 }
 
 fn get_bytes(obj: &JsValue, key: &str) -> Result<Vec<u8>, JsValue> {
     let val = js_sys::Reflect::get(obj, &JsValue::from_str(key))
-        .map_err(|_| JsValue::from_str(&format!("missing field: {}", key)))?;
+        .map_err(|_| JsValue::from_str(&format!("missing field: {key}")))?;
     let arr = val
         .dyn_into::<js_sys::Uint8Array>()
-        .map_err(|_| JsValue::from_str(&format!("field {} must be a Uint8Array", key)))?;
+        .map_err(|_| JsValue::from_str(&format!("field {key} must be a Uint8Array")))?;
     Ok(arr.to_vec())
 }
 
 fn get_usize(obj: &JsValue, key: &str) -> Result<usize, JsValue> {
     let val = js_sys::Reflect::get(obj, &JsValue::from_str(key))
-        .map_err(|_| JsValue::from_str(&format!("missing field: {}", key)))?;
+        .map_err(|_| JsValue::from_str(&format!("missing field: {key}")))?;
     val.as_f64()
         .and_then(|f| {
             if f >= 0.0 && f.fract() == 0.0 {
@@ -110,42 +107,37 @@ fn get_usize(obj: &JsValue, key: &str) -> Result<usize, JsValue> {
                 None
             }
         })
-        .ok_or_else(|| JsValue::from_str(&format!("field {} must be a non-negative integer", key)))
+        .ok_or_else(|| JsValue::from_str(&format!("field {key} must be a non-negative integer")))
 }
 
 fn get_u8_opt(obj: &JsValue, key: &str) -> Result<Option<u8>, JsValue> {
     let val = js_sys::Reflect::get(obj, &JsValue::from_str(key)).map_err(|_| {
-        JsValue::from_str(&format!(
-            "field {} must be an integer between 0 and 255",
-            key
-        ))
+        JsValue::from_str(&format!("field {key} must be an integer between 0 and 255"))
     })?;
     if val.is_undefined() {
         return Ok(None);
     }
     let Some(number) = val.as_f64() else {
         return Err(JsValue::from_str(&format!(
-            "field {} must be an integer between 0 and 255",
-            key
+            "field {key} must be an integer between 0 and 255"
         )));
     };
     if (0.0..=255.0).contains(&number) && number.fract() == 0.0 {
         Ok(Some(number as u8))
     } else {
         Err(JsValue::from_str(&format!(
-            "field {} must be an integer between 0 and 255",
-            key
+            "field {key} must be an integer between 0 and 255"
         )))
     }
 }
 
 fn get_string_opt(obj: &JsValue, key: &str) -> Result<Option<String>, JsValue> {
     let val = js_sys::Reflect::get(obj, &JsValue::from_str(key))
-        .map_err(|_| JsValue::from_str(&format!("field {} must be a string", key)))?;
+        .map_err(|_| JsValue::from_str(&format!("field {key} must be a string")))?;
     if val.is_undefined() {
         return Ok(None);
     }
     val.as_string()
         .map(Some)
-        .ok_or_else(|| JsValue::from_str(&format!("field {} must be a string", key)))
+        .ok_or_else(|| JsValue::from_str(&format!("field {key} must be a string")))
 }

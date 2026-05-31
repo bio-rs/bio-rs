@@ -30,8 +30,8 @@ Add `--target` only when a fully cold Rust build tree is intentional.
 
 The final release gate runs `scripts/check.sh`, which covers formatting, shell
 and Python syntax, benchmark report regeneration, release workflow invariants,
-Rust checks, the `wasm32-unknown-unknown` core build, tests, install smoke, and
-clippy.
+the Rust 1.88.0 MSRV policy, Rust checks, the `wasm32-unknown-unknown` core
+build, tests, install smoke, and clippy.
 
 It also runs the researcher-facing workflow through `scripts/launch-demo.sh`
 against the release binary.

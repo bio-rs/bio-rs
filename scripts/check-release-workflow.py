@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 WORKFLOW = Path(".github/workflows/release.yml")
+RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@1.88.0"
 
 
 def main() -> None:
@@ -105,12 +106,12 @@ def assert_rust_toolchain_for_cargo_jobs(lines: list[str]) -> None:
             marker in body
             for marker in ["cargo ", "scripts/check.sh", "maturin ", "wasm-pack "]
         )
-        if needs_rust and "dtolnay/rust-toolchain@stable" not in body:
+        if needs_rust and RUST_TOOLCHAIN_ACTION not in body:
             missing.append(job_name)
 
     if missing:
         raise SystemExit(
-            "release workflow jobs that run Rust tooling must install Rust: "
+            "release workflow jobs that run Rust tooling must install the pinned Rust toolchain: "
             + ", ".join(sorted(missing))
         )
 

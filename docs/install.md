@@ -51,7 +51,7 @@ Homebrew packaging is not enabled yet. The current distribution strategy is:
 
 | Surface | Current Support | Verification |
 | --- | --- | --- |
-| Rust MSRV | latest stable Rust in CI | `.github/workflows/ci.yml`, `scripts/check.sh` |
+| Rust MSRV | Rust 1.88.0 | `rust-toolchain.toml`, package `rust-version`, `.github/workflows/ci.yml`, `scripts/check.sh` |
 | Cargo install | `cargo install biors --version <version>` | `scripts/check-install-smoke.sh` |
 | Linux binary | `x86_64-unknown-linux-gnu` | `build-release-binaries` release job |
 | macOS binary | `aarch64-apple-darwin` | `build-release-binaries` release job |
