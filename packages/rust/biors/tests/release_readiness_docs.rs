@@ -119,6 +119,47 @@ fn citation_version_matches_workspace_package_version() {
 }
 
 #[test]
+fn example_package_metadata_versions_match_workspace_package_version() {
+    let repo = common::repo_root();
+    let workspace_version = workspace_package_version(&repo);
+    let manifest_path = repo.join("examples/protein-package/manifest.json");
+    let manifest: Value = serde_json::from_str(
+        &fs::read_to_string(&manifest_path).expect("read example package manifest"),
+    )
+    .expect("parse example package manifest");
+    let citation = fs::read_to_string(repo.join("examples/protein-package/docs/CITATION.cff"))
+        .expect("read example package citation");
+    let package_format =
+        fs::read_to_string(repo.join("docs/package-format.md")).expect("read package format doc");
+    let checklist = fs::read_to_string(repo.join("docs/final-release-checklist.md"))
+        .expect("read final release checklist");
+
+    assert_eq!(
+        manifest["metadata"]["citation"]["preferred_citation"],
+        format!("bio-rs protein package fixture, version {workspace_version}")
+    );
+    assert!(
+        citation.contains(&format!("version: \"{workspace_version}\"")),
+        "example package citation version must match workspace package version"
+    );
+
+    for (name, contents) in [
+        ("example package manifest", manifest.to_string()),
+        ("example package citation", citation),
+        ("package format doc", package_format),
+    ] {
+        assert!(
+            !contents.contains("0.31.0"),
+            "{name} still contains stale package fixture version text"
+        );
+    }
+    assert!(
+        checklist.contains("Example Metadata Version Audit"),
+        "final release checklist must include an example metadata version audit"
+    );
+}
+
+#[test]
 fn stale_benchmark_artifact_is_labeled_historical_in_readme() {
     let repo = common::repo_root();
     let workspace_version = workspace_package_version(&repo);

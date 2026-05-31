@@ -48,6 +48,13 @@ The public contract candidates remain:
 Before tagging, check whether any CLI flag, JSON field, schema, error code, or
 package manifest field changed without a matching test and doc update.
 
+## Example Metadata Version Audit
+
+Before tagging, check example manifests, package citation files, and package
+format docs for stale release-version strings. Current examples that are meant
+to be copied by users should either match the workspace package version or be
+clearly labeled as intentionally historical.
+
 ## Schema Parity Across Bindings
 
 Before tagging, verify every promoted binding surface that emits JSON validates
