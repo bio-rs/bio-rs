@@ -6,15 +6,19 @@ from __future__ import annotations
 from pathlib import Path
 
 MAX_RUST_MODULE_LINES = 320
-CHECKED_ROOTS = (
-    Path("packages/rust/biors-core/src"),
-    Path("packages/rust/biors/src"),
-)
+
+
+def rust_package_src_roots() -> list[Path]:
+    return sorted(
+        path
+        for path in Path("packages/rust").glob("*/src")
+        if path.is_dir()
+    )
 
 
 def main() -> int:
     oversized: list[tuple[Path, int]] = []
-    for root in CHECKED_ROOTS:
+    for root in rust_package_src_roots():
         for path in sorted(root.rglob("*.rs")):
             line_count = len(path.read_text(encoding="utf-8").splitlines())
             if line_count > MAX_RUST_MODULE_LINES:

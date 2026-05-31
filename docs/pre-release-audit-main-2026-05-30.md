@@ -85,6 +85,8 @@ Required fix:
 
 Severity: refactor before release if this crate is part of the promoted surface.
 
+Status: Complete in follow-up (2026-05-31 KST). `packages/rust/biors-backend-candle/src/lib.rs` was split into focused `backend`, `config`, `error`, `output`, and `tensor` modules while preserving the crate's public re-exports, and `scripts/check-module-size.py` now scans every `packages/rust/*/src` tree.
+
 Evidence:
 
 - `packages/rust/biors-backend-candle/src/lib.rs` is 366 lines.
