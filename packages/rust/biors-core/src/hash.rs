@@ -52,7 +52,10 @@ pub fn is_sha256_checksum(checksum: &str) -> bool {
     let Some(hex) = checksum.strip_prefix("sha256:") else {
         return false;
     };
-    hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+    hex.len() == 64
+        && hex
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
 }
 
 fn canonical_hash_bytes(bytes: &[u8]) -> Cow<'_, [u8]> {
@@ -67,7 +70,7 @@ fn canonical_hash_bytes(bytes: &[u8]) -> Cow<'_, [u8]> {
 
 #[cfg(test)]
 mod tests {
-    use super::{sha256_bytes_digest, sha256_canonical_json_digest};
+    use super::{is_sha256_checksum, sha256_bytes_digest, sha256_canonical_json_digest};
 
     #[test]
     fn byte_digest_preserves_json_whitespace() {
@@ -81,5 +84,18 @@ mod tests {
             sha256_canonical_json_digest(compact),
             sha256_canonical_json_digest(spaced)
         );
+    }
+
+    #[test]
+    fn checksum_format_requires_lowercase_hex() {
+        assert!(is_sha256_checksum(
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ));
+        assert!(!is_sha256_checksum(
+            "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        ));
+        assert!(!is_sha256_checksum(
+            "sha256:gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+        ));
     }
 }

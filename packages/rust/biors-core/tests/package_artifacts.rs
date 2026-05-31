@@ -77,6 +77,21 @@ fn rejects_invalid_checksum_format() {
 }
 
 #[test]
+fn rejects_uppercase_checksum_hex_to_match_schema() {
+    let mut manifest = common::valid_manifest();
+    manifest.model.checksum =
+        Some("sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".to_string());
+
+    let report = validate_package_manifest_artifacts(&manifest, std::path::Path::new("."));
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::InvalidChecksumFormat
+            && issue.field == "model.checksum"
+    }));
+}
+
+#[test]
 fn rejects_checksum_mismatch_against_real_artifact() {
     let mut manifest = common::example_manifest();
     manifest.model.checksum =

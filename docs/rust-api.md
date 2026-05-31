@@ -147,7 +147,7 @@ checksums and canonical JSON comparisons.
   `sha256_bytes_digest` or `sha256_canonical_json_digest` functions in new code.
 
 - `pub fn is_sha256_checksum(checksum: &str) -> bool`
-  Return true when a checksum uses the supported `sha256:<64 hex>` format.
+  Return true when a checksum uses the supported `sha256:<64 lowercase hex>` format.
 
 ### Module: `model_input`
 
