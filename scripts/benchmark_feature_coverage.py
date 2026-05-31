@@ -54,9 +54,9 @@ FEATURE_COVERAGE = [
     },
     {
         "feature": "candle_cpu_linear_probe",
-        "status": "criterion_regression_guard",
-        "claim_scope": "Synthetic Criterion guard only; no committed public numeric artifact yet.",
-        "evidence": ["packages/rust/biors-backend-candle/benches/candle_linear_probe.rs"],
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed optional Candle CPU backend smoke timing only; no broad backend throughput claim.",
+        "evidence": ["benchmarks/backend_smoke.json"],
     },
 ]
 

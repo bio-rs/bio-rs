@@ -72,7 +72,7 @@ new numeric claims for later releases.
 | `wasm_bindings` | `numeric_regression_guard` | Committed Node.js WASM binding regression timings only; no browser or public throughput claim. | `benchmarks/wasm_bindings.json` |
 | `mcp_service_contract` | `partial_numeric_regression_guard` | Service contract CLI timing only; MCP server request overhead is still not benchmarked. | `benchmarks/cli_surfaces.json workload cli_service_contract` |
 | `package_validation_bridge` | `numeric_regression_guard` | Committed package validation and bridge CLI regression timings only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_package_validate_example`<br>`benchmarks/cli_surfaces.json workload cli_package_bridge_example` |
-| `candle_cpu_linear_probe` | `criterion_regression_guard` | Synthetic Criterion guard only; no committed public numeric artifact yet. | `packages/rust/biors-backend-candle/benches/candle_linear_probe.rs` |
+| `candle_cpu_linear_probe` | `numeric_regression_guard` | Committed optional Candle CPU backend smoke timing only; no broad backend throughput claim. | `benchmarks/backend_smoke.json` |
 
 `not_benchmarked` entries are explicit non-claims. Add committed
 numeric artifacts before making performance claims for those surfaces.
