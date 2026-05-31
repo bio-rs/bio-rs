@@ -9,6 +9,23 @@ Run it from a clean checkout before tagging a release:
 scripts/check-final-release.sh
 ```
 
+## Local Artifact Cleanup
+
+Before the final package check, inspect ignored generated files:
+
+```bash
+git status --ignored --short
+```
+
+Use the local cleanup script for generated Python, WASM, benchmark, cache, and
+macOS metadata artifacts:
+
+```bash
+scripts/clean-local-artifacts.sh
+```
+
+Add `--target` only when a fully cold Rust build tree is intentional.
+
 ## Full End-To-End Workflow Validation
 
 The final release gate runs `scripts/check.sh`, which covers formatting, shell

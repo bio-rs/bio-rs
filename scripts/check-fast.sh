@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+export PYTHONDONTWRITEBYTECODE=1
 
 if [ -f "$HOME/.cargo/env" ]; then
   # shellcheck disable=SC1090
@@ -14,28 +15,7 @@ find scripts .githooks -type f -print | while IFS= read -r file; do
 done
 
 echo "==> python syntax"
-python3 -m py_compile \
-  scripts/benchmark_fasta_vs_biopython.py \
-  scripts/benchmark_feature_coverage.py \
-  scripts/benchmark_cli_surfaces.py \
-  scripts/benchmark_python_bindings.py \
-  scripts/check-benchmark-artifact.py \
-  scripts/check-cli-benchmark-artifact.py \
-  scripts/check-python-benchmark-artifact.py \
-  scripts/check-registry-versions.py \
-  scripts/check-dependency-policy.py \
-  scripts/check-module-size.py \
-  scripts/check-release-artifact-contents.py \
-  scripts/check-release-workflow.py \
-  scripts/test-python-wheel.py \
-  scripts/benchmark_large_file_streaming.py \
-  scripts/render_benchmark_report.py \
-  scripts/render_cli_benchmark_report.py \
-  scripts/render_python_benchmark_report.py \
-  examples/python/esm_from_biors_json.py \
-  examples/python/pandas_numpy_friendly.py \
-  examples/python/protbert_from_biors_json.py \
-  examples/python/reference_preprocess.py
+python3 scripts/check-python-syntax.py
 
 echo "==> module size"
 python3 scripts/check-module-size.py
