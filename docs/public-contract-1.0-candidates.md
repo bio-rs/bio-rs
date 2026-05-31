@@ -1,56 +1,82 @@
 # 1.0 Public Contract Candidates
 
-The following surfaces are candidates for stabilization before the first stable release.
+The following surfaces are candidates for stabilization before the first stable
+release. This document is intentionally narrower than the full generated Rust
+API reference: internal parser helpers, low-level scanner internals, backend
+implementation details, and experimental provider APIs are not stable
+candidates unless they are listed in the stable sections below.
 
-## Rust API
+## Stable-Candidate Core Contracts
 
-- `parse_fasta_records`
-- `parse_fasta_records_reader`
-- `validate_fasta_input`
-- `validate_fasta_input_with_kind`
-- `validate_fasta_reader`
-- `validate_fasta_reader_with_hash`
-- `validate_fasta_reader_with_kind`
-- `validate_fasta_reader_with_kind_and_hash`
-- `validate_fasta_reader_summary_with_kind_and_hash`
-- `SequenceKind`, `SequenceKindSelection`, `AlphabetPolicy`
-- `KindAwareSequenceValidationReport`, `KindAwareSequenceValidationSummary`, `ValidatedSequenceRecord`, `SequenceValidationIssue`
-- `tokenize_fasta_records`
-- `tokenize_fasta_records_reader`
-- `load_vocab_json`
-- `load_protein_tokenizer_config_json`
-- `protein_20_vocab_tokens`
-- `protein_20_vocabulary`
-- `ProteinTokenizer` and `Tokenizer`
-- `ProteinTokenizerProfile`, `ProteinTokenizerConfig`, `ProteinTokenizerInspection`
-- `tokenize_protein_with_config`
-- `tokenize_fasta_records_reader_with_config`
-- `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
-- `build_model_inputs_checked`
-- `build_model_inputs_unchecked`
-- `prepare_protein_model_input_workflow`
-- `prepare_protein_model_input_workflow_with_invocation`
-- `SequenceWorkflowOutput`, `SequenceWorkflowProvenance`, `SequenceWorkflowInvocation`, `SequenceWorkflowHashes`, `SequenceWorkflowReadinessIssue`
-- `diff_output_bytes`, `OutputDiffReport`
-- `validate_package_manifest_artifacts`
-- `PackageManifest`, `ModelArtifactMetadata`, `ModelArtifactMetadataSummary`,
-  `BackendCompatibilityCheck`, `PipelineConfigArtifact`,
-  `PackageValidationIssue`, `PackageValidationReport`, `RuntimeBridgeReport`
-- `Backend`, `BackendConfig`, `BackendCapabilities`, `BackendCompatibilityReport`, `RuntimeCompatibilityIssue`, `RuntimeCompatibilityIssueCode`, `ExecutionContext`, `ExecutionResult`, `BackendExecutionError`, `ExternalProcessBackend`, `ExternalProcessConfig`
-- `biors-backend-candle`: `CandleBackend`, `CandleBackendConfig`, `CandleDevice`, `CandleInferenceOutput`, `CANDLE_MODEL_INPUT_FORMAT`, `CANDLE_OUTPUT_FORMAT`
-- `PackageVerificationReport`, `FixtureObservation`, `VerificationIssueCode`, `ContentMismatchDiff`
-- `BioRsError::code`
+- FASTA parsing and validation:
+  - `parse_fasta_records`
+  - `parse_fasta_records_reader`
+  - `validate_fasta_input`
+  - `validate_fasta_input_with_kind`
+  - `validate_fasta_reader`
+  - `validate_fasta_reader_with_hash`
+  - `validate_fasta_reader_with_kind`
+  - `validate_fasta_reader_with_kind_and_hash`
+  - `validate_fasta_reader_summary_with_kind_and_hash`
+- Sequence kind and validation reports:
+  - `SequenceKind`, `SequenceKindSelection`, `AlphabetPolicy`
+  - `KindAwareSequenceValidationReport`
+  - `KindAwareSequenceValidationSummary`
+  - `ValidatedSequenceRecord`
+  - `SequenceValidationIssue`
+- Protein tokenization:
+  - `tokenize_fasta_records`
+  - `tokenize_fasta_records_reader`
+  - `load_vocab_json`
+  - `load_protein_tokenizer_config_json`
+  - `protein_20_vocab_tokens`
+  - `protein_20_vocabulary`
+  - `ProteinTokenizer`, `Tokenizer`
+  - `ProteinTokenizerProfile`, `ProteinTokenizerConfig`
+  - `ProteinTokenizerInspection`
+  - `tokenize_protein_with_config`
+  - `tokenize_fasta_records_reader_with_config`
+- Model input and workflow:
+  - `ModelInput`, `ModelInputPolicy`, `PaddingPolicy`
+  - `build_model_inputs_checked`
+  - `build_model_inputs_unchecked`
+  - `prepare_protein_model_input_workflow`
+  - `prepare_protein_model_input_workflow_with_invocation`
+  - `SequenceWorkflowOutput`
+  - `SequenceWorkflowProvenance`
+  - `SequenceWorkflowInvocation`
+  - `SequenceWorkflowHashes`
+  - `SequenceWorkflowReadinessIssue`
+- Output diff and package verification:
+  - `diff_output_bytes`, `OutputDiffReport`
+  - `PackageVerificationReport`
+  - `FixtureObservation`
+  - `VerificationIssueCode`
+  - `ContentMismatchDiff`
+- Package manifest and validation:
+  - `validate_package_manifest_artifacts`
+  - `PackageManifest`
+  - `ModelArtifactMetadata`
+  - `ModelArtifactMetadataSummary`
+  - `PipelineConfigArtifact`
+  - `PackageValidationIssue`
+  - `PackageValidationReport`
+  - `RuntimeBridgeReport`
+  - `BackendCompatibilityCheck`
+- Error code surface:
+  - `BioRsError::code`
 
-## CLI
+## CLI And JSON Schemas
 
-- success envelope: `ok`, `biors_version`, optional `input_hash`, `data`
-- error envelope: `ok=false`, `error.code`, `error.message`, `error.location`
+- CLI success envelope: `ok`, `biors_version`, optional `input_hash`, `data`
+- CLI error envelope: `ok=false`, `error.code`, `error.message`,
+  `error.location`
 - exit code policy
 - command list in `docs/cli-contract.md`
-- `doctor` diagnostic payload in `schemas/doctor-output.v0.json`
-- checksum policy: FASTA uses `fnv1a64`, package assets and fixtures use `sha256`
+- checksum policy: FASTA uses `fnv1a64`, package assets and fixtures use
+  `sha256`
 
-## Schemas
+Schema candidates:
 
 - `schemas/cli-success.v0.json`
 - `schemas/cli-error.v0.json`
@@ -82,14 +108,61 @@ The following surfaces are candidates for stabilization before the first stable 
 - `schemas/package-manifest.v1.json`
 - `schemas/package-validation-report.v0.json`
 
-## Not Yet Stable
+## Binding Contracts
 
-- package runtime bridge provider expansion beyond the current `onnx-webgpu`
-  and `candle` planning targets
-- concrete runtime backend implementations beyond the external process adapter
-  and optional Candle linear-probe crate
+These are promoted surfaces, but their 1.0 shape is still conditional on schema
+parity, provenance, validation, and model-input readiness hardening.
+
+- Python package: `packages/rust/biors-python`
+  - Python classes and helpers documented in `docs/python-api.md`
+  - JSON-returning package helpers should match the shared CLI schemas or
+    document a binding-specific schema.
+- WASM/npm package: `packages/rust/biors-wasm`
+  - TypeScript declarations in `index.d.ts`
+  - JavaScript-facing workflow/model-input contracts documented in
+    `docs/wasm-api.md`
+  - WASM JSON payloads should match shared workflow/model-input schemas where
+    they claim parity.
+- MCP server: `packages/rust/biors-mcp-server`
+  - tool names and JSON payload contracts covered by MCP tests
+  - MCP output should either validate against shared schemas or document a
+    distinct MCP schema boundary.
+
+## Experimental Runtime And Integration Contracts
+
+The runtime traits and provider integrations are useful extension points, but
+they are not stable 1.0 candidates yet unless promoted by a future contract
+review.
+
+- Runtime execution traits and reports:
+  - `Backend`
+  - `BackendConfig`
+  - `BackendCapabilities`
+  - `BackendCompatibilityReport`
+  - `RuntimeCompatibilityIssue`
+  - `RuntimeCompatibilityIssueCode`
+  - `ExecutionContext`
+  - `ExecutionResult`
+  - `BackendExecutionError`
+- External process adapter:
+  - `ExternalProcessBackend`
+  - `ExternalProcessConfig`
+- Optional Candle backend crate:
+  - `CandleBackend`
+  - `CandleBackendConfig`
+  - `CandleDevice`
+  - `CandleInferenceOutput`
+  - `CANDLE_MODEL_INPUT_FORMAT`
+  - `CANDLE_OUTPUT_FORMAT`
+- package runtime bridge provider expansion beyond the current planning targets
+- concrete runtime backend implementations beyond smoke-tested local adapters
 - larger fixture verification formats
-- benchmark claims beyond the recorded baseline workload
-- independent `biors-core` and `biors` versioning outside isolated post-1.0 patch releases
 - final shape of schema version migration helpers beyond the current
   `biors_core::versioning` policy API
+
+## Not Yet Stable
+
+- internal scanner modules and low-level byte parsing helpers
+- benchmark claims beyond the recorded baseline workload
+- independent `biors-core` and `biors` versioning outside isolated post-1.0
+  patch releases

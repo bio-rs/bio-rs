@@ -313,6 +313,44 @@ fn phase7_status_separates_implementation_from_release_readiness() {
     }
 }
 
+#[test]
+fn public_contract_candidates_separate_stable_bindings_and_experimental_runtime() {
+    let repo = common::repo_root();
+    let candidates = fs::read_to_string(repo.join("docs/public-contract-1.0-candidates.md"))
+        .expect("read public contract candidates");
+
+    for expected in [
+        "Stable-Candidate Core Contracts",
+        "CLI And JSON Schemas",
+        "Binding Contracts",
+        "Experimental Runtime And Integration Contracts",
+        "Python package: `packages/rust/biors-python`",
+        "WASM/npm package: `packages/rust/biors-wasm`",
+        "MCP server: `packages/rust/biors-mcp-server`",
+        "internal scanner modules and low-level byte parsing helpers",
+    ] {
+        assert!(
+            candidates.contains(expected),
+            "public contract candidates missing scoped section: {expected}"
+        );
+    }
+
+    let stable_section = candidates
+        .split("## Experimental Runtime And Integration Contracts")
+        .next()
+        .expect("stable candidate section");
+    for experimental in [
+        "ExternalProcessBackend",
+        "ExternalProcessConfig",
+        "CandleBackend",
+    ] {
+        assert!(
+            !stable_section.contains(experimental),
+            "experimental runtime API listed as stable candidate: {experimental}"
+        );
+    }
+}
+
 fn workspace_package_version(repo: &Path) -> String {
     let workspace_manifest =
         fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");
