@@ -28,6 +28,21 @@ biors-vX.Y.Z-<target>.tar.gz
 Each archive contains the `biors` binary, `README.md`, `LICENSE-APACHE`, and
 `LICENSE-MIT`.
 
+Each GitHub Release also attaches a `<archive>.sha256` sidecar file. Verify the
+download before installing:
+
+```bash
+shasum -a 256 -c biors-vX.Y.Z-<target>.tar.gz.sha256
+```
+
+Release binary archives and checksum files also receive GitHub artifact
+provenance attestations. After downloading an archive, verify the attestation
+with GitHub CLI:
+
+```bash
+gh attestation verify biors-vX.Y.Z-<target>.tar.gz -R bio-rs/bio-rs
+```
+
 ## Shell Completions
 
 ```bash

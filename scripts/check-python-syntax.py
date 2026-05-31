@@ -22,6 +22,7 @@ DEFAULT_FILES = [
     "scripts/check-release-workflow.py",
     "scripts/check-rust-version-policy.py",
     "scripts/test-python-wheel.py",
+    "scripts/write-release-checksums.py",
     "scripts/benchmark_large_file_streaming.py",
     "scripts/render_benchmark_report.py",
     "scripts/render_cli_benchmark_report.py",

@@ -122,6 +122,10 @@ Tagged release jobs must inspect package contents before upload or publish:
 
 The release workflow enforces these checks with
 `scripts/check-release-artifact-contents.py`.
+It also generates `.sha256` sidecar files for each binary tarball, verifies the
+sidecars before release creation, attaches them to the GitHub release, and
+creates GitHub artifact provenance attestations for the binary archives and
+checksum files.
 
 Release packaging tools are pinned in `scripts/release-tool-versions.env` and
 mirrored in `.github/workflows/release.yml`. Before tagging, record the pinned

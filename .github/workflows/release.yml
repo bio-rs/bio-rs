@@ -231,6 +231,8 @@ jobs:
       - pre-tag-registry-check
     permissions:
       contents: read
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -259,11 +261,23 @@ jobs:
           tar -C dist -czf "${{ matrix.archive }}" biors README.md LICENSE-APACHE LICENSE-MIT
       - name: Check binary archive contents
         run: python scripts/check-release-artifact-contents.py binary-tarball "${{ matrix.archive }}"
+      - name: Write binary archive checksum
+        run: python scripts/write-release-checksums.py "${{ matrix.archive }}"
+      - name: Verify binary archive checksum
+        run: python scripts/write-release-checksums.py --verify "${{ matrix.archive }}"
+      - name: Generate binary archive provenance attestation
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661
+        with:
+          subject-path: |
+            ${{ matrix.archive }}
+            ${{ matrix.archive }}.sha256
       - name: Upload binary artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{ matrix.archive }}
-          path: ${{ matrix.archive }}
+          path: |
+            ${{ matrix.archive }}
+            ${{ matrix.archive }}.sha256
 
   create-github-release:
     name: Create GitHub Release
@@ -283,6 +297,8 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      - name: Verify binary archive checksums
+        run: python scripts/write-release-checksums.py --verify dist/*.tar.gz
       - name: Create release if missing
         env:
           GH_TOKEN: ${{ github.token }}
@@ -296,4 +312,5 @@ jobs:
           gh release create "$TAG_NAME" \
             --title "bio-rs ${TAG_NAME#v}" \
             --generate-notes \
-            dist/*.tar.gz
+            dist/*.tar.gz \
+            dist/*.tar.gz.sha256
