@@ -5,3 +5,4 @@ packages/rust/biors-wasm/pkg/
 .DS_Store
 __pycache__/
 *.py[cod]
+docs/pre-release-audit-main-2026-05-30.md
