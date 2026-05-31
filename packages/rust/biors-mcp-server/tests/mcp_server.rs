@@ -173,6 +173,29 @@ async fn test_package_validate_tool() {
     assert_json_value_matches_schema(&json, "schemas/package-validation-report.v0.json");
 }
 
+#[tokio::test]
+async fn test_package_validate_tool_rejects_unknown_manifest_fields() {
+    let mut manifest: Value = serde_json::from_str(
+        &std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../..")
+                .join("examples/protein-package/manifest.json"),
+        )
+        .expect("read example manifest"),
+    )
+    .expect("manifest JSON");
+    manifest["unexpected_top"] = Value::Bool(true);
+
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "manifest_json".to_string(),
+        serde_json::Value::String(manifest.to_string()),
+    );
+
+    let error = call_tool_error("package_validate", args).await;
+    assert!(error.contains("unknown field"));
+}
+
 fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
     let schema: Value = serde_json::from_str(
         &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),

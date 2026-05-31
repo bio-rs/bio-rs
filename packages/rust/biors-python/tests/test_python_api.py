@@ -3,6 +3,7 @@ from pathlib import Path
 
 import biors
 import jsonschema
+import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
@@ -159,6 +160,13 @@ def test_package_json_helpers_match_shared_schemas():
     assert bridge["ready"] == True
     assert_matches_schema(validation, "package-validation-report.v0.json")
     assert_matches_schema(bridge, "package-bridge-output.v0.json")
+
+def test_package_json_helpers_reject_unknown_manifest_fields():
+    manifest = json.loads((REPO_ROOT / "examples/protein-package/manifest.json").read_text())
+    manifest["unexpected_top"] = True
+
+    with pytest.raises(ValueError, match="unknown field"):
+        biors.validate_package_manifest(json.dumps(manifest))
 
 def assert_matches_schema(value, schema_name):
     schema = json.loads((REPO_ROOT / "schemas" / schema_name).read_text())

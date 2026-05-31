@@ -105,6 +105,51 @@ fn package_validate_fails_invalid_manifest() {
 }
 
 #[test]
+fn package_validate_rejects_unknown_manifest_fields() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors package validate")
+        .tap_stdin(
+            r#"{
+              "schema_version": "biors.package.v0",
+              "name": "protein-seed",
+              "unexpected_top": true,
+              "model": { "format": "onnx", "path": "model.onnx" },
+              "preprocessing": [],
+              "postprocessing": [],
+              "runtime": {
+                "backend": "onnx-webgpu",
+                "target": "browser-wasm-webgpu"
+              },
+              "fixtures": [
+                {
+                  "name": "tiny-protein",
+                  "input": "fixtures/tiny.fasta",
+                  "expected_output": "fixtures/tiny.output.json"
+                }
+              ]
+            }"#,
+        );
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "json.invalid");
+    assert!(value["error"]["message"]
+        .as_str()
+        .expect("message")
+        .contains("unknown field"));
+}
+
+#[test]
 fn package_validate_reports_invalid_checksum_format_code() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("--json")

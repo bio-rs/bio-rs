@@ -5,6 +5,7 @@ use super::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PackageManifest {
     pub schema_version: SchemaVersion,
     pub name: String,
@@ -28,6 +29,7 @@ pub struct PackageManifest {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PackageDirectoryLayout {
     pub manifest: String,
     pub models: String,
@@ -43,8 +45,9 @@ pub struct PackageDirectoryLayout {
     pub docs: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Research metadata required by the v1 package manifest contract.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PackageMetadata {
     pub license: LicenseMetadata,
     pub citation: CitationMetadata,
@@ -52,6 +55,7 @@ pub struct PackageMetadata {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LicenseMetadata {
     pub expression: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -59,6 +63,7 @@ pub struct LicenseMetadata {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CitationMetadata {
     pub preferred_citation: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -68,6 +73,7 @@ pub struct CitationMetadata {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModelCardMetadata {
     pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -79,6 +85,7 @@ pub struct ModelCardMetadata {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DocumentArtifact {
     pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -87,6 +94,7 @@ pub struct DocumentArtifact {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModelArtifact {
     pub format: ModelFormat,
     pub path: String,
@@ -98,6 +106,7 @@ pub struct ModelArtifact {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModelArtifactMetadata {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -113,6 +122,7 @@ pub struct ModelArtifactMetadata {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TokenAsset {
     pub name: String,
     pub path: String,
@@ -124,6 +134,7 @@ pub struct TokenAsset {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PipelineStep {
     pub name: String,
     pub implementation: String,
@@ -135,6 +146,7 @@ pub struct PipelineStep {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PipelineConfigArtifact {
     pub path: String,
     pub schema_version: PipelineConfigVersion,
@@ -144,6 +156,7 @@ pub struct PipelineConfigArtifact {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RuntimeTarget {
     pub backend: RuntimeBackend,
     pub target: RuntimeTargetPlatform,
@@ -152,6 +165,7 @@ pub struct RuntimeTarget {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PackageFixture {
     pub name: String,
     pub input: String,
@@ -163,6 +177,7 @@ pub struct PackageFixture {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DataShape {
     /// Shape dimensions represented as strings to allow symbolic dimensions.
     pub shape: Vec<String>,
