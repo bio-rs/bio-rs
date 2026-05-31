@@ -18,8 +18,8 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors tokenizer convert-hf <tokenizer_config.json> [--output <json>]`
 - `biors tokenizer inspect [--profile protein-20|protein-20-special] [--config <json>]`
 - `biors inspect <path|->`
-- `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
-- `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
+- `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
+- `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
@@ -32,7 +32,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package diff <left-manifest> <right-manifest>`
 - `biors package bridge <manifest>`
 - `biors package verify <manifest> <observations>`
-- `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed_length|no_padding] <path|->`
+- `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors pipeline --config <toml|yaml|json> [--dry-run] [--explain-plan]`
 - `biors pipeline --config <toml|yaml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 - `biors service contract`

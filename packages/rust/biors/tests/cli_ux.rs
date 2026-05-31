@@ -56,6 +56,34 @@ fn help_snapshot_lists_commands_and_global_json_flag() {
 }
 
 #[test]
+fn cli_contract_padding_values_match_help() {
+    let contract = std::fs::read_to_string(common::repo_root().join("docs/cli-contract.md"))
+        .expect("read CLI contract");
+
+    for command in ["model-input", "workflow", "pipeline"] {
+        let expected = "[--padding fixed-length|no-padding]";
+        assert!(
+            contract.contains(expected),
+            "CLI contract missing padding values for {command}: {expected}"
+        );
+
+        let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+            .arg(command)
+            .arg("--help")
+            .output()
+            .expect("run command help");
+        assert!(output.status.success());
+        assert!(output.stderr.is_empty());
+
+        let help = String::from_utf8(output.stdout).expect("help is UTF-8");
+        assert!(
+            help.contains("[possible values: fixed-length, no-padding]"),
+            "{command} help does not expose documented padding values"
+        );
+    }
+}
+
+#[test]
 fn completions_command_outputs_shell_script() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("completions")
