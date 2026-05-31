@@ -24,18 +24,15 @@ pub(crate) fn run_package_init(args: PackageInitArgs) -> Result<(), CliError> {
 pub(crate) fn run_package_convert_project(args: PackageConvertProjectArgs) -> Result<(), CliError> {
     let model = match args.model {
         Some(model) => model,
-        None => {
-            find_first_file(&args.project_dir, &["onnx"]).ok_or_else(|| CliError::Validation {
-                code: "package.project_model_missing",
-                message: "could not find an ONNX model in the Python project; pass --model"
-                    .to_string(),
-                location: Some(args.project_dir.display().to_string()),
-            })?
-        }
+        None => select_single_model_candidate(&args.project_dir, args.include_generated)?,
     };
     let tokenizer_config = match args.tokenizer_config {
         Some(path) => Some(path),
-        None => find_named_file(&args.project_dir, "tokenizer_config.json"),
+        None => find_named_file(
+            &args.project_dir,
+            "tokenizer_config.json",
+            args.include_generated,
+        ),
     };
 
     create_package_skeleton(PackageSkeletonRequest {
@@ -55,34 +52,109 @@ pub(crate) fn run_package_convert_project(args: PackageConvertProjectArgs) -> Re
     })
 }
 
-fn find_named_file(root: &Path, name: &str) -> Option<PathBuf> {
-    find_file(root, &mut |path| {
-        path.file_name().and_then(|value| value.to_str()) == Some(name)
-    })
-}
-
-fn find_first_file(root: &Path, extensions: &[&str]) -> Option<PathBuf> {
-    find_file(root, &mut |path| {
+fn select_single_model_candidate(
+    root: &Path,
+    include_generated: bool,
+) -> Result<PathBuf, CliError> {
+    let candidates = find_files(root, include_generated, &mut |path| {
         path.extension()
             .and_then(|value| value.to_str())
             .map(str::to_ascii_lowercase)
-            .is_some_and(|extension| extensions.contains(&extension.as_str()))
-    })
+            .is_some_and(|extension| extension == "onnx")
+    });
+
+    match candidates.as_slice() {
+        [] => Err(CliError::Validation {
+            code: "package.project_model_missing",
+            message: "could not find an ONNX model in the Python project; pass --model".to_string(),
+            location: Some(root.display().to_string()),
+        }),
+        [candidate] => Ok(candidate.clone()),
+        _ => Err(CliError::ValidationDetails {
+            code: "package.project_model_ambiguous",
+            message: "found multiple ONNX model candidates; pass --model".to_string(),
+            location: Some(root.display().to_string()),
+            details: serde_json::json!({
+                "candidates": candidates
+                    .iter()
+                    .map(|path| path.display().to_string())
+                    .collect::<Vec<_>>()
+            }),
+        }),
+    }
 }
 
-fn find_file(root: &Path, predicate: &mut impl FnMut(&Path) -> bool) -> Option<PathBuf> {
-    for entry in std::fs::read_dir(root).ok()? {
-        let entry = entry.ok()?;
+fn find_named_file(root: &Path, name: &str, include_generated: bool) -> Option<PathBuf> {
+    find_files(root, include_generated, &mut |path| {
+        path.file_name().and_then(|value| value.to_str()) == Some(name)
+    })
+    .into_iter()
+    .next()
+}
+
+fn find_files(
+    root: &Path,
+    include_generated: bool,
+    predicate: &mut impl FnMut(&Path) -> bool,
+) -> Vec<PathBuf> {
+    let mut found = Vec::new();
+    collect_files(root, include_generated, predicate, &mut found);
+    found.sort_by(|left, right| {
+        left.to_string_lossy()
+            .as_ref()
+            .cmp(right.to_string_lossy().as_ref())
+    });
+    found
+}
+
+fn collect_files(
+    root: &Path,
+    include_generated: bool,
+    predicate: &mut impl FnMut(&Path) -> bool,
+    found: &mut Vec<PathBuf>,
+) {
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return;
+    };
+
+    let mut entries = entries
+        .filter_map(Result::ok)
+        .collect::<Vec<std::fs::DirEntry>>();
+    entries.sort_by_key(|entry| entry.path());
+
+    for entry in entries {
         let path = entry.path();
-        let file_type = entry.file_type().ok()?;
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
         if file_type.is_file() && predicate(&path) {
-            return Some(path);
-        }
-        if file_type.is_dir() {
-            if let Some(found) = find_file(&path, predicate) {
-                return Some(found);
+            found.push(path);
+        } else if file_type.is_dir() {
+            if !include_generated && is_generated_dir(&path) {
+                continue;
             }
+            collect_files(&path, include_generated, predicate, found);
         }
     }
-    None
+}
+
+fn is_generated_dir(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+        return false;
+    };
+    matches!(
+        name,
+        ".git"
+            | ".hg"
+            | ".svn"
+            | ".venv"
+            | "venv"
+            | "env"
+            | ".cache"
+            | "__pycache__"
+            | ".ipynb_checkpoints"
+            | "target"
+            | "build"
+            | "dist"
+    )
 }

@@ -27,7 +27,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package init <output-dir> --name <name> --model <model.onnx> [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
 - `biors package migrate <manifest|-> [--to biors.package.v0|biors.package.v1]`
 - `biors package convert <manifest|-> [--to biors.package.v1] [--output <manifest.json>] --license <expr> --citation <text> --model-card <path> --model-card-summary <text> --intended-use <text> --limitation <text>`
-- `biors package convert-project <python-project-dir> --output <package-dir> --name <name> [--model <model.onnx>] [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
+- `biors package convert-project <python-project-dir> --output <package-dir> --name <name> [--model <model.onnx>] [--include-generated] [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
 - `biors package compatibility <left-manifest> <right-manifest>`
 - `biors package diff <left-manifest> <right-manifest>`
 - `biors package bridge <manifest>`
@@ -159,9 +159,12 @@ limitation fields so the CLI does not invent research metadata.
 Package skeleton reports use `schemas/package-skeleton-output.v0.json`.
 `package init` and `package convert-project` create a local package layout,
 write docs and pipeline config, copy supplied fixture artifacts, and record
-SHA-256 checksums. Python project conversion scans for an ONNX model and
-`tokenizer_config.json`; optional model artifact metadata is left unset for
-the package author to fill in.
+SHA-256 checksums. Python project conversion scans for one ONNX model and an
+optional `tokenizer_config.json`, skipping generated/cache directories unless
+`--include-generated` is passed. If multiple ONNX candidates remain, it fails
+with `package.project_model_ambiguous` and returns the sorted candidate list in
+JSON error details. Optional model artifact metadata is left unset for the
+package author to fill in.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Records produced by `--kind auto` also include

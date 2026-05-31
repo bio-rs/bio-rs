@@ -75,11 +75,14 @@ biors package convert-project ./python-project \
 
 `package convert-project` scans the project directory for:
 
-- first `.onnx` model artifact
-- `tokenizer_config.json`
+- one `.onnx` model artifact
+- optional `tokenizer_config.json`
 
-Use `--model` or `--tokenizer-config` when the project has multiple candidates
-or non-standard layout.
+Generated and cache directories such as `.venv`, `.git`, `.cache`,
+`__pycache__`, notebook checkpoints, `target`, `build`, and `dist` are skipped
+by default. Pass `--include-generated` only when the intended model or tokenizer
+config really lives in one of those directories. If multiple ONNX candidates are
+found, the command returns their sorted paths and requires `--model`.
 
 ## Verify
 

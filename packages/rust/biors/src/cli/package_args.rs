@@ -114,6 +114,8 @@ pub struct PackageConvertProjectArgs {
     pub name: String,
     #[arg(long)]
     pub model: Option<PathBuf>,
+    #[arg(long = "include-generated")]
+    pub include_generated: bool,
     #[arg(long = "tokenizer-config")]
     pub tokenizer_config: Option<PathBuf>,
     #[arg(long = "fixture-input")]
