@@ -47,11 +47,46 @@ change against [docs/dependency-policy.md](dependency-policy.md), including:
 
 ## Breaking Change Cleanup
 
-No known breaking cleanup is deferred for the current pre-1.0 contract set.
+The current blocker queue is the local pre-release audit ledger at
+`docs/pre-release-audit-main-2026-05-30.md`. That file is intentionally not
+published with the repository, but release prep must treat every open item in it
+as unresolved until it is either fixed, explicitly deferred in a public doc, or
+removed because code-level inspection proved it obsolete.
 
 If a breaking cleanup is discovered, do not hide it in release prep. Land it as
 a focused implementation commit with tests, update the contract docs, then rerun
 the final release gate.
+
+## Benchmark Artifact Coverage
+
+The final release gate runs `scripts/check-benchmark-docs.sh` through
+`scripts/check.sh`. Before tagging, confirm committed benchmark artifacts cover
+the features promoted in README, docs, release notes, and package metadata.
+
+Do not make performance claims for a feature unless a committed benchmark JSON
+artifact and regenerated markdown report cover that surface. If a promoted
+feature has only smoke coverage or no numeric artifact, document it as a
+non-claim.
+
+## Release Artifact Contents
+
+Tagged release jobs must inspect package contents before upload or publish:
+
+- Python wheels must include `LICENSE-APACHE` and `LICENSE-MIT`.
+- The Python sdist must include `LICENSE-APACHE` and `LICENSE-MIT`.
+- The npm WASM package dry-run must include `LICENSE-APACHE` and `LICENSE-MIT`.
+- Binary tarballs must include `biors`, `README.md`, `LICENSE-APACHE`, and
+  `LICENSE-MIT`.
+
+The release workflow enforces these checks with
+`scripts/check-release-artifact-contents.py`.
+
+## Registry Preflight
+
+The tag workflow runs `scripts/check-registry-versions.py` before publishing
+crates, Python distributions, or the npm package. Before tagging, verify the
+target version is unpublished on every registry and that the workflow still runs
+the registry check before any publish job.
 
 ## Version Tag
 

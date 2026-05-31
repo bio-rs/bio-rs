@@ -238,7 +238,11 @@ fn final_release_checklist_covers_required_gates() {
     for expected in [
         "Full End-To-End Workflow Validation",
         "Public Contract Freeze",
+        "Dependency Policy",
         "Breaking Change Cleanup",
+        "Benchmark Artifact Coverage",
+        "Release Artifact Contents",
+        "Registry Preflight",
         "Version Tag",
         "Binary Release Test",
         "Install Flow Final Test",
@@ -251,6 +255,27 @@ fn final_release_checklist_covers_required_gates() {
             "final checklist missing {expected}"
         );
     }
+
+    for expected in [
+        "docs/pre-release-audit-main-2026-05-30.md",
+        "scripts/check-dependency-policy.py",
+        "Cargo.lock",
+        "scripts/check-benchmark-docs.sh",
+        "scripts/check-release-artifact-contents.py",
+        "scripts/check-registry-versions.py",
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+    ] {
+        assert!(
+            checklist.contains(expected),
+            "final checklist missing release gate detail {expected}"
+        );
+    }
+
+    assert!(
+        !checklist.contains("No known breaking cleanup is deferred"),
+        "final checklist must not claim there is no deferred cleanup while an audit queue exists"
+    );
 
     for expected in [
         "scripts/check.sh",
