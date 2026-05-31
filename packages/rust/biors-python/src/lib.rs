@@ -1,15 +1,13 @@
 use biors_core::{fasta, model_input, package, sequence, tokenizer, workflow};
+mod conversion;
+
+use conversion::{
+    parse_padding_policy, residue_issues_from_py, tokenized_protein_to_py, PyModelInputRecord,
+    PyResidueIssue, PyTokenizedProtein,
+};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-
-#[pyclass(name = "ResidueIssue")]
-#[derive(Clone, Debug)]
-pub struct PyResidueIssue {
-    #[pyo3(get)]
-    pub residue: String,
-    #[pyo3(get)]
-    pub position: usize,
-}
+use std::io::Cursor;
 
 #[pyclass(name = "ProteinSequence")]
 #[derive(Clone, Debug)]
@@ -33,25 +31,6 @@ pub struct PySequenceValidationReport {
     pub error_count: usize,
 }
 
-#[pyclass(name = "TokenizedProtein")]
-#[derive(Clone, Debug)]
-pub struct PyTokenizedProtein {
-    #[pyo3(get)]
-    pub id: String,
-    #[pyo3(get)]
-    pub alphabet: String,
-    #[pyo3(get)]
-    pub valid: bool,
-    #[pyo3(get)]
-    pub tokens: Vec<usize>,
-    #[pyo3(get)]
-    pub length: usize,
-    #[pyo3(get)]
-    pub warnings: Vec<PyResidueIssue>,
-    #[pyo3(get)]
-    pub errors: Vec<PyResidueIssue>,
-}
-
 #[pyclass(name = "ModelInput")]
 #[derive(Clone, Debug)]
 pub struct PyModelInput {
@@ -59,24 +38,13 @@ pub struct PyModelInput {
     pub records: Vec<PyModelInputRecord>,
 }
 
-#[pyclass(name = "ModelInputRecord")]
-#[derive(Clone, Debug)]
-pub struct PyModelInputRecord {
-    #[pyo3(get)]
-    pub id: String,
-    #[pyo3(get)]
-    pub input_ids: Vec<usize>,
-    #[pyo3(get)]
-    pub attention_mask: Vec<usize>,
-    #[pyo3(get)]
-    pub truncated: bool,
-}
-
 #[pyclass(name = "SequenceWorkflowOutput")]
 #[derive(Clone, Debug)]
 pub struct PySequenceWorkflowOutput {
     #[pyo3(get)]
     pub model_ready: bool,
+    #[pyo3(get)]
+    pub input_hash: String,
     #[pyo3(get)]
     pub records: Vec<PyModelInputRecord>,
 }
@@ -199,6 +167,7 @@ fn prepare_workflow(
         .collect();
     let output = workflow::prepare_protein_model_input_workflow(input_hash, &sequences, policy)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let output_input_hash = output.provenance.input_hash.clone();
     let model_input_records = if let Some(mi) = output.model_input {
         mi.records
             .into_iter()
@@ -214,8 +183,35 @@ fn prepare_workflow(
     };
     Ok(PySequenceWorkflowOutput {
         model_ready: output.model_ready,
+        input_hash: output_input_hash,
         records: model_input_records,
     })
+}
+
+#[pyfunction]
+#[pyo3(signature = (fasta_text, max_length, pad_token_id=0, padding="no_padding"))]
+fn prepare_workflow_from_fasta(
+    fasta_text: &str,
+    max_length: usize,
+    pad_token_id: u8,
+    padding: &str,
+) -> PyResult<PySequenceWorkflowOutput> {
+    let input = fasta::parse_fasta_records_reader(Cursor::new(fasta_text.as_bytes()))
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    prepare_workflow(
+        input.input_hash,
+        input
+            .records
+            .into_iter()
+            .map(|record| PyProteinSequence {
+                id: record.id,
+                sequence: String::from_utf8(record.sequence).unwrap_or_default(),
+            })
+            .collect(),
+        max_length,
+        pad_token_id,
+        padding,
+    )
 }
 
 #[pyfunction]
@@ -234,59 +230,6 @@ fn plan_runtime_bridge(manifest_json: &str) -> PyResult<String> {
     serde_json::to_string(&report).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
-fn parse_padding_policy(padding: &str) -> PyResult<model_input::PaddingPolicy> {
-    match padding {
-        "fixed_length" => Ok(model_input::PaddingPolicy::FixedLength),
-        "no_padding" => Ok(model_input::PaddingPolicy::NoPadding),
-        other => Err(PyValueError::new_err(format!(
-            "invalid padding: '{other}'. Expected 'fixed_length' or 'no_padding'"
-        ))),
-    }
-}
-
-fn tokenized_protein_to_py(record: tokenizer::TokenizedProtein) -> PyTokenizedProtein {
-    PyTokenizedProtein {
-        id: record.id,
-        alphabet: record.alphabet,
-        valid: record.valid,
-        tokens: record.tokens.into_iter().map(usize::from).collect(),
-        length: record.length,
-        warnings: residue_issues_to_py(record.warnings),
-        errors: residue_issues_to_py(record.errors),
-    }
-}
-
-fn residue_issues_to_py(issues: Vec<sequence::ResidueIssue>) -> Vec<PyResidueIssue> {
-    issues
-        .into_iter()
-        .map(|issue| PyResidueIssue {
-            residue: issue.residue.to_string(),
-            position: issue.position,
-        })
-        .collect()
-}
-
-fn residue_issues_from_py(issues: Vec<PyResidueIssue>) -> PyResult<Vec<sequence::ResidueIssue>> {
-    issues
-        .into_iter()
-        .map(|issue| {
-            let mut chars = issue.residue.chars();
-            let residue = chars.next().ok_or_else(|| {
-                PyValueError::new_err("residue issue must contain exactly one residue")
-            })?;
-            if chars.next().is_some() {
-                return Err(PyValueError::new_err(
-                    "residue issue must contain exactly one residue",
-                ));
-            }
-            Ok(sequence::ResidueIssue {
-                residue,
-                position: issue.position,
-            })
-        })
-        .collect()
-}
-
 #[pymodule]
 fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyResidueIssue>()?;
@@ -302,6 +245,7 @@ fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(tokenize_protein, m)?)?;
     m.add_function(wrap_pyfunction!(build_model_inputs_checked, m)?)?;
     m.add_function(wrap_pyfunction!(prepare_workflow, m)?)?;
+    m.add_function(wrap_pyfunction!(prepare_workflow_from_fasta, m)?)?;
     m.add_function(wrap_pyfunction!(validate_package_manifest, m)?)?;
     m.add_function(wrap_pyfunction!(plan_runtime_bridge, m)?)?;
     Ok(())

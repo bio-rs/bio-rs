@@ -70,5 +70,23 @@ def test_prepare_workflow():
     records = biors.parse_fasta_records(fasta)
     output = biors.prepare_workflow("hash123", records, max_length=10, padding="fixed_length")
     assert output.model_ready == True
+    assert output.input_hash == "hash123"
+    assert len(output.records) == 1
+    assert len(output.records[0].input_ids) == 10
+
+def test_prepare_workflow_from_fasta_computes_input_hash_internally():
+    fasta = ">seq1\nACDEFG"
+    output = biors.prepare_workflow_from_fasta(
+        fasta,
+        max_length=10,
+        padding="fixed_length",
+    )
+    assert output.model_ready == True
+    assert output.input_hash.startswith("fnv1a64:")
+    assert output.input_hash == biors.prepare_workflow_from_fasta(
+        fasta,
+        max_length=10,
+        padding="fixed_length",
+    ).input_hash
     assert len(output.records) == 1
     assert len(output.records[0].input_ids) == 10

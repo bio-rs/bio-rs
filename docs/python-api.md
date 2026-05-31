@@ -136,10 +136,8 @@ positions to `0` in `attention_mask`.
 ## End-To-End Workflow
 
 ```python
-records = biors.parse_fasta_records(fasta_text)
-output = biors.prepare_workflow(
-    input_hash="sha256:example",
-    records=records,
+output = biors.prepare_workflow_from_fasta(
+    fasta_text,
     max_length=512,
     pad_token_id=0,
     padding="fixed_length",
@@ -154,9 +152,16 @@ print(output.records[0].input_ids[:8])
 Runs the standard protein validation, tokenization, and model-input workflow for
 records already parsed by `parse_fasta_records`.
 
+### `prepare_workflow_from_fasta(fasta_text, max_length, pad_token_id=0, padding="no_padding") -> SequenceWorkflowOutput`
+
+Parses FASTA text and computes the stable workflow input hash internally before
+running the standard workflow. Prefer this API for notebook workflows unless
+you already have a trusted input hash from the exact FASTA bytes.
+
 The compact Python output exposes:
 
 - `model_ready`: `True` when all records can be converted into model input
+- `input_hash`: stable FASTA input hash carried in workflow provenance
 - `records`: model-input records when ready, or an empty list when unresolved
   validation/tokenization issues block model input
 

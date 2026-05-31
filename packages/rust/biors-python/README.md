@@ -45,9 +45,8 @@ for r in model_input.records:
     print(r.id, r.input_ids, r.attention_mask)
 
 # End-to-end workflow
-output = biors.prepare_workflow(
-    input_hash="sha256:abc123",
-    records=records,
+output = biors.prepare_workflow_from_fasta(
+    fasta_text,
     max_length=512,
     pad_token_id=0,
     padding="fixed_length",
