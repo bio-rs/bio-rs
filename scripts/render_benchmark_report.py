@@ -46,10 +46,16 @@ def render_report(result: dict) -> str:
         f"- Biopython: `{env['biopython']}`",
         f"- Git commit: `{env['git_commit']}`",
         f"- Benchmark schema: `{result['schema_version']}`",
-        "",
-        "## Datasets",
-        "",
     ]
+    release_status = result.get("release_status", {})
+    if release_status.get("status") == "historical":
+        lines.extend(
+            [
+                f"- Release status: historical baseline retained for `{release_status['current_workspace_version']}`",
+                f"- Claim policy: {release_status['claim_policy']}",
+            ]
+        )
+    lines.extend(["", "## Datasets", ""])
 
     for index, dataset in enumerate(result["datasets"], start=1):
         lines.extend(dataset_section(index, dataset))
