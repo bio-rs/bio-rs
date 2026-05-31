@@ -44,11 +44,17 @@ def test_tokenize_fasta_records_exposes_residue_diagnostics():
 def test_tokenize_protein_normalizes_like_fasta_tokenization():
     direct = biors.tokenize_protein("ac de\tfg")
     from_fasta = biors.tokenize_fasta_records(">seq1\nac de\tfg\n")[0]
+    assert direct.id == "user"
     assert direct.valid == True
     assert direct.tokens == from_fasta.tokens
     assert direct.length == from_fasta.length
     assert direct.warnings == []
     assert direct.errors == []
+
+def test_tokenize_protein_preserves_caller_provided_id():
+    tokenized = biors.tokenize_protein("ACDE", id="sample-42")
+    assert tokenized.id == "sample-42"
+    assert tokenized.tokens == [0, 1, 2, 3]
 
 def test_checked_model_input_rejects_non_model_ready_tokenization():
     fasta = ">seq1\nAX*\n"

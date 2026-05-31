@@ -11,9 +11,10 @@ pub(crate) fn tokenize_fasta_records(fasta_text: &str) -> PyResult<Vec<PyTokeniz
 }
 
 #[pyfunction]
-pub(crate) fn tokenize_protein(sequence: &str) -> PyResult<PyTokenizedProtein> {
+#[pyo3(signature = (sequence, id="user"))]
+pub(crate) fn tokenize_protein(sequence: &str, id: &str) -> PyResult<PyTokenizedProtein> {
     let protein = sequence::ProteinSequence {
-        id: "user".to_string(),
+        id: id.to_string(),
         sequence: sequence::normalize_sequence(sequence).into_bytes(),
     };
     let record = tokenizer::tokenize_protein(&protein);

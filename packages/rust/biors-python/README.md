@@ -34,6 +34,10 @@ for t in tokenized:
     for issue in t.warnings + t.errors:
         print(issue.residue, issue.position)
 
+# Tokenize one in-memory sequence with a caller-provided ID
+single = biors.tokenize_protein("ACDEFG", id="sample-001")
+print(single.id, single.tokens)
+
 # Build model input
 model_input = biors.build_model_inputs_checked(
     tokenized,
