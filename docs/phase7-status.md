@@ -1,7 +1,8 @@
 # Phase 7 Runtime And Interface Status
 
 Phase 7 is implemented through the `0.47.x` line as the runtime and external
-interface layer for bio-rs.
+interface layer for bio-rs, but release-readiness is tracked separately from
+implementation status.
 
 Excluded work for this phase means only:
 
@@ -20,19 +21,23 @@ runtime planning, and backend packaging are in scope.
 | `0.40.0` | Optional Candle backend | Implemented | `biors-backend-candle`, linear-probe tests/bench, and `docs/candle-backend.md` |
 | `0.41.0` | Model artifact metadata and compatibility | Implemented | package manifest metadata, artifact hashes, runtime compatibility checks, and package bridge reports |
 | `0.42.0` | Backend compatibility matrix | Implemented | package compatibility matrix and reproducibility/report linkage in package bridge outputs |
-| `0.43.0` | External interface API review | Implemented | `docs/rust-api.md`, `docs/python-api.md`, and `docs/wasm-api.md` |
-| `0.44.0` | Python binding candidate | Implemented and release-workflow published | `packages/rust/biors-python`, Python API tests, and `docs/python-api.md` |
-| `0.45.0` | WASM/JS API candidate | Implemented and npm-published | `packages/rust/biors-wasm`, `index.d.ts`, and `docs/wasm-api.md` |
-| `0.46.0` | Agent-callable tool interface | Implemented | `biors-mcp-server` crate, MCP tests, and crates.io package |
+| `0.43.0` | External interface API review | Implemented, needs contract hardening before 1.0 | `docs/rust-api.md`, `docs/python-api.md`, and `docs/wasm-api.md` |
+| `0.44.0` | Python binding candidate | Implemented, release workflow configured, needs contract hardening | `packages/rust/biors-python`, Python API tests, and `docs/python-api.md` |
+| `0.45.0` | WASM/JS API candidate | Implemented, release workflow configured, needs contract hardening | `packages/rust/biors-wasm`, `index.d.ts`, and `docs/wasm-api.md` |
+| `0.46.0` | Agent-callable tool interface | Implemented, needs contract hardening | `biors-mcp-server` crate, MCP tests, and crates.io package |
 | `0.47.0` | Service interface design | Implemented as offline contract | `biors service contract`, `biors_core::service`, and `schemas/service-interface-output.v0.json` |
 
-## Researcher-Grade Criteria
+## Release-Readiness Boundaries
 
 The shipped Phase 7 surface is intended for real preprocessing and package
-integration work before model inference. Current guarantees:
+integration work before model inference, but this document does not claim every
+binding and integration surface is fully researcher-grade. The active
+pre-release audit ledger is `docs/pre-release-audit-main-2026-05-30.md`; that
+file is local release-prep state and is not part of the published project docs.
 
-- deterministic JSON contracts for CLI, package, runtime, service, and MCP
-  surfaces
+Current implemented guarantees:
+
+- deterministic JSON contracts for CLI, package, runtime, and service surfaces
 - stable FASTA parsing, validation, tokenization, model-input construction, and
   reproducibility provenance
 - package checksum, fixture, metadata, runtime bridge, compatibility, and diff
@@ -41,11 +46,19 @@ integration work before model inference. Current guarantees:
 - crates.io publication for `biors`, `biors-core`, `biors-backend-candle`, and
   `biors-mcp-server`
 
-External binding surfaces covered by this repository's tag release workflow:
+External binding surfaces covered by this repository's tag release workflow, but
+still treated as contract-hardening candidates before a full researcher-grade
+claim:
 
 - `biors-python` PyO3 wheels/source distribution on PyPI
 - `@bio-rs/biors-wasm` package with TypeScript definitions on npm; future tag
   releases publish it from GitHub Actions through npm trusted publishing
+- `biors-mcp-server` package and JSON tool contracts
+
+Do not describe Python, WASM, or MCP as fully researcher-grade until the
+pre-release audit items for those bindings are closed and their schema parity,
+provenance, validation, and model-input readiness behavior are covered by the
+release gate.
 
 ## Performance Status
 

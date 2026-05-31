@@ -282,6 +282,37 @@ fn contributing_docs_cover_promoted_surface_checks() {
     }
 }
 
+#[test]
+fn phase7_status_separates_implementation_from_release_readiness() {
+    let repo = common::repo_root();
+    let status = fs::read_to_string(repo.join("docs/phase7-status.md")).expect("read status doc");
+
+    for expected in [
+        "release-readiness is tracked separately",
+        "implementation status",
+        "needs contract hardening",
+        "does not claim every",
+        "binding and integration surface is fully researcher-grade",
+        "docs/pre-release-audit-main-2026-05-30.md",
+        "Do not describe Python, WASM, or MCP as fully researcher-grade",
+    ] {
+        assert!(
+            status.contains(expected),
+            "phase7 status missing release-readiness caveat: {expected}"
+        );
+    }
+
+    for overstated in [
+        "Implemented and release-workflow published",
+        "Implemented and npm-published",
+    ] {
+        assert!(
+            !status.contains(overstated),
+            "phase7 status still overstates binding readiness: {overstated}"
+        );
+    }
+}
+
 fn workspace_package_version(repo: &Path) -> String {
     let workspace_manifest =
         fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");
