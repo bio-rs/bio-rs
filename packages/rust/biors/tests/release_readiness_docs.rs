@@ -193,6 +193,21 @@ fn stale_benchmark_artifact_is_labeled_historical_in_readme() {
 }
 
 #[test]
+fn python_api_docs_use_runtime_bridge_ready_field() {
+    let repo = common::repo_root();
+    let python_api = fs::read_to_string(repo.join("docs/python-api.md")).expect("read Python API");
+
+    assert!(
+        python_api.contains("print(bridge[\"ready\"])"),
+        "Python API runtime bridge example must use the schema-backed ready field"
+    );
+    assert!(
+        !python_api.contains("bridge[\"compatible\"]"),
+        "Python API runtime bridge example must not document a non-existent compatible field"
+    );
+}
+
+#[test]
 fn final_release_checklist_covers_required_gates() {
     let repo = common::repo_root();
     let checklist =

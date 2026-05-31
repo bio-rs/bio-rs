@@ -184,7 +184,7 @@ bridge = json.loads(biors.plan_runtime_bridge(manifest_json))
 
 print(summary["name"])
 print(report["valid"])
-print(bridge["compatible"])
+print(bridge["ready"])
 ```
 
 ### `inspect_package_manifest(manifest_json: str) -> str`
