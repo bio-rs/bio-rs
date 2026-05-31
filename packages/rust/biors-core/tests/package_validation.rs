@@ -170,6 +170,21 @@ fn validate_package_manifest_accepts_non_empty_shape() {
 }
 
 #[test]
+fn validate_package_manifest_rejects_external_process_backend() {
+    let mut manifest = minimal_manifest();
+    manifest.runtime.backend = RuntimeBackend::ExternalProcess;
+    manifest.runtime.target = RuntimeTargetPlatform::LocalCpu;
+
+    let report = validate_package_manifest(&manifest);
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::UnsupportedRuntimeBackend
+            && issue.field == "runtime.backend"
+    }));
+}
+
+#[test]
 fn package_manifest_deserialization_rejects_unknown_fields() {
     for (field_path, mutate) in [
         ("unexpected_top", add_top_unknown as fn(&mut Value)),

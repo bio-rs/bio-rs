@@ -52,9 +52,11 @@ The `0.41.0` scope connects package manifests to the runtime planning layer:
 
 The `0.42.0` scope expands the runtime compatibility matrix and reporting:
 
-- `ExternalProcess` represented in manifest `RuntimeBackend` enum
-- expanded backend compatibility matrix covering Candle CPU, ExternalProcess,
-  and ONNX/WebGPU planning targets
+- `ExternalProcess` retained as an internal/experimental runtime backend enum
+  value, but rejected by public package manifest validation until its package
+  contract is promoted
+- expanded backend compatibility matrix covering Candle CPU and ONNX/WebGPU
+  planning targets
 - `BackendCapabilities` summary included in package bridge compatibility checks
   (supported inputs/outputs, deterministic, batch, streaming flags)
 - benchmark metadata and regression baseline types added to package bridge

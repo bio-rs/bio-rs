@@ -175,7 +175,7 @@ fn runtime_bridge_rejects_incompatible_model_backend_pair() {
 }
 
 #[test]
-fn plans_supported_external_process_runtime_bridge() {
+fn runtime_bridge_blocks_external_process_manifest_backend() {
     let manifest: PackageManifest = serde_json::from_str(
         r#"{
           "schema_version": "biors.package.v1",
@@ -223,10 +223,14 @@ fn plans_supported_external_process_runtime_bridge() {
 
     let report = plan_runtime_bridge(&manifest);
 
-    assert!(report.ready);
+    assert!(!report.ready);
     assert_eq!(report.backend, RuntimeBackend::ExternalProcess);
     assert_eq!(report.target, RuntimeTargetPlatform::LocalCpu);
     assert_eq!(report.execution_provider, "external-process");
+    assert!(report.blocking_issues.iter().any(|issue| {
+        issue.contains("external-process")
+            && issue.contains("not supported by the public package manifest contract")
+    }));
     assert!(report
         .compatibility_checks
         .iter()

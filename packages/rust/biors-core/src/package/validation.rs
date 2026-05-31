@@ -1,6 +1,6 @@
 use super::{
     DataShape, PackageDirectoryLayout, PackageManifest, PackageMetadata,
-    PackageValidationIssueCode, PackageValidationReport, SchemaVersion,
+    PackageValidationIssueCode, PackageValidationReport, RuntimeBackend, SchemaVersion,
 };
 
 /// Validate package manifest fields that do not require filesystem access.
@@ -13,6 +13,7 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     if let Some(metadata) = &manifest.model.metadata {
         push_required_issue(&mut report, "model.metadata.name", &metadata.name);
     }
+    validate_runtime_contract(&mut report, manifest);
     validate_fixture_list(&mut report, manifest);
     validate_optional_shape(
         &mut report,
@@ -26,6 +27,16 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     );
 
     report.finish()
+}
+
+fn validate_runtime_contract(report: &mut PackageValidationReport, manifest: &PackageManifest) {
+    if manifest.runtime.backend == RuntimeBackend::ExternalProcess {
+        report.push_issue(
+            PackageValidationIssueCode::UnsupportedRuntimeBackend,
+            "runtime.backend",
+            "runtime.backend 'external-process' is experimental and is not supported by the public package manifest contract",
+        );
+    }
 }
 
 fn validate_v1_contract(report: &mut PackageValidationReport, manifest: &PackageManifest) {

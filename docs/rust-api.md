@@ -275,6 +275,7 @@ The `package` module is the largest surface in `biors-core`. It handles manifest
 - **`SchemaVersion`** — `BiorsPackageV0`, `BiorsPackageV1`
 - **`ModelFormat`** — `Onnx`, `Safetensors`
 - **`RuntimeBackend`** — `OnnxWebgpu`, `Candle`, `ExternalProcess`
+  - `ExternalProcess` is internal/experimental for package manifests; `validate_package_manifest` rejects it until its public package contract is promoted.
 - **`RuntimeTargetPlatform`** — `BrowserWasmWebgpu`, `LocalCpu`
 - **`DataType`** — `Uint8`, `Float32`
 - **`PipelineConfigVersion`** — `BiorsPipelineV0`
