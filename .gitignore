@@ -1,7 +1,12 @@
 /target/
 /.benchmark-wasm/
 packages/rust/biors-wasm/pkg/
+.venv/
 .venv-bench/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+/dist/
 **/*.rs.bk
 .DS_Store
 __pycache__/
