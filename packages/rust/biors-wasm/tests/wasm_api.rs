@@ -145,6 +145,35 @@ fn test_run_workflow_rejects_fractional_numeric_config() {
     assert!(biors_wasm::run_workflow(config.into()).is_err());
 }
 
+#[wasm_bindgen_test]
+fn test_run_workflow_accepts_missing_pad_token_id() {
+    let config = workflow_config(">seq1\nACDE\n");
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"padding".into(), &"fixed_length".into()).unwrap();
+
+    let result = biors_wasm::run_workflow(config.into());
+    assert!(result.is_ok());
+}
+
+#[wasm_bindgen_test]
+fn test_run_workflow_rejects_invalid_pad_token_id_values() {
+    assert_pad_token_id_rejected(&"21".into());
+    assert_pad_token_id_rejected(&(-1).into());
+    assert_pad_token_id_rejected(&256.into());
+}
+
+fn assert_pad_token_id_rejected(value: &wasm_bindgen::JsValue) {
+    let config = workflow_config(">seq1\nACDE\n");
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"padTokenId".into(), value).unwrap();
+
+    let error = biors_wasm::run_workflow(config.into()).expect_err("padTokenId should fail");
+    assert!(error
+        .as_string()
+        .expect("error message")
+        .contains("field padTokenId must be an integer between 0 and 255"));
+}
+
 fn workflow_config(fasta: &str) -> js_sys::Object {
     let config = js_sys::Object::new();
     js_sys::Reflect::set(
