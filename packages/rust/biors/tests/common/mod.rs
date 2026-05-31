@@ -5,6 +5,9 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use jsonschema::JSONSchema;
+use serde_json::Value;
+
 pub struct TempDir {
     path: PathBuf,
 }
@@ -88,6 +91,47 @@ pub fn run_biors_paths(args: &[&str], paths: &[&Path]) -> std::process::Output {
         String::from_utf8_lossy(&output.stderr)
     );
     output
+}
+
+pub fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..")
+}
+
+pub fn assert_payload_matches_schema(output: &[u8], schema_path: &str) {
+    let envelope: Value = serde_json::from_slice(output).expect("valid CLI JSON");
+    assert_json_value_matches_schema(&envelope, "schemas/cli-success.v0.json");
+    assert_json_value_matches_schema(&envelope["data"], schema_path);
+}
+
+pub fn assert_json_matches_schema(output: &[u8], schema_path: &str) {
+    let value: Value = serde_json::from_slice(output).expect("valid CLI JSON");
+    assert_json_value_matches_schema(&value, schema_path);
+}
+
+pub fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
+    let schema: Value = serde_json::from_str(
+        &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),
+    )
+    .expect("schema JSON");
+    let compiled = JSONSchema::compile(&schema).expect("compile schema");
+    let validation = compiled.validate(value);
+    if let Err(errors) = validation {
+        let messages: Vec<_> = errors.map(|error| error.to_string()).collect();
+        panic!("JSON did not match schema {schema_path}: {messages:?}");
+    }
+}
+
+pub fn assert_payload_rejected_by_schema(payload: &Value, schema_path: &str) {
+    let schema: Value = serde_json::from_str(
+        &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),
+    )
+    .expect("schema JSON");
+    let compiled = JSONSchema::compile(&schema).expect("compile schema");
+
+    assert!(
+        compiled.validate(payload).is_err(),
+        "payload unexpectedly matched schema {schema_path}"
+    );
 }
 
 pub fn run_biors_stdin_expect_failure(args: &[&str], input: &str) -> std::process::Output {
