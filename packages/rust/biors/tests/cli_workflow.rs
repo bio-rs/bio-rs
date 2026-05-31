@@ -110,10 +110,19 @@ fn workflow_records_invocation_and_reproducibility_hashes() {
             "--pad-token-id",
             "0",
             "--padding",
-            "fixed_length",
+            "fixed-length",
             "-"
         ])
     );
+
+    let replayed = run_workflow_json_with_args(
+        provenance["invocation"]["arguments"]
+            .as_array()
+            .expect("invocation arguments"),
+        ">seq1\nacde\n",
+    );
+    assert_eq!(replayed["ok"], true);
+    assert_eq!(replayed["data"]["model_ready"], true);
 
     for key in ["vocabulary_sha256", "output_data_sha256"] {
         assert!(
@@ -141,6 +150,29 @@ fn run_workflow_json(input: &str) -> Value {
         .stderr(Stdio::piped())
         .spawn()
         .expect("spawn biors workflow")
+        .tap_stdin(input);
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON output")
+}
+
+fn run_workflow_json_with_args(arguments: &[Value], input: &str) -> Value {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_biors"));
+    command.arg("workflow");
+    for argument in arguments {
+        command.arg(argument.as_str().expect("string invocation argument"));
+    }
+    let output = command
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors workflow replay")
         .tap_stdin(input);
 
     assert!(

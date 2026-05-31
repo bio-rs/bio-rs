@@ -72,7 +72,7 @@ fn workflow_invocation(
 
 fn padding_arg_value(padding: PaddingArg) -> &'static str {
     match padding {
-        PaddingArg::FixedLength => "fixed_length",
-        PaddingArg::NoPadding => "no_padding",
+        PaddingArg::FixedLength => "fixed-length",
+        PaddingArg::NoPadding => "no-padding",
     }
 }
