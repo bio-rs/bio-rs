@@ -70,8 +70,8 @@ new numeric claims for later releases.
 | `cli_dataset_inspect` | `numeric_regression_guard` | Committed CLI regression guard timing only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_dataset_inspect_many_file` |
 | `python_bindings` | `numeric_regression_guard` | Committed Python binding regression guard timing only; no public throughput claim. | `benchmarks/python_bindings.json` |
 | `wasm_bindings` | `not_benchmarked` | No numeric performance claim. | `missing committed WASM/Node benchmark artifact` |
-| `mcp_service_contract` | `not_benchmarked` | No numeric performance claim. | `missing committed MCP/service benchmark artifact` |
-| `package_validation_bridge` | `not_benchmarked` | No numeric performance claim. | `missing committed package validation/bridge benchmark artifact` |
+| `mcp_service_contract` | `partial_numeric_regression_guard` | Service contract CLI timing only; MCP server request overhead is still not benchmarked. | `benchmarks/cli_surfaces.json workload cli_service_contract` |
+| `package_validation_bridge` | `numeric_regression_guard` | Committed package validation and bridge CLI regression timings only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_package_validate_example`<br>`benchmarks/cli_surfaces.json workload cli_package_bridge_example` |
 | `candle_cpu_linear_probe` | `criterion_regression_guard` | Synthetic Criterion guard only; no committed public numeric artifact yet. | `packages/rust/biors-backend-candle/benches/candle_linear_probe.rs` |
 
 `not_benchmarked` entries are explicit non-claims. Add committed

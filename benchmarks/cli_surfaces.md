@@ -1,7 +1,7 @@
 # CLI surface benchmark
 
 This benchmark is a release regression guard for CLI overhead on deterministic
-synthetic FASTA inputs. It is not a public throughput claim.
+synthetic inputs and package fixtures. It is not a public throughput claim.
 
 ## Environment
 
@@ -12,23 +12,27 @@ synthetic FASTA inputs. It is not a public throughput claim.
 - Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
 - bio-rs CLI: `biors v0.47.4`
 - Python: `3.14.4`
-- Git commit: `59e7f7a53544dd6237c75b7f2277c06c837a451c`
+- Git commit: `aea31b6124004627e52dcab252e8723991f1dcb3`
 - Benchmark schema: `biors.benchmark.cli_surfaces.v1`
 
 ## Methodology
 
-Scope: CLI regression guard timings on deterministic synthetic FASTA inputs; not a public throughput claim.
+Scope: CLI regression guard timings on deterministic synthetic inputs and package fixtures; not a public throughput claim.
 
 The script builds the release CLI binary, generates deterministic synthetic
-FASTA inputs in a temporary directory, warms each command once, and records
-timed subprocess runs plus canonical JSON output hashes.
+FASTA inputs in a temporary directory, reuses the committed package fixture,
+warms each command once, and records timed subprocess runs plus canonical JSON
+output hashes.
 
 ## Results
 
 | Workload | Surface | Input shape | Mean | Median | Min | Max | Output size |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `cli_workflow_fixed_length` | `cli_workflow` | 256 records, 32,768 residues, 35,730 bytes | 0.0795s | 0.0764s | 0.0756s | 0.0928s | 1,930,154 bytes |
-| `cli_dataset_inspect_many_file` | `cli_dataset_inspect` | 32 files, 256 records, 24,576 residues, 26,880 bytes | 0.0081s | 0.0081s | 0.0076s | 0.0085s | 110,161 bytes |
+| `cli_workflow_fixed_length` | `cli_workflow` | 256 records, 32,768 residues, 35,730 bytes | 0.0816s | 0.0795s | 0.0781s | 0.0864s | 1,930,154 bytes |
+| `cli_dataset_inspect_many_file` | `cli_dataset_inspect` | 32 files, 256 records, 24,576 residues, 26,880 bytes | 0.0083s | 0.0082s | 0.0081s | 0.0087s | 110,161 bytes |
+| `cli_service_contract` | `service_contract` | no input | 0.0046s | 0.0046s | 0.0045s | 0.0047s | 4,786 bytes |
+| `cli_package_validate_example` | `package_validation` | 3,504 bytes | 0.0047s | 0.0046s | 0.0045s | 0.0051s | 128 bytes |
+| `cli_package_bridge_example` | `package_bridge` | 3,504 bytes | 0.0047s | 0.0048s | 0.0043s | 0.0050s | 1,508 bytes |
 
 ## Reproduce
 

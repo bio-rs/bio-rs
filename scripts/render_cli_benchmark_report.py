@@ -23,7 +23,7 @@ def render_report(result: dict) -> str:
         "# CLI surface benchmark",
         "",
         "This benchmark is a release regression guard for CLI overhead on deterministic",
-        "synthetic FASTA inputs. It is not a public throughput claim.",
+        "synthetic inputs and package fixtures. It is not a public throughput claim.",
         "",
         "## Environment",
         "",
@@ -42,8 +42,9 @@ def render_report(result: dict) -> str:
         f"Scope: {result['methodology']['scope']}.",
         "",
         "The script builds the release CLI binary, generates deterministic synthetic",
-        "FASTA inputs in a temporary directory, warms each command once, and records",
-        "timed subprocess runs plus canonical JSON output hashes.",
+        "FASTA inputs in a temporary directory, reuses the committed package fixture,",
+        "warms each command once, and records timed subprocess runs plus canonical JSON",
+        "output hashes.",
         "",
         "## Results",
         "",
@@ -81,11 +82,15 @@ def render_report(result: dict) -> str:
 
 
 def input_shape(input_: dict) -> str:
+    if input_.get("kind") == "no_input":
+        return "no input"
     fields = []
     if "files" in input_:
         fields.append(f"{input_['files']:,} files")
-    fields.append(f"{input_['records']:,} records")
-    fields.append(f"{input_['total_residues']:,} residues")
+    if "records" in input_:
+        fields.append(f"{input_['records']:,} records")
+    if "total_residues" in input_:
+        fields.append(f"{input_['total_residues']:,} residues")
     fields.append(f"{input_['file_size_bytes']:,} bytes")
     return ", ".join(fields)
 

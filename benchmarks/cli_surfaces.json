@@ -1,12 +1,15 @@
 {
   "schema_version": "biors.benchmark.cli_surfaces.v1",
-  "generated_at_utc": "2026-05-31T14:20:53.154485+00:00",
+  "generated_at_utc": "2026-05-31T14:29:52.852057+00:00",
   "loops": 5,
   "methodology": {
-    "scope": "CLI regression guard timings on deterministic synthetic FASTA inputs; not a public throughput claim",
+    "scope": "CLI regression guard timings on deterministic synthetic inputs and package fixtures; not a public throughput claim",
     "surfaces": [
       "cli_workflow",
-      "cli_dataset_inspect"
+      "cli_dataset_inspect",
+      "service_contract",
+      "package_validation",
+      "package_bridge"
     ],
     "binary": "target/release/biors"
   },
@@ -18,7 +21,7 @@
     "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
     "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
     "biors": "0.47.4",
-    "git_commit": "59e7f7a53544dd6237c75b7f2277c06c837a451c"
+    "git_commit": "aea31b6124004627e52dcab252e8723991f1dcb3"
   },
   "workloads": [
     {
@@ -41,17 +44,17 @@
         ],
         "output_hash": "sha256:6965bcbb1a9eab6990d9ab3028dc09100d26abac1def55adf80a8daf5973e17f",
         "seconds": [
-          0.07608608296141028,
-          0.09281066665425897,
-          0.07636441709473729,
-          0.07679604180157185,
-          0.07558333408087492
+          0.08641583379358053,
+          0.07950179139152169,
+          0.07868670858442783,
+          0.07805499993264675,
+          0.08523587509989738
         ],
         "summary": {
-          "mean_s": 0.07952810851857066,
-          "median_s": 0.07636441709473729,
-          "min_s": 0.07558333408087492,
-          "max_s": 0.09281066665425897,
+          "mean_s": 0.08157904176041483,
+          "median_s": 0.07950179139152169,
+          "min_s": 0.07805499993264675,
+          "max_s": 0.08641583379358053,
           "stdout_bytes": 1930154
         }
       }
@@ -82,18 +85,113 @@
         ],
         "output_hash": "sha256:5da03eb58d1a9f3a86f24956549af4be63e01dddc2651a25bc1018ba86127689",
         "seconds": [
-          0.008178708609193563,
-          0.00812529120594263,
-          0.008542832918465137,
-          0.007969625294208527,
-          0.00759662501513958
+          0.008146208710968494,
+          0.00870829215273261,
+          0.008459458127617836,
+          0.008188000414520502,
+          0.008221082855015993
         ],
         "summary": {
-          "mean_s": 0.008082616608589888,
-          "median_s": 0.00812529120594263,
-          "min_s": 0.00759662501513958,
-          "max_s": 0.008542832918465137,
+          "mean_s": 0.008344608452171087,
+          "median_s": 0.008221082855015993,
+          "min_s": 0.008146208710968494,
+          "max_s": 0.00870829215273261,
           "stdout_bytes": 110161
+        }
+      }
+    },
+    {
+      "name": "cli_service_contract",
+      "surface": "service_contract",
+      "input": {
+        "kind": "no_input"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "service",
+          "contract"
+        ],
+        "output_hash": "sha256:8b7fcbb4c825a7650948fb24aaf885f6dffef6b917b6e5f7583eb86d5a090199",
+        "seconds": [
+          0.004656124860048294,
+          0.004570916760712862,
+          0.004618290811777115,
+          0.004545167088508606,
+          0.004499250091612339
+        ],
+        "summary": {
+          "mean_s": 0.004577949922531843,
+          "median_s": 0.004570916760712862,
+          "min_s": 0.004499250091612339,
+          "max_s": 0.004656124860048294,
+          "stdout_bytes": 4786
+        }
+      }
+    },
+    {
+      "name": "cli_package_validate_example",
+      "surface": "package_validation",
+      "input": {
+        "kind": "package_manifest",
+        "path": "examples/protein-package/manifest.json",
+        "file_size_bytes": 3504,
+        "sha256": "sha256:6366ded32b521d1cf4df1ec937ecf2348538557f4a8a71cc59c66efb2e208ca0"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "package",
+          "validate",
+          "examples/protein-package/manifest.json"
+        ],
+        "output_hash": "sha256:5eab0fe803bac4e70c7f65b6f80c0b59c1b1a6e1647ebd3aa9bcca8b19859dd4",
+        "seconds": [
+          0.005145207978785038,
+          0.004453875124454498,
+          0.004603708162903786,
+          0.004470458719879389,
+          0.004980416037142277
+        ],
+        "summary": {
+          "mean_s": 0.004730733204632997,
+          "median_s": 0.004603708162903786,
+          "min_s": 0.004453875124454498,
+          "max_s": 0.005145207978785038,
+          "stdout_bytes": 128
+        }
+      }
+    },
+    {
+      "name": "cli_package_bridge_example",
+      "surface": "package_bridge",
+      "input": {
+        "kind": "package_manifest",
+        "path": "examples/protein-package/manifest.json",
+        "file_size_bytes": 3504,
+        "sha256": "sha256:6366ded32b521d1cf4df1ec937ecf2348538557f4a8a71cc59c66efb2e208ca0"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "package",
+          "bridge",
+          "examples/protein-package/manifest.json"
+        ],
+        "output_hash": "sha256:877469d77813606483148da3dbf50944203063f8f56570117584f1afb24f5029",
+        "seconds": [
+          0.004800582770258188,
+          0.00491987494751811,
+          0.0045701670460402966,
+          0.005035375244915485,
+          0.004332666285336018
+        ],
+        "summary": {
+          "mean_s": 0.00473173325881362,
+          "median_s": 0.004800582770258188,
+          "min_s": 0.004332666285336018,
+          "max_s": 0.005035375244915485,
+          "stdout_bytes": 1508
         }
       }
     }

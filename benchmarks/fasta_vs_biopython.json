@@ -1119,18 +1119,19 @@
     },
     {
       "feature": "mcp_service_contract",
-      "status": "not_benchmarked",
-      "claim_scope": "No numeric performance claim.",
+      "status": "partial_numeric_regression_guard",
+      "claim_scope": "Service contract CLI timing only; MCP server request overhead is still not benchmarked.",
       "evidence": [
-        "missing committed MCP/service benchmark artifact"
+        "benchmarks/cli_surfaces.json workload cli_service_contract"
       ]
     },
     {
       "feature": "package_validation_bridge",
-      "status": "not_benchmarked",
-      "claim_scope": "No numeric performance claim.",
+      "status": "numeric_regression_guard",
+      "claim_scope": "Committed package validation and bridge CLI regression timings only; no public throughput claim.",
       "evidence": [
-        "missing committed package validation/bridge benchmark artifact"
+        "benchmarks/cli_surfaces.json workload cli_package_validate_example",
+        "benchmarks/cli_surfaces.json workload cli_package_bridge_example"
       ]
     },
     {

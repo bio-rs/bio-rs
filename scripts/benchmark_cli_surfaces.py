@@ -146,6 +146,15 @@ def sha256_json_bytes(bytes_: bytes) -> str:
     return f"sha256:{hashlib.sha256(canonical).hexdigest()}"
 
 
+def file_input(path: Path, kind: str) -> dict[str, str | int]:
+    return {
+        "kind": kind,
+        "path": str(path),
+        "file_size_bytes": path.stat().st_size,
+        "sha256": sha256_file(path),
+    }
+
+
 def timed_command(command: list[str], loops: int) -> dict:
     warmup = subprocess.run(
         command,
@@ -182,6 +191,7 @@ def timed_command(command: list[str], loops: int) -> dict:
 def main() -> int:
     args = parse_args()
     binary = ensure_binary(args.bin, args.no_build)
+    package_manifest = Path("examples/protein-package/manifest.json")
 
     if WORK_DIR.exists():
         shutil.rmtree(WORK_DIR)
@@ -198,41 +208,56 @@ def main() -> int:
         )
 
         workloads = [
-            {
-                "name": "cli_workflow_fixed_length",
-                "surface": "cli_workflow",
-                "input": workflow_input,
-                "result": timed_command(
-                    [
-                        str(binary),
-                        "workflow",
-                        "--max-length",
-                        "160",
-                        str(workflow_fasta),
-                    ],
-                    args.loops,
-                ),
-            },
-            {
-                "name": "cli_dataset_inspect_many_file",
-                "surface": "cli_dataset_inspect",
-                "input": dataset_input,
-                "result": timed_command(
-                    [
-                        str(binary),
-                        "dataset",
-                        "inspect",
-                        "--source",
-                        "synthetic",
-                        "--version",
-                        "benchmark",
-                        "--split",
-                        "train",
-                        str(dataset_dir),
-                    ],
-                    args.loops,
-                ),
-            },
+            workload(
+                binary,
+                args.loops,
+                "cli_workflow_fixed_length",
+                "cli_workflow",
+                workflow_input,
+                ["workflow", "--max-length", "160", str(workflow_fasta)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_dataset_inspect_many_file",
+                "cli_dataset_inspect",
+                dataset_input,
+                [
+                    "dataset",
+                    "inspect",
+                    "--source",
+                    "synthetic",
+                    "--version",
+                    "benchmark",
+                    "--split",
+                    "train",
+                    str(dataset_dir),
+                ],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_service_contract",
+                "service_contract",
+                {"kind": "no_input"},
+                ["service", "contract"],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_package_validate_example",
+                "package_validation",
+                file_input(package_manifest, "package_manifest"),
+                ["package", "validate", str(package_manifest)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_package_bridge_example",
+                "package_bridge",
+                file_input(package_manifest, "package_manifest"),
+                ["package", "bridge", str(package_manifest)],
+            ),
         ]
     finally:
         shutil.rmtree(WORK_DIR, ignore_errors=True)
@@ -242,8 +267,14 @@ def main() -> int:
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "loops": args.loops,
         "methodology": {
-            "scope": "CLI regression guard timings on deterministic synthetic FASTA inputs; not a public throughput claim",
-            "surfaces": ["cli_workflow", "cli_dataset_inspect"],
+            "scope": "CLI regression guard timings on deterministic synthetic inputs and package fixtures; not a public throughput claim",
+            "surfaces": [
+                "cli_workflow",
+                "cli_dataset_inspect",
+                "service_contract",
+                "package_validation",
+                "package_bridge",
+            ],
             "binary": str(binary),
         },
         "environment": environment(),
@@ -255,6 +286,22 @@ def main() -> int:
     print(f"Wrote CLI benchmark results to {RESULT_PATH}")
     print(f"Wrote CLI benchmark report to {REPORT_PATH}")
     return 0
+
+
+def workload(
+    binary: Path,
+    loops: int,
+    name: str,
+    surface: str,
+    input_: dict,
+    args: list[str],
+) -> dict:
+    return {
+        "name": name,
+        "surface": surface,
+        "input": input_,
+        "result": timed_command([str(binary), *args], loops),
+    }
 
 
 if __name__ == "__main__":

@@ -10,6 +10,9 @@ RESULT_PATH = Path("benchmarks/cli_surfaces.json")
 REQUIRED_WORKLOADS = {
     "cli_workflow_fixed_length": "cli_workflow",
     "cli_dataset_inspect_many_file": "cli_dataset_inspect",
+    "cli_service_contract": "service_contract",
+    "cli_package_validate_example": "package_validation",
+    "cli_package_bridge_example": "package_bridge",
 }
 
 
@@ -36,11 +39,14 @@ def main() -> int:
 def validate_input(input_: object) -> None:
     if not isinstance(input_, dict):
         raise AssertionError("workload input must be an object")
-    for field in ["records", "total_residues", "file_size_bytes", "sha256"]:
-        if field not in input_:
-            raise AssertionError(f"workload input missing {field}")
-    if not str(input_["sha256"]).startswith("sha256:"):
+    if input_.get("kind") == "no_input":
+        return
+    if "sha256" not in input_ or not str(input_["sha256"]).startswith("sha256:"):
         raise AssertionError("workload input sha256 must use sha256:<hex>")
+    if "file_size_bytes" not in input_:
+        raise AssertionError("workload input missing file_size_bytes")
+    if "records" in input_ and "total_residues" not in input_:
+        raise AssertionError("FASTA workload input missing total_residues")
 
 
 def validate_result(result: object) -> None:
