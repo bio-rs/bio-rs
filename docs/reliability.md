@@ -7,6 +7,8 @@ untrusted local input.
 
 - Successful commands write JSON to stdout and keep stderr empty.
 - `--json` errors write JSON to stdout and keep stderr empty.
+- `--json` also covers CLI argument parse failures, including invalid enum
+  values, using `cli.invalid_arguments`.
 - Human-readable errors write to stderr as `error[code]: message`.
 - User input failures exit with code `2`.
 - I/O and internal serialization failures exit with code `1`.

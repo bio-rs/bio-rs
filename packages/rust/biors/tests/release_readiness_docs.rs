@@ -208,6 +208,30 @@ fn python_api_docs_use_runtime_bridge_ready_field() {
 }
 
 #[test]
+fn reliability_docs_match_json_parse_error_contract() {
+    let repo = common::repo_root();
+    let reliability =
+        fs::read_to_string(repo.join("docs/reliability.md")).expect("read reliability docs");
+    let cli_contract =
+        fs::read_to_string(repo.join("docs/cli-contract.md")).expect("read CLI contract");
+
+    for (name, contents) in [
+        ("reliability docs", reliability.as_str()),
+        ("CLI contract", cli_contract.as_str()),
+    ] {
+        assert!(
+            contents.contains("--json") && contents.contains("cli.invalid_arguments"),
+            "{name} must document JSON-mode CLI argument parse failures"
+        );
+    }
+
+    assert!(
+        cli_contract.contains("location: null"),
+        "CLI contract must document parse-error envelopes without source locations"
+    );
+}
+
+#[test]
 fn final_release_checklist_covers_required_gates() {
     let repo = common::repo_root();
     let checklist =
