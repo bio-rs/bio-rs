@@ -7,8 +7,9 @@
     "source_format",
     "source_path",
     "config",
-    "package_tokenizer_asset",
-    "package_preprocessing_step",
+    "conversion_status",
+    "preview_tokenizer_asset",
+    "preview_preprocessing_step",
     "assumptions",
     "warnings",
     "config_sha256"
@@ -25,7 +26,18 @@
       },
       "additionalProperties": false
     },
-    "package_tokenizer_asset": {
+    "conversion_status": {
+      "type": "object",
+      "required": ["status", "package_ready", "fixture_parity_required", "message"],
+      "properties": {
+        "status": { "const": "preview" },
+        "package_ready": { "const": false },
+        "fixture_parity_required": { "const": true },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "preview_tokenizer_asset": {
       "type": "object",
       "required": ["name", "path", "contract_version"],
       "properties": {
@@ -37,7 +49,7 @@
       },
       "additionalProperties": false
     },
-    "package_preprocessing_step": {
+    "preview_preprocessing_step": {
       "type": "object",
       "required": ["name", "implementation", "contract", "contract_version"],
       "properties": {

@@ -100,6 +100,22 @@ fn tokenizer_convert_hf_writes_biors_tokenizer_config() {
     );
     assert_eq!(value["data"]["config"]["profile"], "protein-20-special");
     assert_eq!(value["data"]["config"]["add_special_tokens"], true);
+    assert_eq!(value["data"]["conversion_status"]["status"], "preview");
+    assert_eq!(value["data"]["conversion_status"]["package_ready"], false);
+    assert_eq!(
+        value["data"]["conversion_status"]["fixture_parity_required"],
+        true
+    );
+    assert!(value["data"]["warnings"]
+        .as_array()
+        .expect("warnings")
+        .iter()
+        .any(|warning| warning
+            .as_str()
+            .expect("warning")
+            .contains("validate fixture parity")));
+    assert!(value["data"]["package_tokenizer_asset"].is_null());
+    assert!(value["data"]["preview_tokenizer_asset"].is_object());
     assert_eq!(
         value["data"]["output_path"],
         output_path.display().to_string()

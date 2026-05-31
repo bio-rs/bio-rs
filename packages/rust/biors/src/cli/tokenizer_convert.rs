@@ -15,13 +15,22 @@ struct TokenizerConversionOutput {
     source_format: &'static str,
     source_path: String,
     config: ProteinTokenizerConfig,
-    package_tokenizer_asset: PackageTokenizerAsset,
-    package_preprocessing_step: PackagePreprocessingStep,
+    conversion_status: TokenizerConversionStatus,
+    preview_tokenizer_asset: PackageTokenizerAsset,
+    preview_preprocessing_step: PackagePreprocessingStep,
     assumptions: Vec<String>,
     warnings: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     output_path: Option<String>,
     config_sha256: String,
+}
+
+#[derive(Debug, Serialize)]
+struct TokenizerConversionStatus {
+    status: &'static str,
+    package_ready: bool,
+    fixture_parity_required: bool,
+    message: &'static str,
 }
 
 #[derive(Debug, Serialize)]
@@ -70,7 +79,11 @@ fn convert_huggingface_tokenizer_config(
     source_path: &std::path::Path,
     output_path: Option<&PathBuf>,
 ) -> Result<TokenizerConversionOutput, CliError> {
-    let (config, assumptions, warnings) = hf_config_to_biors_config(value, source_path)?;
+    let (config, assumptions, mut warnings) = hf_config_to_biors_config(value, source_path)?;
+    warnings.push(
+        "preview conversion only: bio-rs does not read the Hugging Face vocab, token IDs, normalizer, or pre-tokenizer; validate fixture parity before using these fragments in a package"
+            .to_string(),
+    );
     let config_bytes = serde_json::to_vec(&config).map_err(CliError::Serialization)?;
     let config_name = config.profile.as_str().to_string();
     let tokenizer_path = output_path
@@ -80,12 +93,19 @@ fn convert_huggingface_tokenizer_config(
     Ok(TokenizerConversionOutput {
         source_format: "huggingface.tokenizer_config",
         source_path: source_path.display().to_string(),
-        package_tokenizer_asset: PackageTokenizerAsset {
+        conversion_status: TokenizerConversionStatus {
+            status: "preview",
+            package_ready: false,
+            fixture_parity_required: true,
+            message:
+                "heuristic tokenizer_config mapping; not package-ready until fixture parity is validated",
+        },
+        preview_tokenizer_asset: PackageTokenizerAsset {
             name: config_name.clone(),
             path: tokenizer_path,
             contract_version: format!("{config_name}.v0"),
         },
-        package_preprocessing_step: PackagePreprocessingStep {
+        preview_preprocessing_step: PackagePreprocessingStep {
             name: "protein_fasta_tokenize".to_string(),
             implementation: "biors-core".to_string(),
             contract: config_name.clone(),

@@ -113,8 +113,9 @@ The `protein-20-special` profile keeps the protein-20 residue IDs stable and
 adds `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24` for model-input
 contract tests and Python preprocessing parity fixtures.
 `tokenizer convert-hf` maps a Hugging Face `tokenizer_config.json` into the
-small bio-rs tokenizer config and reports the manifest tokenizer/preprocessing
-entries that should be used in a package.
+small bio-rs tokenizer config as a preview. It does not read the Hugging Face
+vocab, token IDs, normalizer, or pre-tokenizer, so validate fixture parity
+before copying the preview fragments into a package.
 
 ## Build Model Input
 

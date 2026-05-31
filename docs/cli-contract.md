@@ -92,8 +92,10 @@ inventory. The default root is `.biors/artifacts`, overridden by
 Without `--config`, tokenization defaults to the stable `protein-20` profile.
 Tokenizer config JSON currently supports `profile` and `add_special_tokens`.
 `tokenizer convert-hf` accepts a Hugging Face `tokenizer_config.json`, maps it
-to the closest supported protein tokenizer config, and emits package
-tokenizer/preprocessing fragments plus conversion assumptions and warnings.
+to the closest supported protein tokenizer config, and emits preview
+tokenizer/preprocessing fragments plus conversion assumptions, warnings, and a
+`conversion_status` marker. The result is not package-ready until fixture parity
+against the source tokenizer is validated.
 The built-in `protein-20-special` profile keeps residue IDs stable and exposes
 `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24`.
 `tokenizer inspect` emits the resolved config, vocabulary, unknown-token policy,
