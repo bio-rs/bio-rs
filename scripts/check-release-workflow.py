@@ -76,6 +76,8 @@ def main() -> None:
         if text not in workflow_text:
             raise SystemExit(f"release workflow is missing binary packaging text: {text}")
 
+    assert_rust_toolchain_for_cargo_jobs(lines)
+
     out_of_order = [
         (previous, current)
         for (previous, previous_position), (current, current_position) in zip(
@@ -89,6 +91,47 @@ def main() -> None:
             for previous, current in out_of_order
         )
         raise SystemExit(f"release workflow publish order is unsafe: {details}")
+
+
+def assert_rust_toolchain_for_cargo_jobs(lines: list[str]) -> None:
+    missing = []
+    for job_name, job_lines in workflow_jobs(lines).items():
+        body = "\n".join(job_lines)
+        needs_rust = any(
+            marker in body
+            for marker in ["cargo ", "scripts/check.sh", "maturin ", "wasm-pack "]
+        )
+        if needs_rust and "dtolnay/rust-toolchain@stable" not in body:
+            missing.append(job_name)
+
+    if missing:
+        raise SystemExit(
+            "release workflow jobs that run Rust tooling must install Rust: "
+            + ", ".join(sorted(missing))
+        )
+
+
+def workflow_jobs(lines: list[str]) -> dict[str, list[str]]:
+    jobs: dict[str, list[str]] = {}
+    current: str | None = None
+    in_jobs = False
+
+    for line in lines:
+        if line == "jobs:":
+            in_jobs = True
+            continue
+        if not in_jobs:
+            continue
+        if line and not line.startswith(" "):
+            break
+        if line.startswith("  ") and not line.startswith("    ") and line.strip().endswith(":"):
+            current = line.strip()[:-1]
+            jobs[current] = []
+            continue
+        if current is not None:
+            jobs[current].append(line)
+
+    return jobs
 
 
 if __name__ == "__main__":

@@ -61,6 +61,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
       - name: Dry-run publish biors-core
