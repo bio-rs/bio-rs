@@ -134,6 +134,8 @@ Required fix:
 
 Severity: release blocker for the Python package.
 
+Status: Complete in follow-up (2026-05-31 KST). Python `TokenizedProtein` now preserves `alphabet`, `valid`, `warnings`, and `errors` from core tokenization, and `build_model_inputs_checked` reconstructs core tokenized records from those fields instead of forcing `valid: true`; Python tests now cover ambiguous/invalid FASTA diagnostics and rejection of non-model-ready tokenization.
+
 Evidence:
 
 - `packages/rust/biors-python/src/lib.rs` exposes `PyTokenizedProtein` with only `id`, `tokens`, and `length`.
@@ -1449,6 +1451,8 @@ Required fix:
 ### A-058: Python tokenization output drops validity, alphabet, warning, and error diagnostics
 
 Severity: Python binding correctness/UX hardening.
+
+Status: Complete in follow-up (2026-05-31 KST). Python `TokenizedProtein` now exposes the core `alphabet`, `valid`, `warnings`, and `errors` fields, with `ResidueIssue` objects carrying `residue` and `position`; `packages/rust/biors-python/README.md`, `docs/python-api.md`, and Python API tests document and verify the diagnostics.
 
 Evidence:
 

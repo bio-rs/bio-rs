@@ -19,7 +19,31 @@ def test_tokenize_fasta_records():
     tokenized = biors.tokenize_fasta_records(fasta)
     assert len(tokenized) == 1
     assert tokenized[0].id == "seq1"
+    assert tokenized[0].alphabet == "protein-20"
+    assert tokenized[0].valid == True
     assert len(tokenized[0].tokens) == 6
+    assert tokenized[0].warnings == []
+    assert tokenized[0].errors == []
+
+def test_tokenize_fasta_records_exposes_residue_diagnostics():
+    fasta = ">seq1\nAX*\n"
+    tokenized = biors.tokenize_fasta_records(fasta)
+    assert tokenized[0].valid == False
+    assert tokenized[0].warnings[0].residue == "X"
+    assert tokenized[0].warnings[0].position == 2
+    assert tokenized[0].errors[0].residue == "*"
+    assert tokenized[0].errors[0].position == 3
+
+def test_checked_model_input_rejects_non_model_ready_tokenization():
+    fasta = ">seq1\nAX*\n"
+    tokenized = biors.tokenize_fasta_records(fasta)
+    try:
+        biors.build_model_inputs_checked(tokenized, max_length=10)
+    except ValueError as exc:
+        assert "not model-ready" in str(exc)
+        assert "1 warnings and 1 errors" in str(exc)
+    else:
+        raise AssertionError("expected non-model-ready tokenization to be rejected")
 
 def test_build_model_inputs():
     fasta = ">seq1\nACDEFG"

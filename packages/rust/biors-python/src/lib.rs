@@ -2,6 +2,15 @@ use biors_core::{fasta, model_input, package, sequence, tokenizer, workflow};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+#[pyclass(name = "ResidueIssue")]
+#[derive(Clone, Debug)]
+pub struct PyResidueIssue {
+    #[pyo3(get)]
+    pub residue: String,
+    #[pyo3(get)]
+    pub position: usize,
+}
+
 #[pyclass(name = "ProteinSequence")]
 #[derive(Clone, Debug)]
 pub struct PyProteinSequence {
@@ -30,9 +39,17 @@ pub struct PyTokenizedProtein {
     #[pyo3(get)]
     pub id: String,
     #[pyo3(get)]
+    pub alphabet: String,
+    #[pyo3(get)]
+    pub valid: bool,
+    #[pyo3(get)]
     pub tokens: Vec<usize>,
     #[pyo3(get)]
     pub length: usize,
+    #[pyo3(get)]
+    pub warnings: Vec<PyResidueIssue>,
+    #[pyo3(get)]
+    pub errors: Vec<PyResidueIssue>,
 }
 
 #[pyclass(name = "ModelInput")]
@@ -93,14 +110,7 @@ fn validate_fasta_input(fasta_text: &str) -> PyResult<PySequenceValidationReport
 fn tokenize_fasta_records(fasta_text: &str) -> PyResult<Vec<PyTokenizedProtein>> {
     let records = tokenizer::tokenize_fasta_records(fasta_text)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
-    Ok(records
-        .into_iter()
-        .map(|r| PyTokenizedProtein {
-            id: r.id,
-            tokens: r.tokens.into_iter().map(usize::from).collect(),
-            length: r.length,
-        })
-        .collect())
+    Ok(records.into_iter().map(tokenized_protein_to_py).collect())
 }
 
 #[pyfunction]
@@ -110,11 +120,7 @@ fn tokenize_protein(sequence: &str) -> PyResult<PyTokenizedProtein> {
         sequence: sequence.as_bytes().to_vec(),
     };
     let record = tokenizer::tokenize_protein(&protein);
-    Ok(PyTokenizedProtein {
-        id: record.id,
-        tokens: record.tokens.into_iter().map(usize::from).collect(),
-        length: record.length,
-    })
+    Ok(tokenized_protein_to_py(record))
 }
 
 #[pyfunction]
@@ -147,11 +153,11 @@ fn build_model_inputs_checked(
             Ok(tokenizer::TokenizedProtein {
                 id: t.id,
                 length: t.length,
-                alphabet: "protein".to_string(),
-                valid: true,
+                alphabet: t.alphabet,
+                valid: t.valid,
                 tokens,
-                warnings: vec![],
-                errors: vec![],
+                warnings: residue_issues_from_py(t.warnings)?,
+                errors: residue_issues_from_py(t.errors)?,
             })
         })
         .collect::<PyResult<Vec<_>>>()?;
@@ -238,8 +244,52 @@ fn parse_padding_policy(padding: &str) -> PyResult<model_input::PaddingPolicy> {
     }
 }
 
+fn tokenized_protein_to_py(record: tokenizer::TokenizedProtein) -> PyTokenizedProtein {
+    PyTokenizedProtein {
+        id: record.id,
+        alphabet: record.alphabet,
+        valid: record.valid,
+        tokens: record.tokens.into_iter().map(usize::from).collect(),
+        length: record.length,
+        warnings: residue_issues_to_py(record.warnings),
+        errors: residue_issues_to_py(record.errors),
+    }
+}
+
+fn residue_issues_to_py(issues: Vec<sequence::ResidueIssue>) -> Vec<PyResidueIssue> {
+    issues
+        .into_iter()
+        .map(|issue| PyResidueIssue {
+            residue: issue.residue.to_string(),
+            position: issue.position,
+        })
+        .collect()
+}
+
+fn residue_issues_from_py(issues: Vec<PyResidueIssue>) -> PyResult<Vec<sequence::ResidueIssue>> {
+    issues
+        .into_iter()
+        .map(|issue| {
+            let mut chars = issue.residue.chars();
+            let residue = chars.next().ok_or_else(|| {
+                PyValueError::new_err("residue issue must contain exactly one residue")
+            })?;
+            if chars.next().is_some() {
+                return Err(PyValueError::new_err(
+                    "residue issue must contain exactly one residue",
+                ));
+            }
+            Ok(sequence::ResidueIssue {
+                residue,
+                position: issue.position,
+            })
+        })
+        .collect()
+}
+
 #[pymodule]
 fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<PyResidueIssue>()?;
     m.add_class::<PyProteinSequence>()?;
     m.add_class::<PySequenceValidationReport>()?;
     m.add_class::<PyTokenizedProtein>()?;

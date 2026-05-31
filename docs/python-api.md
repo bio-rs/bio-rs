@@ -32,9 +32,10 @@ For full schema-rich JSON reports, use the Rust CLI or core crate.
 
 | Type | Attributes |
 | --- | --- |
+| `ResidueIssue` | `residue: str`, `position: int` |
 | `ProteinSequence` | `id: str`, `sequence: str` |
 | `SequenceValidationReport` | `records: int`, `valid_records: int`, `warning_count: int`, `error_count: int` |
-| `TokenizedProtein` | `id: str`, `tokens: list[int]`, `length: int` |
+| `TokenizedProtein` | `id: str`, `alphabet: str`, `valid: bool`, `tokens: list[int]`, `length: int`, `warnings: list[ResidueIssue]`, `errors: list[ResidueIssue]` |
 | `ModelInput` | `records: list[ModelInputRecord]` |
 | `ModelInputRecord` | `id: str`, `input_ids: list[int]`, `attention_mask: list[int]`, `truncated: bool` |
 | `SequenceWorkflowOutput` | `model_ready: bool`, `records: list[ModelInputRecord]` |
@@ -82,7 +83,9 @@ notebook needs residue-level warnings and errors.
 ```python
 tokenized = biors.tokenize_fasta_records(fasta_text)
 for record in tokenized:
-    print(record.id, record.length, record.tokens[:8])
+    print(record.id, record.alphabet, record.valid, record.length, record.tokens[:8])
+    for issue in record.warnings + record.errors:
+        print(issue.residue, issue.position)
 
 single = biors.tokenize_protein("ACDEFGHIK")
 print(single.tokens)
@@ -91,6 +94,9 @@ print(single.tokens)
 ### `tokenize_fasta_records(fasta_text: str) -> list[TokenizedProtein]`
 
 Parses and tokenizes all FASTA records with the default `protein-20` tokenizer.
+Each returned record preserves tokenization diagnostics. Ambiguous residues are
+reported in `warnings`, invalid residues are reported in `errors`, and `valid`
+is `False` when either list is non-empty.
 
 ### `tokenize_protein(sequence: str) -> TokenizedProtein`
 
@@ -112,7 +118,9 @@ print(first.id, len(first.input_ids), len(first.attention_mask), first.truncated
 
 ### `build_model_inputs_checked(tokenized, max_length, pad_token_id=0, padding="no_padding") -> ModelInput`
 
-Builds model-ready token arrays from tokenized protein records.
+Builds model-ready token arrays from tokenized protein records. Records with
+unresolved tokenization warnings or errors are rejected with `ValueError`
+instead of being silently converted into model input.
 
 Parameters:
 
@@ -185,8 +193,11 @@ For Jupyter or pandas-heavy work, keep the boundary explicit:
 rows = [
     {
         "id": record.id,
+        "valid": record.valid,
         "length": record.length,
         "tokens": record.tokens,
+        "warnings": [(issue.residue, issue.position) for issue in record.warnings],
+        "errors": [(issue.residue, issue.position) for issue in record.errors],
     }
     for record in biors.tokenize_fasta_records(fasta_text)
 ]

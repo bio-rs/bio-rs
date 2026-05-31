@@ -30,7 +30,9 @@ print(f"Valid records: {report.valid_records}/{report.records}")
 # Tokenize
 tokenized = biors.tokenize_fasta_records(fasta_text)
 for t in tokenized:
-    print(t.id, t.tokens)
+    print(t.id, t.alphabet, t.valid, t.tokens)
+    for issue in t.warnings + t.errors:
+        print(issue.residue, issue.position)
 
 # Build model input
 model_input = biors.build_model_inputs_checked(
