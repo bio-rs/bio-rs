@@ -157,7 +157,7 @@ remains a historical reference.
 
 ### Utilities
 - `diff`: canonical JSON/raw comparison with SHA-256 hashes
-- `doctor`: platform, toolchain, WASM target, and fixture readiness
+- `doctor`: core CLI, WASM, Python, package, release, and benchmark readiness
 - `completions`: shell completion generation
 - JSON success/error envelopes for all commands
 

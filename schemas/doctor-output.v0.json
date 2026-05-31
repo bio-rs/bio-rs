@@ -29,11 +29,15 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["name", "status", "message"],
+        "required": ["capability", "name", "status", "message"],
         "properties": {
+          "capability": {
+            "enum": ["core_cli", "wasm", "python", "package", "release", "benchmark"]
+          },
           "name": { "type": "string" },
           "status": { "enum": ["pass", "warn", "fail"] },
-          "message": { "type": "string" }
+          "message": { "type": "string" },
+          "hint": { "type": "string", "minLength": 1 }
         },
         "additionalProperties": false
       }

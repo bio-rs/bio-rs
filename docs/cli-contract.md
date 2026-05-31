@@ -62,9 +62,10 @@ and raw bytes otherwise. It always emits a report with SHA-256 hashes,
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
 `biors completions <shell>` writes shell completion scripts to stdout.
-`biors doctor` emits local readiness diagnostics for platform identity,
-available Rust/Cargo toolchains, optional WASM target support, and committed
-demo/package fixtures.
+`biors doctor` emits local readiness diagnostics for platform identity and
+capability groups covering core CLI, WASM, Python bindings, package fixtures,
+release tooling, and benchmark tooling. Optional binding/release tools are
+reported as warnings with install hints rather than causing the command to fail.
 `biors service contract` emits the transport-agnostic service interface
 contract. It lists deterministic operations, JSON schema names, file access
 policy, runtime/package boundaries, and offline OpenAPI direction without

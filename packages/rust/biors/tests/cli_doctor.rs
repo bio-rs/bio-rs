@@ -21,7 +21,7 @@ fn doctor_reports_local_readiness_checks() {
     assert!(value["data"]["platform"]["os"].is_string());
     assert!(value["data"]["platform"]["arch"].is_string());
     let checks = value["data"]["checks"].as_array().expect("checks");
-    assert!(checks.len() >= 4);
+    assert!(checks.len() >= 16);
 
     let check_names: Vec<_> = checks
         .iter()
@@ -30,8 +30,39 @@ fn doctor_reports_local_readiness_checks() {
     assert!(check_names.contains(&"rust.toolchain"));
     assert!(check_names.contains(&"cargo.toolchain"));
     assert!(check_names.contains(&"wasm32.target"));
+    assert!(check_names.contains(&"wasm-pack.toolchain"));
+    assert!(check_names.contains(&"node.toolchain"));
+    assert!(check_names.contains(&"npm.toolchain"));
+    assert!(check_names.contains(&"python.toolchain"));
+    assert!(check_names.contains(&"maturin.toolchain"));
     assert!(check_names.contains(&"demo.dataset"));
     assert!(check_names.contains(&"package.fixture"));
+    assert!(check_names.contains(&"package.license_apache"));
+    assert!(check_names.contains(&"package.license_mit"));
+    assert!(check_names.contains(&"release.workflow"));
+    assert!(check_names.contains(&"release.security_audit"));
+    assert!(check_names.contains(&"cargo-deny.toolchain"));
+    assert!(check_names.contains(&"benchmark.docs_check"));
+    assert!(check_names.contains(&"benchmark.workflow"));
+    assert!(check_names.contains(&"benchmark.fasta_artifact"));
+
+    let capabilities: Vec<_> = checks
+        .iter()
+        .filter_map(|check| check["capability"].as_str())
+        .collect();
+    for capability in [
+        "core_cli",
+        "wasm",
+        "python",
+        "package",
+        "release",
+        "benchmark",
+    ] {
+        assert!(
+            capabilities.contains(&capability),
+            "doctor output missing capability {capability}"
+        );
+    }
 
     let status_values: Vec<_> = checks
         .iter()
