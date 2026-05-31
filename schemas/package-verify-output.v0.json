@@ -3,7 +3,7 @@
   "$id": "https://bio-rs.dev/schemas/package-verify-output.v0.json",
   "title": "bio-rs package verify data payload",
   "type": "object",
-  "required": ["package", "fixtures", "passed", "failed", "results"],
+  "required": ["package", "fixtures", "passed", "failed", "results", "observation_issues"],
   "properties": {
     "package": { "type": "string" },
     "fixtures": { "type": "integer", "minimum": 0 },
@@ -39,6 +39,8 @@
               "fixture_input_read_failed",
               "observation_missing",
               "observation_path_invalid",
+              "duplicate_observation",
+              "unexpected_observation",
               "observed_output_read_failed",
               "output_checksum_mismatch",
               "output_content_mismatch"
@@ -71,6 +73,24 @@
             "additionalProperties": false
           },
           "issue": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "observation_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "name", "message"],
+        "properties": {
+          "code": {
+            "enum": [
+              "duplicate_observation",
+              "unexpected_observation"
+            ]
+          },
+          "name": { "type": "string" },
+          "message": { "type": "string" }
         },
         "additionalProperties": false
       }

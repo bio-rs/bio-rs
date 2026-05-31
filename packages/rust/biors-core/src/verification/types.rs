@@ -26,6 +26,14 @@ pub struct PackageVerificationReport {
     pub passed: usize,
     pub failed: usize,
     pub results: Vec<FixtureVerificationResult>,
+    pub observation_issues: Vec<FixtureObservationIssue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FixtureObservationIssue {
+    pub code: VerificationIssueCode,
+    pub name: String,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -67,6 +75,8 @@ pub enum VerificationIssueCode {
     FixtureInputReadFailed,
     ObservationMissing,
     ObservationPathInvalid,
+    DuplicateObservation,
+    UnexpectedObservation,
     ObservedOutputReadFailed,
     OutputChecksumMismatch,
     OutputContentMismatch,

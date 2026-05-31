@@ -108,6 +108,7 @@ fn package_rejection_examples_match_schemas() {
         "fixtures": 1,
         "passed": 0,
         "failed": 1,
+        "observation_issues": [],
         "results": [
             {
                 "name": "tiny-protein",

@@ -1,12 +1,13 @@
 use super::diff::{content_mismatch_diff, contents_match};
-use super::{
-    FixtureObservation, FixtureVerificationResult, PackageVerificationReport,
-    VerificationIssueCode, VerificationStatus,
+use super::types::{
+    FixtureObservation, FixtureObservationIssue, FixtureVerificationResult,
+    PackageVerificationReport, VerificationIssueCode, VerificationStatus,
 };
 use crate::hash::sha256_bytes_digest;
 use crate::package::{
     read_package_file, resolve_package_asset_path, PackageFixture, PackageManifest,
 };
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 /// Verify package outputs using the package directory for both manifest assets and observations.
@@ -30,15 +31,21 @@ pub fn verify_package_outputs_with_observation_base(
     manifest_base_dir: &Path,
     observations_base_dir: &Path,
 ) -> PackageVerificationReport {
+    let observation_index = index_observations(observations);
+    let fixture_names: HashSet<_> = manifest
+        .fixtures
+        .iter()
+        .map(|fixture| fixture.name.as_str())
+        .collect();
+    let observation_issues = unexpected_observation_issues(&observation_index, &fixture_names);
+
     let results: Vec<_> = manifest
         .fixtures
         .iter()
         .map(|fixture| {
             verify_fixture(
                 fixture,
-                observations
-                    .iter()
-                    .find(|candidate| candidate.name == fixture.name),
+                observation_for_fixture(fixture, &observation_index),
                 manifest_base_dir,
                 observations_base_dir,
             )
@@ -49,23 +56,89 @@ pub fn verify_package_outputs_with_observation_base(
         .iter()
         .filter(|result| result.status == VerificationStatus::Passed)
         .count();
+    let failed = results.len() - passed + observation_issues.len();
 
     PackageVerificationReport {
         package: manifest.name.clone(),
         fixtures: manifest.fixtures.len(),
         passed,
-        failed: manifest.fixtures.len() - passed,
+        failed,
         results,
+        observation_issues,
     }
+}
+
+fn index_observations(
+    observations: &[FixtureObservation],
+) -> HashMap<&str, Vec<&FixtureObservation>> {
+    let mut index: HashMap<&str, Vec<&FixtureObservation>> = HashMap::new();
+    for observation in observations {
+        index
+            .entry(&observation.name)
+            .or_default()
+            .push(observation);
+    }
+    index
+}
+
+fn observation_for_fixture<'a>(
+    fixture: &PackageFixture,
+    observation_index: &HashMap<&str, Vec<&'a FixtureObservation>>,
+) -> FixtureObservationMatch<'a> {
+    match observation_index
+        .get(fixture.name.as_str())
+        .map(Vec::as_slice)
+    {
+        None | Some([]) => FixtureObservationMatch::Missing,
+        Some([observation]) => FixtureObservationMatch::Unique(observation),
+        Some(observations) => FixtureObservationMatch::Duplicate(observations[0]),
+    }
+}
+
+fn unexpected_observation_issues(
+    observation_index: &HashMap<&str, Vec<&FixtureObservation>>,
+    fixture_names: &HashSet<&str>,
+) -> Vec<FixtureObservationIssue> {
+    let mut issues = Vec::new();
+    for (name, observations) in observation_index {
+        if fixture_names.contains(name) {
+            continue;
+        }
+        let code = if observations.len() > 1 {
+            VerificationIssueCode::DuplicateObservation
+        } else {
+            VerificationIssueCode::UnexpectedObservation
+        };
+        issues.push(FixtureObservationIssue {
+            code,
+            name: (*name).to_string(),
+            message: format!(
+                "unexpected observation '{name}' is not declared by any package fixture"
+            ),
+        });
+    }
+    issues.sort_by(|left, right| left.name.cmp(&right.name));
+    issues
+}
+
+enum FixtureObservationMatch<'a> {
+    Missing,
+    Unique(&'a FixtureObservation),
+    Duplicate(&'a FixtureObservation),
 }
 
 fn verify_fixture(
     fixture: &PackageFixture,
-    observation: Option<&FixtureObservation>,
+    observation: FixtureObservationMatch<'_>,
     manifest_base_dir: &Path,
     observations_base_dir: &Path,
 ) -> FixtureVerificationResult {
-    let mut result = FixtureVerificationResult::new(fixture, observation);
+    let result_observation = match observation {
+        FixtureObservationMatch::Unique(observation)
+        | FixtureObservationMatch::Duplicate(observation) => Some(observation),
+        FixtureObservationMatch::Missing => None,
+    };
+    let mut result = FixtureVerificationResult::new(fixture, result_observation);
 
     let input_bytes = match read_package_file(manifest_base_dir, &fixture.input) {
         Ok(bytes) => bytes,
@@ -110,11 +183,20 @@ fn verify_fixture(
         return result.failed_with_checksum(error.0, error.1);
     }
 
-    let Some(observation) = observation else {
-        return result.missing(
-            VerificationIssueCode::ObservationMissing,
-            format!("missing observation for fixture '{}'", fixture.name),
-        );
+    let observation = match observation {
+        FixtureObservationMatch::Missing => {
+            return result.missing(
+                VerificationIssueCode::ObservationMissing,
+                format!("missing observation for fixture '{}'", fixture.name),
+            );
+        }
+        FixtureObservationMatch::Duplicate(_) => {
+            return result.failed(
+                VerificationIssueCode::DuplicateObservation,
+                format!("duplicate observations for fixture '{}'", fixture.name),
+            );
+        }
+        FixtureObservationMatch::Unique(observation) => observation,
     };
 
     let observed_bytes = match read_observed_output(observation, observations_base_dir) {

@@ -186,6 +186,22 @@ pub(crate) fn classify_validation_code(report: &PackageValidationReport) -> &'st
 
 pub(crate) fn classify_verification_code(report: &PackageVerificationReport) -> &'static str {
     if report
+        .observation_issues
+        .iter()
+        .any(|issue| issue.code == VerificationIssueCode::DuplicateObservation)
+        || report
+            .results
+            .iter()
+            .any(|result| result.issue_code == Some(VerificationIssueCode::DuplicateObservation))
+    {
+        "package.duplicate_observation"
+    } else if report
+        .observation_issues
+        .iter()
+        .any(|issue| issue.code == VerificationIssueCode::UnexpectedObservation)
+    {
+        "package.unexpected_observation"
+    } else if report
         .results
         .iter()
         .any(|result| result.issue_code == Some(VerificationIssueCode::ObservationMissing))
