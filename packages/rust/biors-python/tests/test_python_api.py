@@ -1,3 +1,5 @@
+import json
+
 import biors
 
 def test_parse_fasta_records():
@@ -99,3 +101,40 @@ def test_prepare_workflow_from_fasta_computes_input_hash_internally():
     ).input_hash
     assert len(output.records) == 1
     assert len(output.records[0].input_ids) == 10
+
+def test_package_manifest_inspection_is_exported():
+    manifest_json = """
+    {
+      "schema_version": "biors.package.v0",
+      "name": "protein-seed",
+      "model": {
+        "format": "onnx",
+        "path": "models/protein-seed.onnx"
+      },
+      "preprocessing": [
+        {
+          "name": "protein_fasta_tokenize",
+          "implementation": "biors-core",
+          "contract": "protein-20"
+        }
+      ],
+      "postprocessing": [],
+      "runtime": {
+        "backend": "onnx-webgpu",
+        "target": "browser-wasm-webgpu"
+      },
+      "fixtures": [
+        {
+          "name": "tiny-protein",
+          "input": "fixtures/tiny.fasta",
+          "expected_output": "fixtures/tiny.output.json"
+        }
+      ]
+    }
+    """
+    assert "inspect_package_manifest" in biors.__all__
+    summary = json.loads(biors.inspect_package_manifest(manifest_json))
+    assert summary["name"] == "protein-seed"
+    assert summary["model_format"] == "onnx"
+    assert summary["runtime_backend"] == "onnx-webgpu"
+    assert summary["preprocessing_steps"] == 1

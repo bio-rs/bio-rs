@@ -176,11 +176,18 @@ bridge reports are schema-rich compatibility documents.
 import json
 
 report = json.loads(biors.validate_package_manifest(manifest_json))
+summary = json.loads(biors.inspect_package_manifest(manifest_json))
 bridge = json.loads(biors.plan_runtime_bridge(manifest_json))
 
+print(summary["name"])
 print(report["valid"])
 print(bridge["compatible"])
 ```
+
+### `inspect_package_manifest(manifest_json: str) -> str`
+
+Parses a package manifest JSON document and returns the compact inspect summary
+as a JSON string.
 
 ### `validate_package_manifest(manifest_json: str) -> str`
 

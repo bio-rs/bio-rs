@@ -215,6 +215,14 @@ fn prepare_workflow_from_fasta(
 }
 
 #[pyfunction]
+fn inspect_package_manifest(manifest_json: &str) -> PyResult<String> {
+    let manifest: package::PackageManifest = serde_json::from_str(manifest_json)
+        .map_err(|e| PyValueError::new_err(format!("invalid JSON: {e}")))?;
+    let summary = package::inspect_package_manifest(&manifest);
+    serde_json::to_string(&summary).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+#[pyfunction]
 fn validate_package_manifest(manifest_json: &str) -> PyResult<String> {
     let manifest: package::PackageManifest = serde_json::from_str(manifest_json)
         .map_err(|e| PyValueError::new_err(format!("invalid JSON: {e}")))?;
@@ -246,6 +254,7 @@ fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_model_inputs_checked, m)?)?;
     m.add_function(wrap_pyfunction!(prepare_workflow, m)?)?;
     m.add_function(wrap_pyfunction!(prepare_workflow_from_fasta, m)?)?;
+    m.add_function(wrap_pyfunction!(inspect_package_manifest, m)?)?;
     m.add_function(wrap_pyfunction!(validate_package_manifest, m)?)?;
     m.add_function(wrap_pyfunction!(plan_runtime_bridge, m)?)?;
     Ok(())
