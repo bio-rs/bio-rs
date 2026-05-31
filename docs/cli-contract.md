@@ -232,6 +232,9 @@ Passing `--json` writes errors to stdout as:
 ```
 
 Without `--json`, errors are written to stderr as `error[code]: message`.
+`--json` also applies to CLI argument parse failures, including invalid enum
+values rejected by clap; those use `code: "cli.invalid_arguments"` with
+`location: null`.
 
 ## Exit Codes
 

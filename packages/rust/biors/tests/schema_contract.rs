@@ -76,4 +76,19 @@ fn cli_outputs_match_success_and_error_envelope_schemas() {
     let error =
         common::run_biors_stdin_expect_failure(&["--json", "tokenize", "-"], "ACDE\n").stdout;
     common::assert_json_matches_schema(&error, "schemas/cli-error.v0.json");
+
+    let parse_error = common::run_biors_stdin_expect_failure(
+        &[
+            "--json",
+            "workflow",
+            "--max-length",
+            "8",
+            "--padding",
+            "fixed_length",
+            "-",
+        ],
+        ">seq1\nACDE\n",
+    )
+    .stdout;
+    common::assert_json_matches_schema(&parse_error, "schemas/cli-error.v0.json");
 }

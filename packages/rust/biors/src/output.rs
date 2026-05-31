@@ -69,6 +69,23 @@ pub(crate) fn print_json_error(error: CliError) {
     }
 }
 
+pub(crate) fn print_json_parse_error(error: &clap::Error) {
+    let payload = CliFailure {
+        ok: false,
+        error: CliErrorBody {
+            code: "cli.invalid_arguments",
+            message: error.to_string(),
+            location: None,
+        },
+    };
+    match to_json(&payload) {
+        Ok(json) => println!("{json}"),
+        Err(_) => println!(
+            r#"{{"ok":false,"error":{{"code":"cli.internal_error","message":"failed to serialize error","location":null}}}}"#
+        ),
+    }
+}
+
 fn to_json<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
     serde_json::to_string_pretty(value)
 }

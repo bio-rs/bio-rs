@@ -44,3 +44,29 @@ fn json_error_mode_rejects_empty_fasta_identifier() {
     assert_eq!(value["error"]["location"]["line"], 1);
     assert_eq!(value["error"]["location"]["record_index"], 0);
 }
+
+#[test]
+fn json_error_mode_covers_clap_parse_errors() {
+    let output = run_biors(
+        &[
+            "--json",
+            "workflow",
+            "--max-length",
+            "8",
+            "--padding",
+            "fixed_length",
+            "-",
+        ],
+        ">seq1\nACDE\n",
+    );
+
+    assert_eq!(output.status.code(), Some(2));
+
+    let value = json_error(&output);
+    assert_eq!(value["error"]["code"], "cli.invalid_arguments");
+    assert_eq!(value["error"]["location"], Value::Null);
+    assert!(value["error"]["message"]
+        .as_str()
+        .expect("message")
+        .contains("fixed_length"));
+}
