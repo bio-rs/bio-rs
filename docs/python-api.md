@@ -100,7 +100,9 @@ is `False` when either list is non-empty.
 
 ### `tokenize_protein(sequence: str) -> TokenizedProtein`
 
-Tokenizes one protein sequence. The returned record id is `"user"`.
+Tokenizes one protein sequence. The input is normalized like FASTA-backed
+tokenization: whitespace is removed and residues are uppercased before
+tokenization. The returned record id is `"user"`.
 
 ## Model Input
 

@@ -85,7 +85,7 @@ fn tokenize_fasta_records(fasta_text: &str) -> PyResult<Vec<PyTokenizedProtein>>
 fn tokenize_protein(sequence: &str) -> PyResult<PyTokenizedProtein> {
     let protein = sequence::ProteinSequence {
         id: "user".to_string(),
-        sequence: sequence.as_bytes().to_vec(),
+        sequence: sequence::normalize_sequence(sequence).into_bytes(),
     };
     let record = tokenizer::tokenize_protein(&protein);
     Ok(tokenized_protein_to_py(record))
