@@ -11,6 +11,7 @@ import zipfile
 from pathlib import Path
 
 LICENSES = {"LICENSE-APACHE", "LICENSE-MIT"}
+PYTHON_TYPING_FILES = {"__init__.pyi", "py.typed"}
 
 
 def main() -> int:
@@ -49,11 +50,11 @@ def check_python_dist(dist_dir: Path, *, require_sdist: bool) -> None:
 
     for wheel in wheels:
         with zipfile.ZipFile(wheel) as archive:
-            require_entry_basenames(wheel, archive.namelist(), LICENSES)
+            require_entry_basenames(wheel, archive.namelist(), LICENSES | PYTHON_TYPING_FILES)
 
     for sdist in sdists:
         with tarfile.open(sdist) as archive:
-            require_entry_basenames(sdist, archive.getnames(), LICENSES)
+            require_entry_basenames(sdist, archive.getnames(), LICENSES | PYTHON_TYPING_FILES)
 
 
 def check_wasm_package(package_dir: Path) -> None:

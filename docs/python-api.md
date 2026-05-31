@@ -30,6 +30,9 @@ pytest
 The current Python boundary intentionally returns small immutable PyO3 classes.
 For full schema-rich JSON reports, use the Rust CLI or core crate.
 
+The wheel ships a `py.typed` marker and a maintained `biors/__init__.pyi` stub
+for the public functions and compact PyO3 classes listed below.
+
 | Type | Attributes |
 | --- | --- |
 | `ResidueIssue` | `residue: str`, `position: int` |
