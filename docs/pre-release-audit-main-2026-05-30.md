@@ -281,6 +281,8 @@ Required fix:
 
 Severity: documentation correctness fix before public promotion.
 
+Status: Complete in follow-up (2026-05-31 KST). `docs/rust-api.md` now describes `biors-core` as dependency-light, deterministic, and `std`-based, with WASM compatibility covered by the existing `wasm32-unknown-unknown` check rather than a `no_std` contract.
+
 Evidence:
 
 - `docs/rust-api.md` says `biors-core` keeps everything "`no_std`-friendly where possible".

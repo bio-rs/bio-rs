@@ -30,7 +30,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, validation, tokenization, model input construction, package manifest management, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization, `sha2` for checksums, and keeps everything `no_std`-friendly where possible.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, validation, tokenization, model input construction, package manifest management, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -60,7 +60,7 @@ All public types implement `Debug`, `Clone`, `PartialEq`, and `Eq` where appropr
 
 ## Feature Flags
 
-`biors-core` currently has no Cargo feature flags. All public APIs are always available.
+`biors-core` currently has no Cargo feature flags. All public APIs are always available, and there is no feature-gated `no_std` mode.
 
 ## Module Reference
 
