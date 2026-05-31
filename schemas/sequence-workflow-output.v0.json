@@ -33,7 +33,13 @@
           "type": "object",
           "required": ["command", "arguments"],
           "properties": {
-            "command": { "const": "biors workflow" },
+            "command": {
+              "enum": [
+                "biors workflow",
+                "biors-core prepare_protein_model_input_workflow",
+                "biors-mcp workflow"
+              ]
+            },
             "arguments": {
               "type": "array",
               "minItems": 1,

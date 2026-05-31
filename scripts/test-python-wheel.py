@@ -27,7 +27,7 @@ def main() -> int:
         venv.EnvBuilder(with_pip=True).create(venv_dir)
         python = venv_python(venv_dir)
         run([python, "-m", "pip", "install", "--upgrade", "pip"])
-        run([python, "-m", "pip", "install", "pytest", str(wheel)])
+        run([python, "-m", "pip", "install", "pytest", "jsonschema", str(wheel)])
         run([python, "-m", "pytest", str(args.tests_dir), "-q"])
     return 0
 

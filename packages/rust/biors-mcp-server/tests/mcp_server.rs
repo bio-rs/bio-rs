@@ -1,6 +1,9 @@
 use biors_mcp_server::server::BiorsMcpServer;
+use jsonschema::JSONSchema;
 use rmcp::model::*;
 use rmcp::{ClientHandler, ServiceExt};
+use serde_json::Value;
+use std::{fs, path::PathBuf};
 use tokio::io::duplex;
 
 #[derive(Default, Clone)]
@@ -75,6 +78,7 @@ async fn test_workflow_tool_matches_core_contract_defaults() {
         json["model_input"]["records"][0]["input_ids"],
         serde_json::json!([0, 1, 2, 3, 0, 0])
     );
+    assert_json_value_matches_schema(&json, "schemas/sequence-workflow-output.v0.json");
 }
 
 #[tokio::test]
@@ -153,6 +157,29 @@ async fn test_package_validate_tool() {
 
     let json = call_tool_json("package_validate", args).await;
     assert_eq!(json["valid"], true);
+    assert_json_value_matches_schema(&json, "schemas/package-validation-report.v0.json");
+}
+
+fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
+    let schema: Value = serde_json::from_str(
+        &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),
+    )
+    .expect("schema JSON");
+    let compiled = JSONSchema::compile(&schema).expect("compile schema");
+    let errors: Vec<_> = compiled
+        .validate(value)
+        .err()
+        .into_iter()
+        .flat_map(|errors| errors.map(|error| error.to_string()))
+        .collect();
+    assert!(
+        errors.is_empty(),
+        "JSON did not match schema {schema_path}: {errors:?}"
+    );
+}
+
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..")
 }
 
 async fn call_tool_json(

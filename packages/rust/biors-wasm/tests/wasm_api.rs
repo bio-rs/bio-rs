@@ -1,5 +1,8 @@
 use wasm_bindgen_test::*;
 
+const WORKFLOW_OUTPUT_SCHEMA: &str =
+    include_str!("../../../../schemas/sequence-workflow-output.v0.json");
+
 #[wasm_bindgen_test]
 fn test_parse_fasta() {
     let fasta = ">seq1\nACDE\n>seq2\nFGHI\n";
@@ -96,6 +99,8 @@ fn test_run_workflow() {
         .as_string()
         .unwrap();
     assert_eq!(tokenizer_name, "protein-20");
+
+    assert_matches_shared_workflow_schema_contract(&output, WORKFLOW_OUTPUT_SCHEMA);
 }
 
 #[wasm_bindgen_test]
@@ -139,4 +144,60 @@ fn workflow_config(fasta: &str) -> js_sys::Object {
     )
     .unwrap();
     config
+}
+
+fn assert_matches_shared_workflow_schema_contract(
+    output: &wasm_bindgen::JsValue,
+    schema_json: &str,
+) {
+    let output_json = js_sys::JSON::stringify(output)
+        .unwrap()
+        .as_string()
+        .unwrap();
+    let value: serde_json::Value = serde_json::from_str(&output_json).unwrap();
+    let schema: serde_json::Value = serde_json::from_str(schema_json).unwrap();
+
+    let properties = schema["properties"].as_object().unwrap();
+    let required = schema["required"].as_array().unwrap();
+    let value_object = value.as_object().unwrap();
+    for key in required {
+        assert!(
+            value_object.contains_key(key.as_str().unwrap()),
+            "WASM output missing required schema key {key}"
+        );
+    }
+    for key in value_object.keys() {
+        assert!(
+            properties.contains_key(key),
+            "WASM output has non-schema key {key}"
+        );
+    }
+
+    assert_eq!(value["workflow"], schema["properties"]["workflow"]["const"]);
+    let allowed_commands = schema["properties"]["provenance"]["properties"]["invocation"]
+        ["properties"]["command"]["enum"]
+        .as_array()
+        .unwrap();
+    assert!(
+        allowed_commands.contains(&value["provenance"]["invocation"]["command"]),
+        "WASM workflow command is outside the shared schema enum"
+    );
+    assert_eq!(
+        value["provenance"]["normalization"],
+        schema["properties"]["provenance"]["properties"]["normalization"]["const"]
+    );
+    assert_eq!(
+        value["provenance"]["validation_alphabet"],
+        schema["properties"]["provenance"]["properties"]["validation_alphabet"]["const"]
+    );
+    assert_eq!(
+        value["provenance"]["tokenizer"]["name"],
+        schema["properties"]["provenance"]["properties"]["tokenizer"]["properties"]["name"]
+            ["const"]
+    );
+    assert_eq!(
+        value["validation"]["sequences"][0]["alphabet"],
+        schema["properties"]["validation"]["properties"]["sequences"]["items"]["properties"]
+            ["alphabet"]["const"]
+    );
 }

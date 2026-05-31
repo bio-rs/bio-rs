@@ -48,6 +48,17 @@ The public contract candidates remain:
 Before tagging, check whether any CLI flag, JSON field, schema, error code, or
 package manifest field changed without a matching test and doc update.
 
+## Schema Parity Across Bindings
+
+Before tagging, verify every promoted binding surface that emits JSON validates
+against the same shared schema as the CLI or clearly documents a distinct MCP or
+binding contract. The release gate should cover at least:
+
+- CLI workflow, package validation, package inspect, and package bridge payloads
+- Python JSON-returning package helpers
+- WASM workflow output
+- MCP workflow and package validation tool output
+
 ## Dependency Policy
 
 The final release gate runs `scripts/check-dependency-policy.py` through

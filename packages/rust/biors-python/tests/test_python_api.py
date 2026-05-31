@@ -1,6 +1,10 @@
 import json
+from pathlib import Path
 
 import biors
+import jsonschema
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
 
 def test_parse_fasta_records():
     fasta = ">seq1\nACDEFG\n>seq2\nMKWVT"
@@ -134,7 +138,22 @@ def test_package_manifest_inspection_is_exported():
     """
     assert "inspect_package_manifest" in biors.__all__
     summary = json.loads(biors.inspect_package_manifest(manifest_json))
+    assert_matches_schema(summary, "package-inspect-output.v0.json")
     assert summary["name"] == "protein-seed"
     assert summary["model_format"] == "onnx"
     assert summary["runtime_backend"] == "onnx-webgpu"
     assert summary["preprocessing_steps"] == 1
+
+def test_package_json_helpers_match_shared_schemas():
+    manifest_json = (REPO_ROOT / "examples/protein-package/manifest.json").read_text()
+    validation = json.loads(biors.validate_package_manifest(manifest_json))
+    bridge = json.loads(biors.plan_runtime_bridge(manifest_json))
+
+    assert validation["valid"] == True
+    assert bridge["ready"] == True
+    assert_matches_schema(validation, "package-validation-report.v0.json")
+    assert_matches_schema(bridge, "package-bridge-output.v0.json")
+
+def assert_matches_schema(value, schema_name):
+    schema = json.loads((REPO_ROOT / "schemas" / schema_name).read_text())
+    jsonschema.Draft202012Validator(schema).validate(value)

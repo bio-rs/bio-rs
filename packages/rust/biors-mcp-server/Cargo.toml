@@ -16,6 +16,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+jsonschema = "0.18.3"
 rmcp = { version = "1.7", features = ["client", "transport-child-process"] }
 
 [[bench]]
