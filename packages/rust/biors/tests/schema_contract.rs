@@ -1,43 +1,22 @@
 use serde_json::Value;
 use std::fs;
 
+use biors_core::service::current_service_interface_document;
+
 mod common;
 
 #[test]
 fn machine_readable_schemas_are_valid_json() {
-    for schema in [
-        "schemas/cli-success.v0.json",
-        "schemas/cli-error.v0.json",
-        "schemas/tokenize-output.v0.json",
-        "schemas/inspect-output.v0.json",
-        "schemas/model-input-output.v0.json",
-        "schemas/batch-validation-output.v0.json",
-        "schemas/dataset-inspect-output.v0.json",
-        "schemas/cache-output.v0.json",
-        "schemas/doctor-output.v0.json",
-        "schemas/output-diff.v0.json",
-        "schemas/pipeline-output.v0.json",
-        "schemas/pipeline-config.v0.json",
-        "schemas/pipeline-lock.v0.json",
-        "schemas/sequence-debug-output.v0.json",
-        "schemas/tokenizer-inspect-output.v0.json",
-        "schemas/tokenizer-conversion-output.v0.json",
-        "schemas/sequence-workflow-output.v0.json",
-        "schemas/fasta-validation-output.v0.json",
-        "schemas/package-inspect-output.v0.json",
-        "schemas/package-bridge-output.v0.json",
-        "schemas/package-verify-output.v0.json",
-        "schemas/package-conversion-output.v0.json",
-        "schemas/package-skeleton-output.v0.json",
-        "schemas/package-migration-output.v0.json",
-        "schemas/package-compatibility-output.v0.json",
-        "schemas/package-diff-output.v0.json",
-        "schemas/service-interface-output.v0.json",
-        "schemas/package-manifest.v0.json",
-        "schemas/package-manifest.v1.json",
-        "schemas/package-validation-report.v0.json",
-    ] {
-        let input = fs::read_to_string(common::repo_root().join(schema)).expect("read schema");
+    let schemas_dir = common::repo_root().join("schemas");
+
+    for entry in fs::read_dir(&schemas_dir).expect("read schemas directory") {
+        let entry = entry.expect("read schema entry");
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
+            continue;
+        }
+
+        let input = fs::read_to_string(&path).expect("read schema");
         let value: Value = serde_json::from_str(&input).expect("schema is valid JSON");
 
         assert_eq!(
@@ -49,6 +28,24 @@ fn machine_readable_schemas_are_valid_json() {
             value["type"].as_str(),
             Some("object") | Some("array")
         ));
+        jsonschema::JSONSchema::compile(&value).expect("compile schema");
+    }
+}
+
+#[test]
+fn service_contract_references_checked_in_schemas() {
+    let repo = common::repo_root();
+    let document = current_service_interface_document();
+
+    for route in document.routes {
+        for schema in [&route.request_schema, &route.response_schema] {
+            let path = repo.join("schemas").join(schema);
+            assert!(
+                path.exists(),
+                "service route {} references missing schema {schema}",
+                route.operation_id
+            );
+        }
     }
 }
 

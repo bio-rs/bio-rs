@@ -54,6 +54,24 @@ need before inference:
 All listed operations are deterministic and idempotent. File access is limited
 to caller-provided inputs or read-only package directories.
 
+## Request And Response Schemas
+
+Each service route references a checked-in request schema and a checked-in
+response schema under `schemas/`. Hosts can wrap these payloads in HTTP,
+queue, notebook, or agent transports without changing the deterministic core
+contract.
+
+| Operation | Request example | Response schema |
+|---|---|---|
+| `sequence.validate` | `{ "fasta_text": ">seq1\nACDE\n", "kind": "auto" }` | `fasta-validation-output.v0.json` |
+| `sequence.inspect` | `{ "fasta_text": ">seq1\nACDE\n" }` | `inspect-output.v0.json` |
+| `sequence.tokenize` | `{ "fasta_text": ">seq1\nACDE\n", "profile": "protein-20" }` | `tokenize-output.v0.json` |
+| `model_input.build` | `{ "fasta_text": ">seq1\nACDE\n", "max_length": 512, "pad_token_id": 0, "padding": "fixed_length" }` | `model-input-output.v0.json` |
+| `package.inspect` | `{ "manifest": { "schema_version": "biors.package.v0", "...": "..." } }` | `package-inspect-output.v0.json` |
+| `package.validate` | `{ "manifest": { "schema_version": "biors.package.v0", "...": "..." } }` | `package-validation-report.v0.json` |
+| `package.bridge.plan` | `{ "manifest": { "schema_version": "biors.package.v0", "...": "..." } }` | `package-bridge-output.v0.json` |
+| `package.compatibility.compare` | `{ "left_manifest": { "schema_version": "biors.package.v0", "...": "..." }, "right_manifest": { "schema_version": "biors.package.v1", "...": "..." } }` | `package-compatibility-output.v0.json` |
+
 ## OpenAPI Direction
 
 The contract includes an `openapi` block with `status:

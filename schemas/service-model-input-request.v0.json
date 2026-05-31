@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-model-input-request.v0.json",
+  "title": "bio-rs service model-input request",
+  "type": "object",
+  "required": ["fasta_text", "max_length"],
+  "properties": {
+    "fasta_text": { "type": "string", "minLength": 1 },
+    "max_length": { "type": "integer", "minimum": 1 },
+    "pad_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "padding": { "enum": ["fixed_length", "no_padding"] },
+    "profile": { "enum": ["protein-20", "protein-20-special"] }
+  },
+  "additionalProperties": false
+}

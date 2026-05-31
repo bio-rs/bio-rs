@@ -460,6 +460,33 @@ fn public_contract_candidates_separate_stable_bindings_and_experimental_runtime(
     }
 }
 
+#[test]
+fn service_interface_docs_list_request_response_examples() {
+    let repo = common::repo_root();
+    let service_doc =
+        fs::read_to_string(repo.join("docs/service-interface.md")).expect("read service docs");
+
+    for expected in [
+        "Request And Response Schemas",
+        "sequence.validate",
+        "sequence.inspect",
+        "sequence.tokenize",
+        "model_input.build",
+        "package.inspect",
+        "package.validate",
+        "package.bridge.plan",
+        "package.compatibility.compare",
+        "fasta-validation-output.v0.json",
+        "model-input-output.v0.json",
+        "package-compatibility-output.v0.json",
+    ] {
+        assert!(
+            service_doc.contains(expected),
+            "service interface docs missing request/response example detail: {expected}"
+        );
+    }
+}
+
 fn workspace_package_version(repo: &Path) -> String {
     let workspace_manifest =
         fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");

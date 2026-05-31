@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-package-compatibility-request.v0.json",
+  "title": "bio-rs service package compatibility request",
+  "type": "object",
+  "required": ["left_manifest", "right_manifest"],
+  "properties": {
+    "left_manifest": {
+      "type": "object",
+      "required": ["schema_version"],
+      "properties": {
+        "schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] }
+      },
+      "additionalProperties": true
+    },
+    "right_manifest": {
+      "type": "object",
+      "required": ["schema_version"],
+      "properties": {
+        "schema_version": { "enum": ["biors.package.v0", "biors.package.v1"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

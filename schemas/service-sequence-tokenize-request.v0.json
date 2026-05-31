@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-sequence-tokenize-request.v0.json",
+  "title": "bio-rs service sequence tokenization request",
+  "type": "object",
+  "required": ["fasta_text"],
+  "properties": {
+    "fasta_text": { "type": "string", "minLength": 1 },
+    "profile": { "enum": ["protein-20", "protein-20-special"] },
+    "config": {
+      "type": "object",
+      "properties": {
+        "profile": { "enum": ["protein-20", "protein-20-special"] },
+        "add_special_tokens": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

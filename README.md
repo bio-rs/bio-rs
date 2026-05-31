@@ -280,6 +280,12 @@ schemas/
   sequence-workflow-output.v0.json
   sequence-debug-output.v0.json
   service-interface-output.v0.json
+  service-model-input-request.v0.json
+  service-package-compatibility-request.v0.json
+  service-package-request.v0.json
+  service-sequence-inspect-request.v0.json
+  service-sequence-tokenize-request.v0.json
+  service-sequence-validate-request.v0.json
   package-bridge-output.v0.json
   package-compatibility-output.v0.json
   package-conversion-output.v0.json

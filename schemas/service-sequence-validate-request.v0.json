@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-sequence-validate-request.v0.json",
+  "title": "bio-rs service sequence validation request",
+  "type": "object",
+  "required": ["fasta_text"],
+  "properties": {
+    "fasta_text": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["auto", "protein", "dna", "rna"] }
+  },
+  "additionalProperties": false
+}
