@@ -153,6 +153,36 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
 }
 
 #[test]
+fn citation_version_matches_workspace_package_version() {
+    let repo = repo_root();
+    let workspace_manifest =
+        fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");
+    let manifest: toml::Table = workspace_manifest
+        .parse()
+        .expect("parse workspace manifest");
+    let workspace_version = manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|workspace| workspace.get("package"))
+        .and_then(toml::Value::as_table)
+        .and_then(|package| package.get("version"))
+        .and_then(toml::Value::as_str)
+        .expect("workspace package version");
+
+    let citation = fs::read_to_string(repo.join("CITATION.cff")).expect("read citation metadata");
+    let citation_version = citation
+        .lines()
+        .find_map(|line| line.strip_prefix("version: "))
+        .map(|value| value.trim_matches('"'))
+        .expect("citation version");
+
+    assert_eq!(
+        citation_version, workspace_version,
+        "CITATION.cff version must match the workspace package version"
+    );
+}
+
+#[test]
 fn final_release_checklist_covers_required_gates() {
     let repo = repo_root();
     let checklist =
