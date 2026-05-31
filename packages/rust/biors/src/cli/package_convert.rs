@@ -3,7 +3,7 @@ use crate::errors::CliError;
 use crate::input::read_package_manifest;
 use crate::output::print_success;
 use biors_core::{
-    hash::sha256_digest,
+    hash::sha256_bytes_digest,
     package::{
         convert_package_manifest, CitationMetadata, DocumentArtifact, LicenseMetadata,
         ModelCardMetadata, PackageDirectoryLayout, PackageManifest, PackageManifestConversionError,
@@ -23,7 +23,7 @@ pub(crate) fn run_package_convert(args: PackageConvertArgs) -> Result<(), CliErr
     let mut output =
         convert_package_manifest(&manifest, to, conversion_input).map_err(conversion_error)?;
     let manifest_bytes = converted_manifest_bytes(&output.manifest)?;
-    output.report.manifest_sha256 = Some(sha256_digest(&manifest_bytes));
+    output.report.manifest_sha256 = Some(sha256_bytes_digest(&manifest_bytes));
     if let Some(path) = &args.output {
         fs::write(path, &manifest_bytes).map_err(CliError::Write)?;
         output.report.output_path = Some(path.display().to_string());

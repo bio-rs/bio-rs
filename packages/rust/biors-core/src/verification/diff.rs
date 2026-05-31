@@ -1,5 +1,5 @@
 use super::{ContentMismatchDiff, FirstDifference, OutputDiffReport};
-use crate::hash::sha256_digest;
+use crate::hash::sha256_canonical_json_digest;
 use std::borrow::Cow;
 
 /// Build a canonical diff report for two outputs.
@@ -13,8 +13,8 @@ pub fn diff_output_bytes(
     OutputDiffReport {
         expected_path: expected_path.to_string(),
         observed_path: observed_path.to_string(),
-        expected_sha256: sha256_digest(expected),
-        observed_sha256: sha256_digest(observed),
+        expected_sha256: sha256_canonical_json_digest(expected),
+        observed_sha256: sha256_canonical_json_digest(observed),
         matches,
         content_diff: (!matches)
             .then(|| content_mismatch_diff(expected_path, observed_path, expected, observed)),

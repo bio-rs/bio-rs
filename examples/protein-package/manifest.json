@@ -57,13 +57,13 @@
   "tokenizer": {
     "name": "protein-20",
     "path": "tokenizers/protein-20.json",
-    "checksum": "sha256:ee19428abc3b2d9d709d314571c387ad80c57b2e0e31ad6c16abc29bb8fdcd3a",
+    "checksum": "sha256:b6649e6ced53687bcdc945fd739d75ec4e52feddaf9f16eb4db8960da2f33732",
     "contract_version": "protein-20.v0"
   },
   "vocab": {
     "name": "protein-20",
     "path": "vocabs/protein-20.json",
-    "checksum": "sha256:2b44933931b31eb9fe50278b384e0f987b71579756b62367abe56b91b26393ee",
+    "checksum": "sha256:d623b8cc8cc67b1bf75bde62b574de4d0431103aaf804dd9f91ccf06d37628aa",
     "contract_version": "protein-20.v0"
   },
   "preprocessing": [
@@ -105,7 +105,7 @@
       "input": "fixtures/tiny.fasta",
       "expected_output": "fixtures/tiny.output.json",
       "input_hash": "sha256:e2b3a50f4e8a5cc11de2cd1fb38bd9398b0cbe24378eeea184ba7ce535c542f3",
-      "expected_output_hash": "sha256:3e1f934b28ea75e21ce7d61840c3747380d07b26664a1656527a4559a8374e8a"
+      "expected_output_hash": "sha256:999bd0b95f67a8856011bb9e4a106bfce8354dabb35b067282255291af710e57"
     }
   ]
 }

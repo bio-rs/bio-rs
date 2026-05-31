@@ -1,8 +1,10 @@
+use biors_core::hash::{sha256_bytes_digest, sha256_canonical_json_digest};
 use biors_core::package::{
     inspect_package_manifest, plan_runtime_bridge, validate_package_manifest, ModelFormat,
     PackageManifest, PackageValidationIssueCode, RuntimeBackend, RuntimeTargetPlatform,
     SchemaVersion,
 };
+use std::fs;
 use std::path::Path;
 
 fn valid_manifest() -> PackageManifest {
@@ -320,6 +322,42 @@ fn rejects_checksum_mismatch_against_real_artifact() {
             && issue.field == "model.checksum"
             && issue.message.contains("computed")
     }));
+}
+
+#[test]
+fn package_artifact_validation_uses_raw_file_sha256_for_json_artifacts() {
+    let base = temp_package_dir("raw-json-checksum");
+    fs::create_dir_all(base.join("models")).expect("create models dir");
+    fs::create_dir_all(base.join("fixtures")).expect("create fixtures dir");
+    fs::write(base.join("models/protein-seed.onnx"), b"{\n  \"a\": 1\n}\n").expect("write model");
+    fs::write(base.join("fixtures/tiny.fasta"), b">seq1\nACDEFG\n").expect("write input");
+    fs::write(base.join("fixtures/tiny.output.json"), b"{\"ok\":true}\n").expect("write output");
+
+    let mut manifest = valid_manifest();
+    let model_bytes = fs::read(base.join("models/protein-seed.onnx")).expect("read model");
+    manifest.model.checksum = Some(sha256_bytes_digest(&model_bytes));
+
+    let report = biors_core::package::validate_package_manifest_artifacts(&manifest, &base);
+    assert!(report.valid, "{:?}", report.structured_issues);
+
+    manifest.model.checksum = Some(sha256_canonical_json_digest(&model_bytes));
+    let report = biors_core::package::validate_package_manifest_artifacts(&manifest, &base);
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::ChecksumMismatch
+            && issue.field == "model.checksum"
+    }));
+}
+
+fn temp_package_dir(name: &str) -> std::path::PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "biors-{name}-{}-{}",
+        std::process::id(),
+        std::thread::current().name().unwrap_or("test")
+    ));
+    let _ = fs::remove_dir_all(&path);
+    fs::create_dir_all(&path).expect("create temp package dir");
+    path
 }
 
 #[test]

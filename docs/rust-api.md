@@ -133,12 +133,23 @@ The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the i
 
 ### Module: `hash`
 
-The `hash` module provides canonical SHA-256 digest utilities.
+The `hash` module provides explicit SHA-256 digest utilities for raw artifact
+checksums and canonical JSON comparisons.
 
 #### Functions
 
+- `pub fn sha256_bytes_digest(bytes: &[u8]) -> String`
+  Compute a raw byte-for-byte SHA-256 digest in `sha256:<hex>` form. Use this
+  for package artifacts, files, and published checksums.
+
+- `pub fn sha256_canonical_json_digest(bytes: &[u8]) -> String`
+  Compute a canonical JSON SHA-256 digest in `sha256:<hex>` form. JSON inputs
+  are normalized before hashing so semantically equivalent JSON produces the
+  same digest; non-JSON input falls back to raw bytes.
+
 - `pub fn sha256_digest(bytes: &[u8]) -> String`
-  Compute a canonical SHA-256 digest in `sha256:<hex>` form. JSON inputs are normalized before hashing so semantically equivalent JSON produces the same digest.
+  Compatibility alias for canonical JSON hashing. Prefer the explicit
+  `sha256_bytes_digest` or `sha256_canonical_json_digest` functions in new code.
 
 - `pub fn is_sha256_checksum(checksum: &str) -> bool`
   Return true when a checksum uses the supported `sha256:<64 hex>` format.
@@ -309,8 +320,11 @@ The `package` module is the largest surface in `biors-core`. It handles manifest
 - `pub fn resolve_package_asset_path(base_dir: &Path, relative_path: &str) -> Result<PathBuf, PackageArtifactError>`
   Resolve a package-relative path.
 
+- `pub fn sha256_bytes_digest(bytes: &[u8]) -> String`
+  Raw byte-for-byte SHA-256 digest for package artifacts and files.
+
 - `pub fn sha256_digest(bytes: &[u8]) -> String`
-  Canonical SHA-256 digest.
+  Compatibility alias for canonical JSON hashing.
 
 - `pub fn is_sha256_checksum(checksum: &str) -> bool`
   Validate checksum format.

@@ -2,7 +2,7 @@ use crate::cli::package_skeleton::PackageSkeletonRequest;
 use crate::cli::tokenizer_convert::hf_config_to_biors_config;
 use crate::errors::CliError;
 use biors_core::{
-    hash::sha256_digest,
+    hash::sha256_bytes_digest,
     package::{
         CitationMetadata, DocumentArtifact, LicenseMetadata, ModelCardMetadata, PackageMetadata,
         TokenAsset,
@@ -166,7 +166,7 @@ pub(crate) fn file_sha256(path: &Path) -> Result<String, CliError> {
         path: path.to_path_buf(),
         source,
     })?;
-    Ok(sha256_digest(&bytes))
+    Ok(sha256_bytes_digest(&bytes))
 }
 
 pub(crate) fn validate_required_list(option: &str, values: &[String]) -> Result<(), CliError> {

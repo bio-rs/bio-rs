@@ -3,7 +3,7 @@ use super::{
     validate_package_relative_path, PackageManifest, PackageValidationIssueCode,
     PackageValidationReport,
 };
-use crate::hash::{is_sha256_checksum, sha256_digest};
+use crate::hash::{is_sha256_checksum, sha256_bytes_digest};
 use std::path::Path;
 
 pub fn validate_package_manifest_artifacts(
@@ -184,7 +184,7 @@ fn validate_checksum_value(
         return;
     }
 
-    let actual = sha256_digest(bytes);
+    let actual = sha256_bytes_digest(bytes);
     if actual != checksum {
         report.push_issue(
             PackageValidationIssueCode::ChecksumMismatch,

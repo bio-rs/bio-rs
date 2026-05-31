@@ -1,6 +1,8 @@
 use super::pipeline_config::ResolvedPipelineConfig;
 use crate::errors::CliError;
-use biors_core::{hash::sha256_digest, package::PackageManifest, workflow::SequenceWorkflowOutput};
+use biors_core::{
+    hash::sha256_bytes_digest, package::PackageManifest, workflow::SequenceWorkflowOutput,
+};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
@@ -160,5 +162,5 @@ fn file_sha256(path: &Path) -> Result<String, CliError> {
         path: path.to_path_buf(),
         source,
     })?;
-    Ok(sha256_digest(&bytes))
+    Ok(sha256_bytes_digest(&bytes))
 }

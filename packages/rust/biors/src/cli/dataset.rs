@@ -3,7 +3,9 @@ use crate::errors::CliError;
 use crate::input::{resolve_fasta_input_dataset, ResolvedInputDataset, ResolvedInputFile};
 use crate::output::print_success;
 use biors_core::{
-    fasta::parse_fasta_records_reader, hash::sha256_digest, sequence::ProteinSequence,
+    fasta::parse_fasta_records_reader,
+    hash::{sha256_bytes_digest, sha256_canonical_json_digest},
+    sequence::ProteinSequence,
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -131,7 +133,7 @@ fn inspect_dataset_file(
         path: file.path.clone(),
         source,
     })?;
-    let sha256 = sha256_digest(&bytes);
+    let sha256 = sha256_bytes_digest(&bytes);
     let records = parse_fasta_records_reader(Cursor::new(&bytes))
         .map_err(|error| CliError::from_fasta_read(file.path.clone(), error))?
         .records;
@@ -206,5 +208,5 @@ fn dataset_hash(
         samples,
     };
     let bytes = serde_json::to_vec(&input).map_err(CliError::Serialization)?;
-    Ok(sha256_digest(&bytes))
+    Ok(sha256_canonical_json_digest(&bytes))
 }

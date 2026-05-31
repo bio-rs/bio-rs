@@ -1,7 +1,7 @@
 use crate::errors::CliError;
 use crate::output::print_success;
 use biors_core::{
-    hash::sha256_digest,
+    hash::sha256_bytes_digest,
     tokenizer::{
         protein_tokenizer_config_for_profile, ProteinTokenizerConfig, ProteinTokenizerProfile,
     },
@@ -95,7 +95,7 @@ fn convert_huggingface_tokenizer_config(
         assumptions,
         warnings,
         output_path: output_path.map(|path| path.display().to_string()),
-        config_sha256: sha256_digest(&config_bytes),
+        config_sha256: sha256_bytes_digest(&config_bytes),
     })
 }
 

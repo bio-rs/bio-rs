@@ -3,7 +3,7 @@ use super::{
     FixtureObservation, FixtureVerificationResult, PackageVerificationReport,
     VerificationIssueCode, VerificationStatus,
 };
-use crate::hash::sha256_digest;
+use crate::hash::sha256_bytes_digest;
 use crate::package::{
     read_package_file, resolve_package_asset_path, PackageFixture, PackageManifest,
 };
@@ -97,7 +97,7 @@ fn verify_fixture(
         }
     };
 
-    let expected_output_hash = sha256_digest(&expected_bytes);
+    let expected_output_hash = sha256_bytes_digest(&expected_bytes);
     result.expected_output_hash = Some(expected_output_hash.clone());
 
     if let Some(error) = validate_declared_hash(
@@ -140,7 +140,7 @@ fn validate_declared_hash(
     label: &str,
 ) -> Option<(VerificationIssueCode, String)> {
     let declared_hash = declared_hash?;
-    let actual_hash = sha256_digest(bytes);
+    let actual_hash = sha256_bytes_digest(bytes);
     if actual_hash == declared_hash {
         return None;
     }
@@ -183,7 +183,7 @@ fn compare_observed_output(
     expected_output_hash: &str,
     observed_bytes: &[u8],
 ) -> FixtureVerificationResult {
-    let observed_hash = sha256_digest(observed_bytes);
+    let observed_hash = sha256_bytes_digest(observed_bytes);
     result.observed_output_hash = Some(observed_hash.clone());
 
     if observed_hash != expected_output_hash {

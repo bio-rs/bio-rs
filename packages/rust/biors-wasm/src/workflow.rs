@@ -32,7 +32,7 @@ pub fn run_workflow(config: JsValue) -> Result<JsValue, JsValue> {
         padding: padding_policy,
     };
 
-    let input_hash = biors_core::hash::sha256_digest(&fasta_bytes);
+    let input_hash = biors_core::hash::sha256_bytes_digest(&fasta_bytes);
 
     let output = prepare_protein_model_input_workflow(input_hash, &records, policy)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;

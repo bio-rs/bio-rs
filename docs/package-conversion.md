@@ -55,8 +55,8 @@ biors package init ./protein-package \
 - `docs/model-card.md`
 
 It copies the supplied model and fixture artifacts, writes a bio-rs tokenizer
-config, writes a static pipeline config, and records SHA-256 checksums for all
-manifest-referenced files.
+config, writes a static pipeline config, and records byte-for-byte SHA-256
+checksums for all manifest-referenced files.
 
 ## Convert A Python Project
 

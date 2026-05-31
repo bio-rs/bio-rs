@@ -171,8 +171,8 @@ mismatches.
 
 ## Checksums
 
-Package artifacts use `sha256:<64 lowercase hex>` checksums. Validation computes
-hashes from disk for:
+Package artifacts use byte-for-byte `sha256:<64 lowercase hex>` checksums.
+Validation computes raw file hashes from disk for:
 
 - model artifacts
 - tokenizer configs
@@ -183,6 +183,10 @@ hashes from disk for:
 - citation files
 - model cards
 - pipeline configs
+
+Fixture verification reports raw expected/observed output checksums. JSON output
+content is still compared canonically so formatting-only differences can be
+identified separately from byte-level checksum drift.
 
 Checksums are optional for some fields in the schema so draft packages can be
 assembled incrementally, but published or shared packages should include them

@@ -77,7 +77,7 @@ struct WorkflowHashPayload<'a> {
 
 fn json_sha256<T: Serialize>(value: &T) -> String {
     match serde_json::to_vec(value) {
-        Ok(bytes) => crate::hash::sha256_digest(&bytes),
-        Err(error) => crate::hash::sha256_digest(error.to_string().as_bytes()),
+        Ok(bytes) => crate::hash::sha256_canonical_json_digest(&bytes),
+        Err(error) => crate::hash::sha256_bytes_digest(error.to_string().as_bytes()),
     }
 }

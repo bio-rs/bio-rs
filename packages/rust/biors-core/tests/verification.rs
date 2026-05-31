@@ -100,7 +100,7 @@ fn reports_mismatched_fixture_outputs() {
 }
 
 #[test]
-fn treats_equivalent_json_with_different_key_order_as_match() {
+fn equivalent_json_with_different_bytes_fails_checksum_but_not_content() {
     let report = verify_package_outputs(
         &manifest(),
         &[FixtureObservation {
@@ -110,9 +110,15 @@ fn treats_equivalent_json_with_different_key_order_as_match() {
         &example_base_dir(),
     );
 
-    assert_eq!(report.passed, 1);
-    assert_eq!(report.failed, 0);
-    assert_eq!(report.results[0].status, VerificationStatus::Passed);
+    assert_eq!(report.passed, 0);
+    assert_eq!(report.failed, 1);
+    assert_eq!(report.results[0].status, VerificationStatus::Failed);
+    assert!(report.results[0].checksum_mismatch);
+    assert!(!report.results[0].content_mismatch);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::OutputChecksumMismatch)
+    );
 }
 
 #[test]
