@@ -81,6 +81,37 @@ def test_build_model_inputs_fixed_length_padding():
     assert model_input.records[0].input_ids == [0, 1, 2, 3, 4, 5, 21, 21, 21, 21]
     assert model_input.records[0].attention_mask == [1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
 
+def test_direct_tokenized_protein_construction_builds_model_input():
+    tokenized = [biors.TokenizedProtein("seq-memory", [0, 1, 2, 3])]
+    model_input = biors.build_model_inputs_checked(
+        tokenized,
+        max_length=6,
+        pad_token_id=21,
+        padding="fixed_length",
+    )
+
+    assert model_input.records[0].id == "seq-memory"
+    assert model_input.records[0].input_ids == [0, 1, 2, 3, 21, 21]
+    assert model_input.records[0].attention_mask == [1, 1, 1, 1, 0, 0]
+
+def test_direct_tokenized_protein_preserves_diagnostics():
+    warning = biors.ResidueIssue("X", 2)
+    tokenized = [
+        biors.TokenizedProtein(
+            "seq-invalid",
+            [0, 20],
+            valid=False,
+            warnings=[warning],
+        )
+    ]
+
+    with pytest.raises(ValueError, match="not model-ready"):
+        biors.build_model_inputs_checked(tokenized, max_length=6)
+
+def test_residue_issue_constructor_rejects_multi_character_residue():
+    with pytest.raises(ValueError, match="exactly one residue"):
+        biors.ResidueIssue("XX", 1)
+
 def test_prepare_workflow():
     fasta = ">seq1\nACDEFG"
     records = biors.parse_fasta_records(fasta)
@@ -95,6 +126,15 @@ def test_prepare_workflow_marks_direct_empty_sequence_not_model_ready():
     output = biors.prepare_workflow("hash-empty", records, max_length=10, padding="fixed_length")
     assert output.model_ready == False
     assert output.records == []
+
+def test_direct_protein_sequence_construction_prepares_workflow():
+    records = [biors.ProteinSequence("seq-memory", "ACDE")]
+    output = biors.prepare_workflow("hash-memory", records, max_length=6, padding="fixed_length")
+
+    assert output.model_ready == True
+    assert output.input_hash == "hash-memory"
+    assert output.records[0].id == "seq-memory"
+    assert output.records[0].attention_mask == [1, 1, 1, 1, 0, 0]
 
 def test_prepare_workflow_from_fasta_computes_input_hash_internally():
     fasta = ">seq1\nACDEFG"

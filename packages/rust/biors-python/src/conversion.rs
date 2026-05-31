@@ -11,6 +11,19 @@ pub struct PyResidueIssue {
     pub position: usize,
 }
 
+#[pymethods]
+impl PyResidueIssue {
+    #[new]
+    fn new(residue: String, position: usize) -> PyResult<Self> {
+        if residue.chars().count() != 1 {
+            return Err(PyValueError::new_err(
+                "residue issue must contain exactly one residue",
+            ));
+        }
+        Ok(Self { residue, position })
+    }
+}
+
 #[pyclass(name = "TokenizedProtein")]
 #[derive(Clone, Debug)]
 pub struct PyTokenizedProtein {
@@ -30,6 +43,31 @@ pub struct PyTokenizedProtein {
     pub errors: Vec<PyResidueIssue>,
 }
 
+#[pymethods]
+impl PyTokenizedProtein {
+    #[new]
+    #[pyo3(signature = (id, tokens, length=None, alphabet="protein-20", valid=true, warnings=None, errors=None))]
+    fn new(
+        id: String,
+        tokens: Vec<usize>,
+        length: Option<usize>,
+        alphabet: &str,
+        valid: bool,
+        warnings: Option<Vec<PyResidueIssue>>,
+        errors: Option<Vec<PyResidueIssue>>,
+    ) -> Self {
+        Self {
+            id,
+            alphabet: alphabet.to_string(),
+            valid,
+            length: length.unwrap_or(tokens.len()),
+            tokens,
+            warnings: warnings.unwrap_or_default(),
+            errors: errors.unwrap_or_default(),
+        }
+    }
+}
+
 #[pyclass(name = "ModelInputRecord")]
 #[derive(Clone, Debug)]
 pub struct PyModelInputRecord {
@@ -41,6 +79,19 @@ pub struct PyModelInputRecord {
     pub attention_mask: Vec<usize>,
     #[pyo3(get)]
     pub truncated: bool,
+}
+
+#[pymethods]
+impl PyModelInputRecord {
+    #[new]
+    fn new(id: String, input_ids: Vec<usize>, attention_mask: Vec<usize>, truncated: bool) -> Self {
+        Self {
+            id,
+            input_ids,
+            attention_mask,
+            truncated,
+        }
+    }
 }
 
 pub(crate) fn parse_padding_policy(padding: &str) -> PyResult<model_input::PaddingPolicy> {

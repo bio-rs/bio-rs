@@ -5,10 +5,14 @@ class ResidueIssue:
     residue: str
     position: int
 
+    def __init__(self, residue: str, position: int) -> None: ...
+
 
 class ProteinSequence:
     id: str
     sequence: str
+
+    def __init__(self, id: str, sequence: str) -> None: ...
 
 
 class SequenceValidationReport:
@@ -27,12 +31,31 @@ class TokenizedProtein:
     warnings: list[ResidueIssue]
     errors: list[ResidueIssue]
 
+    def __init__(
+        self,
+        id: str,
+        tokens: Sequence[int],
+        length: int | None = None,
+        alphabet: str = "protein-20",
+        valid: bool = True,
+        warnings: Sequence[ResidueIssue] | None = None,
+        errors: Sequence[ResidueIssue] | None = None,
+    ) -> None: ...
+
 
 class ModelInputRecord:
     id: str
     input_ids: list[int]
     attention_mask: list[int]
     truncated: bool
+
+    def __init__(
+        self,
+        id: str,
+        input_ids: Sequence[int],
+        attention_mask: Sequence[int],
+        truncated: bool,
+    ) -> None: ...
 
 
 class ModelInput:
