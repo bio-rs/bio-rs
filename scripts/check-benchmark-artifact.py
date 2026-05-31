@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from benchmark_feature_coverage import REQUIRED_FEATURE_COVERAGE
+
 RESULT_PATH = Path("benchmarks/fasta_vs_biopython.json")
 
 
@@ -15,12 +17,21 @@ def main() -> int:
     if result.get("schema_version") != "biors.benchmark.fasta_vs_biopython.v1":
         raise AssertionError("benchmark artifact must use schema v1")
 
-    for field in ["generated_at_utc", "loops", "methodology", "environment", "datasets"]:
+    for field in [
+        "generated_at_utc",
+        "loops",
+        "methodology",
+        "environment",
+        "datasets",
+        "feature_coverage",
+    ]:
         if field not in result:
             raise AssertionError(f"missing top-level field: {field}")
 
     if not isinstance(result["datasets"], list) or len(result["datasets"]) != 4:
         raise AssertionError("benchmark artifact must contain the four recorded shape profiles")
+
+    validate_feature_coverage(result["feature_coverage"])
 
     required_workloads = [
         "pure_parse",
@@ -68,6 +79,35 @@ def main() -> int:
                         )
 
     return 0
+
+
+def validate_feature_coverage(feature_coverage: object) -> None:
+    if not isinstance(feature_coverage, list):
+        raise AssertionError("feature_coverage must be a list")
+
+    observed: dict[str, dict] = {}
+    for entry in feature_coverage:
+        if not isinstance(entry, dict):
+            raise AssertionError("feature_coverage entries must be objects")
+        for field in ["feature", "status", "claim_scope", "evidence"]:
+            if field not in entry:
+                raise AssertionError(f"feature_coverage entry missing {field}")
+        observed[entry["feature"]] = entry
+
+    missing = sorted(set(REQUIRED_FEATURE_COVERAGE) - set(observed))
+    if missing:
+        raise AssertionError(f"benchmark artifact missing feature coverage: {missing}")
+
+    for feature, status in REQUIRED_FEATURE_COVERAGE.items():
+        entry = observed[feature]
+        if entry["status"] != status:
+            raise AssertionError(
+                f"{feature} must use status {status}, found {entry['status']}"
+            )
+        if not entry["claim_scope"]:
+            raise AssertionError(f"{feature} must describe benchmark claim scope")
+        if not entry["evidence"]:
+            raise AssertionError(f"{feature} must list benchmark evidence or the gap")
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ done
 echo "==> python syntax"
 python3 -m py_compile \
   scripts/benchmark_fasta_vs_biopython.py \
+  scripts/benchmark_feature_coverage.py \
   scripts/check-benchmark-artifact.py \
   scripts/check-registry-versions.py \
   scripts/check-module-size.py \

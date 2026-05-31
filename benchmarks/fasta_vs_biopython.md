@@ -60,6 +60,23 @@ new numeric claims for later releases.
 - Shape: 1 records, 960,000 residues, 972,013 bytes
 - Residue composition: 959,998 canonical, 2 ambiguous, 0 invalid
 
+## Feature Benchmark Coverage
+
+| Feature | Status | Claim scope | Evidence |
+| --- | --- | --- | --- |
+| `core_fasta_parse_validate_tokenize` | `numeric_public_claim` | Matched FASTA parse, validation, and tokenization workloads recorded in this artifact. | `benchmarks.fasta_vs_biopython.v1 datasets[].benchmarks` |
+| `core_fixed_length_model_input` | `criterion_regression_guard` | Criterion guard only; no committed public numeric artifact yet. | `packages/rust/biors-core/benches/fasta_workloads.rs` |
+| `cli_workflow` | `not_benchmarked` | No numeric performance claim. | `missing committed CLI workflow benchmark artifact` |
+| `cli_dataset_inspect` | `not_benchmarked` | No numeric performance claim. | `missing committed CLI dataset inspect benchmark artifact` |
+| `python_bindings` | `not_benchmarked` | No numeric performance claim. | `missing committed Python binding benchmark artifact` |
+| `wasm_bindings` | `not_benchmarked` | No numeric performance claim. | `missing committed WASM/Node benchmark artifact` |
+| `mcp_service_contract` | `not_benchmarked` | No numeric performance claim. | `missing committed MCP/service benchmark artifact` |
+| `package_validation_bridge` | `not_benchmarked` | No numeric performance claim. | `missing committed package validation/bridge benchmark artifact` |
+| `candle_cpu_linear_probe` | `criterion_regression_guard` | Synthetic Criterion guard only; no committed public numeric artifact yet. | `packages/rust/biors-backend-candle/benches/candle_linear_probe.rs` |
+
+`not_benchmarked` entries are explicit non-claims. Add committed
+numeric artifacts before making performance claims for those surfaces.
+
 ## Workload matching
 
 Scope: core library FASTA throughput, excluding CLI startup and success-envelope JSON serialization.

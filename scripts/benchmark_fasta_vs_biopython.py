@@ -29,6 +29,7 @@ from pathlib import Path
 
 import Bio
 from Bio import SeqIO
+from benchmark_feature_coverage import FEATURE_COVERAGE
 from render_benchmark_report import render_report
 
 ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
@@ -641,6 +642,7 @@ def main() -> int:
                 "memory": "best-effort peak RSS from /usr/bin/time for biors-core and Biopython subprocesses",
             },
             "environment": benchmark_environment(),
+            "feature_coverage": FEATURE_COVERAGE,
             "datasets": [
                 dataset_report(
                     "human_reference_proteome",

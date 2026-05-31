@@ -60,10 +60,11 @@ Current release posture: no current-version numeric throughput claim is made for
 from `biors-core v0.20.0`; rerun and commit a fresh artifact before using these
 numbers as evidence for a later release.
 
-The current code includes benchmark harness coverage for fixed-length
-model-input construction and reduced repeated ASCII classification in reader
-FASTA scanning, but those implementation changes are not represented by the
-historical FASTA table below.
+The current code includes Criterion regression guards for fixed-length
+model-input construction and selected backend smoke paths, but those
+implementation changes are not represented by the historical FASTA table below.
+The benchmark artifact records which promoted surfaces have committed numeric
+coverage and which are explicit non-claims.
 
 ### Historical FASTA benchmark reference
 

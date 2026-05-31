@@ -54,6 +54,8 @@ def render_report(result: dict) -> str:
     for index, dataset in enumerate(result["datasets"], start=1):
         lines.extend(dataset_section(index, dataset))
 
+    lines.extend(feature_coverage_section(result.get("feature_coverage", [])))
+
     lines.extend(
         [
             "## Workload matching",
@@ -170,6 +172,35 @@ def dataset_section(index: int, dataset: dict) -> list[str]:
 
 def dataset_title(dataset: dict) -> str:
     return dataset["label"].replace("_", " ").title()
+
+
+def feature_coverage_section(feature_coverage: list[dict]) -> list[str]:
+    if not feature_coverage:
+        return []
+    lines = [
+        "## Feature Benchmark Coverage",
+        "",
+        "| Feature | Status | Claim scope | Evidence |",
+        "| --- | --- | --- | --- |",
+    ]
+    for entry in feature_coverage:
+        evidence = "<br>".join(f"`{item}`" for item in entry["evidence"])
+        lines.append(
+            "| "
+            f"`{entry['feature']}` | "
+            f"`{entry['status']}` | "
+            f"{entry['claim_scope']} | "
+            f"{evidence} |"
+        )
+    lines.extend(
+        [
+            "",
+            "`not_benchmarked` entries are explicit non-claims. Add committed",
+            "numeric artifacts before making performance claims for those surfaces.",
+            "",
+        ]
+    )
+    return lines
 
 
 def shape(dataset: dict) -> str:
