@@ -34,3 +34,7 @@ It covers:
 The `biors-wasm` package source is implemented in-repo with TypeScript
 definitions. Tag releases build the package with `wasm-pack`, run WASM tests,
 and publish it through npm trusted publishing.
+
+Release builds use empty default features so browser-only debug helpers do not
+ship unless explicitly requested. Enable `console_error_panic_hook` only for
+local debugging builds that need browser panic stack traces.

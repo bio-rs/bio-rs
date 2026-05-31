@@ -26,4 +26,4 @@ console_error_panic_hook = { version = "0.1.7", optional = true }
 wasm-bindgen-test = "0.3.50"
 
 [features]
-default = ["console_error_panic_hook"]
+default = []

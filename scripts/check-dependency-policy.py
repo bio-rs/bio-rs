@@ -54,6 +54,10 @@ def main() -> int:
                 f"{package} must not have duplicate dependencies:\n{duplicate_tree}"
             )
 
+    wasm_tree = cargo_tree_normal("biors-wasm", "wasm32-unknown-unknown")
+    if "console_error_panic_hook" in wasm_tree:
+        raise AssertionError("biors-wasm default features must not enable console_error_panic_hook")
+
     print("Dependency policy checks passed")
     return 0
 
@@ -73,6 +77,18 @@ def cargo_tree_duplicates(package: str) -> str:
         text=True,
     )
     return completed.stdout.strip()
+
+
+def cargo_tree_normal(package: str, target: str) -> str:
+    completed = subprocess.run(
+        ["cargo", "tree", "--locked", "-p", package, "--target", target, "--edges", "normal"],
+        cwd=ROOT,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    return completed.stdout
 
 
 if __name__ == "__main__":

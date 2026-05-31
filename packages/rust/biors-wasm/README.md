@@ -39,6 +39,9 @@ cargo check -p biors-wasm --target wasm32-unknown-unknown
 # Build for bundlers
 wasm-pack build packages/rust/biors-wasm --target bundler
 
+# Enable browser panic stack traces for local debugging
+wasm-pack build packages/rust/biors-wasm --target bundler --features console_error_panic_hook
+
 # Run browser tests
 wasm-pack test --headless --chrome packages/rust/biors-wasm
 ```
