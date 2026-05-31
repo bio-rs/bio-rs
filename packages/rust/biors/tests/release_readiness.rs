@@ -294,6 +294,48 @@ fn final_release_checklist_covers_required_gates() {
 }
 
 #[test]
+fn github_templates_cover_promoted_release_surfaces() {
+    let repo = repo_root();
+    let pr_template = fs::read_to_string(repo.join(".github/pull_request_template.md"))
+        .expect("read PR template");
+    let benchmark_template =
+        fs::read_to_string(repo.join(".github/ISSUE_TEMPLATE/benchmark_performance_idea.md"))
+            .expect("read benchmark issue template");
+
+    for expected in [
+        "scripts/test-python-wheel.py",
+        "wasm-pack test --node packages/rust/biors-wasm",
+        "MCP integration tests",
+        "Package artifact changes",
+        "Schema parity",
+        "Dependency/advisory/license audit",
+    ] {
+        assert!(
+            pr_template.contains(expected),
+            "PR template missing promoted surface check: {expected}"
+        );
+    }
+
+    for expected in [
+        "model-input construction",
+        "workflow or pipeline orchestration",
+        "dataset inspect",
+        "package validation or verification",
+        "Python binding",
+        "WASM/JavaScript binding",
+        "MCP or service contract",
+        "optional Candle backend",
+        "binding or request overhead",
+        "Surface and non-claim boundaries",
+    ] {
+        assert!(
+            benchmark_template.contains(expected),
+            "benchmark issue template missing promoted surface: {expected}"
+        );
+    }
+}
+
+#[test]
 fn launch_demo_assets_cover_first_impression_workflow() {
     let repo = repo_root();
     let dataset = repo.join("examples/launch-demo.fasta");

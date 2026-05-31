@@ -12,13 +12,23 @@ assignees: ""
   - [ ] pure parse
   - [ ] parse plus validation
   - [ ] parse plus tokenization
+  - [ ] model-input construction
+  - [ ] workflow or pipeline orchestration
+  - [ ] dataset inspect
+  - [ ] package validation or verification
 - Surface:
   - [ ] core library only
   - [ ] CLI end-to-end
+  - [ ] Python binding
+  - [ ] WASM/JavaScript binding
+  - [ ] MCP or service contract
+  - [ ] optional Candle backend
 - Metrics:
   - [ ] mean time
   - [ ] residues/sec
   - [ ] MB/sec
+  - [ ] binding or request overhead
+  - [ ] package/runtime validation latency
 
 ## Why does this benchmark matter?
 
@@ -37,3 +47,4 @@ assignees: ""
 - [ ] Benchmark input is documented
 - [ ] Command is reproducible
 - [ ] Result is recorded without overclaiming
+- [ ] Surface and non-claim boundaries are explicit
