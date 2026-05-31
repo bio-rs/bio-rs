@@ -155,19 +155,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
 #[test]
 fn citation_version_matches_workspace_package_version() {
     let repo = repo_root();
-    let workspace_manifest =
-        fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");
-    let manifest: toml::Table = workspace_manifest
-        .parse()
-        .expect("parse workspace manifest");
-    let workspace_version = manifest
-        .get("workspace")
-        .and_then(toml::Value::as_table)
-        .and_then(|workspace| workspace.get("package"))
-        .and_then(toml::Value::as_table)
-        .and_then(|package| package.get("version"))
-        .and_then(toml::Value::as_str)
-        .expect("workspace package version");
+    let workspace_version = workspace_package_version(&repo);
 
     let citation = fs::read_to_string(repo.join("CITATION.cff")).expect("read citation metadata");
     let citation_version = citation
@@ -180,6 +168,39 @@ fn citation_version_matches_workspace_package_version() {
         citation_version, workspace_version,
         "CITATION.cff version must match the workspace package version"
     );
+}
+
+#[test]
+fn stale_benchmark_artifact_is_labeled_historical_in_readme() {
+    let repo = repo_root();
+    let workspace_version = workspace_package_version(&repo);
+    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+    let benchmark: Value = serde_json::from_str(
+        &fs::read_to_string(repo.join("benchmarks/fasta_vs_biopython.json"))
+            .expect("read benchmark artifact"),
+    )
+    .expect("parse benchmark artifact");
+
+    let benchmark_version = benchmark["environment"]["biors_core"]
+        .as_str()
+        .expect("benchmark biors-core version");
+
+    if benchmark_version != workspace_version {
+        assert!(
+            readme.contains("Historical FASTA benchmark reference"),
+            "stale benchmark artifacts must be visibly labeled historical"
+        );
+        assert!(
+            readme.contains("not current-version performance evidence"),
+            "README must not present stale benchmark numbers as current release evidence"
+        );
+        assert!(
+            !readme.contains(&format!(
+                "The `{workspace_version}` patch keeps those numeric claims pinned"
+            )),
+            "README must not tie stale numeric benchmark claims to the current version"
+        );
+    }
 }
 
 #[test]
@@ -336,6 +357,23 @@ fn candle_backend_stays_out_of_core_default_build() {
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..")
+}
+
+fn workspace_package_version(repo: &Path) -> String {
+    let workspace_manifest =
+        fs::read_to_string(repo.join("Cargo.toml")).expect("read workspace manifest");
+    let manifest: toml::Table = workspace_manifest
+        .parse()
+        .expect("parse workspace manifest");
+    manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|workspace| workspace.get("package"))
+        .and_then(toml::Value::as_table)
+        .and_then(|package| package.get("version"))
+        .and_then(toml::Value::as_str)
+        .expect("workspace package version")
+        .to_string()
 }
 
 fn run_biors(args: &[&str], paths: &[&Path]) -> Value {

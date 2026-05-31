@@ -55,8 +55,19 @@ Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.
 
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
 
-Latest recorded FASTA benchmark baseline (recorded on `biors-core v0.20.0`;
-rerun the benchmark before making new numeric claims for later versions):
+Current release posture: no current-version numeric throughput claim is made for
+`0.47.4`. The committed benchmark artifact is historical performance evidence
+from `biors-core v0.20.0`; rerun and commit a fresh artifact before using these
+numbers as evidence for a later release.
+
+The current code includes benchmark harness coverage for fixed-length
+model-input construction and reduced repeated ASCII classification in reader
+FASTA scanning, but those implementation changes are not represented by the
+historical FASTA table below.
+
+### Historical FASTA benchmark reference
+
+Historical FASTA benchmark baseline (recorded on `biors-core v0.20.0`; not current-version performance evidence):
 
 | Dataset | Matched workload | bio-rs core mean | Biopython mean | bio-rs speedup |
 |---|---|---:|---:|---:|
@@ -91,10 +102,8 @@ Benchmark details:
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
 bio-rs is faster than Biopython across every FASTA workload or researcher input
-shape. The `0.47.4` patch keeps those numeric claims pinned to the latest
-committed benchmark artifact while adding benchmark coverage for fixed-length
-model-input construction and reducing repeated ASCII classification in reader
-FASTA scanning.
+shape. Until the artifact is refreshed for `0.47.4`, the numeric table above
+remains a historical reference.
 
 ## What works today
 

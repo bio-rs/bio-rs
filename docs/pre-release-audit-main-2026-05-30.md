@@ -113,6 +113,8 @@ Required fix:
 
 Severity: release-blocking only if public copy claims current-version speedups; otherwise high-priority documentation/performance follow-up.
 
+Status: Complete in follow-up (2026-05-31 KST). README now labels the `biors-core v0.20.0` numeric FASTA table as historical and explicitly says it is not current-version performance evidence for `0.47.4`; `cargo test --locked -p biors --test release_readiness stale_benchmark_artifact_is_labeled_historical_in_readme` guards that stale benchmark artifacts stay visibly historical.
+
 Evidence:
 
 - README quick proof table is still based on `biors-core v0.20.0`.
