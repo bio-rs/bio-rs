@@ -58,10 +58,6 @@ with `--dry-run`. The generated `biors.pipeline.lock.v0` JSON pins:
 - package manifest path, model SHA-256, runtime backend, runtime target, and
   backend version when `--package` is supplied
 
-The lockfile also records the Python baseline parity strategy: compare
-normalized records and `protein-20` token IDs against
-`examples/model-input-contract/reference-python-parity.json`.
-
 ## Config Shape
 
 ```toml

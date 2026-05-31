@@ -8,8 +8,7 @@
     "generated_by",
     "pipeline_config",
     "execution",
-    "hashes",
-    "python_baseline"
+    "hashes"
   ],
   "properties": {
     "schema_version": { "const": "biors.pipeline.lock.v0" },
@@ -73,16 +72,6 @@
       "properties": {
         "vocabulary_sha256": { "$ref": "#/$defs/sha256" },
         "output_data_sha256": { "$ref": "#/$defs/sha256" }
-      },
-      "additionalProperties": false
-    },
-    "python_baseline": {
-      "type": "object",
-      "required": ["comparison", "reference", "status"],
-      "properties": {
-        "comparison": { "const": "normalized_records_and_protein20_tokens" },
-        "reference": { "type": "string", "minLength": 1 },
-        "status": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
     }

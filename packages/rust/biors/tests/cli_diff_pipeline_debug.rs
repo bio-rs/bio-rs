@@ -1,6 +1,7 @@
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
+use std::process::Command;
 
 mod common;
 use common::{ChildInputExt, TempDir};
@@ -195,10 +196,46 @@ fn pipeline_writes_lockfile_with_package_provenance() {
         .as_str()
         .expect("input hash")
         .starts_with("fnv1a64:"));
-    assert_eq!(
-        lock["python_baseline"]["comparison"],
-        "normalized_records_and_protein20_tokens"
+    assert!(lock.get("python_baseline").is_none());
+}
+
+#[test]
+fn checked_in_pipeline_lock_matches_current_generator() {
+    let temp = TempDir::new("biors-pipeline-lock-current");
+    let generated_lock = temp.path().join("pipeline.lock");
+    let repo = repo_root();
+    let lock_arg = generated_lock.to_string_lossy();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .current_dir(&repo)
+        .args([
+            "pipeline",
+            "--config",
+            "examples/protein-package/pipelines/protein.toml",
+            "--package",
+            "examples/protein-package/manifest.json",
+            "--write-lock",
+            lock_arg.as_ref(),
+        ])
+        .output()
+        .expect("run biors pipeline lock generation");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
+
+    let checked_in: Value = serde_json::from_str(
+        &fs::read_to_string(repo.join("examples/pipeline/pipeline.lock"))
+            .expect("read checked-in lockfile"),
+    )
+    .expect("checked-in lockfile JSON");
+    let generated: Value =
+        serde_json::from_str(&fs::read_to_string(generated_lock).expect("read generated lockfile"))
+            .expect("generated lockfile JSON");
+
+    assert_eq!(generated, checked_in);
 }
 
 #[test]

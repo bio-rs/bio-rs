@@ -19,7 +19,6 @@ struct PipelineLockfile {
     package: Option<PipelineLockPackageSection>,
     execution: PipelineLockExecution,
     hashes: PipelineLockHashes,
-    python_baseline: PipelineLockPythonBaseline,
 }
 
 #[derive(Debug, Serialize)]
@@ -60,13 +59,6 @@ struct PipelineLockExecution {
 struct PipelineLockHashes {
     vocabulary_sha256: String,
     output_data_sha256: String,
-}
-
-#[derive(Debug, Serialize)]
-struct PipelineLockPythonBaseline {
-    comparison: &'static str,
-    reference: &'static str,
-    status: &'static str,
 }
 
 pub(crate) fn write_pipeline_lock(
@@ -116,11 +108,6 @@ fn build_pipeline_lock(
         hashes: PipelineLockHashes {
             vocabulary_sha256: workflow.provenance.hashes.vocabulary_sha256.clone(),
             output_data_sha256: workflow.provenance.hashes.output_data_sha256.clone(),
-        },
-        python_baseline: PipelineLockPythonBaseline {
-            comparison: "normalized_records_and_protein20_tokens",
-            reference: "examples/model-input-contract/reference-python-parity.json",
-            status: "strategy_recorded",
         },
     })
 }
