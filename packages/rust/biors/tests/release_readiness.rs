@@ -153,6 +153,30 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
 }
 
 #[test]
+fn readme_schema_inventory_lists_all_schema_files() {
+    let repo = repo_root();
+    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+    let schemas_dir = repo.join("schemas");
+
+    for entry in fs::read_dir(&schemas_dir).expect("read schemas directory") {
+        let entry = entry.expect("read schema entry");
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
+            continue;
+        }
+
+        let file_name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .expect("schema file name");
+        assert!(
+            readme.contains(file_name),
+            "README schema inventory is missing schemas/{file_name}"
+        );
+    }
+}
+
+#[test]
 fn citation_version_matches_workspace_package_version() {
     let repo = repo_root();
     let workspace_version = workspace_package_version(&repo);
