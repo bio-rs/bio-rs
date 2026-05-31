@@ -200,8 +200,7 @@ console.log(workflow.provenance.input_hash);
 ```typescript
 interface WorkflowConfig {
   fastaBytes: Uint8Array;
-  kind?: "auto" | "protein" | "dna" | "rna";
-  profile?: "protein-20" | "protein-20-special";
+  kind?: "auto" | "protein";
   maxLength: number;
   padding?: "fixed_length" | "no_padding";
   padTokenId?: number;
@@ -259,9 +258,11 @@ interface WorkflowOutput {
 }
 ```
 
-`kind` and `profile` are accepted in `WorkflowConfig` for API stability. The
-current workflow is the protein model-input workflow and uses protein
-validation plus the default core tokenizer internally.
+`runWorkflow` is currently the protein model-input workflow. `kind` may be
+omitted, `"auto"`, or `"protein"`; auto-detected DNA/RNA input is rejected
+instead of silently running the protein workflow. The workflow uses the default
+`protein-20` tokenizer internally and rejects unsupported `profile` values if a
+caller passes that legacy field.
 
 ## Complete Example
 

@@ -63,49 +63,80 @@ fn test_build_model_input_with_policy() {
 
 #[wasm_bindgen_test]
 fn test_run_workflow() {
-    let config = js_sys::Object::new();
-    js_sys::Reflect::set(
-        &config,
-        &"fastaBytes".into(),
-        &js_sys::Uint8Array::from(">seq1\nACDE\n".as_bytes()).into(),
-    )
-    .unwrap();
+    let config = workflow_config(">seq1\nACDE\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
     js_sys::Reflect::set(&config, &"padding".into(), &"fixed_length".into()).unwrap();
     js_sys::Reflect::set(&config, &"padTokenId".into(), &0.into()).unwrap();
+    js_sys::Reflect::set(&config, &"kind".into(), &"protein".into()).unwrap();
+    js_sys::Reflect::set(&config, &"profile".into(), &"protein-20".into()).unwrap();
 
     let result = biors_wasm::run_workflow(config.into());
     let output = result.unwrap();
+    let model_ready = js_sys::Reflect::get(&output, &"model_ready".into())
+        .unwrap()
+        .as_bool()
+        .unwrap();
+    assert!(model_ready);
+    let model_input = js_sys::Reflect::get(&output, &"model_input".into()).unwrap();
+    let records = js_sys::Reflect::get(&model_input, &"records".into()).unwrap();
+    let first_record = js_sys::Array::from(&records).get(0);
+    let input_ids =
+        js_sys::Array::from(&js_sys::Reflect::get(&first_record, &"input_ids".into()).unwrap());
+    assert_eq!(input_ids.length(), 8);
+
     let provenance = js_sys::Reflect::get(&output, &"provenance".into()).unwrap();
     let input_hash = js_sys::Reflect::get(&provenance, &"input_hash".into())
         .unwrap()
         .as_string()
         .unwrap();
     assert!(input_hash.starts_with("fnv1a64:"));
+    let tokenizer = js_sys::Reflect::get(&provenance, &"tokenizer".into()).unwrap();
+    let tokenizer_name = js_sys::Reflect::get(&tokenizer, &"name".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    assert_eq!(tokenizer_name, "protein-20");
+}
+
+#[wasm_bindgen_test]
+fn test_run_workflow_rejects_unsupported_kind_and_profile() {
+    let config = workflow_config(">seq1\nACGT\n");
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"kind".into(), &"dna".into()).unwrap();
+    assert!(biors_wasm::run_workflow(config.into()).is_err());
+
+    let config = workflow_config(">seq1\nACGT\n");
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"kind".into(), &"auto".into()).unwrap();
+    assert!(biors_wasm::run_workflow(config.into()).is_err());
+
+    let config = workflow_config(">seq1\nACDE\n");
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"profile".into(), &"protein-20-special".into()).unwrap();
+    assert!(biors_wasm::run_workflow(config.into()).is_err());
 }
 
 #[wasm_bindgen_test]
 fn test_run_workflow_rejects_fractional_numeric_config() {
-    let config = js_sys::Object::new();
-    js_sys::Reflect::set(
-        &config,
-        &"fastaBytes".into(),
-        &js_sys::Uint8Array::from(">seq1\nACDE\n".as_bytes()).into(),
-    )
-    .unwrap();
+    let config = workflow_config(">seq1\nACDE\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &8.5.into()).unwrap();
 
     assert!(biors_wasm::run_workflow(config.into()).is_err());
 
-    let config = js_sys::Object::new();
-    js_sys::Reflect::set(
-        &config,
-        &"fastaBytes".into(),
-        &js_sys::Uint8Array::from(">seq1\nACDE\n".as_bytes()).into(),
-    )
-    .unwrap();
+    let config = workflow_config(">seq1\nACDE\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
     js_sys::Reflect::set(&config, &"padTokenId".into(), &21.5.into()).unwrap();
 
     assert!(biors_wasm::run_workflow(config.into()).is_err());
+}
+
+fn workflow_config(fasta: &str) -> js_sys::Object {
+    let config = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &config,
+        &"fastaBytes".into(),
+        &js_sys::Uint8Array::from(fasta.as_bytes()).into(),
+    )
+    .unwrap();
+    config
 }
