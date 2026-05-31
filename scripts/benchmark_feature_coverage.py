@@ -27,9 +27,9 @@ FEATURE_COVERAGE = [
     },
     {
         "feature": "python_bindings",
-        "status": "not_benchmarked",
-        "claim_scope": "No numeric performance claim.",
-        "evidence": ["missing committed Python binding benchmark artifact"],
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed Python binding regression guard timing only; no public throughput claim.",
+        "evidence": ["benchmarks/python_bindings.json"],
     },
     {
         "feature": "wasm_bindings",

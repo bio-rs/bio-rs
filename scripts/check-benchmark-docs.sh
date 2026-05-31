@@ -9,7 +9,10 @@ trap 'rm -f "$tmp_file"' EXIT
 
 python3 scripts/check-benchmark-artifact.py
 python3 scripts/check-cli-benchmark-artifact.py
+python3 scripts/check-python-benchmark-artifact.py
 python3 scripts/render_benchmark_report.py >"$tmp_file"
 diff -u benchmarks/fasta_vs_biopython.md "$tmp_file"
 python3 scripts/render_cli_benchmark_report.py >"$tmp_file"
 diff -u benchmarks/cli_surfaces.md "$tmp_file"
+python3 scripts/render_python_benchmark_report.py >"$tmp_file"
+diff -u benchmarks/python_bindings.md "$tmp_file"

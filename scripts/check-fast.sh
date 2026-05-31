@@ -18,14 +18,17 @@ python3 -m py_compile \
   scripts/benchmark_fasta_vs_biopython.py \
   scripts/benchmark_feature_coverage.py \
   scripts/benchmark_cli_surfaces.py \
+  scripts/benchmark_python_bindings.py \
   scripts/check-benchmark-artifact.py \
   scripts/check-cli-benchmark-artifact.py \
+  scripts/check-python-benchmark-artifact.py \
   scripts/check-registry-versions.py \
   scripts/check-module-size.py \
   scripts/check-release-workflow.py \
   scripts/benchmark_large_file_streaming.py \
   scripts/render_benchmark_report.py \
   scripts/render_cli_benchmark_report.py \
+  scripts/render_python_benchmark_report.py \
   examples/python/esm_from_biors_json.py \
   examples/python/pandas_numpy_friendly.py \
   examples/python/protbert_from_biors_json.py \

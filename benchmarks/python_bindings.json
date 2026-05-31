@@ -1,0 +1,129 @@
+{
+  "schema_version": "biors.benchmark.python_bindings.v1",
+  "generated_at_utc": "2026-05-31T14:25:13.650707+00:00",
+  "loops": 7,
+  "methodology": {
+    "scope": "Python binding regression guard timings on deterministic synthetic FASTA input; not a public throughput claim",
+    "surfaces": [
+      "parse_fasta_records",
+      "tokenize_fasta_records",
+      "build_model_inputs_checked",
+      "prepare_workflow_from_fasta"
+    ]
+  },
+  "environment": {
+    "os": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.14.4",
+    "biors_module": "packages/rust/biors-python/python/biors/__init__.py",
+    "git_commit": "6f0f6afdcd1414421cbfd5b24dd78799c1a0b217"
+  },
+  "input": {
+    "records": 512,
+    "record_length": 128,
+    "total_residues": 65536,
+    "fasta_bytes": 71570,
+    "sha256": "sha256:2846469758800181ebdca708d0ce68a9036c111acb9a7418f68906112f03c95a"
+  },
+  "workloads": [
+    {
+      "name": "python_parse_fasta_records",
+      "output_hash": "sha256:ea3d5c0845c2ec49b52c6f8f533e0e29c5bd2c74e2e1b344832f4872c358757c",
+      "warmup_summary": {
+        "records": 512,
+        "total_residues": 65536,
+        "first_id": "seq_0",
+        "last_id": "seq_511"
+      },
+      "seconds": [
+        0.00025899987667798996,
+        0.000264500267803669,
+        0.0003052917309105396,
+        0.00028070760890841484,
+        0.00024087494239211082,
+        0.00023954221978783607,
+        0.00024120789021253586
+      ],
+      "summary": {
+        "mean_s": 0.0002615892195275852,
+        "median_s": 0.00025899987667798996,
+        "min_s": 0.00023954221978783607,
+        "max_s": 0.0003052917309105396
+      }
+    },
+    {
+      "name": "python_tokenize_fasta_records",
+      "output_hash": "sha256:b999deadad2dccae12383a6ce9daa38a363520c24c2788ce5c70dca56a7541e1",
+      "warmup_summary": {
+        "records": 512,
+        "total_tokens": 65536,
+        "valid_records": 512
+      },
+      "seconds": [
+        0.0007150829769670963,
+        0.000756584107875824,
+        0.000724750105291605,
+        0.0007142918184399605,
+        0.000717999879270792,
+        0.0007257498800754547,
+        0.0007217908278107643
+      ],
+      "summary": {
+        "mean_s": 0.0007251785136759281,
+        "median_s": 0.0007217908278107643,
+        "min_s": 0.0007142918184399605,
+        "max_s": 0.000756584107875824
+      }
+    },
+    {
+      "name": "python_build_model_inputs_checked",
+      "output_hash": "sha256:c8fb829e7ae93a64c519ee2d93844aa6b38582db9f7ffa4e52fcd7b0594c25df",
+      "warmup_summary": {
+        "records": 512,
+        "total_input_ids": 81920,
+        "truncated_records": 0
+      },
+      "seconds": [
+        0.0013479171320796013,
+        0.001337416935712099,
+        0.0013550003059208393,
+        0.0012497501447796822,
+        0.00123924994841218,
+        0.001230667345225811,
+        0.0012176251038908958
+      ],
+      "summary": {
+        "mean_s": 0.0012825181308601583,
+        "median_s": 0.0012497501447796822,
+        "min_s": 0.0012176251038908958,
+        "max_s": 0.0013550003059208393
+      }
+    },
+    {
+      "name": "python_prepare_workflow_from_fasta",
+      "output_hash": "sha256:93e2bb13201f0ecbf3b2d5001ea171234bf7fd13318cd45de399e1343a199a59",
+      "warmup_summary": {
+        "records": 512,
+        "model_ready": true,
+        "input_hash_prefix": "fnv1a64",
+        "total_input_ids": 81920
+      },
+      "seconds": [
+        0.012905916199088097,
+        0.012032375205308199,
+        0.011964834295213223,
+        0.012403999920934439,
+        0.012226833961904049,
+        0.012095290701836348,
+        0.0126460837200284
+      ],
+      "summary": {
+        "mean_s": 0.012325047714901822,
+        "median_s": 0.012226833961904049,
+        "min_s": 0.011964834295213223,
+        "max_s": 0.012905916199088097
+      }
+    }
+  ]
+}
