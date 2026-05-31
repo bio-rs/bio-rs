@@ -230,6 +230,8 @@ fn final_release_checklist_covers_required_gates() {
         "scripts/check-registry-versions.py",
         "LICENSE-APACHE",
         "LICENSE-MIT",
+        ".github/workflows/benchmarks.yml",
+        "cargo test --workspace --benches --all-features",
     ] {
         assert!(
             checklist.contains(expected),
@@ -259,6 +261,32 @@ fn final_release_checklist_covers_required_gates() {
 }
 
 #[test]
+fn benchmark_workflow_runs_smoke_and_scheduled_criterion_suite() {
+    let repo = common::repo_root();
+    let workflow = fs::read_to_string(repo.join(".github/workflows/benchmarks.yml"))
+        .expect("read benchmark workflow");
+
+    for expected in [
+        "pull_request:",
+        "workflow_dispatch:",
+        "schedule:",
+        "permissions:",
+        "contents: read",
+        "scripts/check-benchmark-docs.sh",
+        "cargo test --workspace --benches --all-features",
+        "if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'",
+        "cargo bench -p biors-core --bench fasta_workloads",
+        "cargo bench -p biors-backend-candle --bench candle_linear_probe",
+        "cargo bench -p biors-mcp-server --bench mcp_request_overhead",
+    ] {
+        assert!(
+            workflow.contains(expected),
+            "benchmark workflow missing {expected}"
+        );
+    }
+}
+
+#[test]
 fn github_templates_cover_promoted_release_surfaces() {
     let repo = common::repo_root();
     let pr_template = fs::read_to_string(repo.join(".github/pull_request_template.md"))
@@ -274,6 +302,7 @@ fn github_templates_cover_promoted_release_surfaces() {
         "Package artifact changes",
         "Schema parity",
         "Dependency/advisory/license audit",
+        "Benchmark harness smoke",
     ] {
         assert!(
             pr_template.contains(expected),

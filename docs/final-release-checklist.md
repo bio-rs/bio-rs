@@ -111,11 +111,19 @@ the final release gate.
 The final release gate runs `scripts/check-benchmark-docs.sh` through
 `scripts/check.sh`. Before tagging, confirm committed benchmark artifacts cover
 the features promoted in README, docs, release notes, and package metadata.
+The benchmark workflow at `.github/workflows/benchmarks.yml` also runs benchmark
+artifact/report checks plus `cargo test --workspace --benches --all-features`
+on pull requests, and runs the Criterion benchmark suite on scheduled or manual
+workflow runs.
 
 Do not make performance claims for a feature unless a committed benchmark JSON
 artifact and regenerated markdown report cover that surface. If a promoted
 feature has only smoke coverage or no numeric artifact, document it as a
 non-claim.
+
+When release-facing feature surfaces change, refresh the relevant committed
+benchmark JSON and markdown reports from the benchmark scripts before tagging,
+or explicitly record why the changed surface is a non-claim.
 
 ## Release Artifact Contents
 

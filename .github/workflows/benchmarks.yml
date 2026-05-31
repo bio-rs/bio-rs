@@ -1,0 +1,49 @@
+name: Benchmarks
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 1'
+
+concurrency:
+  group: benchmarks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark-smoke:
+    name: Benchmark Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+      - name: Check benchmark artifacts and reports
+        run: scripts/check-benchmark-docs.sh
+      - name: Compile and smoke benchmark harnesses
+        run: cargo test --workspace --benches --all-features
+
+  benchmark-suite:
+    name: Benchmark Suite
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    needs: benchmark-smoke
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+      - name: Run core FASTA Criterion benchmarks
+        run: cargo bench -p biors-core --bench fasta_workloads
+      - name: Run Candle backend Criterion benchmark
+        run: cargo bench -p biors-backend-candle --bench candle_linear_probe
+      - name: Run MCP request overhead Criterion benchmark
+        run: cargo bench -p biors-mcp-server --bench mcp_request_overhead

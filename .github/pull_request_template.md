@@ -21,6 +21,7 @@
 - [ ] Schema parity reviewed for every changed JSON-emitting CLI, Python, WASM, MCP, package, or service surface
 - [ ] Docs/README/final release checklist updated (if needed)
 - [ ] Benchmarks updated or explicitly scoped as non-claims (if performance-sensitive behavior changed)
+- [ ] Benchmark harness smoke is covered by `.github/workflows/benchmarks.yml` or was run locally with `cargo test --workspace --benches --all-features`
 
 ## Dependency Review
 
