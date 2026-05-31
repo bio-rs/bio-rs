@@ -13,7 +13,6 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 - [Module Reference](#module-reference)
   - [`error`](#module-error)
   - [`fasta`](#module-fasta)
-  - [`fasta_scan`](#module-fasta_scan)
   - [`hash`](#module-hash)
   - [`model_input`](#module-model_input)
   - [`package`](#module-package)
@@ -126,10 +125,6 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 
 - `pub fn validate_fasta_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedFastaInput, FastaReadError>`
   Validate FASTA from a buffered reader and include a stable raw input hash.
-
-### Module: `fasta_scan`
-
-The `fasta_scan` module contains the ASCII byte-level FASTA scanner. It is the internal engine used by `fasta` and `tokenizer`. As of 0.47.4, this module has no public API. All items are `pub(crate)`. Callers should use the higher-level `fasta` and `tokenizer` entry points instead.
 
 ### Module: `hash`
 
