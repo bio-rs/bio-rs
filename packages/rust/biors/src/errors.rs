@@ -6,6 +6,7 @@ use biors_core::{
     verification::{PackageVerificationReport, VerificationIssueCode, VerificationStatus},
 };
 use serde::Serialize;
+use serde_json::Value;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -24,6 +25,12 @@ pub(crate) enum CliError {
         code: &'static str,
         message: String,
         location: Option<String>,
+    },
+    ValidationDetails {
+        code: &'static str,
+        message: String,
+        location: Option<String>,
+        details: Value,
     },
 }
 
@@ -52,7 +59,7 @@ impl CliError {
             Self::Read { .. } => "io.read_failed",
             Self::Serialization(_) => "json.serialization_failed",
             Self::Write(_) => "io.write_failed",
-            Self::Validation { code, .. } => code,
+            Self::Validation { code, .. } | Self::ValidationDetails { code, .. } => code,
         }
     }
 
@@ -67,16 +74,27 @@ impl CliError {
                 Some(ErrorLocationValue::Label(id.clone()))
             }
             Self::Read { path, .. } => Some(ErrorLocationValue::Label(path.display().to_string())),
-            Self::Validation { location, .. } => location.clone().map(ErrorLocationValue::Label),
+            Self::Validation { location, .. } | Self::ValidationDetails { location, .. } => {
+                location.clone().map(ErrorLocationValue::Label)
+            }
             Self::Json(_) | Self::CurrentDir(_) | Self::Serialization(_) | Self::Write(_) => None,
+        }
+    }
+
+    pub(crate) fn details(&self) -> Option<&Value> {
+        match self {
+            Self::ValidationDetails { details, .. } => Some(details),
+            _ => None,
         }
     }
 
     pub(crate) const fn exit_code(&self) -> i32 {
         match self {
-            Self::Core(_) | Self::ModelInput(_) | Self::Json(_) | Self::Validation { .. } => {
-                exit_code::USER_INPUT_FAILURE
-            }
+            Self::Core(_)
+            | Self::ModelInput(_)
+            | Self::Json(_)
+            | Self::Validation { .. }
+            | Self::ValidationDetails { .. } => exit_code::USER_INPUT_FAILURE,
             Self::Read { .. } | Self::CurrentDir(_) | Self::Serialization(_) | Self::Write(_) => {
                 exit_code::IO_OR_INTERNAL_FAILURE
             }
@@ -103,7 +121,9 @@ impl std::fmt::Display for CliError {
             }
             Self::Serialization(error) => write!(f, "{error}"),
             Self::Write(error) => write!(f, "failed to write output: {error}"),
-            Self::Validation { message, .. } => write!(f, "{message}"),
+            Self::Validation { message, .. } | Self::ValidationDetails { message, .. } => {
+                write!(f, "{message}")
+            }
         }
     }
 }

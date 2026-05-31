@@ -91,4 +91,22 @@ fn cli_outputs_match_success_and_error_envelope_schemas() {
     )
     .stdout;
     common::assert_json_matches_schema(&parse_error, "schemas/cli-error.v0.json");
+
+    let package_error = common::run_biors_stdin_expect_failure(
+        &["--json", "package", "validate", "-"],
+        r#"{
+          "schema_version": "biors.package.v0",
+          "name": "",
+          "model": { "format": "onnx", "path": "" },
+          "preprocessing": [],
+          "postprocessing": [],
+          "runtime": {
+            "backend": "onnx-webgpu",
+            "target": "browser-wasm-webgpu"
+          },
+          "fixtures": []
+        }"#,
+    )
+    .stdout;
+    common::assert_json_matches_schema(&package_error, "schemas/cli-error.v0.json");
 }

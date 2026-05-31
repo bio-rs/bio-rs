@@ -24,6 +24,8 @@ struct CliErrorBody {
     code: &'static str,
     message: String,
     location: Option<ErrorLocationValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    details: Option<serde_json::Value>,
 }
 
 pub(crate) fn print_success<T: Serialize>(
@@ -59,6 +61,7 @@ pub(crate) fn print_json_error(error: CliError) {
             code: error.code(),
             message: error.to_string(),
             location: error.location(),
+            details: error.details().cloned(),
         },
     };
     match to_json(&payload) {
@@ -76,6 +79,7 @@ pub(crate) fn print_json_parse_error(error: &clap::Error) {
             code: "cli.invalid_arguments",
             message: error.to_string(),
             location: None,
+            details: None,
         },
     };
     match to_json(&payload) {

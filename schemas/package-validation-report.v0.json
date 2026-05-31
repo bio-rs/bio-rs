@@ -22,7 +22,8 @@
               "checksum_mismatch",
               "invalid_asset_path",
               "asset_read_failed",
-              "layout_mismatch"
+              "layout_mismatch",
+              "unsupported_runtime_backend"
             ]
           },
           "field": { "type": "string" },

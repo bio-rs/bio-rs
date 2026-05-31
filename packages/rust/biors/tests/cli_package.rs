@@ -102,6 +102,10 @@ fn package_validate_fails_invalid_manifest() {
         .as_str()
         .unwrap()
         .contains("name is required"));
+    assert_eq!(
+        value["error"]["details"]["structured_issues"][0]["code"],
+        "required_field"
+    );
 }
 
 #[test]
@@ -191,6 +195,18 @@ fn package_validate_reports_invalid_checksum_format_code() {
 
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
     assert_eq!(value["error"]["code"], "package.invalid_checksum_format");
+    assert_eq!(
+        value["error"]["details"]["structured_issues"][0]["code"],
+        "invalid_checksum_format"
+    );
+    assert_eq!(
+        value["error"]["details"]["structured_issues"][0]["field"],
+        "model.checksum"
+    );
+    assert!(!value["error"]["message"]
+        .as_str()
+        .expect("message")
+        .starts_with('['));
 }
 
 #[test]
@@ -243,4 +259,50 @@ fn package_bridge_outputs_runtime_plan() {
             .len(),
         0
     );
+}
+
+#[test]
+fn package_bridge_reports_structured_not_ready_details() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("bridge")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors package bridge")
+        .tap_stdin(
+            r#"{
+              "schema_version": "biors.package.v0",
+              "name": "protein-seed",
+              "model": { "format": "onnx", "path": "missing.onnx" },
+              "preprocessing": [],
+              "postprocessing": [],
+              "runtime": {
+                "backend": "onnx-webgpu",
+                "target": "browser-wasm-webgpu"
+              },
+              "fixtures": [
+                {
+                  "name": "tiny-protein",
+                  "input": "fixtures/tiny.fasta",
+                  "expected_output": "fixtures/tiny.output.json"
+                }
+              ]
+            }"#,
+        );
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.bridge_not_ready");
+    assert_eq!(value["error"]["location"], "manifest");
+    assert_eq!(
+        value["error"]["details"]["validation"]["structured_issues"][0]["code"],
+        "asset_read_failed"
+    );
+    assert_eq!(value["error"]["details"]["bridge"]["ready"], true);
 }
