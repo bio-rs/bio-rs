@@ -83,3 +83,29 @@ fn test_run_workflow() {
         .unwrap();
     assert!(input_hash.starts_with("fnv1a64:"));
 }
+
+#[wasm_bindgen_test]
+fn test_run_workflow_rejects_fractional_numeric_config() {
+    let config = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &config,
+        &"fastaBytes".into(),
+        &js_sys::Uint8Array::from(">seq1\nACDE\n".as_bytes()).into(),
+    )
+    .unwrap();
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.5.into()).unwrap();
+
+    assert!(biors_wasm::run_workflow(config.into()).is_err());
+
+    let config = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &config,
+        &"fastaBytes".into(),
+        &js_sys::Uint8Array::from(">seq1\nACDE\n".as_bytes()).into(),
+    )
+    .unwrap();
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"padTokenId".into(), &21.5.into()).unwrap();
+
+    assert!(biors_wasm::run_workflow(config.into()).is_err());
+}
