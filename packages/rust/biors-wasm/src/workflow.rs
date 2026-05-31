@@ -1,5 +1,6 @@
 use biors_core::model_input::{ModelInputPolicy, PaddingPolicy};
 use biors_core::workflow::prepare_protein_model_input_workflow;
+use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = runWorkflow)]
@@ -9,10 +10,7 @@ pub fn run_workflow(config: JsValue) -> Result<JsValue, JsValue> {
     let pad_token_id = get_u8_opt(&config, "padTokenId").unwrap_or(0);
     let padding = get_string_opt(&config, "padding");
 
-    let fasta_text =
-        std::str::from_utf8(&fasta_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
-
-    let records = biors_core::fasta::parse_fasta_records(fasta_text)
+    let input = biors_core::fasta::parse_fasta_records_reader(Cursor::new(&fasta_bytes))
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let padding_policy = match padding.as_deref() {
@@ -32,9 +30,7 @@ pub fn run_workflow(config: JsValue) -> Result<JsValue, JsValue> {
         padding: padding_policy,
     };
 
-    let input_hash = biors_core::hash::sha256_bytes_digest(&fasta_bytes);
-
-    let output = prepare_protein_model_input_workflow(input_hash, &records, policy)
+    let output = prepare_protein_model_input_workflow(input.input_hash, &input.records, policy)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let json = serde_json::to_string(&output).map_err(|e| JsValue::from_str(&e.to_string()))?;

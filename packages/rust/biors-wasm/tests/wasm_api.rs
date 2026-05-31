@@ -75,5 +75,11 @@ fn test_run_workflow() {
     js_sys::Reflect::set(&config, &"padTokenId".into(), &0.into()).unwrap();
 
     let result = biors_wasm::run_workflow(config.into());
-    assert!(result.is_ok());
+    let output = result.unwrap();
+    let provenance = js_sys::Reflect::get(&output, &"provenance".into()).unwrap();
+    let input_hash = js_sys::Reflect::get(&provenance, &"input_hash".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    assert!(input_hash.starts_with("fnv1a64:"));
 }
