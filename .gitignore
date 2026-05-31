@@ -1,4 +1,5 @@
 /target/
+/.benchmark-wasm/
 packages/rust/biors-wasm/pkg/
 .venv-bench/
 **/*.rs.bk

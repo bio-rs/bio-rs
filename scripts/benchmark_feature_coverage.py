@@ -33,9 +33,9 @@ FEATURE_COVERAGE = [
     },
     {
         "feature": "wasm_bindings",
-        "status": "not_benchmarked",
-        "claim_scope": "No numeric performance claim.",
-        "evidence": ["missing committed WASM/Node benchmark artifact"],
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed Node.js WASM binding regression timings only; no browser or public throughput claim.",
+        "evidence": ["benchmarks/wasm_bindings.json"],
     },
     {
         "feature": "mcp_service_contract",

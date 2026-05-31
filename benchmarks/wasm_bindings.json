@@ -1,0 +1,101 @@
+{
+  "schema_version": "biors.benchmark.wasm_bindings.v1",
+  "generated_at_utc": "2026-05-31T14:34:59.042933+00:00",
+  "loops": 5,
+  "methodology": {
+    "scope": "Node.js WASM binding regression guard timings on deterministic synthetic FASTA input",
+    "surfaces": [
+      "wasm_bindings"
+    ],
+    "package": ".benchmark-wasm/pkg"
+  },
+  "environment": {
+    "os": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "wasm_pack": "wasm-pack 0.15.0",
+    "node": "v25.2.1",
+    "biors_wasm": "0.47.4",
+    "git_commit": "984af679e4e13eb2e90fce876c20a4c2b4945516"
+  },
+  "workloads": [
+    {
+      "name": "wasm_parse_fasta",
+      "surface": "wasm_bindings",
+      "input": {
+        "path": ".benchmark-wasm/wasm.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35218,
+        "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
+      },
+      "summary": {
+        "mean_s": 0.000334825,
+        "median_s": 0.000333417,
+        "min_s": 0.000286458,
+        "max_s": 0.000413542,
+        "output_hash": "sha256:bd91a4ffaa9dc65118264325a31a98309fbd5d9b344b5d2cd83ff060af793d04",
+        "output_bytes": 40595
+      }
+    },
+    {
+      "name": "wasm_validate_fasta",
+      "surface": "wasm_bindings",
+      "input": {
+        "path": ".benchmark-wasm/wasm.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35218,
+        "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
+      },
+      "summary": {
+        "mean_s": 0.0006565418000000001,
+        "median_s": 0.000679667,
+        "min_s": 0.000576417,
+        "max_s": 0.000710375,
+        "output_hash": "sha256:e54f7f78b58f92f9519584d2a399403647eb98945f66c96ad5cb49410bb27f0e",
+        "output_bytes": 61203
+      }
+    },
+    {
+      "name": "wasm_tokenize",
+      "surface": "wasm_bindings",
+      "input": {
+        "path": ".benchmark-wasm/wasm.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35218,
+        "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
+      },
+      "summary": {
+        "mean_s": 0.0024275084000000002,
+        "median_s": 0.002431792,
+        "min_s": 0.002316167,
+        "max_s": 0.002570667,
+        "output_hash": "sha256:e25759a970a26d3227dc989de8bf46a938deaf9d94baaaa43283fcdfa420248c",
+        "output_bytes": 259658
+      }
+    },
+    {
+      "name": "wasm_run_workflow",
+      "surface": "wasm_bindings",
+      "input": {
+        "path": ".benchmark-wasm/wasm.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35218,
+        "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
+      },
+      "summary": {
+        "mean_s": 0.009223833,
+        "median_s": 0.009085791,
+        "min_s": 0.009029083,
+        "max_s": 0.009587958,
+        "output_hash": "sha256:e7f76a692b5efc3c314913a5d100cd8bb65e1f5858b15999b3f86df5120b2493",
+        "output_bytes": 363996
+      }
+    }
+  ]
+}

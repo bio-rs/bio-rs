@@ -1111,10 +1111,10 @@
     },
     {
       "feature": "wasm_bindings",
-      "status": "not_benchmarked",
-      "claim_scope": "No numeric performance claim.",
+      "status": "numeric_regression_guard",
+      "claim_scope": "Committed Node.js WASM binding regression timings only; no browser or public throughput claim.",
       "evidence": [
-        "missing committed WASM/Node benchmark artifact"
+        "benchmarks/wasm_bindings.json"
       ]
     },
     {
