@@ -189,8 +189,11 @@ release workflow instead of creating a draft release:
 python3 scripts/check-release-workflow.py
 ```
 
-This checks crates publish order, release creation order, and binary artifact
-packaging configuration.
+This checks crates publish order, release creation order, binary artifact
+packaging configuration, and that GitHub `--generate-notes` remains the release
+body source of truth. Do not maintain a separate `.github/release_template.md`
+unless the release workflow is changed to consume it and the checker is updated
+in the same commit.
 
 ## npm Trusted Publishing
 

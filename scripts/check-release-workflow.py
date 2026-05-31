@@ -5,10 +5,17 @@ from pathlib import Path
 
 
 WORKFLOW = Path(".github/workflows/release.yml")
+UNUSED_RELEASE_TEMPLATE = Path(".github/release_template.md")
 RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c"
 
 
 def main() -> None:
+    if UNUSED_RELEASE_TEMPLATE.exists():
+        raise SystemExit(
+            ".github/release_template.md is not used by the release workflow; "
+            "keep GitHub --generate-notes as the release body source of truth"
+        )
+
     lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
 
     publish_order = [
@@ -74,6 +81,7 @@ def main() -> None:
         "scripts/check-registry-versions.py",
         "cargo install --locked cargo-deny",
         "scripts/check-security-audit.sh",
+        "--generate-notes",
         "dist/*.tar.gz",
     ]
     workflow_text = "\n".join(lines)
