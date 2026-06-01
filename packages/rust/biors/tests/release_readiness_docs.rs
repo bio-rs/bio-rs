@@ -1,5 +1,6 @@
 use biors_core::error::Diagnostic;
 use biors_core::sequence::{SequenceKind, SequenceValidationIssue};
+use biors_core::service;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
@@ -538,12 +539,32 @@ fn public_contract_candidates_separate_stable_bindings_and_experimental_runtime(
         "Python package: `packages/rust/biors-python`",
         "WASM/npm package: `packages/rust/biors-wasm`",
         "MCP server: `packages/rust/biors-mcp-server`",
+        "Transport-agnostic service contract",
+        "SERVICE_INTERFACE_SCHEMA_VERSION",
+        "ServiceInterfaceDocument",
+        "RuntimeServiceSeparation",
+        "OpenApiDirection",
+        "ServiceRoute",
+        "current_service_interface_document",
+        "service_interface_document",
+        "service_routes",
+        "schemas/service-interface-output.v0.json",
         "internal scanner modules and low-level byte parsing helpers",
     ] {
         assert!(
             candidates.contains(expected),
             "public contract candidates missing scoped section: {expected}"
         );
+    }
+
+    let service_document = service::current_service_interface_document();
+    for route in service_document.routes {
+        for schema in [&route.request_schema, &route.response_schema] {
+            assert!(
+                candidates.contains(&format!("schemas/{schema}")),
+                "public contract candidates missing service route schema {schema}"
+            );
+        }
     }
 
     let stable_section = candidates

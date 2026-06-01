@@ -63,6 +63,15 @@ candidates unless they are listed in the stable sections below.
   - `PackageValidationReport`
   - `RuntimeBridgeReport`
   - `BackendCompatibilityCheck`
+- Transport-agnostic service contract:
+  - `SERVICE_INTERFACE_SCHEMA_VERSION`
+  - `ServiceInterfaceDocument`
+  - `RuntimeServiceSeparation`
+  - `OpenApiDirection`
+  - `ServiceRoute`
+  - `current_service_interface_document`
+  - `service_interface_document`
+  - `service_routes`
 - Error code surface:
   - `BioRsError::code`
 
@@ -107,6 +116,13 @@ Schema candidates:
 - `schemas/package-manifest.v0.json`
 - `schemas/package-manifest.v1.json`
 - `schemas/package-validation-report.v0.json`
+- `schemas/service-interface-output.v0.json`
+- `schemas/service-sequence-validate-request.v0.json`
+- `schemas/service-sequence-inspect-request.v0.json`
+- `schemas/service-sequence-tokenize-request.v0.json`
+- `schemas/service-model-input-request.v0.json`
+- `schemas/service-package-request.v0.json`
+- `schemas/service-package-compatibility-request.v0.json`
 
 ## Binding Contracts
 
