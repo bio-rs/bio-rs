@@ -370,6 +370,48 @@ fn package_validate_rejects_tokenizer_manifest_profile_mismatch() {
     assert_invalid_tokenizer_config_issue(&value, "tokenizer.contract_version must match");
 }
 
+#[test]
+fn package_validate_rejects_vocab_with_string_tokens() {
+    let value = validate_package_with_vocab(
+        "invalid-vocab-string-tokens",
+        r#"{
+  "name": "protein-20",
+  "unknown_token_id": 20,
+  "tokens": ["A", "C"]
+}"#,
+        None,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_vocab_config");
+    assert_invalid_vocab_config_issue(&value, "invalid vocabulary JSON");
+}
+
+#[test]
+fn package_validate_rejects_vocab_manifest_contract_mismatch() {
+    let vocab = valid_vocab_json();
+    let value = validate_package_with_vocab(
+        "invalid-vocab-contract-mismatch",
+        &vocab,
+        Some(("protein-20-alt", "protein-20-alt.v0")),
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_vocab_config");
+    assert_invalid_vocab_config_issue(&value, "vocab.name must match");
+    assert_invalid_vocab_config_issue(&value, "vocab.contract_version must match");
+}
+
+#[test]
+fn package_validate_rejects_vocab_with_wrong_token_order() {
+    let value = validate_package_with_vocab(
+        "invalid-vocab-token-order",
+        &valid_vocab_json().replace(r#""token_id": 1"#, r#""token_id": 2"#),
+        None,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_vocab_config");
+    assert_invalid_vocab_config_issue(&value, "token order and IDs");
+}
+
 fn copy_dir_all(source: &Path, destination: &Path) {
     fs::create_dir_all(destination).expect("create destination");
     for entry in fs::read_dir(source).expect("read source directory") {
@@ -453,6 +495,49 @@ fn validate_package_with_tokenizer_config(
     serde_json::from_slice(&output.stdout).expect("valid JSON error")
 }
 
+fn validate_package_with_vocab(
+    name: &str,
+    vocab: &str,
+    manifest_identity: Option<(&str, &str)>,
+) -> Value {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new(name);
+    copy_dir_all(&source_package, temp.path());
+    let vocab_path = temp.path().join("vocabs/protein-20.json");
+    fs::write(&vocab_path, vocab).expect("write vocab");
+
+    let manifest_path = temp.path().join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    let vocab_bytes = fs::read(&vocab_path).expect("read vocab");
+    manifest["vocab"]["checksum"] = Value::String(sha256_bytes_digest(&vocab_bytes));
+    if let Some((name, contract_version)) = manifest_identity {
+        manifest["vocab"]["name"] = Value::String(name.to_string());
+        manifest["vocab"]["contract_version"] = Value::String(contract_version.to_string());
+    }
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+}
+
+fn valid_vocab_json() -> String {
+    fs::read_to_string(common::repo_root().join("examples/protein-package/vocabs/protein-20.json"))
+        .expect("read example vocab")
+}
+
 fn assert_invalid_pipeline_config_issue(value: &Value, expected_message: &str) {
     let issues = value["error"]["details"]["structured_issues"]
         .as_array()
@@ -473,6 +558,19 @@ fn assert_invalid_tokenizer_config_issue(value: &Value, expected_message: &str) 
         .expect("structured issues");
     assert!(issues.iter().any(|issue| {
         issue["code"] == "invalid_tokenizer_config"
+            && issue["message"]
+                .as_str()
+                .expect("message")
+                .contains(expected_message)
+    }));
+}
+
+fn assert_invalid_vocab_config_issue(value: &Value, expected_message: &str) {
+    let issues = value["error"]["details"]["structured_issues"]
+        .as_array()
+        .expect("structured issues");
+    assert!(issues.iter().any(|issue| {
+        issue["code"] == "invalid_vocab_config"
             && issue["message"]
                 .as_str()
                 .expect("message")

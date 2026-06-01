@@ -63,7 +63,7 @@
   "vocab": {
     "name": "protein-20",
     "path": "vocabs/protein-20.json",
-    "checksum": "sha256:d623b8cc8cc67b1bf75bde62b574de4d0431103aaf804dd9f91ccf06d37628aa",
+    "checksum": "sha256:83d11526f7ba4c70476bb04582dd4a27f3482d696bdec94582f59e8090a0eaa2",
     "contract_version": "protein-20.v0"
   },
   "preprocessing": [

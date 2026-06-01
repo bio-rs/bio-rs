@@ -26,6 +26,7 @@
               "layout_mismatch",
               "invalid_pipeline_config",
               "invalid_tokenizer_config",
+              "invalid_vocab_config",
               "unsupported_runtime_backend"
             ]
           },

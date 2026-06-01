@@ -103,5 +103,7 @@ biors package verify ./protein-package/manifest.json ./protein-package/observati
 
 Validation checks portable paths, v1 metadata, declared layout placement,
 checksums, referenced pipeline config syntax/contract validity, and tokenizer
-config/profile consistency. Verification compares package fixture expected
-outputs against observed output artifacts supplied by the caller.
+config/profile consistency. Declared vocab artifacts must parse as bio-rs
+`Vocabulary` JSON and match their declared contract. Verification compares
+package fixture expected outputs against observed output artifacts supplied by
+the caller.

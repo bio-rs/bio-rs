@@ -115,6 +115,8 @@ pub enum PackageValidationIssueCode {
     InvalidPipelineConfig,
     /// Referenced tokenizer config artifact exists but cannot be parsed or mismatches manifest metadata.
     InvalidTokenizerConfig,
+    /// Referenced vocabulary artifact exists but cannot be parsed or mismatches manifest metadata.
+    InvalidVocabConfig,
     /// Runtime backend exists internally but is not part of the public package manifest contract.
     UnsupportedRuntimeBackend,
 }

@@ -1,26 +1,87 @@
 {
   "name": "protein-20",
-  "unknown_token_id": 20,
   "tokens": [
-    "A",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "K",
-    "L",
-    "M",
-    "N",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "V",
-    "W",
-    "Y"
-  ]
+    {
+      "residue": "A",
+      "token_id": 0
+    },
+    {
+      "residue": "C",
+      "token_id": 1
+    },
+    {
+      "residue": "D",
+      "token_id": 2
+    },
+    {
+      "residue": "E",
+      "token_id": 3
+    },
+    {
+      "residue": "F",
+      "token_id": 4
+    },
+    {
+      "residue": "G",
+      "token_id": 5
+    },
+    {
+      "residue": "H",
+      "token_id": 6
+    },
+    {
+      "residue": "I",
+      "token_id": 7
+    },
+    {
+      "residue": "K",
+      "token_id": 8
+    },
+    {
+      "residue": "L",
+      "token_id": 9
+    },
+    {
+      "residue": "M",
+      "token_id": 10
+    },
+    {
+      "residue": "N",
+      "token_id": 11
+    },
+    {
+      "residue": "P",
+      "token_id": 12
+    },
+    {
+      "residue": "Q",
+      "token_id": 13
+    },
+    {
+      "residue": "R",
+      "token_id": 14
+    },
+    {
+      "residue": "S",
+      "token_id": 15
+    },
+    {
+      "residue": "T",
+      "token_id": 16
+    },
+    {
+      "residue": "V",
+      "token_id": 17
+    },
+    {
+      "residue": "W",
+      "token_id": 18
+    },
+    {
+      "residue": "Y",
+      "token_id": 19
+    }
+  ],
+  "unknown_token_id": 20,
+  "unknown_token_policy": "warn_or_error_with_unknown_token"
 }

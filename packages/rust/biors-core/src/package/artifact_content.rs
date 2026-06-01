@@ -1,5 +1,7 @@
 use super::{PackageValidationIssueCode, PackageValidationReport, TokenAsset};
-use crate::tokenizer::ProteinTokenizerConfig;
+use crate::tokenizer::{
+    load_vocab_json, protein_20_vocab_tokens, ProteinTokenizerConfig, UnknownTokenPolicy,
+};
 use std::path::Path;
 
 pub type ReferencedConfigValidator<'a> = dyn Fn(&Path) -> Result<(), ReferencedConfigError> + 'a;
@@ -105,6 +107,95 @@ pub(crate) fn validate_tokenizer_config(
                 config.profile.default_add_special_tokens(),
                 expected_name
             ),
+        );
+    }
+}
+
+pub(crate) fn validate_vocab_config(
+    report: &mut PackageValidationReport,
+    vocab_asset: &TokenAsset,
+    bytes: &[u8],
+) {
+    let input = match std::str::from_utf8(bytes) {
+        Ok(input) => input,
+        Err(error) => {
+            report.push_issue(
+                PackageValidationIssueCode::InvalidVocabConfig,
+                "vocab",
+                &format!("vocab: invalid UTF-8 vocabulary JSON: {error}"),
+            );
+            return;
+        }
+    };
+    let vocab = match load_vocab_json(input) {
+        Ok(vocab) => vocab,
+        Err(error) => {
+            report.push_issue(
+                PackageValidationIssueCode::InvalidVocabConfig,
+                "vocab",
+                &format!("vocab: {error}"),
+            );
+            return;
+        }
+    };
+
+    if !vocab_asset.name.trim().is_empty() && vocab_asset.name != vocab.name {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidVocabConfig,
+            "vocab.name",
+            &format!("vocab.name must match vocabulary name '{}'", vocab.name),
+        );
+    }
+
+    let expected_contract_version = format!("{}.v0", vocab.name);
+    if vocab_asset
+        .contract_version
+        .as_deref()
+        .is_some_and(|contract_version| {
+            !contract_version.trim().is_empty()
+                && contract_version != expected_contract_version.as_str()
+        })
+    {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidVocabConfig,
+            "vocab.contract_version",
+            &format!(
+                "vocab.contract_version must match vocabulary version '{expected_contract_version}'"
+            ),
+        );
+    }
+
+    if vocab.name == "protein-20" {
+        validate_protein_20_vocab(report, &vocab);
+    }
+}
+
+fn validate_protein_20_vocab(
+    report: &mut PackageValidationReport,
+    vocab: &crate::tokenizer::Vocabulary,
+) {
+    if vocab.unknown_token_id != crate::tokenizer::PROTEIN_20_UNKNOWN_TOKEN_ID {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidVocabConfig,
+            "vocab.unknown_token_id",
+            &format!(
+                "vocab.unknown_token_id must be {} for protein-20",
+                crate::tokenizer::PROTEIN_20_UNKNOWN_TOKEN_ID
+            ),
+        );
+    }
+    if vocab.unknown_token_policy != UnknownTokenPolicy::WarnOrErrorWithUnknownToken {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidVocabConfig,
+            "vocab.unknown_token_policy",
+            "vocab.unknown_token_policy must be warn_or_error_with_unknown_token for protein-20",
+        );
+    }
+    if vocab.tokens.as_slice() != protein_20_vocab_tokens().as_slice() {
+        report.push_issue(
+            PackageValidationIssueCode::InvalidVocabConfig,
+            "vocab.tokens",
+            "vocab.tokens must match the built-in protein-20 token order and IDs",
         );
     }
 }

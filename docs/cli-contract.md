@@ -130,6 +130,8 @@ For CLI commands, package artifact validation also parses manifest-referenced
 pipeline config artifacts with the `biors pipeline --config` validator.
 Tokenizer artifacts are parsed as bio-rs tokenizer configs and checked against
 manifest tokenizer profile metadata before a package is accepted.
+Vocab artifacts are parsed as bio-rs `Vocabulary` JSON and checked against
+manifest vocab metadata before a package is accepted.
 
 The package manifest contract is closed over enumerated values for
 `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and

@@ -1,6 +1,7 @@
 use super::{
     artifact_content::{
-        validate_referenced_pipeline_config, validate_tokenizer_config, ReferencedConfigValidator,
+        validate_referenced_pipeline_config, validate_tokenizer_config, validate_vocab_config,
+        ReferencedConfigValidator,
     },
     read_package_file, validate_declared_layout, validate_package_manifest,
     validate_package_relative_path, PackageArtifactError, PackageManifest,
@@ -44,13 +45,15 @@ pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(
     }
 
     if let Some(vocab) = &manifest.vocab {
-        validate_artifact(
+        if let Some(bytes) = validated_artifact_bytes(
             &mut report,
             "vocab",
             &vocab.path,
             vocab.checksum.as_deref(),
             base_dir,
-        );
+        ) {
+            validate_vocab_config(&mut report, vocab, &bytes);
+        }
     }
 
     validate_pipeline_configs(

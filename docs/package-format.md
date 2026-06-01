@@ -165,6 +165,9 @@ even when the file exists and its checksum matches.
 When a manifest declares a tokenizer asset, package validation parses the JSON
 as a bio-rs tokenizer config and requires `tokenizer.name` and
 `tokenizer.contract_version` to match the config profile.
+When a manifest declares a vocab asset, package validation parses the JSON as a
+bio-rs `Vocabulary`; the `protein-20` vocab must match the built-in token order,
+token IDs, unknown token ID, and unknown-token policy.
 
 Tokenizer/vocab asset names and contract versions, plus preprocessing and
 postprocessing step names, implementations, contracts, and contract versions,

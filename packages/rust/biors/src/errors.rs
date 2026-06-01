@@ -191,6 +191,12 @@ pub(crate) fn classify_validation_code(report: &PackageValidationReport) -> &'st
         .any(|issue| issue.code == PackageValidationIssueCode::InvalidTokenizerConfig)
     {
         "package.invalid_tokenizer_config"
+    } else if report
+        .structured_issues
+        .iter()
+        .any(|issue| issue.code == PackageValidationIssueCode::InvalidVocabConfig)
+    {
+        "package.invalid_vocab_config"
     } else {
         "package.validation_failed"
     }
