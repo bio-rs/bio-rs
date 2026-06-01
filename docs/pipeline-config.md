@@ -9,7 +9,6 @@ steps; see [Package Format](package-format.md).
 Supported formats:
 
 - TOML: `examples/pipeline/protein.toml`
-- YAML: `examples/pipeline/protein.yaml`
 - JSON: `examples/pipeline/protein.json`
 
 ## Run
@@ -24,7 +23,7 @@ path. Config-relative input paths are resolved from the config file directory.
 ## Dry Run
 
 ```bash
-biors pipeline --config examples/pipeline/protein.yaml --dry-run
+biors pipeline --config examples/pipeline/protein.toml --dry-run
 ```
 
 Dry-run validates the config and emits the planned stages without reading the
@@ -98,6 +97,9 @@ The current config contract intentionally supports one static workflow:
 5. export model-ready JSON
 
 Unknown fields and unsupported values fail with `pipeline.invalid_config`.
+YAML is intentionally not part of the default CLI config contract; keeping the
+contract to JSON and TOML avoids a native YAML parser dependency in the default
+researcher workflow.
 
 ## Crate Split Review
 

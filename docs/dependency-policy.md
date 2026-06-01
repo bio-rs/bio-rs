@@ -10,6 +10,8 @@ binary archives.
   `sha2`.
 - The `biors` CLI may depend on core CLI/config crates, but must not directly
   link optional integration crates such as Candle, MCP, Python, or WASM.
+- Default CLI pipeline config support is limited to JSON and TOML; YAML parser
+  dependencies are intentionally excluded from the default researcher workflow.
 - Heavy or platform-specific integrations stay isolated in package-specific
   crates:
   - `biors-backend-candle` owns Candle dependencies.
@@ -33,9 +35,11 @@ The local dependency policy script fails if:
 - a required heavy integration dependency moves out of its isolated crate.
 - any published Rust crate exceeds its current normal dependency-count budget:
   - `biors-core`: 21
-  - `biors`: 48
+  - `biors`: 42
   - `biors-backend-candle`: 123
   - `biors-mcp-server`: 61
+- the default `biors` dependency tree includes YAML parser dependencies such as
+  `serde_yml`, `serde_norway`, `unsafe-libyaml`, or `unsafe-libyaml-norway`.
 - `cargo tree --locked -p biors-core --duplicates` or
   `cargo tree --locked -p biors --duplicates` reports duplicate dependencies.
 - `biors-backend-candle` gains duplicate dependency roots beyond the currently

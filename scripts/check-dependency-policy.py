@@ -11,9 +11,16 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE_DEPS = {"serde", "serde_json", "sha2"}
 PUBLISHED_CRATE_NORMAL_DEP_BUDGETS = {
     "biors-core": 21,
-    "biors": 48,
+    "biors": 42,
     "biors-backend-candle": 123,
     "biors-mcp-server": 61,
+}
+FORBIDDEN_DEFAULT_CLI_TREE_DEPS = {
+    "libyml",
+    "serde_norway",
+    "serde_yml",
+    "unsafe-libyaml",
+    "unsafe-libyaml-norway",
 }
 FORBIDDEN_CORE_OR_CLI_DEPS = {
     "biors-backend-candle",
@@ -61,6 +68,16 @@ def main() -> int:
             raise AssertionError(
                 f"{package} must not have duplicate dependencies:\n{duplicate_tree}"
             )
+
+    cli_tree = cargo_tree_normal("biors")
+    unexpected_cli_tree_deps = sorted(
+        dependency for dependency in FORBIDDEN_DEFAULT_CLI_TREE_DEPS if dependency in cli_tree
+    )
+    if unexpected_cli_tree_deps:
+        raise AssertionError(
+            "biors default CLI dependency tree must not include YAML parser dependencies: "
+            f"{unexpected_cli_tree_deps}"
+        )
 
     for package, budget in PUBLISHED_CRATE_NORMAL_DEP_BUDGETS.items():
         count = normal_dependency_count(package)

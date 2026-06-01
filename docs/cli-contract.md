@@ -33,8 +33,8 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors package bridge <manifest>`
 - `biors package verify <manifest> <observations>`
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
-- `biors pipeline --config <toml|yaml|json> [--dry-run] [--explain-plan]`
-- `biors pipeline --config <toml|yaml|json> [--package <manifest>] --write-lock <pipeline.lock>`
+- `biors pipeline --config <toml|json> [--dry-run] [--explain-plan]`
+- `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 - `biors service contract`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
@@ -45,7 +45,7 @@ context when residues are not model-ready and sets `model_ready=false` with
 stable `sequence.not_model_ready` readiness issue codes.
 `pipeline` wraps the same no-config preprocessing path in explicit
 validate -> tokenize -> export step statuses for CLI chaining and pipeline
-orchestration. With `--config`, it reads `biors.pipeline.v0` TOML/YAML/JSON and
+orchestration. With `--config`, it reads `biors.pipeline.v0` TOML/JSON and
 runs parse -> normalize -> validate -> tokenize -> export. `--dry-run` validates
 the config and emits planned stages without reading FASTA input, with
 `ready: false` because no model-ready output was produced; `--explain-plan`

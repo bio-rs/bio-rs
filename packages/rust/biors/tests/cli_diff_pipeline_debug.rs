@@ -96,7 +96,7 @@ fn pipeline_runs_toml_config_with_explain_plan() {
 }
 
 #[test]
-fn pipeline_dry_run_accepts_yaml_config_without_reading_input() {
+fn pipeline_config_rejects_yaml_by_default() {
     let temp = TempDir::new("biors-pipeline-yaml");
     let config = temp.write(
         "pipeline.yaml",
@@ -118,17 +118,23 @@ export:
     );
     let config_arg = config.to_string_lossy();
 
-    let value = run_biors(&["pipeline", "--config", &config_arg, "--dry-run"], &[]);
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("pipeline")
+        .arg("--config")
+        .arg(config_arg.as_ref())
+        .arg("--dry-run")
+        .output()
+        .expect("run biors pipeline");
 
-    assert_eq!(value["data"]["pipeline"], "config_pipeline.v0");
-    assert_eq!(value["data"]["ready"], false);
-    assert_eq!(value["data"]["dry_run"], true);
-    assert_eq!(value["data"]["workflow"], Value::Null);
-    assert!(value["data"]["steps"]
-        .as_array()
-        .expect("steps")
-        .iter()
-        .all(|step| step["status"] == "planned"));
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "pipeline.invalid_config");
+    assert!(value["error"]["message"]
+        .as_str()
+        .expect("error message")
+        .contains("unsupported pipeline config extension: yaml"));
 }
 
 #[test]
