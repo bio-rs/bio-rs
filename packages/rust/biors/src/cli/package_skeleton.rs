@@ -43,6 +43,7 @@ pub(crate) struct PackageSkeletonRequest {
 pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result<(), CliError> {
     validate_required_list("--intended-use", &request.intended_use)?;
     validate_required_list("--limitation", &request.limitations)?;
+    let model_runtime = model_runtime_for_path(&request.model)?;
 
     let write_paths = planned_write_paths(&request)?;
     reject_duplicate_write_paths(&write_paths)?;
@@ -107,7 +108,7 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
         }),
         metadata: Some(metadata),
         model: ModelArtifact {
-            format: ModelFormat::Onnx,
+            format: model_runtime.model_format,
             path: model_rel.clone(),
             checksum: Some(file_sha256(&request.output_dir.join(&model_rel))?),
             metadata: None,
@@ -127,9 +128,9 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
         }],
         postprocessing: Vec::new(),
         runtime: RuntimeTarget {
-            backend: RuntimeBackend::OnnxWebgpu,
-            target: RuntimeTargetPlatform::BrowserWasmWebgpu,
-            version: Some("onnx-webgpu.v0".to_string()),
+            backend: model_runtime.runtime_backend,
+            target: model_runtime.runtime_target,
+            version: Some(format!("{}.v0", model_runtime.runtime_backend)),
         },
         expected_input: None,
         expected_output: None,
@@ -163,6 +164,37 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
         notes,
     };
     print_success(None, output)
+}
+
+struct ModelRuntimeDefaults {
+    model_format: ModelFormat,
+    runtime_backend: RuntimeBackend,
+    runtime_target: RuntimeTargetPlatform,
+}
+
+fn model_runtime_for_path(path: &std::path::Path) -> Result<ModelRuntimeDefaults, CliError> {
+    let extension = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(str::to_ascii_lowercase);
+
+    match extension.as_deref() {
+        Some("onnx") => Ok(ModelRuntimeDefaults {
+            model_format: ModelFormat::Onnx,
+            runtime_backend: RuntimeBackend::OnnxWebgpu,
+            runtime_target: RuntimeTargetPlatform::BrowserWasmWebgpu,
+        }),
+        Some("safetensors") => Ok(ModelRuntimeDefaults {
+            model_format: ModelFormat::Safetensors,
+            runtime_backend: RuntimeBackend::Candle,
+            runtime_target: RuntimeTargetPlatform::LocalCpu,
+        }),
+        _ => Err(CliError::Validation {
+            code: "package.init_unsupported_model_format",
+            message: "package init supports .onnx and .safetensors model files".to_string(),
+            location: Some(path.display().to_string()),
+        }),
+    }
 }
 
 fn reject_existing_write_paths(write_paths: &[PathBuf]) -> Result<(), CliError> {

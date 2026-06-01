@@ -122,6 +122,11 @@ blocking issue in the bridge report. This is a compatibility contract only; it
 does not launch a browser, start a service, or link the optional Candle backend
 into the default CLI binary.
 
+`biors package init` infers these defaults from the model filename extension:
+`.onnx` selects `onnx` with `onnx-webgpu/browser-wasm-webgpu`, and
+`.safetensors` selects `safetensors` with `candle/local-cpu`. Unknown model
+extensions are rejected before a manifest is written.
+
 Preprocessing steps may also reference a checked pipeline config artifact:
 
 ```json

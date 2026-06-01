@@ -292,6 +292,74 @@ fn package_convert_project_skips_generated_model_directories() {
 }
 
 #[test]
+fn package_init_infers_onnx_runtime_defaults_from_extension() {
+    let manifest = run_package_init_with_model("model.onnx");
+
+    assert_eq!(manifest["model"]["format"], "onnx");
+    assert_eq!(manifest["model"]["path"], "models/model.onnx");
+    assert_eq!(manifest["runtime"]["backend"], "onnx-webgpu");
+    assert_eq!(manifest["runtime"]["target"], "browser-wasm-webgpu");
+    assert_eq!(manifest["runtime"]["version"], "onnx-webgpu.v0");
+}
+
+#[test]
+fn package_init_infers_safetensors_runtime_defaults_from_extension() {
+    let manifest = run_package_init_with_model("model.safetensors");
+
+    assert_eq!(manifest["model"]["format"], "safetensors");
+    assert_eq!(manifest["model"]["path"], "models/model.safetensors");
+    assert_eq!(manifest["runtime"]["backend"], "candle");
+    assert_eq!(manifest["runtime"]["target"], "local-cpu");
+    assert_eq!(manifest["runtime"]["version"], "candle.v0");
+}
+
+#[test]
+fn package_init_rejects_unknown_model_extension() {
+    let temp = TempDir::new("package-init-unknown-model");
+    let model = temp.write("model.bin", "unknown model");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("init")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("protein-init")
+        .arg("--model")
+        .arg(&model)
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .args(skeleton_metadata_args())
+        .output()
+        .expect("run biors package init");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(
+        value["error"]["code"],
+        "package.init_unsupported_model_format"
+    );
+    assert!(value["error"]["location"]
+        .as_str()
+        .expect("error location")
+        .ends_with("model.bin"));
+    assert!(
+        !output_dir.join("manifest.json").exists(),
+        "unsupported model format must fail before writing manifest"
+    );
+    assert!(
+        !output_dir.exists(),
+        "unsupported model format must fail before creating package files"
+    );
+}
+
+#[test]
 fn package_init_rejects_existing_generated_targets_without_force() {
     for collision_rel in [
         "models/model.onnx",
@@ -345,6 +413,42 @@ fn package_init_rejects_existing_generated_targets_without_force() {
             "package init should fail before writing manifest for {collision_rel}"
         );
     }
+}
+
+fn run_package_init_with_model(model_name: &str) -> Value {
+    let temp = TempDir::new("package-init-model-format");
+    let model = temp.write(model_name, "model");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("init")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("protein-init")
+        .arg("--model")
+        .arg(&model)
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .args(skeleton_metadata_args())
+        .output()
+        .expect("run biors package init");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+
+    serde_json::from_slice(
+        &std::fs::read(output_dir.join("manifest.json")).expect("read generated manifest"),
+    )
+    .expect("generated manifest JSON")
 }
 
 fn conversion_metadata_args() -> [&'static str; 16] {
