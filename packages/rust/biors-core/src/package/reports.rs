@@ -97,6 +97,8 @@ pub enum PackageValidationIssueCode {
     RequiredField,
     /// Manifest has no fixtures.
     MissingFixture,
+    /// Fixture names are not unique.
+    DuplicateFixtureName,
     /// Shape contract has no dimensions.
     InvalidShape,
     /// Checksum is not `sha256:<64 hex>`.

@@ -198,6 +198,8 @@ Validation computes raw file hashes from disk for:
 Fixture verification reports raw expected/observed output checksums. JSON output
 content is still compared canonically so formatting-only differences can be
 identified separately from byte-level checksum drift.
+Fixture names must be unique because verification observations use the fixture
+name as their join key.
 
 Checksums are optional for some fields in the schema so draft packages can be
 assembled incrementally, but published or shared packages should include them

@@ -2,6 +2,7 @@ use super::{
     DataShape, PackageDirectoryLayout, PackageManifest, PackageMetadata,
     PackageValidationIssueCode, PackageValidationReport, RuntimeBackend, SchemaVersion,
 };
+use std::collections::HashMap;
 
 /// Validate package manifest fields that do not require filesystem access.
 pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidationReport {
@@ -151,6 +152,30 @@ fn validate_fixture_list(report: &mut PackageValidationReport, manifest: &Packag
             &format!("fixtures[{index}].expected_output"),
             &fixture.expected_output,
         );
+    }
+    reject_duplicate_fixture_names(report, manifest);
+}
+
+fn reject_duplicate_fixture_names(
+    report: &mut PackageValidationReport,
+    manifest: &PackageManifest,
+) {
+    let mut first_index_by_name: HashMap<&str, usize> = HashMap::new();
+    for (index, fixture) in manifest.fixtures.iter().enumerate() {
+        let name = fixture.name.trim();
+        if name.is_empty() {
+            continue;
+        }
+        match first_index_by_name.get(name) {
+            Some(first_index) => report.push_issue(
+                PackageValidationIssueCode::DuplicateFixtureName,
+                &format!("fixtures[{index}].name"),
+                &format!("fixture name '{name}' duplicates fixtures[{first_index}].name"),
+            ),
+            None => {
+                first_index_by_name.insert(name, index);
+            }
+        }
     }
 }
 

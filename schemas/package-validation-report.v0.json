@@ -17,6 +17,7 @@
             "enum": [
               "required_field",
               "missing_fixture",
+              "duplicate_fixture_name",
               "invalid_shape",
               "invalid_checksum_format",
               "checksum_mismatch",

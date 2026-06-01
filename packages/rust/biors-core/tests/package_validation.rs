@@ -136,6 +136,47 @@ fn validate_package_manifest_rejects_fixture_with_missing_fields() {
 }
 
 #[test]
+fn validate_package_manifest_rejects_duplicate_fixture_names() {
+    let mut manifest = minimal_manifest();
+    manifest.fixtures.push(PackageFixture {
+        name: "fixture1".into(),
+        input: "input-2.json".into(),
+        expected_output: "output-2.json".into(),
+        input_hash: None,
+        expected_output_hash: None,
+    });
+    let report = validate_package_manifest(&manifest);
+
+    assert!(!report.valid);
+    let issue = report
+        .structured_issues
+        .iter()
+        .find(|issue| issue.code == PackageValidationIssueCode::DuplicateFixtureName)
+        .expect("duplicate fixture issue");
+    assert_eq!(issue.field, "fixtures[1].name");
+    assert!(issue.message.contains("fixtures[0].name"));
+}
+
+#[test]
+fn validate_package_manifest_rejects_duplicate_fixture_names_with_different_outputs() {
+    let mut manifest = minimal_manifest();
+    manifest.fixtures[0].expected_output = "expected-a.json".into();
+    manifest.fixtures.push(PackageFixture {
+        name: "fixture1".into(),
+        input: "input-b.json".into(),
+        expected_output: "expected-b.json".into(),
+        input_hash: None,
+        expected_output_hash: None,
+    });
+    let report = validate_package_manifest(&manifest);
+
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::DuplicateFixtureName
+            && issue.field == "fixtures[1].name"
+    }));
+}
+
+#[test]
 fn validate_package_manifest_rejects_empty_shape() {
     let mut manifest = minimal_manifest();
     manifest.expected_input = Some(DataShape {
