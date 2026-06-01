@@ -80,11 +80,12 @@ It rejects sequences that still contain residue warnings or errors, so model-rea
 `dataset inspect` uses the same FASTA file, recursive directory, and quoted glob
 resolver as `batch validate`, then emits a dataset descriptor, optional
 metadata, resolved file paths, byte counts, file SHA-256 values, record counts,
-a deterministic dataset hash, and a dataset-to-sample mapping from FASTA record
-IDs. File inspection streams FASTA bytes and records only sample IDs and
-sequence lengths rather than retaining full sequence records; the emitted JSON
-can still be large when a dataset has many records because `samples[]` is an
-explicit per-record mapping. Empty datasets fail with `dataset.no_inputs`.
+a portable dataset content hash, a local mapping hash, and a dataset-to-sample
+mapping from FASTA record IDs. File inspection streams FASTA bytes and records
+only sample IDs and sequence lengths rather than retaining full sequence
+records; the emitted JSON can still be large when a dataset has many records
+because `samples[]` is an explicit per-record mapping. Empty datasets fail with
+`dataset.no_inputs`.
 `cache inspect` reports the local artifact store root, layout policy, and file
 inventory. The default root is `.biors/artifacts`, overridden by
 `BIORS_ARTIFACT_STORE` or `--root`. `cache clean` requires `--dry-run` or
@@ -197,8 +198,8 @@ include `inputs`, aggregate `summary`, and a deterministic `files` list with
 per-file `input_hash`, validation counts, and `kind_counts`.
 Dataset inspection payloads use `schemas/dataset-inspect-output.v0.json` and
 include `provided_inputs`, descriptor, metadata, resolved file count, total
-byte count, sample count, dataset hash, deterministic `resolved_files`, and
-sample mapping lists.
+byte count, sample count, portable dataset content hash, local mapping hash,
+deterministic `resolved_files`, and sample mapping lists.
 Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
 

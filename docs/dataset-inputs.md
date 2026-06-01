@@ -30,12 +30,18 @@ The output includes:
 - file byte counts
 - file SHA-256 hashes
 - FASTA record counts
-- `dataset_hash` over descriptor, metadata, files, and sample mapping
+- `dataset_hash` over descriptor, metadata, file content hashes, record IDs,
+  record order, and sequence lengths
+- `dataset_mapping_hash` over the same dataset descriptor plus the local
+  resolved file paths and sample-to-file mapping
 - `samples[]` mapping each FASTA record ID to dataset descriptor, source file,
   record index, file SHA-256, and sequence length
 
-This mapping is intentionally local and deterministic. It does not upload or
-resolve biological data through external services.
+`dataset_hash` is intended as a portable dataset content identity and remains
+stable when identical FASTA content is moved to another directory.
+`dataset_mapping_hash` is intentionally local and changes when the resolved
+file paths or sample-to-file mapping changes. Neither hash uploads or resolves
+biological data through external services.
 
 `dataset inspect` streams each FASTA file while computing file SHA-256 values
 and per-record sample metadata, so it does not retain full sequence records in

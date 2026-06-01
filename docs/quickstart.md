@@ -184,8 +184,9 @@ extensions and skip unrelated files. Empty glob expansion returns
 validation emits one summary plus per-file validation summaries without
 retaining per-record validation payloads.
 Dataset inspection emits a descriptor (`source`, `version`, `split`), optional
-`--metadata key=value` pairs, file SHA-256 values, a dataset hash, and a
-dataset-to-sample mapping built from FASTA record IDs.
+`--metadata key=value` pairs, file SHA-256 values, a portable dataset content
+hash, a local mapping hash, and a dataset-to-sample mapping built from FASTA
+record IDs.
 
 ## Run A Pipeline Config
 

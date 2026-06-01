@@ -123,3 +123,44 @@ fn dataset_inspect_accepts_descriptor_and_metadata() {
     assert_eq!(value["data"]["metadata"]["organism"], "human");
     assert_eq!(value["data"]["samples"][0]["dataset"]["version"], "2026_02");
 }
+
+#[test]
+fn dataset_inspect_content_hash_is_stable_when_file_moves() {
+    let temp = TempDir::new("biors-dataset-hash-relocation");
+    fs::create_dir_all(temp.path().join("a")).expect("create first dir");
+    fs::create_dir_all(temp.path().join("b")).expect("create second dir");
+    let first = temp.write("a/input.fasta", ">seq1\nACDEFG\n");
+    let second = temp.write("b/input.fasta", ">seq1\nACDEFG\n");
+
+    let first_output = dataset_inspect_json(&first);
+    let second_output = dataset_inspect_json(&second);
+
+    assert_eq!(
+        first_output["data"]["resolved_files"][0]["sha256"],
+        second_output["data"]["resolved_files"][0]["sha256"]
+    );
+    assert_eq!(
+        first_output["data"]["dataset_hash"],
+        second_output["data"]["dataset_hash"]
+    );
+    assert_ne!(
+        first_output["data"]["dataset_mapping_hash"],
+        second_output["data"]["dataset_mapping_hash"]
+    );
+}
+
+fn dataset_inspect_json(input: &std::path::Path) -> Value {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("dataset")
+        .arg("inspect")
+        .arg(input)
+        .output()
+        .expect("run biors dataset inspect");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("valid JSON output")
+}
