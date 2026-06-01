@@ -78,6 +78,18 @@ fn package_manifest_schemas_reject_empty_fixture_names_and_shapes() {
     v1_manifest["expected_output"]["shape"] = Value::Array(vec![]);
     common::assert_payload_rejected_by_schema(&v1_manifest, "schemas/package-manifest.v1.json");
 
+    let mut v1_empty_dimension = v1_manifest.clone();
+    v1_empty_dimension["fixtures"][0]["name"] = Value::String("tiny".into());
+    v1_empty_dimension["expected_input"]["shape"] = Value::Array(vec![
+        Value::String(String::new()),
+        Value::String("256".into()),
+    ]);
+    v1_empty_dimension["expected_output"]["shape"] = Value::Array(vec![Value::String(" ".into())]);
+    common::assert_payload_rejected_by_schema(
+        &v1_empty_dimension,
+        "schemas/package-manifest.v1.json",
+    );
+
     let mut v0_manifest = v1_manifest;
     v0_manifest["schema_version"] = Value::String("biors.package.v0".into());
     if let Some(object) = v0_manifest.as_object_mut() {
@@ -88,6 +100,20 @@ fn package_manifest_schemas_reject_empty_fixture_names_and_shapes() {
         }
     }
     common::assert_payload_rejected_by_schema(&v0_manifest, "schemas/package-manifest.v0.json");
+
+    let mut v0_empty_dimension = v1_empty_dimension;
+    v0_empty_dimension["schema_version"] = Value::String("biors.package.v0".into());
+    if let Some(object) = v0_empty_dimension.as_object_mut() {
+        object.remove("package_layout");
+        object.remove("metadata");
+        if let Some(runtime) = object.get_mut("runtime").and_then(Value::as_object_mut) {
+            runtime.remove("version");
+        }
+    }
+    common::assert_payload_rejected_by_schema(
+        &v0_empty_dimension,
+        "schemas/package-manifest.v0.json",
+    );
 }
 
 #[test]

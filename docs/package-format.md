@@ -182,8 +182,9 @@ must be non-empty when present. Empty contract identifiers are rejected by both
 the Rust manifest validator and the published JSON schemas.
 
 Fixture names and declared `expected_input.shape` / `expected_output.shape`
-dimensions must also be non-empty so JSON schema preflight matches the Rust
-validator.
+dimensions must also contain non-whitespace text so JSON schema preflight
+matches the Rust validator. Numeric dimensions and symbolic dimensions such as
+`batch`, `sequence`, or `features` remain valid.
 
 ## Migration And Compatibility
 

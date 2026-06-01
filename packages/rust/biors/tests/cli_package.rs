@@ -296,6 +296,45 @@ fn package_validate_rejects_empty_contract_identifiers() {
 }
 
 #[test]
+fn package_validate_rejects_empty_shape_dimensions() {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new("empty-shape-dimension-package");
+    copy_dir_all(&source_package, temp.path());
+    let manifest_path = temp.path().join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    manifest["expected_input"]["shape"] = serde_json::json!(["", "256"]);
+    manifest["expected_output"]["shape"] = serde_json::json!([" "]);
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.validation_failed");
+    let issues = value["error"]["details"]["structured_issues"]
+        .as_array()
+        .expect("structured issues");
+    let fields: Vec<_> = issues
+        .iter()
+        .map(|issue| issue["field"].as_str().expect("issue field"))
+        .collect();
+    assert!(fields.contains(&"expected_input.shape[0]"));
+    assert!(fields.contains(&"expected_output.shape[0]"));
+}
+
+#[test]
 fn package_validate_rejects_pipeline_config_with_zero_max_length() {
     let value = validate_package_with_pipeline_config(
         "invalid-pipeline-max-length",

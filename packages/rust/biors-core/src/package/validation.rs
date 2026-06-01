@@ -17,16 +17,14 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     validate_contract_identifiers(&mut report, manifest);
     validate_runtime_contract(&mut report, manifest);
     validate_fixture_list(&mut report, manifest);
-    validate_optional_shape(
-        &mut report,
-        "expected_input",
-        manifest.expected_input.as_ref(),
-    );
-    validate_optional_shape(
-        &mut report,
-        "expected_output",
-        manifest.expected_output.as_ref(),
-    );
+    for (field, shape) in [
+        ("expected_input", manifest.expected_input.as_ref()),
+        ("expected_output", manifest.expected_output.as_ref()),
+    ] {
+        if let Some(shape) = shape {
+            validate_shape(&mut report, field, shape);
+        }
+    }
 
     report.finish()
 }
@@ -257,16 +255,6 @@ fn pipeline_steps_have_config(manifest: &PackageManifest) -> bool {
         .any(|step| step.config.is_some())
 }
 
-fn validate_optional_shape(
-    report: &mut PackageValidationReport,
-    field: &str,
-    shape: Option<&DataShape>,
-) {
-    if let Some(shape) = shape {
-        validate_shape(report, field, shape);
-    }
-}
-
 fn push_required_issue(report: &mut PackageValidationReport, field: &str, value: &str) {
     if value.trim().is_empty() {
         report.push_issue(
@@ -309,5 +297,15 @@ fn validate_shape(report: &mut PackageValidationReport, field: &str, shape: &Dat
             &format!("{field}.shape"),
             &format!("{field}.shape must include at least one dimension"),
         );
+    }
+    for (index, dimension) in shape.shape.iter().enumerate() {
+        if dimension.trim().is_empty() {
+            let field = format!("{field}.shape[{index}]");
+            report.push_issue(
+                PackageValidationIssueCode::InvalidShape,
+                &field,
+                &format!("{field} must be a non-empty dimension"),
+            );
+        }
     }
 }
