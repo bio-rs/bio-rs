@@ -38,6 +38,23 @@ async fn test_tokenize_tool() {
 }
 
 #[tokio::test]
+async fn test_tokenize_tool_accepts_nucleotide_profiles() {
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "fasta_text".to_string(),
+        serde_json::Value::String(">dna\nACGTN\n".to_string()),
+    );
+    args.insert(
+        "profile".to_string(),
+        serde_json::Value::String("dna-iupac".to_string()),
+    );
+    let json = call_tool_json("tokenize", args).await;
+    assert_eq!(json[0]["alphabet"], "dna-iupac");
+    assert_eq!(json[0]["tokens"], serde_json::json!([0, 1, 2, 3, 4]));
+    assert_eq!(json[0]["valid"], false);
+}
+
+#[tokio::test]
 async fn test_validate_tool() {
     let mut args = serde_json::Map::new();
     args.insert(
@@ -82,6 +99,44 @@ async fn test_workflow_tool_matches_core_contract_defaults() {
         serde_json::json!([0, 1, 2, 3, 0, 0])
     );
     assert_json_value_matches_schema(&json, "schemas/sequence-workflow-output.v0.json");
+}
+
+#[tokio::test]
+async fn test_workflow_tool_accepts_nucleotide_profiles() {
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "fasta_text".to_string(),
+        serde_json::Value::String(">dna\nACGT\n".to_string()),
+    );
+    args.insert(
+        "kind".to_string(),
+        serde_json::Value::String("dna".to_string()),
+    );
+    args.insert(
+        "profile".to_string(),
+        serde_json::Value::String("dna-iupac".to_string()),
+    );
+    args.insert("max_length".to_string(), serde_json::json!(6));
+
+    let json = call_tool_json("workflow", args).await;
+    assert_eq!(json["workflow"], "sequence_model_input.v0");
+    assert_eq!(json["model_ready"], true);
+    assert_eq!(json["provenance"]["tokenizer"]["name"], "dna-iupac");
+    assert_eq!(json["provenance"]["validation_alphabet"], "dna-iupac");
+    assert_eq!(
+        json["model_input"]["records"][0]["input_ids"],
+        serde_json::json!([0, 1, 2, 3, 0, 0])
+    );
+    assert_json_value_matches_schema(&json, "schemas/sequence-workflow-output.v0.json");
+
+    let mut auto_args = serde_json::Map::new();
+    auto_args.insert(
+        "fasta_text".to_string(),
+        serde_json::Value::String(">rna\nACGU\n".to_string()),
+    );
+    auto_args.insert("max_length".to_string(), serde_json::json!(4));
+    let auto_json = call_tool_json("workflow", auto_args).await;
+    assert_eq!(auto_json["provenance"]["tokenizer"]["name"], "rna-iupac");
 }
 
 #[tokio::test]
@@ -153,7 +208,7 @@ async fn test_validate_tool_classifies_empty_input_as_invalid_params() {
 }
 
 #[tokio::test]
-async fn test_workflow_tool_rejects_unsupported_kind_and_padding() {
+async fn test_workflow_tool_rejects_kind_profile_mismatch_and_bad_padding() {
     let mut dna_args = serde_json::Map::new();
     dna_args.insert(
         "fasta_text".to_string(),
@@ -163,8 +218,12 @@ async fn test_workflow_tool_rejects_unsupported_kind_and_padding() {
         "kind".to_string(),
         serde_json::Value::String("dna".to_string()),
     );
+    dna_args.insert(
+        "profile".to_string(),
+        serde_json::Value::String("protein-20".to_string()),
+    );
     let dna_error = call_tool_error("workflow", dna_args).await;
-    assert!(dna_error.contains("unsupported workflow kind"));
+    assert!(dna_error.contains("workflow kind/profile mismatch"));
 
     let mut padding_args = serde_json::Map::new();
     padding_args.insert(

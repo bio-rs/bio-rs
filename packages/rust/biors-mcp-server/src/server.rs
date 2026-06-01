@@ -2,7 +2,7 @@ use crate::package_validation::{PackageValidateFieldsParams, PackageValidatePara
 use biors_core::{
     error::BioRsError,
     model_input::{ModelInputPolicy, PaddingPolicy},
-    sequence::{SequenceKind, SequenceKindSelection},
+    tokenizer::ProteinTokenizerProfile,
     verification::stable_input_hash,
     workflow::SequenceWorkflowInvocation,
 };
@@ -20,7 +20,8 @@ pub struct BiorsMcpServer;
 pub struct TokenizeParams {
     /// FASTA text to tokenize.
     pub fasta_text: String,
-    /// Tokenizer profile: "protein-20" or "protein-20-special".
+    /// Tokenizer profile: protein-20, protein-20-special, dna-iupac,
+    /// dna-iupac-special, rna-iupac, or rna-iupac-special.
     #[serde(default = "default_protein_profile")]
     pub profile: String,
 }
@@ -38,9 +39,12 @@ pub struct ValidateParams {
 pub struct WorkflowParams {
     /// FASTA text for the workflow.
     pub fasta_text: String,
-    /// Sequence kind: "auto" or "protein". DNA/RNA workflows are not model-input ready yet.
+    /// Sequence kind: "auto", "protein", "dna", or "rna".
     #[serde(default = "default_auto_kind")]
     pub kind: String,
+    /// Optional tokenizer profile. Defaults from kind, or auto-detected kind when kind is "auto".
+    #[serde(default)]
+    pub profile: Option<String>,
     /// Maximum token length per record.
     #[serde(default = "default_max_length")]
     pub max_length: usize,
@@ -75,19 +79,6 @@ fn default_padding() -> String {
     "fixed_length".to_string()
 }
 
-fn map_kind(kind: &str) -> Result<SequenceKindSelection, McpError> {
-    match kind {
-        "auto" => Ok(SequenceKindSelection::Auto),
-        "protein" => Ok(SequenceKindSelection::Explicit(SequenceKind::Protein)),
-        "dna" => Ok(SequenceKindSelection::Explicit(SequenceKind::Dna)),
-        "rna" => Ok(SequenceKindSelection::Explicit(SequenceKind::Rna)),
-        _ => Err(McpError::invalid_params(
-            "invalid kind",
-            Some(serde_json::json!({"kind": kind, "expected": ["auto", "protein", "dna", "rna"]})),
-        )),
-    }
-}
-
 fn map_padding(padding: &str) -> Result<PaddingPolicy, McpError> {
     match padding {
         "fixed_length" => Ok(PaddingPolicy::FixedLength),
@@ -111,30 +102,10 @@ fn fasta_invalid_params(error: BioRsError) -> McpError {
     )
 }
 
-fn ensure_protein_workflow_kind(params: &WorkflowParams) -> Result<(), McpError> {
-    let selection = map_kind(&params.kind)?;
-    let report = biors_core::sequence::kind_validation::validate_fasta_input_with_kind(
-        &params.fasta_text,
-        selection,
-    )
-    .map_err(fasta_invalid_params)?;
-
-    if report.kind_counts.dna > 0 || report.kind_counts.rna > 0 {
-        return Err(McpError::invalid_params(
-            "unsupported workflow kind",
-            Some(serde_json::json!({
-                "kind": params.kind,
-                "detected_kind_counts": report.kind_counts,
-                "supported": ["auto protein-only input", "protein"],
-                "message": "MCP workflow currently supports protein model-input workflows only"
-            })),
-        ));
-    }
-
-    Ok(())
-}
-
-fn workflow_invocation(params: &WorkflowParams) -> SequenceWorkflowInvocation {
+fn workflow_invocation(
+    params: &WorkflowParams,
+    profile: ProteinTokenizerProfile,
+) -> SequenceWorkflowInvocation {
     SequenceWorkflowInvocation {
         command: "biors-mcp workflow".to_string(),
         arguments: vec![
@@ -146,6 +117,8 @@ fn workflow_invocation(params: &WorkflowParams) -> SequenceWorkflowInvocation {
             params.pad_token_id.to_string(),
             "--padding".to_string(),
             params.padding.clone(),
+            "--profile".to_string(),
+            profile.as_str().to_string(),
         ],
     }
 }
@@ -158,7 +131,7 @@ fn json_response<T: serde::Serialize>(value: &T) -> Result<CallToolResult, McpEr
 
 #[tool_router(server_handler)]
 impl BiorsMcpServer {
-    #[tool(description = "Tokenize protein FASTA text into stable token IDs")]
+    #[tool(description = "Tokenize FASTA text into stable protein, DNA, or RNA token IDs")]
     fn tokenize(
         &self,
         Parameters(params): Parameters<TokenizeParams>,
@@ -166,24 +139,7 @@ impl BiorsMcpServer {
         let records = biors_core::fasta::parse_fasta_records(&params.fasta_text)
             .map_err(fasta_invalid_params)?;
 
-        let config = match params.profile.as_str() {
-            "protein-20" => biors_core::tokenizer::ProteinTokenizerConfig {
-                profile: biors_core::tokenizer::ProteinTokenizerProfile::Protein20,
-                add_special_tokens: false,
-            },
-            "protein-20-special" => biors_core::tokenizer::ProteinTokenizerConfig {
-                profile: biors_core::tokenizer::ProteinTokenizerProfile::Protein20Special,
-                add_special_tokens: true,
-            },
-            _ => {
-                return Err(McpError::invalid_params(
-                    "invalid profile",
-                    Some(
-                        serde_json::json!({"profile": params.profile, "expected": ["protein-20", "protein-20-special"]}),
-                    ),
-                ));
-            }
-        };
+        let config = crate::profile::config_for_profile(&params.profile)?;
 
         let mut tokenized = Vec::with_capacity(records.len());
         for record in records {
@@ -203,7 +159,7 @@ impl BiorsMcpServer {
         &self,
         Parameters(params): Parameters<ValidateParams>,
     ) -> Result<CallToolResult, McpError> {
-        let selection = map_kind(&params.kind)?;
+        let selection = crate::profile::map_kind(&params.kind)?;
         let report = biors_core::sequence::kind_validation::validate_fasta_input_with_kind(
             &params.fasta_text,
             selection,
@@ -218,7 +174,11 @@ impl BiorsMcpServer {
         &self,
         Parameters(params): Parameters<WorkflowParams>,
     ) -> Result<CallToolResult, McpError> {
-        ensure_protein_workflow_kind(&params)?;
+        let profile = crate::profile::workflow_profile(
+            &params.kind,
+            params.profile.as_deref(),
+            &params.fasta_text,
+        )?;
         let records = biors_core::fasta::parse_fasta_records(&params.fasta_text)
             .map_err(fasta_invalid_params)?;
 
@@ -229,11 +189,13 @@ impl BiorsMcpServer {
         };
 
         let input_hash = stable_input_hash(&params.fasta_text);
-        let output = biors_core::workflow::prepare_protein_model_input_workflow_with_invocation(
+        let config = biors_core::tokenizer::protein_tokenizer_config_for_profile(profile);
+        let output = biors_core::workflow::prepare_model_input_workflow_with_config(
             input_hash,
             &records,
             policy,
-            workflow_invocation(&params),
+            config,
+            workflow_invocation(&params, profile),
         )
         .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
