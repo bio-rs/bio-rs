@@ -21,6 +21,8 @@ RESULT_PATH = Path("benchmarks/cli_surfaces.json")
 REPORT_PATH = Path("benchmarks/cli_surfaces.md")
 WORK_DIR = Path(".benchmark-cli-surfaces")
 ALPHABET = b"ACDEFGHIKLMNPQRSTVWY"
+DNA_ALPHABET = b"ACGT"
+RNA_ALPHABET = b"ACGU"
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,21 +79,27 @@ def ensure_binary(binary: Path, no_build: bool) -> Path:
     return binary
 
 
-def sequence(seed: int, length: int) -> bytes:
+def sequence(seed: int, length: int, alphabet: bytes = ALPHABET) -> bytes:
     result = bytearray()
     value = seed
     for _ in range(length):
         value = (value * 6364136223846793005 + 1) & ((1 << 64) - 1)
-        result.append(ALPHABET[(value >> 32) % len(ALPHABET)])
+        result.append(alphabet[(value >> 32) % len(alphabet)])
     return bytes(result)
 
 
-def write_fasta(path: Path, *, records: int, length: int) -> dict[str, int | str]:
+def write_fasta(
+    path: Path,
+    *,
+    records: int,
+    length: int,
+    alphabet: bytes = ALPHABET,
+) -> dict[str, int | str]:
     residues = 0
     with path.open("wb") as handle:
         for index in range(records):
             handle.write(f">seq_{index}\n".encode())
-            seq = sequence(index, length)
+            seq = sequence(index, length, alphabet)
             residues += len(seq)
             for offset in range(0, len(seq), 60):
                 handle.write(seq[offset : offset + 60])
@@ -199,6 +207,10 @@ def main() -> int:
     try:
         workflow_fasta = WORK_DIR / "workflow.fasta"
         workflow_input = write_fasta(workflow_fasta, records=256, length=128)
+        dna_fasta = WORK_DIR / "dna.fasta"
+        dna_input = write_fasta(dna_fasta, records=256, length=128, alphabet=DNA_ALPHABET)
+        rna_fasta = WORK_DIR / "rna.fasta"
+        rna_input = write_fasta(rna_fasta, records=256, length=128, alphabet=RNA_ALPHABET)
         dataset_dir = WORK_DIR / "dataset"
         dataset_input = write_many_file_dataset(
             dataset_dir,
@@ -215,6 +227,98 @@ def main() -> int:
                 "cli_workflow",
                 workflow_input,
                 ["workflow", "--max-length", "160", str(workflow_fasta)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_seq_validate_dna",
+                "nucleotide_validation",
+                dna_input,
+                ["seq", "validate", "--kind", "dna", str(dna_fasta)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_tokenize_dna_iupac",
+                "nucleotide_tokenization",
+                dna_input,
+                ["tokenize", "--profile", "dna-iupac", str(dna_fasta)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_model_input_dna_iupac",
+                "nucleotide_model_input",
+                dna_input,
+                [
+                    "model-input",
+                    "--profile",
+                    "dna-iupac",
+                    "--max-length",
+                    "160",
+                    str(dna_fasta),
+                ],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_workflow_dna_iupac",
+                "nucleotide_workflow",
+                dna_input,
+                [
+                    "workflow",
+                    "--profile",
+                    "dna-iupac",
+                    "--max-length",
+                    "160",
+                    str(dna_fasta),
+                ],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_seq_validate_rna",
+                "nucleotide_validation",
+                rna_input,
+                ["seq", "validate", "--kind", "rna", str(rna_fasta)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_tokenize_rna_iupac",
+                "nucleotide_tokenization",
+                rna_input,
+                ["tokenize", "--profile", "rna-iupac", str(rna_fasta)],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_model_input_rna_iupac",
+                "nucleotide_model_input",
+                rna_input,
+                [
+                    "model-input",
+                    "--profile",
+                    "rna-iupac",
+                    "--max-length",
+                    "160",
+                    str(rna_fasta),
+                ],
+            ),
+            workload(
+                binary,
+                args.loops,
+                "cli_workflow_rna_iupac",
+                "nucleotide_workflow",
+                rna_input,
+                [
+                    "workflow",
+                    "--profile",
+                    "rna-iupac",
+                    "--max-length",
+                    "160",
+                    str(rna_fasta),
+                ],
             ),
             workload(
                 binary,
@@ -271,6 +375,10 @@ def main() -> int:
             "surfaces": [
                 "cli_workflow",
                 "cli_dataset_inspect",
+                "nucleotide_validation",
+                "nucleotide_tokenization",
+                "nucleotide_model_input",
+                "nucleotide_workflow",
                 "service_contract",
                 "package_validation",
                 "package_bridge",

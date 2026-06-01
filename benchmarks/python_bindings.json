@@ -1,14 +1,20 @@
 {
   "schema_version": "biors.benchmark.python_bindings.v1",
-  "generated_at_utc": "2026-05-31T14:25:13.650707+00:00",
-  "loops": 7,
+  "generated_at_utc": "2026-06-01T13:18:39.656804+00:00",
+  "loops": 5,
   "methodology": {
     "scope": "Python binding regression guard timings on deterministic synthetic FASTA input; not a public throughput claim",
     "surfaces": [
       "parse_fasta_records",
       "tokenize_fasta_records",
       "build_model_inputs_checked",
-      "prepare_workflow_from_fasta"
+      "prepare_workflow_from_fasta",
+      "tokenize_fasta_records dna-iupac",
+      "build_model_inputs_checked dna-iupac",
+      "prepare_workflow_from_fasta dna-iupac",
+      "tokenize_fasta_records rna-iupac",
+      "build_model_inputs_checked rna-iupac",
+      "prepare_workflow_from_fasta rna-iupac"
     ]
   },
   "environment": {
@@ -17,14 +23,16 @@
     "processor": "arm",
     "python": "3.14.4",
     "biors_module": "packages/rust/biors-python/python/biors/__init__.py",
-    "git_commit": "6f0f6afdcd1414421cbfd5b24dd78799c1a0b217"
+    "git_commit": "58a7ce2e3fecd5335f2b606f4647bcd903a8d675"
   },
   "input": {
     "records": 512,
     "record_length": 128,
     "total_residues": 65536,
     "fasta_bytes": 71570,
-    "sha256": "sha256:2846469758800181ebdca708d0ce68a9036c111acb9a7418f68906112f03c95a"
+    "sha256": "sha256:2846469758800181ebdca708d0ce68a9036c111acb9a7418f68906112f03c95a",
+    "nucleotide_sha256": "sha256:e4c1d4e8b769c1eaf79ece0af6a7ce9d0d5bef5bb342104dbad279c7704bd93a",
+    "rna_nucleotide_sha256": "sha256:f99c8b361cd9e9d644fc31eac032db1d4284a39b7e9f93b83d80478e8830fdf5"
   },
   "workloads": [
     {
@@ -37,19 +45,17 @@
         "last_id": "seq_511"
       },
       "seconds": [
-        0.00025899987667798996,
-        0.000264500267803669,
-        0.0003052917309105396,
-        0.00028070760890841484,
-        0.00024087494239211082,
-        0.00023954221978783607,
-        0.00024120789021253586
+        0.0016772090457379818,
+        0.0017740828916430473,
+        0.004507124889642,
+        0.001928958110511303,
+        0.0018444997258484364
       ],
       "summary": {
-        "mean_s": 0.0002615892195275852,
-        "median_s": 0.00025899987667798996,
-        "min_s": 0.00023954221978783607,
-        "max_s": 0.0003052917309105396
+        "mean_s": 0.0023463749326765536,
+        "median_s": 0.0018444997258484364,
+        "min_s": 0.0016772090457379818,
+        "max_s": 0.004507124889642
       }
     },
     {
@@ -61,19 +67,17 @@
         "valid_records": 512
       },
       "seconds": [
-        0.0007150829769670963,
-        0.000756584107875824,
-        0.000724750105291605,
-        0.0007142918184399605,
-        0.000717999879270792,
-        0.0007257498800754547,
-        0.0007217908278107643
+        0.012079124804586172,
+        0.011852667201310396,
+        0.008192750159651041,
+        0.007662083022296429,
+        0.007522833067923784
       ],
       "summary": {
-        "mean_s": 0.0007251785136759281,
-        "median_s": 0.0007217908278107643,
-        "min_s": 0.0007142918184399605,
-        "max_s": 0.000756584107875824
+        "mean_s": 0.009461891651153565,
+        "median_s": 0.008192750159651041,
+        "min_s": 0.007522833067923784,
+        "max_s": 0.012079124804586172
       }
     },
     {
@@ -85,19 +89,17 @@
         "truncated_records": 0
       },
       "seconds": [
-        0.0013479171320796013,
-        0.001337416935712099,
-        0.0013550003059208393,
-        0.0012497501447796822,
-        0.00123924994841218,
-        0.001230667345225811,
-        0.0012176251038908958
+        0.009765916969627142,
+        0.009709541220217943,
+        0.009936416987329721,
+        0.009899917058646679,
+        0.010051624849438667
       ],
       "summary": {
-        "mean_s": 0.0012825181308601583,
-        "median_s": 0.0012497501447796822,
-        "min_s": 0.0012176251038908958,
-        "max_s": 0.0013550003059208393
+        "mean_s": 0.00987268341705203,
+        "median_s": 0.009899917058646679,
+        "min_s": 0.009709541220217943,
+        "max_s": 0.010051624849438667
       }
     },
     {
@@ -110,19 +112,157 @@
         "total_input_ids": 81920
       },
       "seconds": [
-        0.012905916199088097,
-        0.012032375205308199,
-        0.011964834295213223,
-        0.012403999920934439,
-        0.012226833961904049,
-        0.012095290701836348,
-        0.0126460837200284
+        0.12890050001442432,
+        0.1405067089945078,
+        0.1293675829656422,
+        0.1282998751848936,
+        0.12913999985903502
       ],
       "summary": {
-        "mean_s": 0.012325047714901822,
-        "median_s": 0.012226833961904049,
-        "min_s": 0.011964834295213223,
-        "max_s": 0.012905916199088097
+        "mean_s": 0.13124293340370058,
+        "median_s": 0.12913999985903502,
+        "min_s": 0.1282998751848936,
+        "max_s": 0.1405067089945078
+      }
+    },
+    {
+      "name": "python_tokenize_fasta_records_dna_iupac",
+      "output_hash": "sha256:8083a02a3638ba6e318fae56a440fe6dd4093158ebeac60f53766262d637e136",
+      "warmup_summary": {
+        "records": 512,
+        "total_tokens": 65536,
+        "valid_records": 512,
+        "profile": "dna-iupac"
+      },
+      "seconds": [
+        0.00711541622877121,
+        0.007070957683026791,
+        0.0072200000286102295,
+        0.007224917411804199,
+        0.0073424167931079865
+      ],
+      "summary": {
+        "mean_s": 0.007194741629064083,
+        "median_s": 0.0072200000286102295,
+        "min_s": 0.007070957683026791,
+        "max_s": 0.0073424167931079865
+      }
+    },
+    {
+      "name": "python_build_model_inputs_checked_dna_iupac",
+      "output_hash": "sha256:d9410ec33e94deb2e59a83e21b47c242d49a42ac56b9afad295f640c0bd98d4c",
+      "warmup_summary": {
+        "records": 512,
+        "total_input_ids": 81920,
+        "truncated_records": 0,
+        "profile": "dna-iupac"
+      },
+      "seconds": [
+        0.010252083651721478,
+        0.010328291915357113,
+        0.010195958893746138,
+        0.010254917200654745,
+        0.010281958151608706
+      ],
+      "summary": {
+        "mean_s": 0.010262641962617636,
+        "median_s": 0.010254917200654745,
+        "min_s": 0.010195958893746138,
+        "max_s": 0.010328291915357113
+      }
+    },
+    {
+      "name": "python_prepare_workflow_from_fasta_dna_iupac",
+      "output_hash": "sha256:25f4e8315da92dd5575f4af1703ddc8f1b45500ad15a641baf76b1dd2bfc0190",
+      "warmup_summary": {
+        "records": 512,
+        "model_ready": true,
+        "input_hash_prefix": "fnv1a64",
+        "total_input_ids": 81920,
+        "profile": "dna-iupac"
+      },
+      "seconds": [
+        0.12942541670054197,
+        0.11928491713479161,
+        0.11917287483811378,
+        0.11844766698777676,
+        0.11848450032994151
+      ],
+      "summary": {
+        "mean_s": 0.12096307519823313,
+        "median_s": 0.11917287483811378,
+        "min_s": 0.11844766698777676,
+        "max_s": 0.12942541670054197
+      }
+    },
+    {
+      "name": "python_tokenize_fasta_records_rna_iupac",
+      "output_hash": "sha256:91be069bda3254f22b8863738c88c3d3062255e3e2dd20172dd9a403fbb73205",
+      "warmup_summary": {
+        "records": 512,
+        "total_tokens": 65536,
+        "valid_records": 512,
+        "profile": "rna-iupac"
+      },
+      "seconds": [
+        0.007479584310203791,
+        0.007454666309058666,
+        0.0072347079403698444,
+        0.007077458780258894,
+        0.008039374835789204
+      ],
+      "summary": {
+        "mean_s": 0.00745715843513608,
+        "median_s": 0.007454666309058666,
+        "min_s": 0.007077458780258894,
+        "max_s": 0.008039374835789204
+      }
+    },
+    {
+      "name": "python_build_model_inputs_checked_rna_iupac",
+      "output_hash": "sha256:5a3b76c6589f01a611815347659d232a449c8dcf70ca2ebd0ef2196312444b6e",
+      "warmup_summary": {
+        "records": 512,
+        "total_input_ids": 81920,
+        "truncated_records": 0,
+        "profile": "rna-iupac"
+      },
+      "seconds": [
+        0.010145707987248898,
+        0.009892708156257868,
+        0.010231667198240757,
+        0.010262666270136833,
+        0.010142375249415636
+      ],
+      "summary": {
+        "mean_s": 0.010135024972259998,
+        "median_s": 0.010145707987248898,
+        "min_s": 0.009892708156257868,
+        "max_s": 0.010262666270136833
+      }
+    },
+    {
+      "name": "python_prepare_workflow_from_fasta_rna_iupac",
+      "output_hash": "sha256:b04992ab78a61f00132bfb6d10dab885958ec6a9ce1f6c20e9bbbcfd14d79376",
+      "warmup_summary": {
+        "records": 512,
+        "model_ready": true,
+        "input_hash_prefix": "fnv1a64",
+        "total_input_ids": 81920,
+        "profile": "rna-iupac"
+      },
+      "seconds": [
+        0.11872645793482661,
+        0.1195860831066966,
+        0.11917500011622906,
+        0.13793066702783108,
+        0.12364999996498227
+      ],
+      "summary": {
+        "mean_s": 0.12381364163011313,
+        "median_s": 0.1195860831066966,
+        "min_s": 0.11872645793482661,
+        "max_s": 0.13793066702783108
       }
     }
   ]

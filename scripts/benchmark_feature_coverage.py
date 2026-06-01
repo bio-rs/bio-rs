@@ -61,6 +61,23 @@ FEATURE_COVERAGE = [
         "claim_scope": "Committed optional Candle CPU backend smoke timing only; no broad backend throughput claim.",
         "evidence": ["benchmarks/backend_smoke.json"],
     },
+    {
+        "feature": "nucleotide_model_ready_workflows",
+        "status": "numeric_regression_guard",
+        "claim_scope": "Committed DNA/RNA validation, tokenization, model-input, workflow, and binding regression timings only; no public throughput claim.",
+        "evidence": [
+            "benchmarks/cli_surfaces.json workload cli_seq_validate_dna",
+            "benchmarks/cli_surfaces.json workload cli_seq_validate_rna",
+            "benchmarks/cli_surfaces.json workload cli_tokenize_dna_iupac",
+            "benchmarks/cli_surfaces.json workload cli_tokenize_rna_iupac",
+            "benchmarks/cli_surfaces.json workload cli_model_input_dna_iupac",
+            "benchmarks/cli_surfaces.json workload cli_model_input_rna_iupac",
+            "benchmarks/cli_surfaces.json workload cli_workflow_dna_iupac",
+            "benchmarks/cli_surfaces.json workload cli_workflow_rna_iupac",
+            "benchmarks/python_bindings.json workloads *_dna_iupac and *_rna_iupac",
+            "benchmarks/wasm_bindings.json workloads *_dna_iupac and *_rna_iupac",
+        ],
+    },
 ]
 
 REQUIRED_FEATURE_COVERAGE = {

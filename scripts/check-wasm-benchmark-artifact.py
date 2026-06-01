@@ -12,6 +12,10 @@ REQUIRED_WORKLOADS = {
     "wasm_validate_fasta": "wasm_bindings",
     "wasm_tokenize": "wasm_bindings",
     "wasm_run_workflow": "wasm_bindings",
+    "wasm_tokenize_dna_iupac": "wasm_bindings",
+    "wasm_run_workflow_dna_iupac": "wasm_bindings",
+    "wasm_tokenize_rna_iupac": "wasm_bindings",
+    "wasm_run_workflow_rna_iupac": "wasm_bindings",
 }
 
 

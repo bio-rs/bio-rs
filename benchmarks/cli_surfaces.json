@@ -1,12 +1,16 @@
 {
   "schema_version": "biors.benchmark.cli_surfaces.v1",
-  "generated_at_utc": "2026-05-31T14:29:52.852057+00:00",
-  "loops": 5,
+  "generated_at_utc": "2026-06-01T13:18:29.000573+00:00",
+  "loops": 3,
   "methodology": {
     "scope": "CLI regression guard timings on deterministic synthetic inputs and package fixtures; not a public throughput claim",
     "surfaces": [
       "cli_workflow",
       "cli_dataset_inspect",
+      "nucleotide_validation",
+      "nucleotide_tokenization",
+      "nucleotide_model_input",
+      "nucleotide_workflow",
       "service_contract",
       "package_validation",
       "package_bridge"
@@ -18,10 +22,10 @@
     "machine": "arm64",
     "processor": "arm",
     "python": "3.14.4",
-    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
-    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "rustc": "rustc 1.88.0 (6b00bc388 2025-06-23)",
+    "cargo": "cargo 1.88.0 (873a06493 2025-05-10)",
     "biors": "0.47.4",
-    "git_commit": "aea31b6124004627e52dcab252e8723991f1dcb3"
+    "git_commit": "58a7ce2e3fecd5335f2b606f4647bcd903a8d675"
   },
   "workloads": [
     {
@@ -42,20 +46,292 @@
           "160",
           ".benchmark-cli-surfaces/workflow.fasta"
         ],
-        "output_hash": "sha256:6965bcbb1a9eab6990d9ab3028dc09100d26abac1def55adf80a8daf5973e17f",
+        "output_hash": "sha256:76b42889050f9fde9ab43d6b15a323c8dfa448834b834a2ea5c76645ab1177fb",
         "seconds": [
-          0.08641583379358053,
-          0.07950179139152169,
-          0.07868670858442783,
-          0.07805499993264675,
-          0.08523587509989738
+          0.08560829190537333,
+          0.09295850014314055,
+          0.10638066614046693
         ],
         "summary": {
-          "mean_s": 0.08157904176041483,
-          "median_s": 0.07950179139152169,
-          "min_s": 0.07805499993264675,
-          "max_s": 0.08641583379358053,
-          "stdout_bytes": 1930154
+          "mean_s": 0.0949824860629936,
+          "median_s": 0.09295850014314055,
+          "min_s": 0.08560829190537333,
+          "max_s": 0.10638066614046693,
+          "stdout_bytes": 1930201
+        }
+      }
+    },
+    {
+      "name": "cli_seq_validate_dna",
+      "surface": "nucleotide_validation",
+      "input": {
+        "path": "dna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:249d8d8c983b9aab6bd9cc17d5ea40c424ee80aac1ad69f7e2dd77861209b551"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "seq",
+          "validate",
+          "--kind",
+          "dna",
+          ".benchmark-cli-surfaces/dna.fasta"
+        ],
+        "output_hash": "sha256:861fe3145d8e9dab138991471b7e1fa5c4e9483130c69584f0f71f75e7aa9be4",
+        "seconds": [
+          0.005687082652002573,
+          0.006156708113849163,
+          0.005766791757196188
+        ],
+        "summary": {
+          "mean_s": 0.005870194174349308,
+          "median_s": 0.005766791757196188,
+          "min_s": 0.005687082652002573,
+          "max_s": 0.006156708113849163,
+          "stdout_bytes": 81602
+        }
+      }
+    },
+    {
+      "name": "cli_tokenize_dna_iupac",
+      "surface": "nucleotide_tokenization",
+      "input": {
+        "path": "dna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:249d8d8c983b9aab6bd9cc17d5ea40c424ee80aac1ad69f7e2dd77861209b551"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "tokenize",
+          "--profile",
+          "dna-iupac",
+          ".benchmark-cli-surfaces/dna.fasta"
+        ],
+        "output_hash": "sha256:35d201326909f4607620f5805157b699eba6b2f14cfe6a853df8ae5f0c377c9a",
+        "seconds": [
+          0.02546445792540908,
+          0.022377875167876482,
+          0.02249462530016899
+        ],
+        "summary": {
+          "mean_s": 0.023445652797818184,
+          "median_s": 0.02249462530016899,
+          "min_s": 0.022377875167876482,
+          "max_s": 0.02546445792540908,
+          "stdout_bytes": 405500
+        }
+      }
+    },
+    {
+      "name": "cli_model_input_dna_iupac",
+      "surface": "nucleotide_model_input",
+      "input": {
+        "path": "dna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:249d8d8c983b9aab6bd9cc17d5ea40c424ee80aac1ad69f7e2dd77861209b551"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "model-input",
+          "--profile",
+          "dna-iupac",
+          "--max-length",
+          "160",
+          ".benchmark-cli-surfaces/dna.fasta"
+        ],
+        "output_hash": "sha256:91485c08ac8c00352fee4678596ec9cfaca904d4bec5d4ae49c57a2ebd537045",
+        "seconds": [
+          0.05144379194825888,
+          0.04861491592600942,
+          0.05108187487348914
+        ],
+        "summary": {
+          "mean_s": 0.050380194249252476,
+          "median_s": 0.05108187487348914,
+          "min_s": 0.04861491592600942,
+          "max_s": 0.05144379194825888,
+          "stdout_bytes": 1100924
+        }
+      }
+    },
+    {
+      "name": "cli_workflow_dna_iupac",
+      "surface": "nucleotide_workflow",
+      "input": {
+        "path": "dna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:249d8d8c983b9aab6bd9cc17d5ea40c424ee80aac1ad69f7e2dd77861209b551"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "workflow",
+          "--profile",
+          "dna-iupac",
+          "--max-length",
+          "160",
+          ".benchmark-cli-surfaces/dna.fasta"
+        ],
+        "output_hash": "sha256:6aff6fcd6a2264608032b9139542611083b4dde692bac980f055bf7a06436621",
+        "seconds": [
+          0.07907474972307682,
+          0.07604291709139943,
+          0.07721924968063831
+        ],
+        "summary": {
+          "mean_s": 0.07744563883170485,
+          "median_s": 0.07721924968063831,
+          "min_s": 0.07604291709139943,
+          "max_s": 0.07907474972307682,
+          "stdout_bytes": 1896670
+        }
+      }
+    },
+    {
+      "name": "cli_seq_validate_rna",
+      "surface": "nucleotide_validation",
+      "input": {
+        "path": "rna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:d7ae3fdfa54c1707582da34624687522c5ca54b25a3ce83401b68238734e3265"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "seq",
+          "validate",
+          "--kind",
+          "rna",
+          ".benchmark-cli-surfaces/rna.fasta"
+        ],
+        "output_hash": "sha256:8e7878b978206aa4b8c1fc5f5a4ce5353df377523680d82dae60859bc3a6aa59",
+        "seconds": [
+          0.006620875094085932,
+          0.006242542061954737,
+          0.005965332966297865
+        ],
+        "summary": {
+          "mean_s": 0.006276250040779511,
+          "median_s": 0.006242542061954737,
+          "min_s": 0.005965332966297865,
+          "max_s": 0.006620875094085932,
+          "stdout_bytes": 81602
+        }
+      }
+    },
+    {
+      "name": "cli_tokenize_rna_iupac",
+      "surface": "nucleotide_tokenization",
+      "input": {
+        "path": "rna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:d7ae3fdfa54c1707582da34624687522c5ca54b25a3ce83401b68238734e3265"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "tokenize",
+          "--profile",
+          "rna-iupac",
+          ".benchmark-cli-surfaces/rna.fasta"
+        ],
+        "output_hash": "sha256:2ddb8aa0d5d463eb03941f81f987af6d4d1566c3a3a188a66ecb14414fbeba85",
+        "seconds": [
+          0.02344950009137392,
+          0.023018208798021078,
+          0.02272745780646801
+        ],
+        "summary": {
+          "mean_s": 0.02306505556528767,
+          "median_s": 0.023018208798021078,
+          "min_s": 0.02272745780646801,
+          "max_s": 0.02344950009137392,
+          "stdout_bytes": 405500
+        }
+      }
+    },
+    {
+      "name": "cli_model_input_rna_iupac",
+      "surface": "nucleotide_model_input",
+      "input": {
+        "path": "rna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:d7ae3fdfa54c1707582da34624687522c5ca54b25a3ce83401b68238734e3265"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "model-input",
+          "--profile",
+          "rna-iupac",
+          "--max-length",
+          "160",
+          ".benchmark-cli-surfaces/rna.fasta"
+        ],
+        "output_hash": "sha256:d96871d2417a57f5a8aa5325fb4a14423e49e230f5a5683391c8ae4c2494c122",
+        "seconds": [
+          0.0499916672706604,
+          0.048435209318995476,
+          0.0509485830552876
+        ],
+        "summary": {
+          "mean_s": 0.049791819881647825,
+          "median_s": 0.0499916672706604,
+          "min_s": 0.048435209318995476,
+          "max_s": 0.0509485830552876,
+          "stdout_bytes": 1100924
+        }
+      }
+    },
+    {
+      "name": "cli_workflow_rna_iupac",
+      "surface": "nucleotide_workflow",
+      "input": {
+        "path": "rna.fasta",
+        "records": 256,
+        "total_residues": 32768,
+        "file_size_bytes": 35730,
+        "sha256": "sha256:d7ae3fdfa54c1707582da34624687522c5ca54b25a3ce83401b68238734e3265"
+      },
+      "result": {
+        "command": [
+          "target/release/biors",
+          "workflow",
+          "--profile",
+          "rna-iupac",
+          "--max-length",
+          "160",
+          ".benchmark-cli-surfaces/rna.fasta"
+        ],
+        "output_hash": "sha256:d85c18d525a229b15f34e07a35f59023994420eb24fb01e2788519343491880b",
+        "seconds": [
+          0.07605737540870905,
+          0.07737829210236669,
+          0.07557037519291043
+        ],
+        "summary": {
+          "mean_s": 0.07633534756799538,
+          "median_s": 0.07605737540870905,
+          "min_s": 0.07557037519291043,
+          "max_s": 0.07737829210236669,
+          "stdout_bytes": 1896670
         }
       }
     },
@@ -83,20 +359,18 @@
           "train",
           ".benchmark-cli-surfaces/dataset"
         ],
-        "output_hash": "sha256:5da03eb58d1a9f3a86f24956549af4be63e01dddc2651a25bc1018ba86127689",
+        "output_hash": "sha256:f44c658f041634deff0b71ab9f32adca0048ced07611434fa255ebdc04dc4ffe",
         "seconds": [
-          0.008146208710968494,
-          0.00870829215273261,
-          0.008459458127617836,
-          0.008188000414520502,
-          0.008221082855015993
+          0.008730040863156319,
+          0.008697958197444677,
+          0.00864941580221057
         ],
         "summary": {
-          "mean_s": 0.008344608452171087,
-          "median_s": 0.008221082855015993,
-          "min_s": 0.008146208710968494,
-          "max_s": 0.00870829215273261,
-          "stdout_bytes": 110161
+          "mean_s": 0.008692471620937189,
+          "median_s": 0.008697958197444677,
+          "min_s": 0.00864941580221057,
+          "max_s": 0.008730040863156319,
+          "stdout_bytes": 110264
         }
       }
     },
@@ -114,17 +388,15 @@
         ],
         "output_hash": "sha256:8b7fcbb4c825a7650948fb24aaf885f6dffef6b917b6e5f7583eb86d5a090199",
         "seconds": [
-          0.004656124860048294,
-          0.004570916760712862,
-          0.004618290811777115,
-          0.004545167088508606,
-          0.004499250091612339
+          0.004743833094835281,
+          0.004621999803930521,
+          0.004563000053167343
         ],
         "summary": {
-          "mean_s": 0.004577949922531843,
-          "median_s": 0.004570916760712862,
-          "min_s": 0.004499250091612339,
-          "max_s": 0.004656124860048294,
+          "mean_s": 0.0046429443173110485,
+          "median_s": 0.004621999803930521,
+          "min_s": 0.004563000053167343,
+          "max_s": 0.004743833094835281,
           "stdout_bytes": 4786
         }
       }
@@ -136,7 +408,7 @@
         "kind": "package_manifest",
         "path": "examples/protein-package/manifest.json",
         "file_size_bytes": 3504,
-        "sha256": "sha256:6366ded32b521d1cf4df1ec937ecf2348538557f4a8a71cc59c66efb2e208ca0"
+        "sha256": "sha256:ab94751fe2fece6edb644010b9e87233f65c7442d4a5fc81e296aafed3f55613"
       },
       "result": {
         "command": [
@@ -147,17 +419,15 @@
         ],
         "output_hash": "sha256:5eab0fe803bac4e70c7f65b6f80c0b59c1b1a6e1647ebd3aa9bcca8b19859dd4",
         "seconds": [
-          0.005145207978785038,
-          0.004453875124454498,
-          0.004603708162903786,
-          0.004470458719879389,
-          0.004980416037142277
+          0.005102624651044607,
+          0.005483834072947502,
+          0.005686458200216293
         ],
         "summary": {
-          "mean_s": 0.004730733204632997,
-          "median_s": 0.004603708162903786,
-          "min_s": 0.004453875124454498,
-          "max_s": 0.005145207978785038,
+          "mean_s": 0.005424305641402801,
+          "median_s": 0.005483834072947502,
+          "min_s": 0.005102624651044607,
+          "max_s": 0.005686458200216293,
           "stdout_bytes": 128
         }
       }
@@ -169,7 +439,7 @@
         "kind": "package_manifest",
         "path": "examples/protein-package/manifest.json",
         "file_size_bytes": 3504,
-        "sha256": "sha256:6366ded32b521d1cf4df1ec937ecf2348538557f4a8a71cc59c66efb2e208ca0"
+        "sha256": "sha256:ab94751fe2fece6edb644010b9e87233f65c7442d4a5fc81e296aafed3f55613"
       },
       "result": {
         "command": [
@@ -178,20 +448,18 @@
           "bridge",
           "examples/protein-package/manifest.json"
         ],
-        "output_hash": "sha256:877469d77813606483148da3dbf50944203063f8f56570117584f1afb24f5029",
+        "output_hash": "sha256:23424ffb0f0cffb001b08173fd75f1093d293f669db14edd05b660a90b07a592",
         "seconds": [
-          0.004800582770258188,
-          0.00491987494751811,
-          0.0045701670460402966,
-          0.005035375244915485,
-          0.004332666285336018
+          0.005379333160817623,
+          0.005062833894044161,
+          0.0051766252145171165
         ],
         "summary": {
-          "mean_s": 0.00473173325881362,
-          "median_s": 0.004800582770258188,
-          "min_s": 0.004332666285336018,
-          "max_s": 0.005035375244915485,
-          "stdout_bytes": 1508
+          "mean_s": 0.005206264089792967,
+          "median_s": 0.0051766252145171165,
+          "min_s": 0.005062833894044161,
+          "max_s": 0.005379333160817623,
+          "stdout_bytes": 1810
         }
       }
     }

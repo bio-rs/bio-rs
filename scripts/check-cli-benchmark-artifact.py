@@ -9,6 +9,14 @@ from pathlib import Path
 RESULT_PATH = Path("benchmarks/cli_surfaces.json")
 REQUIRED_WORKLOADS = {
     "cli_workflow_fixed_length": "cli_workflow",
+    "cli_seq_validate_dna": "nucleotide_validation",
+    "cli_tokenize_dna_iupac": "nucleotide_tokenization",
+    "cli_model_input_dna_iupac": "nucleotide_model_input",
+    "cli_workflow_dna_iupac": "nucleotide_workflow",
+    "cli_seq_validate_rna": "nucleotide_validation",
+    "cli_tokenize_rna_iupac": "nucleotide_tokenization",
+    "cli_model_input_rna_iupac": "nucleotide_model_input",
+    "cli_workflow_rna_iupac": "nucleotide_workflow",
     "cli_dataset_inspect_many_file": "cli_dataset_inspect",
     "cli_service_contract": "service_contract",
     "cli_package_validate_example": "package_validation",

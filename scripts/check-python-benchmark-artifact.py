@@ -12,6 +12,12 @@ REQUIRED_WORKLOADS = {
     "python_tokenize_fasta_records",
     "python_build_model_inputs_checked",
     "python_prepare_workflow_from_fasta",
+    "python_tokenize_fasta_records_dna_iupac",
+    "python_build_model_inputs_checked_dna_iupac",
+    "python_prepare_workflow_from_fasta_dna_iupac",
+    "python_tokenize_fasta_records_rna_iupac",
+    "python_build_model_inputs_checked_rna_iupac",
+    "python_prepare_workflow_from_fasta_rna_iupac",
 }
 
 
