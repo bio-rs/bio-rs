@@ -93,7 +93,7 @@ impl PipelineOutput {
     pub(crate) fn dry_run(resolved: ResolvedPipelineConfig, explain_plan: bool) -> Self {
         Self {
             pipeline: "config_pipeline.v0",
-            ready: true,
+            ready: false,
             dry_run: Some(true),
             explain_plan: Some(explain_plan),
             config: Some(PipelineConfigSummary::from_config(

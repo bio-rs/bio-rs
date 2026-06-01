@@ -28,7 +28,8 @@ biors pipeline --config examples/pipeline/protein.yaml --dry-run
 ```
 
 Dry-run validates the config and emits the planned stages without reading the
-input FASTA file.
+input FASTA file. Dry-run outputs set `ready: false` because planned stages are
+not an executed, model-ready result.
 
 ## Explain Plan
 

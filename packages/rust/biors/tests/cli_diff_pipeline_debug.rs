@@ -121,6 +121,7 @@ export:
     let value = run_biors(&["pipeline", "--config", &config_arg, "--dry-run"], &[]);
 
     assert_eq!(value["data"]["pipeline"], "config_pipeline.v0");
+    assert_eq!(value["data"]["ready"], false);
     assert_eq!(value["data"]["dry_run"], true);
     assert_eq!(value["data"]["workflow"], Value::Null);
     assert!(value["data"]["steps"]

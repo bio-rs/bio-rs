@@ -47,7 +47,8 @@ stable `sequence.not_model_ready` readiness issue codes.
 validate -> tokenize -> export step statuses for CLI chaining and pipeline
 orchestration. With `--config`, it reads `biors.pipeline.v0` TOML/YAML/JSON and
 runs parse -> normalize -> validate -> tokenize -> export. `--dry-run` validates
-the config and emits planned stages without reading FASTA input; `--explain-plan`
+the config and emits planned stages without reading FASTA input, with
+`ready: false` because no model-ready output was produced; `--explain-plan`
 includes the static plan with an executing run. `--write-lock` records a
 `biors.pipeline.lock.v0` file for an executed config pipeline. When `--package`
 is supplied, the lock pins the package manifest path, model checksum, runtime
