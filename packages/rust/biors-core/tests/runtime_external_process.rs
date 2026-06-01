@@ -193,6 +193,31 @@ fn external_process_backend_rejects_invalid_stdout_json() {
 }
 
 #[test]
+fn external_process_backend_rejects_wrong_requested_output_format() {
+    let mut backend = external_process_backend("wrong-output");
+    backend
+        .capabilities
+        .supported_outputs
+        .push("biors.alternate.v0".to_string());
+    let context = ExecutionContext {
+        trace_id: Some("trace-runtime-process-output-format".to_string()),
+        input_format: "biors.model-input.v0".to_string(),
+        requested_output_format: Some("biors.echo.v0".to_string()),
+        payload: b"{}".to_vec(),
+        metadata: Vec::new(),
+    };
+
+    let error = backend
+        .execute_checked(context)
+        .expect_err("fixture returns a supported but unrequested output format");
+
+    assert_eq!(error.backend_id, "python-wrong-output");
+    assert_eq!(error.code, "runtime.output_format_mismatch");
+    assert!(error.message.contains("biors.echo.v0"));
+    assert!(error.message.contains("biors.alternate.v0"));
+}
+
+#[test]
 fn external_process_backend_bounds_stdout_before_parsing_result() {
     let mut backend = external_process_backend("big-stdout");
     backend.process.max_stdout_bytes = 128;

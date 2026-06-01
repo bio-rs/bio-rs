@@ -24,6 +24,21 @@ impl BackendExecutionError {
         }
     }
 
+    /// Construct an output-format mismatch error for checked execution results.
+    pub fn output_format_mismatch(
+        backend_id: &str,
+        requested_output_format: &str,
+        actual_output_format: &str,
+    ) -> Self {
+        Self {
+            backend_id: backend_id.to_string(),
+            code: "runtime.output_format_mismatch".to_string(),
+            message: format!(
+                "backend '{backend_id}' returned output format '{actual_output_format}' but '{requested_output_format}' was requested"
+            ),
+        }
+    }
+
     /// Construct a payload-size error for capability checks.
     pub fn payload_too_large(
         backend_id: &str,

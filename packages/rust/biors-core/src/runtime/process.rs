@@ -206,6 +206,15 @@ impl Backend for ExternalProcessBackend {
                 &result.output_format,
             ));
         }
+        if let Some(requested_output_format) = &context.requested_output_format {
+            if result.output_format != *requested_output_format {
+                return Err(BackendExecutionError::output_format_mismatch(
+                    &self.config.backend_id,
+                    requested_output_format,
+                    &result.output_format,
+                ));
+            }
+        }
         if result.trace_id.is_none() {
             result.trace_id = context.trace_id;
         }

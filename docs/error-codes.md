@@ -86,6 +86,7 @@ They are not emitted by the CLI until a concrete backend command exists.
 
 - `runtime.unsupported_input`: a backend does not accept the supplied input payload format
 - `runtime.unsupported_output`: a backend does not produce the requested output payload format
+- `runtime.output_format_mismatch`: a backend returned a supported output format different from the requested output format
 - `runtime.payload_too_large`: a backend payload exceeds the declared byte limit
 - `runtime.execution_failed`: a backend failed while handling an execution context
 - `runtime.process_spawn_failed`: an external process backend could not start the configured program

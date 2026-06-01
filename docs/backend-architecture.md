@@ -97,6 +97,10 @@ stable `BackendExecutionError` before backend-specific execution starts. Backend
 authors should expose the checked path to callers unless they have already
 performed equivalent validation at a higher layer.
 
+When a context includes `requested_output_format`, an execution result must
+return that exact format. Returning a different format, even one listed in the
+backend's supported outputs, is reported as `runtime.output_format_mismatch`.
+
 ## External Process Backend
 
 `ExternalProcessBackend` runs one configured child process per execution. The

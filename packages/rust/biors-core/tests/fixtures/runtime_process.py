@@ -34,7 +34,7 @@ def main() -> int:
         print("X" * 4096)
         return 0
 
-    if mode != "echo":
+    if mode not in {"echo", "wrong-output"}:
         print(f"unsupported fixture mode: {mode}", file=sys.stderr)
         return 64
 
@@ -50,7 +50,11 @@ def main() -> int:
     json.dump(
         {
             "trace_id": context.get("trace_id"),
-            "output_format": context.get("requested_output_format") or "biors.echo.v0",
+            "output_format": (
+                "biors.alternate.v0"
+                if mode == "wrong-output"
+                else context.get("requested_output_format") or "biors.echo.v0"
+            ),
             "payload": context["payload"],
             "metadata": metadata,
         },

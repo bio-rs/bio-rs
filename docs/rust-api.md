@@ -355,6 +355,7 @@ The `runtime` module defines backend abstraction contracts and provides a guarde
 - **`BackendExecutionError`** — `pub backend_id: String`, `pub code: String`, `pub message: String`
   - `pub fn unsupported_input(backend_id: &str, input_format: &str) -> Self`
   - `pub fn unsupported_output(backend_id: &str, output_format: &str) -> Self`
+  - `pub fn output_format_mismatch(backend_id: &str, requested_output_format: &str, actual_output_format: &str) -> Self`
   - `pub fn payload_too_large(backend_id: &str, payload_bytes: usize, max_input_bytes: usize) -> Self`
   - `pub fn execution_failed(backend_id: &str, message: impl Into<String>) -> Self`
   - `pub fn process_spawn_failed(backend_id: &str, message: impl Into<String>) -> Self`
