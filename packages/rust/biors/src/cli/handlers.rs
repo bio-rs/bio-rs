@@ -71,11 +71,12 @@ pub fn run(command: Command) -> Result<(), CliError> {
         } => run_tokenize(profile, config, path),
         Command::Tokenizer { command } => run_tokenizer_command(command),
         Command::Workflow {
+            profile,
             max_length,
             pad_token_id,
             padding,
             path,
-        } => run_workflow(max_length, pad_token_id, padding, path),
+        } => run_workflow(profile, max_length, pad_token_id, padding, path),
     }
 }
 

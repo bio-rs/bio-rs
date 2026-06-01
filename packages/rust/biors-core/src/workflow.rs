@@ -2,18 +2,23 @@ use crate::model_input::{
     build_model_inputs_checked, validate_model_input_policy, ModelInput, ModelInputBuildError,
     ModelInputPolicy,
 };
-use crate::sequence::{validate_protein_sequence, ProteinSequence, SequenceValidationReport};
+use crate::sequence::{
+    validate_sequence_record, ProteinSequence, ResidueIssue, SequenceKind, SequenceRecord,
+    SequenceValidationIssue, SequenceValidationReport, ValidatedSequence,
+};
 use crate::tokenizer::{
-    load_protein_20_vocab, summarize_tokenized_proteins, ProteinBatchSummary, TokenizedProtein,
-    UnknownTokenPolicy,
+    protein_tokenizer_config_for_profile, summarize_tokenized_proteins,
+    tokenize_protein_with_config, ProteinBatchSummary, ProteinTokenizerConfig,
+    ProteinTokenizerProfile, TokenizedProtein, UnknownTokenPolicy,
 };
 use serde::{Deserialize, Serialize};
 
 mod reproducibility;
-use reproducibility::{workflow_hashes, CORE_WORKFLOW_COMMAND};
+use reproducibility::{workflow_hashes, WorkflowHashInput, CORE_WORKFLOW_COMMAND};
 pub use reproducibility::{SequenceWorkflowHashes, SequenceWorkflowInvocation};
 
-const WORKFLOW_NAME: &str = "protein_model_input.v0";
+const PROTEIN_WORKFLOW_NAME: &str = "protein_model_input.v0";
+const SEQUENCE_WORKFLOW_NAME: &str = "sequence_model_input.v0";
 const NORMALIZATION_POLICY: &str = "strip_ascii_whitespace_uppercase";
 const READINESS_ISSUE_CODE: &str = "sequence.not_model_ready";
 
@@ -92,15 +97,30 @@ pub fn prepare_protein_model_input_workflow_with_invocation(
     policy: ModelInputPolicy,
     invocation: SequenceWorkflowInvocation,
 ) -> Result<SequenceWorkflowOutput, ModelInputBuildError> {
+    prepare_model_input_workflow_with_config(
+        input_hash,
+        records,
+        policy,
+        protein_tokenizer_config_for_profile(ProteinTokenizerProfile::Protein20),
+        invocation,
+    )
+}
+
+/// Build a profile-aware validation -> tokenization -> model-input workflow.
+pub fn prepare_model_input_workflow_with_config(
+    input_hash: String,
+    records: &[ProteinSequence],
+    policy: ModelInputPolicy,
+    config: ProteinTokenizerConfig,
+    invocation: SequenceWorkflowInvocation,
+) -> Result<SequenceWorkflowOutput, ModelInputBuildError> {
     validate_workflow_input_hash(&input_hash)?;
     validate_model_input_policy(&policy)?;
 
-    let validation = crate::sequence::summarize_validated_sequences(
-        records.iter().map(validate_protein_sequence).collect(),
-    );
+    let validation = validate_records_for_profile(records, config.profile);
     let tokenized: Vec<_> = records
         .iter()
-        .map(crate::tokenizer::tokenize_protein)
+        .map(|record| tokenize_protein_with_config(record, &config))
         .collect();
     let readiness_issues = readiness_issues(&tokenized);
     let model_input = if readiness_issues.is_empty() {
@@ -113,25 +133,69 @@ pub fn prepare_protein_model_input_workflow_with_invocation(
         records: tokenized,
     };
     let model_ready = readiness_issues.is_empty();
-    let hashes = workflow_hashes(
-        input_hash.as_str(),
-        &policy,
-        &invocation,
-        &validation,
-        &tokenization,
-        &model_input,
-        &readiness_issues,
-    );
+    let workflow = workflow_name(config.profile);
+    let hashes = workflow_hashes(WorkflowHashInput {
+        workflow,
+        profile: config.profile,
+        input_hash: input_hash.as_str(),
+        policy: &policy,
+        invocation: &invocation,
+        validation: &validation,
+        tokenization: &tokenization,
+        model_input: &model_input,
+        readiness_issues: &readiness_issues,
+    });
 
     Ok(SequenceWorkflowOutput {
-        workflow: WORKFLOW_NAME.to_string(),
+        workflow: workflow.to_string(),
         model_ready,
-        provenance: provenance(input_hash, policy, invocation, hashes),
+        provenance: provenance(input_hash, policy, invocation, hashes, config.profile),
         validation,
         tokenization,
         model_input,
         readiness_issues,
     })
+}
+
+fn validate_records_for_profile(
+    records: &[ProteinSequence],
+    profile: ProteinTokenizerProfile,
+) -> SequenceValidationReport {
+    let kind = profile.sequence_kind();
+    let sequences = records
+        .iter()
+        .map(|record| {
+            let validation = validate_sequence_record(&SequenceRecord {
+                id: record.id.clone(),
+                sequence: String::from_utf8_lossy(&record.sequence).into_owned(),
+                kind,
+            });
+            ValidatedSequence {
+                id: validation.id,
+                sequence: validation.sequence,
+                alphabet: validation.alphabet,
+                valid: validation.valid,
+                warnings: validation
+                    .warnings
+                    .into_iter()
+                    .map(issue_to_residue_issue)
+                    .collect(),
+                errors: validation
+                    .errors
+                    .into_iter()
+                    .map(issue_to_residue_issue)
+                    .collect(),
+            }
+        })
+        .collect();
+    crate::sequence::summarize_validated_sequences(sequences)
+}
+
+fn issue_to_residue_issue(issue: SequenceValidationIssue) -> ResidueIssue {
+    ResidueIssue {
+        residue: issue.symbol,
+        position: issue.position,
+    }
 }
 
 fn validate_workflow_input_hash(input_hash: &str) -> Result<(), ModelInputBuildError> {
@@ -149,8 +213,12 @@ fn provenance(
     policy: ModelInputPolicy,
     invocation: SequenceWorkflowInvocation,
     hashes: SequenceWorkflowHashes,
+    profile: ProteinTokenizerProfile,
 ) -> SequenceWorkflowProvenance {
-    let vocab = load_protein_20_vocab();
+    let vocab = crate::tokenizer::inspect_protein_tokenizer_config(
+        &protein_tokenizer_config_for_profile(profile),
+    )
+    .vocabulary;
     SequenceWorkflowProvenance {
         biors_core_version: env!("CARGO_PKG_VERSION").to_string(),
         invocation,
@@ -165,6 +233,13 @@ fn provenance(
         },
         model_input_policy: policy,
         hashes,
+    }
+}
+
+fn workflow_name(profile: ProteinTokenizerProfile) -> &'static str {
+    match profile.sequence_kind() {
+        SequenceKind::Protein => PROTEIN_WORKFLOW_NAME,
+        SequenceKind::Dna | SequenceKind::Rna => SEQUENCE_WORKFLOW_NAME,
     }
 }
 

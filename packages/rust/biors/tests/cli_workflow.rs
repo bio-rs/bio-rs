@@ -107,6 +107,8 @@ fn workflow_records_invocation_and_reproducibility_hashes() {
         serde_json::json!([
             "--max-length",
             "6",
+            "--profile",
+            "protein-20",
             "--pad-token-id",
             "0",
             "--padding",
@@ -136,6 +138,41 @@ fn workflow_records_invocation_and_reproducibility_hashes() {
     assert_eq!(
         first["data"]["provenance"]["hashes"],
         second["data"]["provenance"]["hashes"]
+    );
+}
+
+#[test]
+fn workflow_accepts_nucleotide_profiles() {
+    let value = run_workflow_json_with_args(
+        &serde_json::json!(["--max-length", "6", "--profile", "dna-iupac", "-"])
+            .as_array()
+            .expect("arguments")
+            .clone(),
+        ">dna\nACGT\n",
+    );
+
+    assert_eq!(value["ok"], true);
+    assert_eq!(value["data"]["workflow"], "sequence_model_input.v0");
+    assert_eq!(value["data"]["model_ready"], true);
+    assert_eq!(
+        value["data"]["provenance"]["validation_alphabet"],
+        "dna-iupac"
+    );
+    assert_eq!(
+        value["data"]["provenance"]["tokenizer"]["name"],
+        "dna-iupac"
+    );
+    assert_eq!(
+        value["data"]["validation"]["sequences"][0]["alphabet"],
+        "dna-iupac"
+    );
+    assert_eq!(
+        value["data"]["tokenization"]["records"][0]["tokens"],
+        serde_json::json!([0, 1, 2, 3])
+    );
+    assert_eq!(
+        value["data"]["model_input"]["records"][0]["input_ids"],
+        serde_json::json!([0, 1, 2, 3, 0, 0])
     );
 }
 

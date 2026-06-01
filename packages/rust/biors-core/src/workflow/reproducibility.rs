@@ -1,10 +1,12 @@
 use super::{
     SequenceWorkflowReadinessIssue, TokenizationWorkflowOutput, WorkflowTokenizerMetadata,
-    NORMALIZATION_POLICY, WORKFLOW_NAME,
+    NORMALIZATION_POLICY,
 };
 use crate::model_input::{ModelInput, ModelInputPolicy};
 use crate::sequence::SequenceValidationReport;
-use crate::tokenizer::load_protein_20_vocab;
+use crate::tokenizer::{
+    inspect_protein_tokenizer_config, protein_tokenizer_config_for_profile, ProteinTokenizerProfile,
+};
 use serde::{Deserialize, Serialize};
 
 pub(super) const CORE_WORKFLOW_COMMAND: &str = "biors-core prepare_protein_model_input_workflow";
@@ -23,24 +25,30 @@ pub struct SequenceWorkflowHashes {
     pub output_data_sha256: String,
 }
 
-pub(super) fn workflow_hashes(
-    input_hash: &str,
-    policy: &ModelInputPolicy,
-    invocation: &SequenceWorkflowInvocation,
-    validation: &SequenceValidationReport,
-    tokenization: &TokenizationWorkflowOutput,
-    model_input: &Option<ModelInput>,
-    readiness_issues: &[SequenceWorkflowReadinessIssue],
-) -> SequenceWorkflowHashes {
-    let vocab = load_protein_20_vocab();
+pub(super) struct WorkflowHashInput<'a> {
+    pub(super) workflow: &'static str,
+    pub(super) profile: ProteinTokenizerProfile,
+    pub(super) input_hash: &'a str,
+    pub(super) policy: &'a ModelInputPolicy,
+    pub(super) invocation: &'a SequenceWorkflowInvocation,
+    pub(super) validation: &'a SequenceValidationReport,
+    pub(super) tokenization: &'a TokenizationWorkflowOutput,
+    pub(super) model_input: &'a Option<ModelInput>,
+    pub(super) readiness_issues: &'a [SequenceWorkflowReadinessIssue],
+}
+
+pub(super) fn workflow_hashes(input: WorkflowHashInput<'_>) -> SequenceWorkflowHashes {
+    let vocab =
+        inspect_protein_tokenizer_config(&protein_tokenizer_config_for_profile(input.profile))
+            .vocabulary;
     SequenceWorkflowHashes {
         vocabulary_sha256: json_sha256(&vocab),
         output_data_sha256: json_sha256(&WorkflowHashPayload {
-            workflow: WORKFLOW_NAME,
-            model_ready: readiness_issues.is_empty(),
+            workflow: input.workflow,
+            model_ready: input.readiness_issues.is_empty(),
             biors_core_version: env!("CARGO_PKG_VERSION"),
-            invocation,
-            input_hash,
+            invocation: input.invocation,
+            input_hash: input.input_hash,
             normalization: NORMALIZATION_POLICY,
             validation_alphabet: vocab.name.as_str(),
             tokenizer: WorkflowTokenizerMetadata {
@@ -49,11 +57,11 @@ pub(super) fn workflow_hashes(
                 unknown_token_id: vocab.unknown_token_id,
                 unknown_token_policy: vocab.unknown_token_policy.clone(),
             },
-            model_input_policy: policy,
-            validation,
-            tokenization,
-            model_input,
-            readiness_issues,
+            model_input_policy: input.policy,
+            validation: input.validation,
+            tokenization: input.tokenization,
+            model_input: input.model_input,
+            readiness_issues: input.readiness_issues,
         }),
     }
 }

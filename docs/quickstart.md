@@ -103,8 +103,8 @@ biors tokenize --profile rna-iupac-special rna.fasta
 
 `tokenize` emits stable token IDs for explicit protein, DNA, and RNA profiles.
 Ambiguous or invalid residues keep positional alignment by using the profile
-unknown token ID. DNA/RNA tokenization now supports direct `model-input`
-generation, but not the end-to-end `workflow` path yet.
+unknown token ID. DNA/RNA tokenization now supports direct `model-input` and
+CLI `workflow` generation when an explicit nucleotide profile is selected.
 
 Inspect tokenizer profiles and special token policy:
 
@@ -138,15 +138,16 @@ for explicit protein, DNA, or RNA tokenizer profiles.
 
 ```bash
 biors workflow --max-length 8 examples/protein.fasta
+biors workflow --profile rna-iupac --max-length 128 rna.fasta
 ```
 
-`workflow` runs the protein FASTA preparation path end to end: validation,
-deterministic `protein-20` tokenization, model-input generation, readiness
-issues, and reproducibility provenance. If a sequence has unresolved warnings
-or errors, the command keeps validation and tokenization context in the JSON
-payload and sets `model_ready` to `false` instead of silently producing partial
-model input. Provenance also records the resolved CLI invocation, tokenizer
-vocabulary SHA-256, and output-content SHA-256 for repeatable runs.
+`workflow` runs the FASTA preparation path end to end: validation,
+deterministic profile tokenization, model-input generation, readiness issues,
+and reproducibility provenance. If a sequence has unresolved warnings or errors,
+the command keeps validation and tokenization context in the JSON payload and
+sets `model_ready` to `false` instead of silently producing partial model input.
+Provenance also records the resolved CLI invocation, tokenizer vocabulary
+SHA-256, and output-content SHA-256 for repeatable runs.
 
 ## Compose A CLI Pipeline
 

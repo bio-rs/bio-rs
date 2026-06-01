@@ -1,4 +1,4 @@
-use super::{workflow::workflow_output, PaddingArg};
+use super::{workflow::workflow_output, PaddingArg, TokenizerProfileArg};
 use crate::errors::CliError;
 use crate::output::print_success;
 use biors_core::{
@@ -10,7 +10,14 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 pub(crate) fn run_debug(max_length: usize, path: PathBuf) -> Result<(), CliError> {
-    let output = workflow_output("biors debug", max_length, 0, PaddingArg::FixedLength, path)?;
+    let output = workflow_output(
+        "biors debug",
+        TokenizerProfileArg::Protein20,
+        max_length,
+        0,
+        PaddingArg::FixedLength,
+        path,
+    )?;
     let debug = SequenceDebugOutput::from_workflow(&output);
     print_success(Some(output.provenance.input_hash), debug)
 }

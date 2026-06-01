@@ -13,7 +13,7 @@
     "readiness_issues"
   ],
   "properties": {
-    "workflow": { "const": "protein_model_input.v0" },
+    "workflow": { "enum": ["protein_model_input.v0", "sequence_model_input.v0"] },
     "model_ready": { "type": "boolean" },
     "provenance": {
       "type": "object",
@@ -52,13 +52,13 @@
         },
         "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" },
         "normalization": { "const": "strip_ascii_whitespace_uppercase" },
-        "validation_alphabet": { "const": "protein-20" },
+        "validation_alphabet": { "enum": ["protein-20", "dna-iupac", "rna-iupac"] },
         "tokenizer": {
           "type": "object",
           "required": ["name", "vocab_size", "unknown_token_id", "unknown_token_policy"],
           "properties": {
-            "name": { "const": "protein-20" },
-            "vocab_size": { "const": 20 },
+            "name": { "enum": ["protein-20", "dna-iupac", "rna-iupac"] },
+            "vocab_size": { "enum": [4, 20] },
             "unknown_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
             "unknown_token_policy": { "const": "warn_or_error_with_unknown_token" }
           },
@@ -93,7 +93,7 @@
             "properties": {
               "id": { "type": "string" },
               "sequence": { "type": "string" },
-              "alphabet": { "const": "protein-20" },
+              "alphabet": { "enum": ["protein-20", "dna-iupac", "rna-iupac"] },
               "valid": { "type": "boolean" },
               "warnings": { "$ref": "#/$defs/residueIssues" },
               "errors": { "$ref": "#/$defs/residueIssues" }
@@ -188,7 +188,16 @@
       "properties": {
         "id": { "type": "string" },
         "length": { "type": "integer", "minimum": 0 },
-        "alphabet": { "const": "protein-20" },
+        "alphabet": {
+          "enum": [
+            "protein-20",
+            "protein-20-special",
+            "dna-iupac",
+            "dna-iupac-special",
+            "rna-iupac",
+            "rna-iupac-special"
+          ]
+        },
         "valid": { "type": "boolean" },
         "tokens": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
         "warnings": { "$ref": "#/$defs/residueIssues" },

@@ -4,7 +4,7 @@ use super::{
     pipeline_lock::{write_pipeline_lock, PipelineLockPackage},
     pipeline_output::PipelineOutput,
     workflow::workflow_output,
-    PaddingArg,
+    PaddingArg, TokenizerProfileArg,
 };
 use crate::errors::CliError;
 use crate::input::read_package_manifest;
@@ -84,7 +84,14 @@ fn run_legacy_pipeline(
         message: "input path is required when --config is not used".to_string(),
         location: Some("path".to_string()),
     })?;
-    let output = workflow_output("biors pipeline", max_length, pad_token_id, padding, path)?;
+    let output = workflow_output(
+        "biors pipeline",
+        TokenizerProfileArg::Protein20,
+        max_length,
+        pad_token_id,
+        padding,
+        path,
+    )?;
     Ok(PipelineOutput::from_workflow(output))
 }
 
@@ -112,6 +119,7 @@ fn run_config_pipeline(
     }
     let workflow = workflow_output(
         "biors pipeline --config",
+        TokenizerProfileArg::Protein20,
         resolved.config.export.max_length,
         resolved.config.export.pad_token_id,
         resolved.padding,

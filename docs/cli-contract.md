@@ -19,7 +19,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors tokenizer inspect [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>]`
 - `biors inspect <path|->`
 - `biors model-input [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
-- `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
+- `biors workflow [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
@@ -43,11 +43,11 @@ emits deterministic model-ready `input_ids` plus `attention_mask` records.
 boundaries that accept externally supplied model-input JSON must also run the
 core `validate_model_input_payload` semantic validator for cross-field
 invariants that JSON Schema cannot express portably.
-`workflow` runs protein FASTA validation, deterministic `protein-20`
-tokenization, model-input generation, readiness reporting, and reproducibility
-provenance in a single JSON payload. It keeps validation and tokenization
-context when residues are not model-ready and sets `model_ready=false` with
-stable `sequence.not_model_ready` readiness issue codes.
+`workflow` runs FASTA validation, deterministic profile tokenization,
+model-input generation, readiness reporting, and reproducibility provenance in
+a single JSON payload. It keeps validation and tokenization context when
+residues are not model-ready and sets `model_ready=false` with stable
+`sequence.not_model_ready` readiness issue codes.
 `pipeline` wraps the same no-config preprocessing path in explicit
 validate -> tokenize -> export step statuses for CLI chaining and pipeline
 orchestration. With `--config`, it reads `biors.pipeline.v0` TOML/JSON and

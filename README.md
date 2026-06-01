@@ -9,10 +9,10 @@
 bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI workflows, with protein model-ready workflows.
 
 ```txt
-FASTA -> validated sequence -> token IDs -> model-ready JSON for protein workflows
+FASTA -> validated sequence -> token IDs -> model-ready JSON
 ```
 
-DNA and RNA FASTA validation, tokenization, and direct model-input generation are supported through explicit nucleotide profiles. End-to-end workflow generation remains protein-only until nucleotide validation/provenance workflow contracts are promoted.
+DNA and RNA FASTA validation, tokenization, model-input generation, and CLI workflow generation are supported through explicit nucleotide profiles. Package, Python, WASM, MCP, and benchmark parity are still being promoted before broad full-support claims.
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
@@ -126,11 +126,11 @@ remains a historical reference.
 
 ### Model input
 - `model-input` CLI: profile-aware `input_ids`, `attention_mask`, and truncation metadata for protein, DNA, and RNA token profiles
-- `workflow` CLI: end-to-end validation → tokenization → model input with readiness issues and reproducibility provenance
+- `workflow` CLI: profile-aware validation → tokenization → model input with readiness issues and reproducibility provenance
 - `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/YAML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
-- `workflow` remains protein-only until nucleotide validation/provenance workflow contracts are promoted.
+- Package, Python, WASM, MCP, and benchmark parity for nucleotide model-ready workflows are not fully promoted yet.
 
 ### Batch and dataset operations
 - `batch validate`: multiple files, recursive directories, quoted globs
