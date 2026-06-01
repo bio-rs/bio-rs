@@ -36,6 +36,14 @@ fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(workflow::prepare_workflow_from_fasta, m)?)?;
     m.add_function(wrap_pyfunction!(package::inspect_package_manifest, m)?)?;
     m.add_function(wrap_pyfunction!(package::validate_package_manifest, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        package::validate_package_manifest_artifacts,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        package::validate_package_manifest_file,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(package::plan_runtime_bridge, m)?)?;
     Ok(())
 }

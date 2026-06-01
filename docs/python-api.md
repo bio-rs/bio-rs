@@ -192,11 +192,17 @@ bridge reports are schema-rich compatibility documents.
 import json
 
 report = json.loads(biors.validate_package_manifest(manifest_json))
+artifact_report = json.loads(
+    biors.validate_package_manifest_artifacts(manifest_json, "/path/to/package")
+)
+file_report = json.loads(biors.validate_package_manifest_file("/path/to/package/manifest.json"))
 summary = json.loads(biors.inspect_package_manifest(manifest_json))
 bridge = json.loads(biors.plan_runtime_bridge(manifest_json))
 
 print(summary["name"])
 print(report["valid"])
+print(artifact_report["valid"])
+print(file_report["valid"])
 print(bridge["ready"])
 ```
 
@@ -208,7 +214,21 @@ as a JSON string.
 ### `validate_package_manifest(manifest_json: str) -> str`
 
 Parses a package manifest JSON document and returns the package validation report
-as a JSON string.
+as a JSON string. This is field-only validation for the manifest JSON document;
+it does not read package artifacts, verify checksums, or validate
+manifest-relative paths on disk.
+
+### `validate_package_manifest_artifacts(manifest_json: str, base_dir: str) -> str`
+
+Parses a package manifest JSON document and validates artifact paths,
+checksums, declared layout placement, and tokenizer/vocab artifact content
+relative to `base_dir`. Returns the package validation report as a JSON string.
+
+### `validate_package_manifest_file(manifest_path: str) -> str`
+
+Reads a manifest from `manifest_path` and validates package artifacts relative
+to the manifest's parent directory. Returns the package validation report as a
+JSON string.
 
 ### `plan_runtime_bridge(manifest_json: str) -> str`
 

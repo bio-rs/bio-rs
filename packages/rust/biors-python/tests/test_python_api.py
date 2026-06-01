@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import biors
@@ -274,13 +275,55 @@ def test_package_manifest_inspection_is_exported():
 
 def test_package_json_helpers_match_shared_schemas():
     manifest_json = (REPO_ROOT / "examples/protein-package/manifest.json").read_text()
+    assert "validate_package_manifest_artifacts" in biors.__all__
+    assert "validate_package_manifest_file" in biors.__all__
     validation = json.loads(biors.validate_package_manifest(manifest_json))
+    artifact_validation = json.loads(
+        biors.validate_package_manifest_artifacts(
+            manifest_json, str(REPO_ROOT / "examples/protein-package")
+        )
+    )
+    file_validation = json.loads(
+        biors.validate_package_manifest_file(
+            str(REPO_ROOT / "examples/protein-package/manifest.json")
+        )
+    )
     bridge = json.loads(biors.plan_runtime_bridge(manifest_json))
 
     assert validation["valid"] == True
+    assert artifact_validation["valid"] == True
+    assert file_validation["valid"] == True
     assert bridge["ready"] == True
     assert_matches_schema(validation, "package-validation-report.v0.json")
+    assert_matches_schema(artifact_validation, "package-validation-report.v0.json")
+    assert_matches_schema(file_validation, "package-validation-report.v0.json")
     assert_matches_schema(bridge, "package-bridge-output.v0.json")
+
+def test_package_artifact_validation_reports_missing_files(tmp_path):
+    manifest_json = (REPO_ROOT / "examples/protein-package/manifest.json").read_text()
+
+    validation = json.loads(
+        biors.validate_package_manifest_artifacts(manifest_json, str(tmp_path))
+    )
+
+    assert validation["valid"] == False
+    codes = {issue["code"] for issue in validation["structured_issues"]}
+    assert "asset_read_failed" in codes
+    assert_matches_schema(validation, "package-validation-report.v0.json")
+
+def test_package_file_validation_reports_checksum_mismatch(tmp_path):
+    package_dir = tmp_path / "protein-package"
+    shutil.copytree(REPO_ROOT / "examples/protein-package", package_dir)
+    (package_dir / "models/protein-seed.onnx").write_bytes(b"changed model")
+
+    validation = json.loads(
+        biors.validate_package_manifest_file(str(package_dir / "manifest.json"))
+    )
+
+    assert validation["valid"] == False
+    codes = {issue["code"] for issue in validation["structured_issues"]}
+    assert "checksum_mismatch" in codes
+    assert_matches_schema(validation, "package-validation-report.v0.json")
 
 def test_python_errors_expose_stable_code_for_invalid_package_json():
     with pytest.raises(biors.BioRsError) as exc_info:

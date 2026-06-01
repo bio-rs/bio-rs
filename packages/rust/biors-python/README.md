@@ -13,6 +13,8 @@ Requires Python 3.9+.
 ## Quickstart
 
 ```python
+import json
+
 import biors
 
 fasta_text = (
@@ -62,7 +64,18 @@ output = biors.prepare_workflow_from_fasta(
 )
 print(f"Model ready: {output.model_ready}")
 print(output.report_json)
+
+# Validate a package on disk, including artifact paths and checksums.
+package_report = json.loads(
+    biors.validate_package_manifest_file("./protein-package/manifest.json")
+)
+print(package_report["valid"])
 ```
+
+`validate_package_manifest(manifest_json)` is field-only validation for an
+in-memory manifest. Use `validate_package_manifest_artifacts(manifest_json,
+base_dir)` or `validate_package_manifest_file(manifest_path)` when package
+files, checksums, and layout placement must be verified.
 
 Errors raised by core parsing, model-input, and package helpers are
 `BioRsError` values with stable `code`, `message`, and optional `location`

@@ -1,6 +1,7 @@
 use crate::errors::{py_json_error, py_serialization_error};
 use biors_core::package as core_package;
 use pyo3::prelude::*;
+use std::path::Path;
 
 #[pyfunction]
 pub(crate) fn inspect_package_manifest(manifest_json: &str) -> PyResult<String> {
@@ -13,6 +14,31 @@ pub(crate) fn inspect_package_manifest(manifest_json: &str) -> PyResult<String> 
 pub(crate) fn validate_package_manifest(manifest_json: &str) -> PyResult<String> {
     let manifest = parse_manifest(manifest_json)?;
     let report = core_package::validate_package_manifest(&manifest);
+    serde_json::to_string(&report).map_err(py_serialization_error)
+}
+
+#[pyfunction]
+pub(crate) fn validate_package_manifest_artifacts(
+    manifest_json: &str,
+    base_dir: &str,
+) -> PyResult<String> {
+    let manifest = parse_manifest(manifest_json)?;
+    let report = core_package::validate_package_manifest_artifacts(&manifest, Path::new(base_dir));
+    serde_json::to_string(&report).map_err(py_serialization_error)
+}
+
+#[pyfunction]
+pub(crate) fn validate_package_manifest_file(manifest_path: &str) -> PyResult<String> {
+    let path = Path::new(manifest_path);
+    let manifest_json = std::fs::read_to_string(path).map_err(|source| {
+        PyErr::new::<pyo3::exceptions::PyOSError, _>(format!(
+            "failed to read package manifest '{}': {source}",
+            path.display()
+        ))
+    })?;
+    let manifest = parse_manifest(&manifest_json)?;
+    let base_dir = path.parent().unwrap_or_else(|| Path::new("."));
+    let report = core_package::validate_package_manifest_artifacts(&manifest, base_dir);
     serde_json::to_string(&report).map_err(py_serialization_error)
 }
 
