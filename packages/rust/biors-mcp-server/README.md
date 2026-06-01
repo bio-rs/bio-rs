@@ -30,7 +30,10 @@ Configure your MCP client (Claude Desktop, Cursor, etc.) to launch:
 - `workflow` — Protein-only validate → tokenize → model-input workflow with
   `kind` (`auto` or `protein`), `max_length`, `pad_token_id`, and `padding`
   (`fixed_length` or `no_padding`) parameters
-- `package_validate` — Validate a package manifest JSON string
+- `package_validate` — Validate a package manifest and its filesystem
+  artifacts. Pass either `manifest_path` or `manifest_json` plus `base_dir`.
+- `package_validate_fields` — Validate only the package manifest JSON fields,
+  without filesystem artifact, checksum, or layout checks.
 - `doctor` — Report platform readiness diagnostics
 
 ## License

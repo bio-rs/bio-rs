@@ -1,3 +1,4 @@
+use crate::package_validation::{PackageValidateFieldsParams, PackageValidateParams};
 use biors_core::{
     error::BioRsError,
     model_input::{ModelInputPolicy, PaddingPolicy},
@@ -49,12 +50,6 @@ pub struct WorkflowParams {
     /// Padding policy: "fixed_length" or "no_padding".
     #[serde(default = "default_padding")]
     pub padding: String,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-pub struct PackageValidateParams {
-    /// Package manifest JSON string to validate.
-    pub manifest_json: String,
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -245,15 +240,23 @@ impl BiorsMcpServer {
         json_response(&output)
     }
 
-    #[tool(description = "Validate a package manifest JSON string")]
+    #[tool(
+        description = "Validate a package manifest JSON string without filesystem artifact checks"
+    )]
+    fn package_validate_fields(
+        &self,
+        Parameters(params): Parameters<PackageValidateFieldsParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let report = crate::package_validation::validate_fields(params)?;
+        json_response(&report)
+    }
+
+    #[tool(description = "Validate a package manifest and its filesystem artifacts")]
     fn package_validate(
         &self,
         Parameters(params): Parameters<PackageValidateParams>,
     ) -> Result<CallToolResult, McpError> {
-        let manifest: biors_core::package::PackageManifest =
-            serde_json::from_str(&params.manifest_json)
-                .map_err(|e| McpError::invalid_params(e.to_string(), None))?;
-        let report = biors_core::package::validate_package_manifest(&manifest);
+        let report = crate::package_validation::validate(params)?;
         json_response(&report)
     }
 
