@@ -7,6 +7,7 @@ import argparse
 import json
 import subprocess
 import tarfile
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -78,6 +79,55 @@ def check_wasm_package(package_dir: Path) -> None:
     pack = json.loads(completed.stdout)
     files = [file["path"] for file in pack[0]["files"]]
     require_entry_basenames(package_dir, files, LICENSES | WASM_PACKAGE_FILES)
+    smoke_test_wasm_package(package_dir)
+
+
+def smoke_test_wasm_package(package_dir: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="biors-wasm-pack-") as temp_dir:
+        work_dir = Path(temp_dir)
+        completed = subprocess.run(
+            ["npm", "pack", str(package_dir), "--json"],
+            cwd=work_dir,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        pack = json.loads(completed.stdout)
+        tarball = work_dir / pack[0]["filename"]
+        subprocess.run(
+            ["npm", "install", "--ignore-scripts", "--no-audit", "--fund=false", str(tarball)],
+            cwd=work_dir,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        script = """
+const mod = await import("@bio-rs/biors-wasm");
+const required = ["parseFasta", "validateFasta", "tokenize", "buildModelInputWithPolicy", "runWorkflow"];
+for (const name of required) {
+  if (typeof mod[name] !== "function") {
+    throw new Error(`${name} is not a function`);
+  }
+}
+if ("default" in mod) {
+  throw new Error("unexpected default export");
+}
+const bytes = new TextEncoder().encode(">seq1\\nACDE\\n");
+const records = mod.parseFasta(bytes);
+if (records.length !== 1 || records[0].id !== "seq1") {
+  throw new Error("parseFasta smoke check failed");
+}
+"""
+        subprocess.run(
+            ["node", "--input-type=module", "-e", script],
+            cwd=work_dir,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
 
 
 def check_binary_tarball(archive_path: Path) -> None:

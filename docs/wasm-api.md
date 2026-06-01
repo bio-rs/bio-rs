@@ -18,14 +18,14 @@ npm install @bio-rs/biors-wasm
 The package contains the `.wasm` binary, JS glue, and TypeScript declarations.
 No hosted service or external runtime is required.
 
-## Initialization
+## Module Loading
 
-Call `init` once before using the exported functions.
+Import the named exports from the package entrypoint. The bundler-target
+package initializes its generated WASM glue when the module is loaded, so there
+is no separate default `init` export.
 
 ```javascript
-import init, { parseFasta } from "@bio-rs/biors-wasm";
-
-await init();
+import { parseFasta } from "@bio-rs/biors-wasm";
 
 const bytes = new TextEncoder().encode(">seq1\nACDEFGHIKLMNPQRSTVWY\n");
 const records = parseFasta(bytes);
@@ -33,8 +33,8 @@ console.log(records[0].id);
 ```
 
 Bundlers such as Vite, Webpack, and Rollup usually resolve the `.wasm` asset
-through the generated package glue. Node.js and custom test runners may need to
-pass an explicit module path or buffer to `init`.
+through the generated package glue. Node.js and custom test runners must support
+ES module WASM imports for direct package loading.
 
 ## API Reference
 
@@ -267,15 +267,13 @@ caller passes that legacy field.
 ## Complete Example
 
 ```javascript
-import init, {
+import {
   parseFasta,
   validateFasta,
   tokenize,
   buildModelInputWithPolicy,
   runWorkflow,
 } from "@bio-rs/biors-wasm";
-
-await init();
 
 const fastaText = `>sp|P01308|INS_HUMAN
 MALWMRLLPLLALLALWGPDPAAA

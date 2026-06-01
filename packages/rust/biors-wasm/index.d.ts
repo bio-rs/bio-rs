@@ -9,7 +9,6 @@ export {
     buildModelInput,
     buildModelInputWithPolicy,
     runWorkflow,
-    default as init,
 } from "./biors_wasm.js";
 
 export type {

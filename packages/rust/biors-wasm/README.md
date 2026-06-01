@@ -5,15 +5,13 @@ WebAssembly/JavaScript bindings for [bio-rs](https://github.com/bio-rs/bio-rs) c
 ## Usage
 
 ```javascript
-import init, {
+import {
   parseFasta,
   validateFasta,
   tokenize,
   buildModelInputWithPolicy,
   runWorkflow,
 } from "@bio-rs/biors-wasm";
-
-await init();
 
 const fastaText = ">seq1\nACDE\n>seq2\nFGHI\n";
 const bytes = new TextEncoder().encode(fastaText);
