@@ -36,8 +36,8 @@ cargo package --locked -p biors-core
 
 for package in biors-mcp-server biors-backend-candle biors; do
   # These crates depend on the same-release biors-core package. Before
-  # publication, cargo's package verifier resolves that dependency from the
-  # registry index, so create the tarballs locally and leave source verification
-  # to the workspace test gates plus the post-core publish dry-run workflow.
-  cargo package --locked --no-verify -p "$package"
+  # publication, cargo resolves that dependency from the registry index, so the
+  # local preflight can only verify package file inclusion. The release workflow
+  # performs the full dry-run publish after biors-core is visible in the index.
+  cargo package --list -p "$package" >/dev/null
 done
