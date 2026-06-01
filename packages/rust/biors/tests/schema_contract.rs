@@ -81,6 +81,20 @@ fn invalid_payload_examples_are_rejected_by_schemas() {
         &non_binary_mask,
         "schemas/model-input-output.v0.json",
     );
+
+    let out_of_range_token = serde_json::json!([{
+        "id": "seq1",
+        "length": 1,
+        "alphabet": "protein-20",
+        "valid": true,
+        "tokens": [256],
+        "warnings": [],
+        "errors": []
+    }]);
+    common::assert_payload_rejected_by_schema(
+        &out_of_range_token,
+        "schemas/tokenize-output.v0.json",
+    );
 }
 
 #[test]

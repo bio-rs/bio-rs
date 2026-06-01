@@ -11,7 +11,7 @@
       "length": { "type": "integer", "minimum": 0 },
       "alphabet": { "enum": ["protein-20", "protein-20-special"] },
       "valid": { "type": "boolean" },
-      "tokens": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+      "tokens": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 } },
       "warnings": { "$ref": "#/$defs/residueIssues" },
       "errors": { "$ref": "#/$defs/residueIssues" }
     },
