@@ -1,4 +1,4 @@
 cff-version: 1.2.0
 title: "bio-rs protein package fixture"
-version: "0.47.6"
+version: "0.47.7"
 message: "Cite the bio-rs repository version used to generate this package fixture."

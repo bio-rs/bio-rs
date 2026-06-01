@@ -288,6 +288,7 @@ fn final_release_checklist_covers_required_gates() {
         fs::read_to_string(repo.join("docs/final-release-checklist.md")).expect("read checklist");
     let script =
         fs::read_to_string(repo.join("scripts/check-final-release.sh")).expect("read final script");
+    let attributes = fs::read_to_string(repo.join(".gitattributes")).expect("read attributes");
 
     for expected in [
         "Full End-To-End Workflow Validation",
@@ -355,6 +356,11 @@ fn final_release_checklist_covers_required_gates() {
             "final release script missing {expected}"
         );
     }
+
+    assert!(
+        attributes.contains("examples/protein-package/** text eol=lf"),
+        "checksum fixture files must keep stable LF line endings on Windows"
+    );
 }
 
 #[test]

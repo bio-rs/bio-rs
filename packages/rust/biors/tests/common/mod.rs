@@ -4,6 +4,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use jsonschema::JSONSchema;
 use serde_json::Value;
@@ -12,11 +13,15 @@ pub struct TempDir {
     path: PathBuf,
 }
 
+static TEMP_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
+
 impl TempDir {
     pub fn new(name: &str) -> Self {
+        let counter = TEMP_DIR_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "{name}-{}-{}",
+            "{name}-{}-{}-{}",
             std::process::id(),
+            counter,
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("system time")

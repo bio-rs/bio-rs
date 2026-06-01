@@ -68,6 +68,7 @@ def check_python_dist(dist_dir: Path, *, require_sdist: bool) -> None:
 
 
 def check_wasm_package(package_dir: Path) -> None:
+    package_dir = package_dir.resolve()
     completed = subprocess.run(
         ["npm", "pack", str(package_dir), "--dry-run", "--json"],
         check=True,
