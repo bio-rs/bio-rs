@@ -118,7 +118,16 @@ pub enum PackageValidationIssueCode {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 /// Runtime bridge readiness report for a package manifest.
 pub struct RuntimeBridgeReport {
+    /// Backward-compatible alias for `contract_ready`.
     pub ready: bool,
+    /// Manifest validation and declared model/runtime pair are compatible.
+    pub contract_ready: bool,
+    /// Model artifact bytes were parsed or format-validated by this bridge planner.
+    pub artifact_checked: bool,
+    /// A backend execution smoke test was run and passed.
+    pub execution_ready: bool,
+    /// Non-blocking notes that qualify readiness semantics.
+    pub readiness_notes: Vec<String>,
     pub backend: RuntimeBackend,
     pub target: RuntimeTargetPlatform,
     pub model_format: ModelFormat,

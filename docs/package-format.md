@@ -122,6 +122,14 @@ blocking issue in the bridge report. This is a compatibility contract only; it
 does not launch a browser, start a service, or link the optional Candle backend
 into the default CLI binary.
 
+`package bridge` keeps the legacy `ready` field as a compatibility alias for
+`contract_ready`: manifest validation passed and the declared model/runtime pair
+is supported. It also emits `artifact_checked`, `execution_ready`, and
+`readiness_notes`. Current bridge planning does not parse model artifact bytes
+or run an execution smoke test, so placeholder or corrupted artifacts can still
+be `contract_ready: true` while `artifact_checked: false` and
+`execution_ready: false`.
+
 `biors package init` infers these defaults from the model filename extension:
 `.onnx` selects `onnx` with `onnx-webgpu/browser-wasm-webgpu`, and
 `.safetensors` selects `safetensors` with `candle/local-cpu`. Unknown model

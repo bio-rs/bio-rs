@@ -301,6 +301,13 @@ fn package_bridge_outputs_runtime_plan() {
     let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
 
     assert_eq!(value["data"]["ready"], true);
+    assert_eq!(value["data"]["contract_ready"], true);
+    assert_eq!(value["data"]["artifact_checked"], false);
+    assert_eq!(value["data"]["execution_ready"], false);
+    assert!(value["data"]["readiness_notes"][0]
+        .as_str()
+        .expect("readiness note")
+        .contains("not format-validated"));
     assert_eq!(value["data"]["backend"], "onnx-webgpu");
     assert_eq!(value["data"]["target"], "browser-wasm-webgpu");
     assert_eq!(value["data"]["model_format"], "onnx");

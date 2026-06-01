@@ -33,8 +33,16 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
         model_artifact: Some(manifest.model.path.clone()),
     };
 
+    let contract_ready = blocking_issues.is_empty();
     RuntimeBridgeReport {
-        ready: blocking_issues.is_empty(),
+        ready: contract_ready,
+        contract_ready,
+        artifact_checked: false,
+        execution_ready: false,
+        readiness_notes: vec![format!(
+            "model artifact '{}' was not format-validated or execution-smoke-tested; ready/contract_ready only indicate manifest and runtime contract compatibility",
+            manifest.model.path
+        )],
         backend: manifest.runtime.backend,
         target: manifest.runtime.target,
         model_format: manifest.model.format,

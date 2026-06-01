@@ -66,6 +66,13 @@ fn inspects_model_artifact_metadata_for_runtime_planning() {
 
     let report = plan_runtime_bridge(&manifest);
     assert!(report.ready, "{:?}", report.blocking_issues);
+    assert!(report.contract_ready, "{:?}", report.blocking_issues);
+    assert!(!report.artifact_checked);
+    assert!(!report.execution_ready);
+    assert!(report
+        .readiness_notes
+        .iter()
+        .any(|note| note.contains("not format-validated")));
     assert_eq!(report.model_format, ModelFormat::Onnx);
     assert_eq!(
         report
@@ -90,6 +97,13 @@ fn plans_supported_onnx_webgpu_runtime_bridge() {
     let report = plan_runtime_bridge(&manifest);
 
     assert!(report.ready);
+    assert!(report.contract_ready);
+    assert!(!report.artifact_checked);
+    assert!(!report.execution_ready);
+    assert!(report
+        .readiness_notes
+        .iter()
+        .any(|note| note.contains("ready/contract_ready only indicate")));
     assert_eq!(report.backend, RuntimeBackend::OnnxWebgpu);
     assert_eq!(report.target, RuntimeTargetPlatform::BrowserWasmWebgpu);
     assert_eq!(report.model_format, ModelFormat::Onnx);
@@ -161,6 +175,9 @@ fn runtime_bridge_rejects_incompatible_model_backend_pair() {
     let report = plan_runtime_bridge(&manifest);
 
     assert!(!report.ready);
+    assert!(!report.contract_ready);
+    assert!(!report.artifact_checked);
+    assert!(!report.execution_ready);
     assert_eq!(report.backend, RuntimeBackend::Candle);
     assert_eq!(report.target, RuntimeTargetPlatform::LocalCpu);
     assert!(report.blocking_issues.iter().any(|issue| {

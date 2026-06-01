@@ -253,7 +253,10 @@ The `package` module is the largest surface in `biors-core`. It handles manifest
   - `pub structured_issues: Vec<PackageValidationIssue>`
 - **`PackageValidationIssue`** — `pub code: PackageValidationIssueCode`, `pub field: String`, `pub message: String`
 - **`PackageValidationIssueCode`** — Enum with `RequiredField`, `MissingFixture`, `InvalidShape`, `InvalidChecksumFormat`, `ChecksumMismatch`, `InvalidAssetPath`, `AssetReadFailed`, `LayoutMismatch`
-- **`RuntimeBridgeReport`** — Runtime bridge readiness report.
+- **`RuntimeBridgeReport`** — Runtime bridge readiness report. `ready` is a
+  backward-compatible alias for manifest/runtime `contract_ready`; use
+  `artifact_checked`, `execution_ready`, and `readiness_notes` before treating a
+  package as executable.
 - **`BackendCompatibilityCheck`** — One deterministic compatibility decision.
 - **`BackendCapabilitiesSummary`** — Capability summary.
 - **`BenchmarkEvidence`** — One benchmark evidence record.

@@ -5,6 +5,10 @@
   "type": "object",
   "required": [
     "ready",
+    "contract_ready",
+    "artifact_checked",
+    "execution_ready",
+    "readiness_notes",
     "backend",
     "target",
     "model_format",
@@ -16,6 +20,13 @@
   ],
   "properties": {
     "ready": { "type": "boolean" },
+    "contract_ready": { "type": "boolean" },
+    "artifact_checked": { "type": "boolean" },
+    "execution_ready": { "type": "boolean" },
+    "readiness_notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
     "backend": { "type": "string" },
     "target": { "type": "string" },
     "model_format": { "type": "string" },
