@@ -125,6 +125,19 @@ fn run_package_validate(path: PathBuf) -> Result<(), CliError> {
 fn run_package_verify(manifest: PathBuf, observations: PathBuf) -> Result<(), CliError> {
     let (manifest, manifest_base_dir) = read_package_manifest(manifest)?;
     let (observations, observations_base_dir) = read_fixture_observations(observations)?;
+    let validation = validate_package_manifest_artifacts(&manifest, &manifest_base_dir);
+    if !validation.valid {
+        let message = join_failure_messages(validation.issues.iter().map(String::as_str));
+        return Err(CliError::ValidationDetails {
+            code: classify_validation_code(&validation),
+            message,
+            location: Some("manifest".to_string()),
+            details: json!({
+                "validation": validation,
+            }),
+        });
+    }
+
     let report = verify_package_outputs_with_observation_base(
         &manifest,
         &observations,

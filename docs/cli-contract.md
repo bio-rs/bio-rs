@@ -119,6 +119,9 @@ Absolute paths and `..` parent traversal are rejected so packages remain portabl
 
 Observation paths in `package verify` are resolved against the observations file's parent directory. If the observations file is read from stdin, relative paths are resolved against the current working directory.
 Absolute observation paths and `..` parent traversal are rejected for the same reason.
+`package verify` runs package artifact validation before fixture comparison. If
+the manifest is invalid, the command fails with a package validation error and
+includes the structured validation report in `error.details.validation`.
 
 The package manifest contract is closed over enumerated values for
 `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and
