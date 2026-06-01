@@ -16,9 +16,30 @@ confirmed the impact and coordinated a disclosure path.
 
 ## Scope
 
-The current security surface is limited to local CLI and library processing of
-FASTA, JSON manifests, and fixture observations. Reports are most useful when
-they include:
+Security reports are in scope for promoted or published bio-rs surfaces in the
+repository:
+
+- Rust crates: `biors-core`, `biors`, `biors-backend-candle`,
+  `biors-mcp-server`, `biors-python`, and `biors-wasm`
+- CLI commands, including local FASTA/JSON processing, package validation,
+  package conversion, cache inspection, and guarded cache cleanup
+- Python bindings, WASM/npm package APIs, and MCP tool inputs
+- offline service contracts and JSON schemas
+- package artifact validation, fixture verification, manifest migration, and
+  runtime bridge planning
+- guarded external-process backend contracts and process I/O limits
+- optional Candle model artifact loading from local safetensors files
+
+The most security-sensitive areas are local filesystem safety, path traversal
+and symlink handling, package artifact checksums, malformed JSON and FASTA
+inputs, bounded process execution, cache cleanup root guards, and model artifact
+loading boundaries.
+
+bio-rs should not upload biological data, model inputs, package artifacts, or
+user content to external services by default. Reports about unintended network
+access, telemetry, or data exfiltration are in scope.
+
+Reports are most useful when they include:
 
 - affected command or crate API
 - minimal input that reproduces the behavior

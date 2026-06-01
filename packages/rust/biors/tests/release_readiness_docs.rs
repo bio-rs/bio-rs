@@ -292,6 +292,7 @@ fn final_release_checklist_covers_required_gates() {
         "Full End-To-End Workflow Validation",
         "Public Contract Freeze",
         "Dependency Policy",
+        "Public Security Surface",
         "Breaking Change Cleanup",
         "Benchmark Artifact Coverage",
         "Release Artifact Contents",
@@ -320,6 +321,12 @@ fn final_release_checklist_covers_required_gates() {
         "LICENSE-MIT",
         ".github/workflows/benchmarks.yml",
         "cargo test --workspace --benches --all-features",
+        "SECURITY.md",
+        "WASM/npm package",
+        "MCP tools",
+        "external-process backend contracts",
+        "optional Candle model artifact loading",
+        "external services by",
     ] {
         assert!(
             checklist.contains(expected),
@@ -344,6 +351,33 @@ fn final_release_checklist_covers_required_gates() {
         assert!(
             script.contains(expected),
             "final release script missing {expected}"
+        );
+    }
+}
+
+#[test]
+fn security_policy_covers_promoted_public_surfaces() {
+    let repo = common::repo_root();
+    let security = fs::read_to_string(repo.join("SECURITY.md")).expect("read security policy");
+
+    for expected in [
+        "biors-core",
+        "biors-backend-candle",
+        "biors-mcp-server",
+        "biors-python",
+        "biors-wasm",
+        "package conversion",
+        "cache cleanup",
+        "MCP tool inputs",
+        "WASM/npm package APIs",
+        "external-process backend contracts",
+        "Candle model artifact loading",
+        "local filesystem safety",
+        "should not upload biological data",
+    ] {
+        assert!(
+            security.contains(expected),
+            "SECURITY.md missing promoted security surface detail: {expected}"
         );
     }
 }

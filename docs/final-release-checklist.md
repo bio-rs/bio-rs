@@ -88,6 +88,18 @@ against [docs/dependency-policy.md](dependency-policy.md), including:
 - why any new dependency is needed and whether it affects the default CLI/core
   install path
 
+## Public Security Surface
+
+Before tagging, review `SECURITY.md` whenever a new public surface is added or
+promoted. Its scope must stay aligned with the published crates, CLI commands,
+Python bindings, WASM/npm package, MCP tools, offline service contracts,
+package conversion and artifact validation paths, guarded cache cleanup,
+external-process backend contracts, and optional Candle model artifact loading.
+
+Confirm release notes and docs do not imply that biological data, package
+artifacts, model inputs, or user content are uploaded to external services by
+default.
+
 ## GitHub Actions Pinning
 
 Release and CI workflow actions are pinned to commit SHAs. When updating an
