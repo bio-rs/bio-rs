@@ -114,8 +114,8 @@ impl SequenceValidationIssueCode {
     /// Return the stable diagnostic code string.
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::AmbiguousSymbol => "sequence.ambiguous_symbol",
-            Self::InvalidSymbol => "sequence.invalid_symbol",
+            Self::AmbiguousSymbol => "ambiguous_symbol",
+            Self::InvalidSymbol => "invalid_symbol",
         }
     }
 }

@@ -481,7 +481,7 @@ The `sequence` module handles biological sequence types, normalization, alphabet
   - `pub id: String`, `pub sequence: String`, `pub kind: SequenceKind`
   - `pub fn new(id: impl Into<String>, sequence: impl AsRef<str>, kind: SequenceKind) -> Self`
 
-- **`SequenceValidationIssueCode`** — `AmbiguousSymbol`, `InvalidSymbol` with `pub const fn as_str(self) -> &'static str`
+- **`SequenceValidationIssueCode`** — `AmbiguousSymbol`, `InvalidSymbol` with `pub const fn as_str(self) -> &'static str`; returns the same stable values serialized in payloads: `ambiguous_symbol` and `invalid_symbol`
 - **`SequenceValidationIssue`** — Kind-aware issue with `pub symbol: char`, `pub position: usize`, `pub kind: SequenceKind`, `pub code: SequenceValidationIssueCode`, `pub message: String`
   - `pub fn ambiguous(symbol: char, position: usize, kind: SequenceKind) -> Self`
   - `pub fn invalid(symbol: char, position: usize, kind: SequenceKind) -> Self`

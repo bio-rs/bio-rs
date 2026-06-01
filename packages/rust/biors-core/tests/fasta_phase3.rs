@@ -42,7 +42,7 @@ fn explicit_kind_override_uses_kind_specific_errors() {
     assert_eq!(record.alphabet, "dna-iupac");
     assert!(!record.valid);
     assert_eq!(record.errors[0].symbol, 'U');
-    assert_eq!(record.errors[0].code(), "sequence.invalid_symbol");
+    assert_eq!(record.errors[0].code(), "invalid_symbol");
     assert!(record.errors[0].message().contains("DNA"));
 }
 

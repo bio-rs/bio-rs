@@ -1,6 +1,7 @@
 # Error Code Registry
 
-Error codes are stable identifiers for CLI JSON error mode.
+Error codes are stable identifiers for CLI JSON error mode and structured
+validation issues.
 
 ## FASTA
 
@@ -12,7 +13,9 @@ Error codes are stable identifiers for CLI JSON error mode.
 ## Sequence Validation
 
 Sequence validation warnings and errors are reported inside successful FASTA or
-`seq validate` payloads, not as top-level CLI failures.
+`seq validate` payloads, not as top-level CLI failures. The same values are
+used by Rust `Diagnostic::code()`, CLI JSON payloads, schemas, and WASM TypeScript
+declarations.
 
 - `ambiguous_symbol`: a supported ambiguous IUPAC symbol was accepted with a warning
 - `invalid_symbol`: a symbol is not supported by the selected Protein, DNA, or RNA policy

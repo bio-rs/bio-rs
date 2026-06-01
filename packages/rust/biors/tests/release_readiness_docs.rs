@@ -1,3 +1,5 @@
+use biors_core::error::Diagnostic;
+use biors_core::sequence::{SequenceKind, SequenceValidationIssue};
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
@@ -229,6 +231,53 @@ fn reliability_docs_match_json_parse_error_contract() {
         cli_contract.contains("location: null"),
         "CLI contract must document parse-error envelopes without source locations"
     );
+}
+
+#[test]
+fn sequence_issue_codes_match_docs_schemas_wasm_and_diagnostic_contracts() {
+    let repo = common::repo_root();
+    let expected_codes = ["ambiguous_symbol", "invalid_symbol"];
+    let issue = SequenceValidationIssue::invalid('U', 5, SequenceKind::Dna);
+    let payload = serde_json::to_value(&issue).expect("serialize sequence issue");
+
+    assert_eq!(issue.code(), "invalid_symbol");
+    assert_eq!(payload["code"], "invalid_symbol");
+
+    let surfaces = [
+        (
+            "FASTA validation schema",
+            fs::read_to_string(repo.join("schemas/fasta-validation-output.v0.json"))
+                .expect("read FASTA validation schema"),
+        ),
+        (
+            "WASM TypeScript declarations",
+            fs::read_to_string(repo.join("packages/rust/biors-wasm/src/types.rs"))
+                .expect("read WASM TypeScript declarations"),
+        ),
+        (
+            "CLI contract docs",
+            fs::read_to_string(repo.join("docs/cli-contract.md")).expect("read CLI contract"),
+        ),
+        (
+            "error code registry",
+            fs::read_to_string(repo.join("docs/error-codes.md")).expect("read error codes"),
+        ),
+        (
+            "Rust API docs",
+            fs::read_to_string(repo.join("docs/rust-api.md")).expect("read Rust API docs"),
+        ),
+    ];
+
+    for (name, contents) in surfaces {
+        for code in expected_codes {
+            assert!(contents.contains(code), "{name} must document {code}");
+        }
+        assert!(
+            !contents.contains("sequence.invalid_symbol")
+                && !contents.contains("sequence.ambiguous_symbol"),
+            "{name} must not expose legacy namespaced sequence issue codes"
+        );
+    }
 }
 
 #[test]

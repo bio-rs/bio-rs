@@ -2,7 +2,7 @@ use biors_core::error::Diagnostic;
 use biors_core::sequence::{
     detect_sequence_kind, detect_sequence_kind_with_metadata, validate_fasta_input_with_kind,
     validate_sequence_record, AlphabetPolicy, SequenceKind, SequenceKindSelection, SequenceRecord,
-    SymbolClass,
+    SequenceValidationIssueCode, SymbolClass,
 };
 
 #[test]
@@ -21,6 +21,25 @@ fn sequence_kind_serializes_as_stable_lowercase_names() {
     );
     assert_eq!(SequenceKind::Dna.alphabet_name(), "dna-iupac");
     assert_eq!(SequenceKind::Rna.alphabet_name(), "rna-iupac");
+}
+
+#[test]
+fn sequence_issue_codes_match_payload_serialization_and_diagnostic_codes() {
+    let issue = biors_core::sequence::SequenceValidationIssue::invalid('U', 5, SequenceKind::Dna);
+
+    assert_eq!(
+        SequenceValidationIssueCode::AmbiguousSymbol.as_str(),
+        "ambiguous_symbol"
+    );
+    assert_eq!(
+        SequenceValidationIssueCode::InvalidSymbol.as_str(),
+        "invalid_symbol"
+    );
+    assert_eq!(issue.code(), "invalid_symbol");
+    assert_eq!(
+        serde_json::to_value(&issue).expect("serialize issue")["code"],
+        "invalid_symbol"
+    );
 }
 
 #[test]
@@ -55,10 +74,10 @@ fn validates_dna_and_rna_sequences_with_kind_specific_diagnostics() {
     assert_eq!(dna_report.warnings.len(), 1);
     assert_eq!(dna_report.warnings[0].symbol, 'N');
     assert_eq!(dna_report.warnings[0].position, 5);
-    assert_eq!(dna_report.warnings[0].code(), "sequence.ambiguous_symbol");
+    assert_eq!(dna_report.warnings[0].code(), "ambiguous_symbol");
     assert_eq!(dna_report.errors.len(), 2);
     assert_eq!(dna_report.errors[0].symbol, 'U');
-    assert_eq!(dna_report.errors[0].code(), "sequence.invalid_symbol");
+    assert_eq!(dna_report.errors[0].code(), "invalid_symbol");
 
     let rna_report = validate_sequence_record(&rna);
     assert_eq!(rna_report.kind, SequenceKind::Rna);
