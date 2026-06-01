@@ -136,12 +136,14 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install Rust
         uses: dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c
+        env:
+          RUSTUP_TOOLCHAIN: 1.88.0
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: '3.11'
       - name: Install maturin
-        run: python -m pip install --upgrade "maturin==${BIORS_RELEASE_MATURIN_VERSION}"
+        run: python -m pip install --upgrade "maturin==${{ env.BIORS_RELEASE_MATURIN_VERSION }}"
       - name: Build wheel
         run: maturin build --release --manifest-path packages/rust/biors-python/Cargo.toml --out dist --compatibility pypi
       - name: Build source distribution
@@ -212,7 +214,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
       - name: Install wasm-pack
-        run: cargo install wasm-pack --locked --version "${BIORS_RELEASE_WASM_PACK_VERSION}"
+        run: |
+          archive="wasm-pack-v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}-x86_64-unknown-linux-musl"
+          curl -fsSL "https://github.com/rustwasm/wasm-pack/releases/download/v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}/${archive}.tar.gz" -o wasm-pack.tar.gz
+          tar -xzf wasm-pack.tar.gz
+          echo "$PWD/${archive}" >> "$GITHUB_PATH"
       - name: Test WASM package
         run: wasm-pack test --node packages/rust/biors-wasm
       - name: Build npm package

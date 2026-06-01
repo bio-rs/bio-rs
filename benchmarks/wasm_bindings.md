@@ -12,7 +12,7 @@ bindings. It is not a browser or public throughput claim.
 - Cargo: `cargo 1.88.0 (873a06493 2025-05-10)`
 - wasm-pack: `wasm-pack 0.15.0`
 - Node.js: `v25.2.1`
-- bio-rs WASM: `biors-wasm v0.47.5`
+- bio-rs WASM: `biors-wasm v0.47.6`
 - Git commit: `753307b44d8cb08ef6878f733835b3b0d4954a09`
 - Benchmark schema: `biors.benchmark.wasm_bindings.v1`
 
