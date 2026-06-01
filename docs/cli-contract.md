@@ -24,10 +24,10 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
-- `biors package init <output-dir> --name <name> --model <model.onnx> [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
+- `biors package init <output-dir> --name <name> --model <model.onnx> [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> [--doi <doi>] --model-card-summary <text> --intended-use <text> --limitation <text> [--force]`
 - `biors package migrate <manifest|-> [--to biors.package.v0|biors.package.v1]`
-- `biors package convert <manifest|-> [--to biors.package.v1] [--output <manifest.json>] --license <expr> --citation <text> --model-card <path> --model-card-summary <text> --intended-use <text> --limitation <text>`
-- `biors package convert-project <python-project-dir> --output <package-dir> --name <name> [--model <model.onnx>] [--include-generated] [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> --model-card-summary <text> --intended-use <text> --limitation <text>`
+- `biors package convert <manifest|-> [--to biors.package.v1] [--output <manifest.json>] --license <expr> --citation <text> [--doi <doi>] --model-card <path> --model-card-summary <text> --intended-use <text> --limitation <text> [--license-file <path>] [--citation-file <path>] [--models-dir <dir>] [--tokenizers-dir <dir>] [--vocabs-dir <dir>] [--pipelines-dir <dir>] [--fixtures-dir <dir>] [--observed-dir <dir>] [--docs-dir <dir>]`
+- `biors package convert-project <python-project-dir> --output <package-dir> --name <name> [--model <model.onnx>] [--include-generated] [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> [--doi <doi>] --model-card-summary <text> --intended-use <text> --limitation <text> [--force]`
 - `biors package compatibility <left-manifest> <right-manifest>`
 - `biors package diff <left-manifest> <right-manifest>`
 - `biors package bridge <manifest>`
@@ -178,6 +178,11 @@ Package conversion reports use `schemas/package-conversion-output.v0.json` and
 include the converted manifest. Conversion to `biors.package.v1` requires
 caller-supplied license, citation, model-card summary, intended-use, and
 limitation fields so the CLI does not invent research metadata.
+Advanced `package convert` layout-directory overrides (`--models-dir`,
+`--tokenizers-dir`, `--vocabs-dir`, `--pipelines-dir`, `--fixtures-dir`,
+`--observed-dir`, and `--docs-dir`) are supported for existing packages with
+non-default layout names; they must still produce manifest-relative package
+paths that pass artifact validation.
 Package skeleton reports use `schemas/package-skeleton-output.v0.json`.
 `package init` and `package convert-project` create a local package layout,
 write docs and pipeline config, copy supplied fixture artifacts, and record

@@ -84,6 +84,54 @@ fn cli_contract_padding_values_match_help() {
 }
 
 #[test]
+fn cli_contract_package_options_match_help() {
+    let contract = std::fs::read_to_string(common::repo_root().join("docs/cli-contract.md"))
+        .expect("read CLI contract");
+
+    let expected_by_command = [
+        ("init", ["--doi", "--force"].as_slice()),
+        ("convert-project", ["--doi", "--force"].as_slice()),
+        (
+            "convert",
+            [
+                "--doi",
+                "--license-file",
+                "--citation-file",
+                "--models-dir",
+                "--tokenizers-dir",
+                "--vocabs-dir",
+                "--pipelines-dir",
+                "--fixtures-dir",
+                "--observed-dir",
+                "--docs-dir",
+            ]
+            .as_slice(),
+        ),
+    ];
+
+    for (command, expected_options) in expected_by_command {
+        let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+            .args(["package", command, "--help"])
+            .output()
+            .expect("run package command help");
+        assert!(output.status.success());
+        assert!(output.stderr.is_empty());
+
+        let help = String::from_utf8(output.stdout).expect("help is UTF-8");
+        for expected in expected_options {
+            assert!(
+                help.contains(expected),
+                "package {command} help missing expected option {expected}"
+            );
+            assert!(
+                contract.contains(expected),
+                "CLI contract missing package {command} option {expected}"
+            );
+        }
+    }
+}
+
+#[test]
 fn completions_command_outputs_shell_script() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("completions")
