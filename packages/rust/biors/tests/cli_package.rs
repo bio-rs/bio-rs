@@ -157,6 +157,89 @@ fn package_validate_rejects_unknown_manifest_fields() {
 }
 
 #[test]
+fn package_validate_accepts_declared_manifest_path() {
+    let manifest = common::repo_root().join("examples/protein-package/manifest.json");
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest)
+        .output()
+        .expect("run biors package validate");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["data"]["valid"], true);
+}
+
+#[test]
+fn package_validate_accepts_alternate_manifest_path_when_declared() {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new("alternate-manifest-path");
+    copy_dir_all(&source_package, temp.path());
+    let original_manifest_path = temp.path().join("manifest.json");
+    let alternate_manifest_path = temp.path().join("other-manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&original_manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    manifest["package_layout"]["manifest"] = Value::String("other-manifest.json".to_string());
+    fs::write(&alternate_manifest_path, manifest.to_string()).expect("write alternate manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("validate")
+        .arg(&alternate_manifest_path)
+        .output()
+        .expect("run biors package validate");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(value["data"]["valid"], true);
+}
+
+#[test]
+fn package_validate_rejects_mismatched_declared_manifest_path() {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new("mismatched-manifest-path");
+    copy_dir_all(&source_package, temp.path());
+    let manifest_path = temp.path().join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    manifest["package_layout"]["manifest"] = Value::String("other-manifest.json".to_string());
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.layout_mismatch");
+    assert!(value["error"]["details"]["structured_issues"]
+        .as_array()
+        .expect("structured issues")
+        .iter()
+        .any(|issue| {
+            issue["code"] == "layout_mismatch" && issue["field"] == "package_layout.manifest"
+        }));
+}
+
+#[test]
 fn package_validate_rejects_empty_contract_identifiers() {
     let source_package = common::repo_root().join("examples/protein-package");
     let temp = common::TempDir::new("empty-contract-package");

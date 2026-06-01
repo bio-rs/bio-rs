@@ -15,6 +15,7 @@ mod validation;
 pub use artifact_content::{ReferencedConfigError, ReferencedConfigValidator};
 pub use artifacts::{
     validate_package_manifest_artifacts,
+    validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator,
     validate_package_manifest_artifacts_with_pipeline_config_validator,
 };
 pub use manifest::{

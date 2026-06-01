@@ -150,7 +150,7 @@ fn load_lock_package(
     }
 
     let (manifest, base_dir) = read_package_manifest(path.clone())?;
-    let validation = validate_cli_package_manifest_artifacts(&manifest, &base_dir);
+    let validation = validate_cli_package_manifest_artifacts(&manifest, &base_dir, &path);
     if !validation.valid {
         return Err(CliError::Validation {
             code: "pipeline.invalid_lock_package",

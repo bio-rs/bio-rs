@@ -14,12 +14,28 @@ pub fn validate_package_manifest_artifacts(
     manifest: &PackageManifest,
     base_dir: &Path,
 ) -> PackageValidationReport {
-    validate_package_manifest_artifacts_with_pipeline_config_validator(manifest, base_dir, None)
+    validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
+        manifest, base_dir, None, None,
+    )
 }
 
 pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(
     manifest: &PackageManifest,
     base_dir: &Path,
+    pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>,
+) -> PackageValidationReport {
+    validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
+        manifest,
+        base_dir,
+        None,
+        pipeline_config_validator,
+    )
+}
+
+pub fn validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
+    manifest: &PackageManifest,
+    base_dir: &Path,
+    manifest_path: Option<&Path>,
     pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>,
 ) -> PackageValidationReport {
     let mut report = validate_package_manifest(manifest);
@@ -116,9 +132,19 @@ pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(
         );
     }
 
-    validate_declared_layout(&mut report, manifest);
+    let manifest_relative_path =
+        manifest_path.and_then(|path| manifest_path_relative_to_base(base_dir, path));
+    validate_declared_layout(&mut report, manifest, manifest_relative_path.as_deref());
 
     report.finish()
+}
+
+fn manifest_path_relative_to_base(base_dir: &Path, manifest_path: &Path) -> Option<String> {
+    manifest_path
+        .strip_prefix(base_dir)
+        .ok()
+        .or_else(|| manifest_path.file_name().map(Path::new))
+        .map(|path| path.to_string_lossy().replace('\\', "/"))
 }
 
 fn validate_pipeline_configs(

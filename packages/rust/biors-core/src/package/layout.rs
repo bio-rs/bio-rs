@@ -6,12 +6,14 @@ use super::{
 pub(crate) fn validate_declared_layout(
     report: &mut PackageValidationReport,
     manifest: &PackageManifest,
+    actual_manifest_path: Option<&str>,
 ) {
     let Some(layout) = &manifest.package_layout else {
         return;
     };
 
     validate_layout_field(report, "package_layout.manifest", &layout.manifest);
+    validate_manifest_layout_path(report, &layout.manifest, actual_manifest_path);
     validate_layout_field(report, "package_layout.models", &layout.models);
     validate_layout_field(report, "package_layout.fixtures", &layout.fixtures);
     validate_layout_field(report, "package_layout.docs", &layout.docs);
@@ -89,6 +91,26 @@ pub(crate) fn validate_declared_layout(
             &layout.docs,
         );
     }
+}
+
+fn validate_manifest_layout_path(
+    report: &mut PackageValidationReport,
+    declared_manifest: &str,
+    actual_manifest_path: Option<&str>,
+) {
+    let Some(actual_manifest_path) = actual_manifest_path else {
+        return;
+    };
+    if declared_manifest.trim() == actual_manifest_path.trim() {
+        return;
+    }
+    report.push_issue(
+        PackageValidationIssueCode::LayoutMismatch,
+        "package_layout.manifest",
+        &format!(
+            "package_layout.manifest must match validated manifest path '{actual_manifest_path}'"
+        ),
+    );
 }
 
 fn validate_pipeline_config_layout(

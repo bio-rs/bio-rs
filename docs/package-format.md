@@ -48,6 +48,11 @@ The `package_layout` manifest section declares the expected directory names:
 }
 ```
 
+For v1 packages, `package_layout.manifest` must match the manifest file path
+being validated relative to the package root. The default is `manifest.json`;
+alternate names are allowed only when validation is run against that declared
+manifest path.
+
 `biors package validate` rejects absolute paths, `..` traversal, missing files,
 checksum mismatches, and v1 assets that are outside their declared layout
 directory.

@@ -28,12 +28,13 @@ pub fn validate_fields(
 }
 
 pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport, McpError> {
-    let (manifest, base_dir) = load_manifest_and_base_dir(&params)?;
+    let (manifest, base_dir, manifest_path) = load_manifest_and_base_dir(&params)?;
     let validator = |path: &Path| validate_pipeline_config_artifact(&base_dir, path);
     Ok(
-        biors_core::package::validate_package_manifest_artifacts_with_pipeline_config_validator(
+        biors_core::package::validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
             &manifest,
             &base_dir,
+            manifest_path.as_deref(),
             Some(&validator),
         ),
     )
@@ -41,7 +42,7 @@ pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport
 
 fn load_manifest_and_base_dir(
     params: &PackageValidateParams,
-) -> Result<(PackageManifest, PathBuf), McpError> {
+) -> Result<(PackageManifest, PathBuf, Option<PathBuf>), McpError> {
     match (&params.manifest_path, &params.manifest_json) {
         (Some(_), Some(_)) => Err(McpError::invalid_params(
             "provide either manifest_path or manifest_json, not both",
@@ -56,7 +57,7 @@ fn load_manifest_and_base_dir(
                 .parent()
                 .unwrap_or_else(|| Path::new("."))
                 .to_path_buf();
-            Ok((manifest, base_dir))
+            Ok((manifest, base_dir, Some(path.to_path_buf())))
         }
         (None, Some(manifest_json)) => {
             let Some(base_dir) = &params.base_dir else {
@@ -68,6 +69,7 @@ fn load_manifest_and_base_dir(
             Ok((
                 parse_manifest(manifest_json)?,
                 Path::new(base_dir).to_path_buf(),
+                None,
             ))
         }
         (None, None) => Err(McpError::invalid_params(

@@ -8,8 +8,8 @@ use crate::output::print_success;
 use biors_core::package::{
     compare_package_manifest_schemas, diff_package_manifests, inspect_package_manifest,
     plan_package_schema_migration, plan_runtime_bridge,
-    validate_package_manifest_artifacts_with_pipeline_config_validator, PackageManifest,
-    PackageValidationReport, ReferencedConfigError,
+    validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator,
+    PackageManifest, PackageValidationReport, ReferencedConfigError,
 };
 use biors_core::verification::verify_package_outputs_with_observation_base;
 use serde::Serialize;
@@ -38,9 +38,11 @@ pub(crate) fn run_package_command(command: PackageCommand) -> Result<(), CliErro
 }
 
 fn run_package_bridge(path: PathBuf) -> Result<(), CliError> {
+    let manifest_path = path.clone();
     let (manifest, manifest_base_dir) = read_package_manifest(path)?;
     let report = plan_runtime_bridge(&manifest);
-    let validation = validate_cli_package_manifest_artifacts(&manifest, &manifest_base_dir);
+    let validation =
+        validate_cli_package_manifest_artifacts(&manifest, &manifest_base_dir, &manifest_path);
     if !validation.valid || !report.ready {
         let message = join_failure_messages(
             validation
@@ -115,8 +117,10 @@ fn run_package_migrate(
 }
 
 fn run_package_validate(path: PathBuf) -> Result<(), CliError> {
+    let manifest_path = path.clone();
     let (manifest, manifest_base_dir) = read_package_manifest(path)?;
-    let report = validate_cli_package_manifest_artifacts(&manifest, &manifest_base_dir);
+    let report =
+        validate_cli_package_manifest_artifacts(&manifest, &manifest_base_dir, &manifest_path);
     if !report.valid {
         let message = join_failure_messages(report.issues.iter().map(String::as_str));
         return Err(CliError::ValidationDetails {
@@ -130,9 +134,11 @@ fn run_package_validate(path: PathBuf) -> Result<(), CliError> {
 }
 
 fn run_package_verify(manifest: PathBuf, observations: PathBuf) -> Result<(), CliError> {
+    let manifest_path = manifest.clone();
     let (manifest, manifest_base_dir) = read_package_manifest(manifest)?;
     let (observations, observations_base_dir) = read_fixture_observations(observations)?;
-    let validation = validate_cli_package_manifest_artifacts(&manifest, &manifest_base_dir);
+    let validation =
+        validate_cli_package_manifest_artifacts(&manifest, &manifest_base_dir, &manifest_path);
     if !validation.valid {
         let message = join_failure_messages(validation.issues.iter().map(String::as_str));
         return Err(CliError::ValidationDetails {
@@ -171,10 +177,13 @@ fn run_package_verify(manifest: PathBuf, observations: PathBuf) -> Result<(), Cl
 pub(crate) fn validate_cli_package_manifest_artifacts(
     manifest: &PackageManifest,
     manifest_base_dir: &Path,
+    manifest_path: &Path,
 ) -> PackageValidationReport {
-    validate_package_manifest_artifacts_with_pipeline_config_validator(
+    let manifest_path = (manifest_path.as_os_str() != "-").then_some(manifest_path);
+    validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
         manifest,
         manifest_base_dir,
+        manifest_path,
         Some(&|path| {
             load_pipeline_config(path)
                 .and_then(|resolved| {
