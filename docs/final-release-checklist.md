@@ -162,7 +162,13 @@ checksum files.
 Release packaging tools are pinned in `scripts/release-tool-versions.env` and
 mirrored in `.github/workflows/release.yml`. Before tagging, record the pinned
 `maturin`, `wasm-pack`, and Node.js versions in release notes or artifact
-provenance, and rerun:
+provenance. Print the exact local release tool pins with:
+
+```bash
+scripts/print-release-tool-versions.sh
+```
+
+Then rerun:
 
 ```bash
 python3 scripts/check-release-workflow.py

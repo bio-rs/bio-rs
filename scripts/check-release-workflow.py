@@ -431,6 +431,9 @@ def read_release_tool_versions() -> dict[str, str]:
 def assert_release_tool_scripts_use_pins(tool_versions: dict[str, str]) -> None:
     package_artifacts = Path("scripts/check-package-artifacts.sh").read_text(encoding="utf-8")
     wasm_package = Path("scripts/build-wasm-npm-package.sh").read_text(encoding="utf-8")
+    version_printer = Path("scripts/print-release-tool-versions.sh").read_text(
+        encoding="utf-8"
+    )
 
     for text, name, script in [
         (
@@ -446,6 +449,10 @@ def assert_release_tool_scripts_use_pins(tool_versions: dict[str, str]) -> None:
     ]:
         if text not in script:
             raise SystemExit(f"release tool local script is missing {name}: {text}")
+
+    for key in tool_versions:
+        if key not in version_printer:
+            raise SystemExit(f"release tool version printer is missing {key}")
 
     for key, version in tool_versions.items():
         if not version or version.count(".") < 2:

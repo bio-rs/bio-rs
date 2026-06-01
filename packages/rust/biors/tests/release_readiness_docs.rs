@@ -318,6 +318,7 @@ fn final_release_checklist_covers_required_gates() {
         "scripts/check-benchmark-docs.sh",
         "scripts/check-release-artifact-contents.py",
         "scripts/check-registry-versions.py",
+        "scripts/print-release-tool-versions.sh",
         "LICENSE-APACHE",
         "LICENSE-MIT",
         ".github/workflows/benchmarks.yml",
