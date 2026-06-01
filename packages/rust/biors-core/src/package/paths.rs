@@ -57,7 +57,7 @@ pub fn read_package_file(
     base_dir: &Path,
     relative_path: &str,
 ) -> Result<Vec<u8>, PackageArtifactError> {
-    let resolved = resolve_package_asset_path(base_dir, relative_path)?;
+    let resolved = resolve_existing_package_asset_path(base_dir, relative_path)?;
     fs::read(&resolved).map_err(|error| PackageArtifactError::AssetReadFailed {
         path: relative_path.to_string(),
         resolved: resolved.display().to_string(),
@@ -96,4 +96,35 @@ pub(crate) fn validate_package_relative_path(
 
 fn resolve_package_path(base_dir: &Path, relative_path: &str) -> PathBuf {
     base_dir.join(relative_path)
+}
+
+fn resolve_existing_package_asset_path(
+    base_dir: &Path,
+    relative_path: &str,
+) -> Result<PathBuf, PackageArtifactError> {
+    validate_package_relative_path(relative_path)?;
+    let root = base_dir
+        .canonicalize()
+        .map_err(|error| PackageArtifactError::AssetReadFailed {
+            path: relative_path.to_string(),
+            resolved: base_dir.display().to_string(),
+            reason: format!("failed to resolve package root: {error}"),
+        })?;
+    let candidate = root.join(relative_path);
+    let resolved =
+        candidate
+            .canonicalize()
+            .map_err(|error| PackageArtifactError::AssetReadFailed {
+                path: relative_path.to_string(),
+                resolved: candidate.display().to_string(),
+                reason: error.to_string(),
+            })?;
+
+    if !resolved.starts_with(&root) {
+        return Err(PackageArtifactError::PathEscape {
+            path: relative_path.to_string(),
+        });
+    }
+
+    Ok(resolved)
 }

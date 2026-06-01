@@ -1,7 +1,7 @@
 use super::{
     read_package_file, validate_declared_layout, validate_package_manifest,
-    validate_package_relative_path, PackageManifest, PackageValidationIssueCode,
-    PackageValidationReport,
+    validate_package_relative_path, PackageArtifactError, PackageManifest,
+    PackageValidationIssueCode, PackageValidationReport,
 };
 use crate::hash::{is_sha256_checksum, sha256_bytes_digest};
 use std::path::Path;
@@ -146,6 +146,11 @@ fn validate_artifact(
 
     match read_package_file(base_dir, path) {
         Ok(bytes) => validate_checksum_value(report, field, checksum, &bytes),
+        Err(PackageArtifactError::PathEscape { .. }) => report.push_issue(
+            PackageValidationIssueCode::InvalidAssetPath,
+            field,
+            &format!("{field}: asset path '{path}' must stay inside the package root"),
+        ),
         Err(error) => report.push_issue(
             PackageValidationIssueCode::AssetReadFailed,
             field,
