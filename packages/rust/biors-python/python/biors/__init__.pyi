@@ -66,6 +66,7 @@ class SequenceWorkflowOutput:
     model_ready: bool
     input_hash: str
     records: list[ModelInputRecord]
+    report_json: str
 
 
 def parse_fasta_records(fasta_text: str) -> list[ProteinSequence]: ...

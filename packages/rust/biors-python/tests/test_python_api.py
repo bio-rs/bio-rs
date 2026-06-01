@@ -3,6 +3,7 @@ from pathlib import Path
 
 import biors
 import jsonschema
+
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -126,12 +127,36 @@ def test_prepare_workflow():
     assert output.input_hash == "hash123"
     assert len(output.records) == 1
     assert len(output.records[0].input_ids) == 10
+    report = json.loads(output.report_json)
+    assert report["model_ready"] == True
+    assert report["provenance"]["input_hash"] == "hash123"
+    assert report["readiness_issues"] == []
 
 def test_prepare_workflow_marks_direct_empty_sequence_not_model_ready():
     records = [biors.ProteinSequence("empty", "")]
     output = biors.prepare_workflow("hash-empty", records, max_length=10, padding="fixed_length")
     assert output.model_ready == False
     assert output.records == []
+    report = json.loads(output.report_json)
+    assert report["model_ready"] == False
+    assert report["validation"]["records"] == 1
+    assert report["readiness_issues"][0]["code"] == "sequence.not_model_ready"
+    assert report["readiness_issues"][0]["id"] == "empty"
+    assert report["provenance"]["input_hash"] == "hash-empty"
+
+def test_prepare_workflow_report_json_exposes_invalid_sequence_diagnostics():
+    records = [biors.ProteinSequence("bad", "AX*")]
+    output = biors.prepare_workflow("hash-invalid", records, max_length=10, padding="fixed_length")
+    report = json.loads(output.report_json)
+
+    assert output.model_ready == False
+    assert output.records == []
+    assert report["validation"]["warning_count"] == 1
+    assert report["validation"]["error_count"] == 1
+    assert report["tokenization"]["summary"]["warning_count"] == 1
+    assert report["tokenization"]["summary"]["error_count"] == 1
+    assert report["readiness_issues"][0]["code"] == "sequence.not_model_ready"
+    assert report["readiness_issues"][0]["id"] == "bad"
 
 def test_direct_protein_sequence_construction_prepares_workflow():
     records = [biors.ProteinSequence("seq-memory", "ACDE")]

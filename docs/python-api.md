@@ -41,7 +41,7 @@ for the public functions and compact PyO3 classes listed below.
 | `TokenizedProtein` | `id: str`, `alphabet: str`, `valid: bool`, `tokens: list[int]`, `length: int`, `warnings: list[ResidueIssue]`, `errors: list[ResidueIssue]` |
 | `ModelInput` | `records: list[ModelInputRecord]` |
 | `ModelInputRecord` | `id: str`, `input_ids: list[int]`, `attention_mask: list[int]`, `truncated: bool` |
-| `SequenceWorkflowOutput` | `model_ready: bool`, `records: list[ModelInputRecord]` |
+| `SequenceWorkflowOutput` | `model_ready: bool`, `input_hash: str`, `records: list[ModelInputRecord]`, `report_json: str` |
 
 Errors are raised as `ValueError` for malformed FASTA, invalid padding policy,
 invalid package JSON, or model-input records that are not model-ready.
@@ -149,6 +149,7 @@ output = biors.prepare_workflow_from_fasta(
 )
 
 print(output.model_ready)
+print(output.report_json)
 print(output.records[0].input_ids[:8])
 ```
 
@@ -163,12 +164,15 @@ Parses FASTA text and computes the stable workflow input hash internally before
 running the standard workflow. Prefer this API for notebook workflows unless
 you already have a trusted input hash from the exact FASTA bytes.
 
-The compact Python output exposes:
+The Python output keeps compact convenience fields and the full workflow report:
 
 - `model_ready`: `True` when all records can be converted into model input
 - `input_hash`: stable FASTA input hash carried in workflow provenance
 - `records`: model-input records when ready, or an empty list when unresolved
   validation/tokenization issues block model input
+- `report_json`: the complete core workflow payload as JSON, including
+  validation, tokenization, readiness issues, model-input policy, provenance,
+  and reproducibility hashes
 
 ## Package And Runtime Planning
 

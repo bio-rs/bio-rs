@@ -29,6 +29,8 @@ pub(crate) fn prepare_workflow(
     let output = workflow::prepare_protein_model_input_workflow(input_hash, &sequences, policy)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
     let output_input_hash = output.provenance.input_hash.clone();
+    let report_json =
+        serde_json::to_string(&output).map_err(|e| PyValueError::new_err(e.to_string()))?;
     let records = output
         .model_input
         .map(|model_input| {
@@ -43,6 +45,7 @@ pub(crate) fn prepare_workflow(
         model_ready: output.model_ready,
         input_hash: output_input_hash,
         records,
+        report_json,
     })
 }
 

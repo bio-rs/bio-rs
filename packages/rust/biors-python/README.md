@@ -56,6 +56,7 @@ output = biors.prepare_workflow_from_fasta(
     padding="fixed_length",
 )
 print(f"Model ready: {output.model_ready}")
+print(output.report_json)
 ```
 
 ## Development

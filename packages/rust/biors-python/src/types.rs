@@ -47,4 +47,6 @@ pub struct PySequenceWorkflowOutput {
     pub input_hash: String,
     #[pyo3(get)]
     pub records: Vec<PyModelInputRecord>,
+    #[pyo3(get)]
+    pub report_json: String,
 }
