@@ -1,6 +1,8 @@
 use super::{PackageValidationIssueCode, PackageValidationReport, TokenAsset};
 use crate::tokenizer::{
-    load_vocab_json, protein_20_vocab_tokens, ProteinTokenizerConfig, UnknownTokenPolicy,
+    dna_iupac_vocab_tokens, load_vocab_json, protein_20_vocab_tokens, rna_iupac_vocab_tokens,
+    ProteinTokenizerConfig, UnknownTokenPolicy, VocabToken, Vocabulary,
+    NUCLEOTIDE_UNKNOWN_TOKEN_ID, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 use std::path::Path;
 
@@ -165,22 +167,42 @@ pub(crate) fn validate_vocab_config(
         );
     }
 
-    if vocab.name == "protein-20" {
-        validate_protein_20_vocab(report, &vocab);
+    match vocab.name.as_str() {
+        "protein-20" => validate_builtin_vocab(
+            report,
+            &vocab,
+            PROTEIN_20_UNKNOWN_TOKEN_ID,
+            protein_20_vocab_tokens().as_slice(),
+        ),
+        "dna-iupac" => validate_builtin_vocab(
+            report,
+            &vocab,
+            NUCLEOTIDE_UNKNOWN_TOKEN_ID,
+            dna_iupac_vocab_tokens().as_slice(),
+        ),
+        "rna-iupac" => validate_builtin_vocab(
+            report,
+            &vocab,
+            NUCLEOTIDE_UNKNOWN_TOKEN_ID,
+            rna_iupac_vocab_tokens().as_slice(),
+        ),
+        _ => {}
     }
 }
 
-fn validate_protein_20_vocab(
+fn validate_builtin_vocab(
     report: &mut PackageValidationReport,
-    vocab: &crate::tokenizer::Vocabulary,
+    vocab: &Vocabulary,
+    expected_unknown_token_id: u8,
+    expected_tokens: &[VocabToken],
 ) {
-    if vocab.unknown_token_id != crate::tokenizer::PROTEIN_20_UNKNOWN_TOKEN_ID {
+    if vocab.unknown_token_id != expected_unknown_token_id {
         report.push_issue(
             PackageValidationIssueCode::InvalidVocabConfig,
             "vocab.unknown_token_id",
             &format!(
-                "vocab.unknown_token_id must be {} for protein-20",
-                crate::tokenizer::PROTEIN_20_UNKNOWN_TOKEN_ID
+                "vocab.unknown_token_id must be {} for {}",
+                expected_unknown_token_id, vocab.name
             ),
         );
     }
@@ -188,14 +210,20 @@ fn validate_protein_20_vocab(
         report.push_issue(
             PackageValidationIssueCode::InvalidVocabConfig,
             "vocab.unknown_token_policy",
-            "vocab.unknown_token_policy must be warn_or_error_with_unknown_token for protein-20",
+            &format!(
+                "vocab.unknown_token_policy must be warn_or_error_with_unknown_token for {}",
+                vocab.name
+            ),
         );
     }
-    if vocab.tokens.as_slice() != protein_20_vocab_tokens().as_slice() {
+    if vocab.tokens.as_slice() != expected_tokens {
         report.push_issue(
             PackageValidationIssueCode::InvalidVocabConfig,
             "vocab.tokens",
-            "vocab.tokens must match the built-in protein-20 token order and IDs",
+            &format!(
+                "vocab.tokens must match the built-in {} token order and IDs",
+                vocab.name
+            ),
         );
     }
 }

@@ -570,6 +570,25 @@ fn package_validate_rejects_tokenizer_manifest_profile_mismatch() {
 }
 
 #[test]
+fn package_validate_accepts_nucleotide_tokenizer_config() {
+    let output = package_validate_with_tokenizer_config(
+        "valid-dna-tokenizer-config",
+        r#"{
+  "profile": "dna-iupac",
+  "add_special_tokens": false
+}"#,
+        Some(("dna-iupac", "dna-iupac.v0")),
+    );
+
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn package_validate_rejects_vocab_with_string_tokens() {
     let value = validate_package_with_vocab(
         "invalid-vocab-string-tokens",
@@ -609,6 +628,46 @@ fn package_validate_rejects_vocab_with_wrong_token_order() {
 
     assert_eq!(value["error"]["code"], "package.invalid_vocab_config");
     assert_invalid_vocab_config_issue(&value, "token order and IDs");
+}
+
+#[test]
+fn package_validate_accepts_dna_iupac_vocab() {
+    let output = package_validate_with_vocab(
+        "valid-dna-vocab",
+        &valid_dna_vocab_json(),
+        Some(("dna-iupac", "dna-iupac.v0")),
+    );
+
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn package_validate_rejects_dna_iupac_vocab_with_wrong_token_order() {
+    let value = validate_package_with_vocab(
+        "invalid-dna-vocab-token-order",
+        &valid_dna_vocab_json().replace(r#""token_id": 1"#, r#""token_id": 2"#),
+        Some(("dna-iupac", "dna-iupac.v0")),
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_vocab_config");
+    assert_invalid_vocab_config_issue(&value, "dna-iupac token order and IDs");
+}
+
+#[test]
+fn package_validate_rejects_dna_iupac_vocab_with_wrong_unknown_id() {
+    let value = validate_package_with_vocab(
+        "invalid-dna-vocab-unknown-id",
+        &valid_dna_vocab_json().replace(r#""unknown_token_id": 4"#, r#""unknown_token_id": 20"#),
+        Some(("dna-iupac", "dna-iupac.v0")),
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_vocab_config");
+    assert_invalid_vocab_config_issue(&value, "unknown_token_id must be 4 for dna-iupac");
 }
 
 fn copy_dir_all(source: &Path, destination: &Path) {
@@ -688,6 +747,18 @@ fn validate_package_with_tokenizer_config(
     config: &str,
     manifest_identity: Option<(&str, &str)>,
 ) -> Value {
+    let output = package_validate_with_tokenizer_config(name, config, manifest_identity);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+}
+
+fn package_validate_with_tokenizer_config(
+    name: &str,
+    config: &str,
+    manifest_identity: Option<(&str, &str)>,
+) -> std::process::Output {
     let source_package = common::repo_root().join("examples/protein-package");
     let temp = common::TempDir::new(name);
     copy_dir_all(&source_package, temp.path());
@@ -706,7 +777,7 @@ fn validate_package_with_tokenizer_config(
     }
     fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+    Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("--json")
         .arg("package")
         .arg("validate")
@@ -714,11 +785,7 @@ fn validate_package_with_tokenizer_config(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
-        .expect("run biors package validate");
-
-    assert_eq!(output.status.code(), Some(2));
-    assert!(output.stderr.is_empty());
-    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+        .expect("run biors package validate")
 }
 
 fn validate_package_with_vocab(
@@ -726,6 +793,18 @@ fn validate_package_with_vocab(
     vocab: &str,
     manifest_identity: Option<(&str, &str)>,
 ) -> Value {
+    let output = package_validate_with_vocab(name, vocab, manifest_identity);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+}
+
+fn package_validate_with_vocab(
+    name: &str,
+    vocab: &str,
+    manifest_identity: Option<(&str, &str)>,
+) -> std::process::Output {
     let source_package = common::repo_root().join("examples/protein-package");
     let temp = common::TempDir::new(name);
     copy_dir_all(&source_package, temp.path());
@@ -744,7 +823,7 @@ fn validate_package_with_vocab(
     }
     fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+    Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("--json")
         .arg("package")
         .arg("validate")
@@ -752,16 +831,40 @@ fn validate_package_with_vocab(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
-        .expect("run biors package validate");
-
-    assert_eq!(output.status.code(), Some(2));
-    assert!(output.stderr.is_empty());
-    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+        .expect("run biors package validate")
 }
 
 fn valid_vocab_json() -> String {
     fs::read_to_string(common::repo_root().join("examples/protein-package/vocabs/protein-20.json"))
         .expect("read example vocab")
+}
+
+fn valid_dna_vocab_json() -> String {
+    r#"{
+  "name": "dna-iupac",
+  "tokens": [
+    {
+      "residue": "A",
+      "token_id": 0
+    },
+    {
+      "residue": "C",
+      "token_id": 1
+    },
+    {
+      "residue": "G",
+      "token_id": 2
+    },
+    {
+      "residue": "T",
+      "token_id": 3
+    }
+  ],
+  "unknown_token_id": 4,
+  "unknown_token_policy": "warn_or_error_with_unknown_token"
+}
+"#
+    .to_string()
 }
 
 fn assert_invalid_pipeline_config_issue(value: &Value, expected_message: &str) {
