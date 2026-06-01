@@ -45,6 +45,14 @@ for t in tokenized:
 single = biors.tokenize_protein("ACDEFG", id="sample-001")
 print(single.id, single.tokens)
 
+# DNA/RNA use explicit tokenizer profiles.
+dna = biors.tokenize_fasta_records(">dna\nACGT\n", profile="dna-iupac")
+rna_workflow = biors.prepare_workflow_from_fasta(
+    ">rna\nACGU\n",
+    max_length=8,
+    profile="rna-iupac",
+)
+
 # Build model input
 model_input = biors.build_model_inputs_checked(
     tokenized,

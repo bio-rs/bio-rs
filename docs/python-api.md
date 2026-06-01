@@ -101,20 +101,25 @@ for record in tokenized:
 
 single = biors.tokenize_protein("ACDEFGHIK")
 print(single.tokens)
+
+dna = biors.tokenize_fasta_records(">dna\nACGT\n", profile="dna-iupac")
+rna = biors.tokenize_protein("ACGU", profile="rna-iupac")
 ```
 
-### `tokenize_fasta_records(fasta_text: str) -> list[TokenizedProtein]`
+### `tokenize_fasta_records(fasta_text: str, profile="protein-20") -> list[TokenizedProtein]`
 
-Parses and tokenizes all FASTA records with the default `protein-20` tokenizer.
-Each returned record preserves tokenization diagnostics. Ambiguous residues are
-reported in `warnings`, invalid residues are reported in `errors`, and `valid`
-is `False` when either list is non-empty.
+Parses and tokenizes all FASTA records with the selected tokenizer profile. The
+default profile is `protein-20`; DNA/RNA workflows can pass `dna-iupac`,
+`dna-iupac-special`, `rna-iupac`, or `rna-iupac-special`. Each returned record
+preserves tokenization diagnostics. Ambiguous residues are reported in
+`warnings`, invalid residues are reported in `errors`, and `valid` is `False`
+when either list is non-empty.
 
-### `tokenize_protein(sequence: str) -> TokenizedProtein`
+### `tokenize_protein(sequence: str, id="user", profile="protein-20") -> TokenizedProtein`
 
-Tokenizes one protein sequence. The input is normalized like FASTA-backed
-tokenization: whitespace is removed and residues are uppercased before
-tokenization. The returned record id is `"user"`.
+Tokenizes one in-memory sequence with the selected tokenizer profile. The input
+is normalized like FASTA-backed tokenization: whitespace is removed and residues
+are uppercased before tokenization. The default returned record id is `"user"`.
 
 ## Model Input
 
@@ -157,23 +162,30 @@ output = biors.prepare_workflow_from_fasta(
     padding="fixed_length",
 )
 
+dna_output = biors.prepare_workflow_from_fasta(
+    ">dna\nACGT\n",
+    max_length=512,
+    profile="dna-iupac",
+)
+
 print(output.model_ready)
 print(output.report_json)
 print(output.records[0].input_ids[:8])
 ```
 
-### `prepare_workflow(input_hash, records, max_length, pad_token_id=0, padding="no_padding") -> SequenceWorkflowOutput`
+### `prepare_workflow(input_hash, records, max_length, pad_token_id=0, padding="no_padding", profile="protein-20") -> SequenceWorkflowOutput`
 
-Runs the standard protein validation, tokenization, and model-input workflow for
-records already parsed by `parse_fasta_records`. `input_hash` must match
-`fnv1a64:<16 lowercase hex>`; prefer `prepare_workflow_from_fasta` when Python
-has the original FASTA text.
+Runs validation, tokenization, and model-input workflow for records already
+parsed by `parse_fasta_records`. The default profile is `protein-20`; pass
+`dna-iupac` or `rna-iupac` for nucleotide model-input workflows. `input_hash`
+must match `fnv1a64:<16 lowercase hex>`; prefer `prepare_workflow_from_fasta`
+when Python has the original FASTA text.
 
-### `prepare_workflow_from_fasta(fasta_text, max_length, pad_token_id=0, padding="no_padding") -> SequenceWorkflowOutput`
+### `prepare_workflow_from_fasta(fasta_text, max_length, pad_token_id=0, padding="no_padding", profile="protein-20") -> SequenceWorkflowOutput`
 
 Parses FASTA text and computes the stable workflow input hash internally before
-running the standard workflow. Prefer this API for notebook workflows unless
-you already have a trusted input hash from the exact FASTA bytes.
+running the selected profile workflow. Prefer this API for notebook workflows
+unless you already have a trusted input hash from the exact FASTA bytes.
 
 The Python output keeps compact convenience fields and the full workflow report:
 

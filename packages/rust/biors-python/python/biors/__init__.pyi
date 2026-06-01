@@ -101,10 +101,17 @@ def parse_fasta_records(fasta_text: str) -> list[ProteinSequence]: ...
 def validate_fasta_input(fasta_text: str) -> SequenceValidationReport: ...
 
 
-def tokenize_fasta_records(fasta_text: str) -> list[TokenizedProtein]: ...
+def tokenize_fasta_records(
+    fasta_text: str,
+    profile: str = "protein-20",
+) -> list[TokenizedProtein]: ...
 
 
-def tokenize_protein(sequence: str, id: str = "user") -> TokenizedProtein: ...
+def tokenize_protein(
+    sequence: str,
+    id: str = "user",
+    profile: str = "protein-20",
+) -> TokenizedProtein: ...
 
 
 def build_model_inputs_checked(
@@ -121,6 +128,7 @@ def prepare_workflow(
     max_length: int,
     pad_token_id: int = 0,
     padding: str = "no_padding",
+    profile: str = "protein-20",
 ) -> SequenceWorkflowOutput: ...
 
 
@@ -129,6 +137,7 @@ def prepare_workflow_from_fasta(
     max_length: int,
     pad_token_id: int = 0,
     padding: str = "no_padding",
+    profile: str = "protein-20",
 ) -> SequenceWorkflowOutput: ...
 
 

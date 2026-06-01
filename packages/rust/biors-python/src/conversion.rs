@@ -147,6 +147,26 @@ pub(crate) fn parse_padding_policy(padding: &str) -> PyResult<model_input::Paddi
     }
 }
 
+pub(crate) fn parse_tokenizer_profile(
+    profile: &str,
+) -> PyResult<tokenizer::ProteinTokenizerProfile> {
+    match profile {
+        "protein-20" => Ok(tokenizer::ProteinTokenizerProfile::Protein20),
+        "protein-20-special" => Ok(tokenizer::ProteinTokenizerProfile::Protein20Special),
+        "dna-iupac" => Ok(tokenizer::ProteinTokenizerProfile::DnaIupac),
+        "dna-iupac-special" => Ok(tokenizer::ProteinTokenizerProfile::DnaIupacSpecial),
+        "rna-iupac" => Ok(tokenizer::ProteinTokenizerProfile::RnaIupac),
+        "rna-iupac-special" => Ok(tokenizer::ProteinTokenizerProfile::RnaIupacSpecial),
+        other => Err(py_error(
+            "tokenizer.invalid_profile",
+            format!(
+                "invalid tokenizer profile: '{other}'. Expected one of protein-20, protein-20-special, dna-iupac, dna-iupac-special, rna-iupac, rna-iupac-special"
+            ),
+            None,
+        )),
+    }
+}
+
 pub(crate) fn tokenized_protein_to_py(record: tokenizer::TokenizedProtein) -> PyTokenizedProtein {
     PyTokenizedProtein {
         id: record.id,

@@ -78,6 +78,17 @@ def test_tokenize_fasta_records_exposes_residue_diagnostics():
     assert tokenized[0].errors[0].residue == "*"
     assert tokenized[0].errors[0].position == 3
 
+def test_tokenize_fasta_records_accepts_nucleotide_profiles():
+    dna = biors.tokenize_fasta_records(">dna\nACGTN\n", profile="dna-iupac")[0]
+    rna = biors.tokenize_fasta_records(">rna\nACGUN\n", profile="rna-iupac")[0]
+
+    assert dna.alphabet == "dna-iupac"
+    assert dna.tokens == [0, 1, 2, 3, 4]
+    assert dna.valid == False
+    assert dna.warnings[0].residue == "N"
+    assert rna.alphabet == "rna-iupac"
+    assert rna.tokens == [0, 1, 2, 3, 4]
+
 def test_tokenize_protein_normalizes_like_fasta_tokenization():
     direct = biors.tokenize_protein("ac de\tfg")
     from_fasta = biors.tokenize_fasta_records(">seq1\nac de\tfg\n")[0]
@@ -92,6 +103,18 @@ def test_tokenize_protein_preserves_caller_provided_id():
     tokenized = biors.tokenize_protein("ACDE", id="sample-42")
     assert tokenized.id == "sample-42"
     assert tokenized.tokens == [0, 1, 2, 3]
+
+def test_tokenize_protein_accepts_nucleotide_profile_for_direct_sequences():
+    tokenized = biors.tokenize_protein("acgt", id="dna-1", profile="dna-iupac")
+    assert tokenized.id == "dna-1"
+    assert tokenized.alphabet == "dna-iupac"
+    assert tokenized.tokens == [0, 1, 2, 3]
+
+def test_tokenize_rejects_unknown_profile_with_stable_error_code():
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.tokenize_fasta_records(">seq\nACGT\n", profile="bad")
+
+    assert exc_info.value.code == "tokenizer.invalid_profile"
 
 def test_checked_model_input_rejects_non_model_ready_tokenization():
     fasta = ">seq1\nAX*\n"
@@ -260,6 +283,37 @@ def test_prepare_workflow_from_fasta_computes_input_hash_internally():
     ).input_hash
     assert len(output.records) == 1
     assert len(output.records[0].input_ids) == 10
+
+def test_prepare_workflow_from_fasta_accepts_nucleotide_profiles():
+    output = biors.prepare_workflow_from_fasta(
+        ">dna\nACGT\n",
+        max_length=6,
+        padding="fixed_length",
+        profile="dna-iupac",
+    )
+    report = json.loads(output.report_json)
+
+    assert output.model_ready == True
+    assert output.records[0].input_ids == [0, 1, 2, 3, 0, 0]
+    assert report["workflow"] == "sequence_model_input.v0"
+    assert report["provenance"]["validation_alphabet"] == "dna-iupac"
+    assert report["provenance"]["tokenizer"]["name"] == "dna-iupac"
+    assert report["tokenization"]["records"][0]["alphabet"] == "dna-iupac"
+
+def test_prepare_workflow_accepts_nucleotide_profiles_for_direct_records():
+    records = [biors.ProteinSequence("rna-memory", "ACGU")]
+    output = biors.prepare_workflow(
+        "fnv1a64:0000000000000005",
+        records,
+        max_length=4,
+        profile="rna-iupac",
+    )
+    report = json.loads(output.report_json)
+
+    assert output.model_ready == True
+    assert output.records[0].input_ids == [0, 1, 2, 3]
+    assert report["provenance"]["validation_alphabet"] == "rna-iupac"
+    assert report["provenance"]["tokenizer"]["name"] == "rna-iupac"
 
 def test_package_manifest_inspection_is_exported():
     manifest_json = """
