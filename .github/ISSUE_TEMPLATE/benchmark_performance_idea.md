@@ -12,10 +12,15 @@ assignees: ""
   - [ ] pure parse
   - [ ] parse plus validation
   - [ ] parse plus tokenization
-  - [ ] model-input construction
+  - [ ] fixed-length model-input construction
+  - [ ] no-padding model-input construction
   - [ ] workflow or pipeline orchestration
+  - [ ] pipeline config execution
   - [ ] dataset inspect
   - [ ] package validation or verification
+  - [ ] package artifact validation
+  - [ ] package fixture verification
+  - [ ] binding round-trip overhead
 - Surface:
   - [ ] core library only
   - [ ] CLI end-to-end
@@ -29,6 +34,11 @@ assignees: ""
   - [ ] MB/sec
   - [ ] binding or request overhead
   - [ ] package/runtime validation latency
+- Benchmark purpose:
+  - [ ] release claim
+  - [ ] regression guard
+  - [ ] smoke benchmark
+  - [ ] exploratory measurement
 
 ## Why does this benchmark matter?
 

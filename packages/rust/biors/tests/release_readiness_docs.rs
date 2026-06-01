@@ -455,14 +455,25 @@ fn github_templates_cover_promoted_release_surfaces() {
 
     for expected in [
         "model-input construction",
+        "fixed-length model-input construction",
+        "no-padding model-input construction",
         "workflow or pipeline orchestration",
+        "pipeline config execution",
         "dataset inspect",
         "package validation or verification",
+        "package artifact validation",
+        "package fixture verification",
         "Python binding",
         "WASM/JavaScript binding",
         "MCP or service contract",
         "optional Candle backend",
         "binding or request overhead",
+        "binding round-trip overhead",
+        "Benchmark purpose",
+        "release claim",
+        "regression guard",
+        "smoke benchmark",
+        "exploratory measurement",
         "Surface and non-claim boundaries",
     ] {
         assert!(
