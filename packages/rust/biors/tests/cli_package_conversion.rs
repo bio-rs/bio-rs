@@ -314,6 +314,71 @@ fn package_init_infers_safetensors_runtime_defaults_from_extension() {
 }
 
 #[test]
+fn package_init_writes_non_misleading_metadata_files() {
+    let temp = TempDir::new("package-init-metadata-files");
+    let model = temp.write("model.onnx", "model");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("init")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("protein-init")
+        .arg("--model")
+        .arg(&model)
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .arg("--license")
+        .arg("MIT")
+        .arg("--citation")
+        .arg("Smith et al. 2026")
+        .arg("--doi")
+        .arg("10.1234/example")
+        .arg("--model-card-summary")
+        .arg("Converted package fixture for CLI tests.")
+        .arg("--intended-use")
+        .arg("CLI conversion test")
+        .arg("--limitation")
+        .arg("Not for inference")
+        .output()
+        .expect("run biors package init");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+
+    let manifest: Value = serde_json::from_slice(
+        &std::fs::read(output_dir.join("manifest.json")).expect("read generated manifest"),
+    )
+    .expect("manifest JSON");
+    assert_eq!(
+        manifest["metadata"]["license"]["file"]["path"],
+        "docs/LICENSE-SPDX.txt"
+    );
+    assert_eq!(
+        manifest["metadata"]["citation"]["file"]["path"],
+        "docs/CITATION.txt"
+    );
+    assert_eq!(
+        std::fs::read_to_string(output_dir.join("docs/LICENSE-SPDX.txt")).expect("read license"),
+        "SPDX-License-Identifier: MIT\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(output_dir.join("docs/CITATION.txt")).expect("read citation"),
+        "Smith et al. 2026\nDOI: 10.1234/example\n"
+    );
+    assert!(!output_dir.join("docs/CITATION.cff").exists());
+}
+
+#[test]
 fn package_init_rejects_unknown_model_extension() {
     let temp = TempDir::new("package-init-unknown-model");
     let model = temp.write("model.bin", "unknown model");
@@ -367,6 +432,8 @@ fn package_init_rejects_existing_generated_targets_without_force() {
         "fixtures/tiny.output.json",
         "tokenizers/protein-20.json",
         "pipelines/protein.toml",
+        "docs/LICENSE-SPDX.txt",
+        "docs/CITATION.txt",
         "docs/model-card.md",
     ] {
         let temp = TempDir::new("package-init-collision");

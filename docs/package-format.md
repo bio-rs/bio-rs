@@ -127,6 +127,12 @@ into the default CLI binary.
 `.safetensors` selects `safetensors` with `candle/local-cpu`. Unknown model
 extensions are rejected before a manifest is written.
 
+For generated skeleton metadata, `package init` keeps the SPDX expression in
+manifest metadata and writes `docs/LICENSE-SPDX.txt`; it writes free-form
+preferred citation text to `docs/CITATION.txt`. Use `package convert` with an
+explicit `--citation-file docs/CITATION.cff` when supplying a validated Citation
+File Format document.
+
 Preprocessing steps may also reference a checked pipeline config artifact:
 
 ```json

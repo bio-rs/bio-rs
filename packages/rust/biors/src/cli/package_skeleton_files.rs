@@ -89,15 +89,19 @@ pub(crate) fn write_docs(
     request: &PackageSkeletonRequest,
     created_files: &mut Vec<String>,
 ) -> Result<PackageMetadata, CliError> {
-    let license_rel = "docs/LICENSE.txt";
-    let citation_rel = "docs/CITATION.cff";
+    let license_rel = "docs/LICENSE-SPDX.txt";
+    let citation_rel = "docs/CITATION.txt";
     let model_card_rel = "docs/model-card.md";
     let license_path = request.output_dir.join(license_rel);
     let citation_path = request.output_dir.join(citation_rel);
     let model_card_path = request.output_dir.join(model_card_rel);
 
-    std::fs::write(&license_path, format!("{}\n", request.license)).map_err(CliError::Write)?;
-    std::fs::write(&citation_path, format!("{}\n", request.citation)).map_err(CliError::Write)?;
+    std::fs::write(
+        &license_path,
+        format!("SPDX-License-Identifier: {}\n", request.license),
+    )
+    .map_err(CliError::Write)?;
+    std::fs::write(&citation_path, citation_text(request)).map_err(CliError::Write)?;
     std::fs::write(
         &model_card_path,
         format!(
@@ -168,8 +172,8 @@ pub(crate) fn planned_write_paths(
             .output_dir
             .join(format!("tokenizers/{}.json", config.profile.as_str())),
         request.output_dir.join("pipelines/protein.toml"),
-        request.output_dir.join("docs/LICENSE.txt"),
-        request.output_dir.join("docs/CITATION.cff"),
+        request.output_dir.join("docs/LICENSE-SPDX.txt"),
+        request.output_dir.join("docs/CITATION.txt"),
         request.output_dir.join("docs/model-card.md"),
     ])
 }
@@ -250,4 +254,12 @@ fn markdown_list(values: &[String]) -> String {
         .map(|value| format!("- {value}"))
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn citation_text(request: &PackageSkeletonRequest) -> String {
+    let mut text = format!("{}\n", request.citation);
+    if let Some(doi) = &request.doi {
+        text.push_str(&format!("DOI: {doi}\n"));
+    }
+    text
 }
