@@ -5,6 +5,17 @@ pub fn stable_input_hash(input: &str) -> String {
     hasher.finalize()
 }
 
+/// Return whether a string matches the stable `fnv1a64:<16 lowercase hex>` form.
+pub fn is_stable_input_hash(value: &str) -> bool {
+    let Some(hex) = value.strip_prefix("fnv1a64:") else {
+        return false;
+    };
+    hex.len() == 16
+        && hex
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+}
+
 #[derive(Debug, Clone, Copy)]
 /// Incremental stable input hasher for streaming reader paths.
 pub struct StableInputHasher {
@@ -36,5 +47,19 @@ impl StableInputHasher {
 impl Default for StableInputHasher {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_stable_input_hash;
+
+    #[test]
+    fn stable_input_hash_validation_matches_schema_shape() {
+        assert!(is_stable_input_hash("fnv1a64:08a331cb13c7bd72"));
+        assert!(!is_stable_input_hash("sha256:08a331cb13c7bd72"));
+        assert!(!is_stable_input_hash("fnv1a64:08A331CB13C7BD72"));
+        assert!(!is_stable_input_hash("fnv1a64:08a331cb13c7bd7"));
+        assert!(!is_stable_input_hash("fnv1a64:08a331cb13c7bd7z"));
     }
 }

@@ -173,19 +173,35 @@ def test_residue_issue_constructor_rejects_multi_character_residue():
 def test_prepare_workflow():
     fasta = ">seq1\nACDEFG"
     records = biors.parse_fasta_records(fasta)
-    output = biors.prepare_workflow("hash123", records, max_length=10, padding="fixed_length")
+    output = biors.prepare_workflow(
+        "fnv1a64:0000000000000001",
+        records,
+        max_length=10,
+        padding="fixed_length",
+    )
     assert output.model_ready == True
-    assert output.input_hash == "hash123"
+    assert output.input_hash == "fnv1a64:0000000000000001"
     assert len(output.records) == 1
     assert len(output.records[0].input_ids) == 10
     report = json.loads(output.report_json)
     assert report["model_ready"] == True
-    assert report["provenance"]["input_hash"] == "hash123"
+    assert report["provenance"]["input_hash"] == "fnv1a64:0000000000000001"
     assert report["readiness_issues"] == []
+
+def test_prepare_workflow_rejects_invalid_input_hash():
+    records = [biors.ProteinSequence("seq-memory", "ACDE")]
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.prepare_workflow("hash-memory", records, max_length=6, padding="fixed_length")
+    assert exc_info.value.code == "workflow.invalid_input_hash"
 
 def test_prepare_workflow_marks_direct_empty_sequence_not_model_ready():
     records = [biors.ProteinSequence("empty", "")]
-    output = biors.prepare_workflow("hash-empty", records, max_length=10, padding="fixed_length")
+    output = biors.prepare_workflow(
+        "fnv1a64:0000000000000002",
+        records,
+        max_length=10,
+        padding="fixed_length",
+    )
     assert output.model_ready == False
     assert output.records == []
     report = json.loads(output.report_json)
@@ -193,11 +209,16 @@ def test_prepare_workflow_marks_direct_empty_sequence_not_model_ready():
     assert report["validation"]["records"] == 1
     assert report["readiness_issues"][0]["code"] == "sequence.not_model_ready"
     assert report["readiness_issues"][0]["id"] == "empty"
-    assert report["provenance"]["input_hash"] == "hash-empty"
+    assert report["provenance"]["input_hash"] == "fnv1a64:0000000000000002"
 
 def test_prepare_workflow_report_json_exposes_invalid_sequence_diagnostics():
     records = [biors.ProteinSequence("bad", "AX*")]
-    output = biors.prepare_workflow("hash-invalid", records, max_length=10, padding="fixed_length")
+    output = biors.prepare_workflow(
+        "fnv1a64:0000000000000003",
+        records,
+        max_length=10,
+        padding="fixed_length",
+    )
     report = json.loads(output.report_json)
 
     assert output.model_ready == False
@@ -211,10 +232,15 @@ def test_prepare_workflow_report_json_exposes_invalid_sequence_diagnostics():
 
 def test_direct_protein_sequence_construction_prepares_workflow():
     records = [biors.ProteinSequence("seq-memory", "ACDE")]
-    output = biors.prepare_workflow("hash-memory", records, max_length=6, padding="fixed_length")
+    output = biors.prepare_workflow(
+        "fnv1a64:0000000000000004",
+        records,
+        max_length=6,
+        padding="fixed_length",
+    )
 
     assert output.model_ready == True
-    assert output.input_hash == "hash-memory"
+    assert output.input_hash == "fnv1a64:0000000000000004"
     assert output.records[0].id == "seq-memory"
     assert output.records[0].attention_mask == [1, 1, 1, 1, 0, 0]
 

@@ -679,6 +679,8 @@ The `verification` module handles stable input hashing, content diffs, and packa
   - `pub const fn new() -> Self`
   - `pub fn update(&mut self, bytes: &[u8])`
   - `pub fn finalize(self) -> String` — returns `fnv1a64:<hex>`
+- `pub fn is_stable_input_hash(value: &str) -> bool` — validates the
+  `fnv1a64:<16 lowercase hex>` provenance hash shape used by workflow schemas.
 
 - **`OutputDiffReport`** — Canonical diff between two outputs.
   - `pub expected_path: String`, `pub observed_path: String`, `pub expected_sha256: String`, `pub observed_sha256: String`, `pub matches: bool`, `pub content_diff: Option<ContentMismatchDiff>`
@@ -783,10 +785,12 @@ The `workflow` module orchestrates the end-to-end pipeline: validation, tokeniza
 #### Functions
 
 - `pub fn prepare_protein_model_input_workflow(input_hash: String, records: &[ProteinSequence], policy: ModelInputPolicy) -> Result<SequenceWorkflowOutput, ModelInputBuildError>`
-  Build the stable validation-to-tokenization-to-model-input workflow.
+  Build the stable validation-to-tokenization-to-model-input workflow. Manual
+  `input_hash` values must match `fnv1a64:<16 lowercase hex>`.
 
 - `pub fn prepare_protein_model_input_workflow_with_invocation(input_hash: String, records: &[ProteinSequence], policy: ModelInputPolicy, invocation: SequenceWorkflowInvocation) -> Result<SequenceWorkflowOutput, ModelInputBuildError>`
-  Same as above but captures the invocation in provenance.
+  Same as above but captures the invocation in provenance and validates the same
+  stable input-hash shape before constructing workflow output.
 
 ## Usage Examples
 

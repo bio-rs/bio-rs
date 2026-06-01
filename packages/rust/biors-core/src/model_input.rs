@@ -46,6 +46,8 @@ pub struct ModelInputRecord {
 pub enum ModelInputBuildError {
     /// The model input policy is internally invalid.
     InvalidPolicy { message: String },
+    /// Workflow provenance received an invalid input hash.
+    InvalidInputHash { input_hash: String },
     /// A tokenized sequence has no model input tokens.
     EmptyTokenizedSequence { id: String },
     /// A tokenized sequence still contains unresolved warnings or errors.
@@ -186,6 +188,10 @@ impl fmt::Display for ModelInputBuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidPolicy { message } => write!(f, "invalid model input policy: {message}"),
+            Self::InvalidInputHash { input_hash } => write!(
+                f,
+                "invalid workflow input hash '{input_hash}': expected fnv1a64:<16 lowercase hex>"
+            ),
             Self::EmptyTokenizedSequence { id } => write!(
                 f,
                 "sequence '{id}' is empty and cannot be converted into model input"

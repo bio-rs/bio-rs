@@ -7,7 +7,7 @@ mod types;
 
 pub use diff::diff_output_bytes;
 pub use fixtures::{verify_package_outputs, verify_package_outputs_with_observation_base};
-pub use hash::{stable_input_hash, StableInputHasher};
+pub use hash::{is_stable_input_hash, stable_input_hash, StableInputHasher};
 pub use types::{
     ContentMismatchDiff, FirstDifference, FixtureObservation, FixtureObservationIssue,
     FixtureVerificationResult, OutputDiffReport, PackageVerificationReport, VerificationIssueCode,

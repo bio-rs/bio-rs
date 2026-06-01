@@ -29,6 +29,7 @@ declarations.
 
 - `model_input.invalid_sequence`: a tokenized sequence still contains warnings or errors and cannot be emitted as model-ready input safely
 - `model_input.invalid_policy`: model input policy values are invalid, such as `max_length=0`
+- `workflow.invalid_input_hash`: workflow provenance input hash does not match `fnv1a64:<16 lowercase hex>`
 
 ## Batch
 

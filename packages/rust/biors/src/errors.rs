@@ -48,6 +48,9 @@ impl CliError {
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => {
                 "model_input.invalid_policy"
             }
+            Self::ModelInput(ModelInputBuildError::InvalidInputHash { .. }) => {
+                "workflow.invalid_input_hash"
+            }
             Self::ModelInput(ModelInputBuildError::EmptyTokenizedSequence { .. }) => {
                 "model_input.invalid_sequence"
             }
@@ -67,6 +70,7 @@ impl CliError {
         match self {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => None,
+            Self::ModelInput(ModelInputBuildError::InvalidInputHash { .. }) => None,
             Self::ModelInput(ModelInputBuildError::EmptyTokenizedSequence { id }) => {
                 Some(ErrorLocationValue::Label(id.clone()))
             }

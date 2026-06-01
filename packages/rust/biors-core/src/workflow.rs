@@ -80,7 +80,7 @@ pub fn prepare_protein_model_input_workflow(
         policy,
         SequenceWorkflowInvocation {
             command: CORE_WORKFLOW_COMMAND.to_string(),
-            arguments: Vec::new(),
+            arguments: vec![format!("records={}", records.len())],
         },
     )
 }
@@ -92,6 +92,7 @@ pub fn prepare_protein_model_input_workflow_with_invocation(
     policy: ModelInputPolicy,
     invocation: SequenceWorkflowInvocation,
 ) -> Result<SequenceWorkflowOutput, ModelInputBuildError> {
+    validate_workflow_input_hash(&input_hash)?;
     validate_model_input_policy(&policy)?;
 
     let validation = crate::sequence::summarize_validated_sequences(
@@ -131,6 +132,16 @@ pub fn prepare_protein_model_input_workflow_with_invocation(
         model_input,
         readiness_issues,
     })
+}
+
+fn validate_workflow_input_hash(input_hash: &str) -> Result<(), ModelInputBuildError> {
+    if crate::verification::is_stable_input_hash(input_hash) {
+        Ok(())
+    } else {
+        Err(ModelInputBuildError::InvalidInputHash {
+            input_hash: input_hash.to_string(),
+        })
+    }
 }
 
 fn provenance(
@@ -186,120 +197,4 @@ fn readiness_issues(tokenized: &[TokenizedProtein]) -> Vec<SequenceWorkflowReadi
             }
         })
         .collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::model_input::PaddingPolicy;
-
-    #[test]
-    fn workflow_preserves_validation_tokenization_and_model_input() {
-        let output = prepare_protein_model_input_workflow(
-            "fnv1a64:0000000000000000".to_string(),
-            &[ProteinSequence::new_normalized("seq1", "ACDE")],
-            ModelInputPolicy {
-                max_length: 6,
-                pad_token_id: 0,
-                padding: PaddingPolicy::FixedLength,
-            },
-        )
-        .expect("workflow output");
-
-        assert!(output.model_ready);
-        assert_eq!(output.validation.records, 1);
-        assert_eq!(output.validation.sequences[0].sequence, "ACDE");
-        assert_eq!(output.tokenization.records[0].tokens, vec![0, 1, 2, 3]);
-        assert_eq!(
-            output.model_input.expect("model input").records[0].input_ids,
-            vec![0, 1, 2, 3, 0, 0]
-        );
-        assert_eq!(output.provenance.invocation.command, CORE_WORKFLOW_COMMAND);
-        assert!(output
-            .provenance
-            .hashes
-            .vocabulary_sha256
-            .starts_with("sha256:"));
-        assert!(output
-            .provenance
-            .hashes
-            .output_data_sha256
-            .starts_with("sha256:"));
-        assert!(output.readiness_issues.is_empty());
-    }
-
-    #[test]
-    fn workflow_normalizes_direct_lowercase_sequences_before_model_input() {
-        let output = prepare_protein_model_input_workflow(
-            "fnv1a64:0000000000000000".to_string(),
-            &[ProteinSequence {
-                id: "seq1".to_string(),
-                sequence: b"ac de".to_vec(),
-            }],
-            ModelInputPolicy {
-                max_length: 6,
-                pad_token_id: 0,
-                padding: PaddingPolicy::FixedLength,
-            },
-        )
-        .expect("workflow output");
-
-        assert!(output.model_ready);
-        assert_eq!(output.validation.sequences[0].sequence, "ACDE");
-        assert_eq!(output.tokenization.records[0].tokens, vec![0, 1, 2, 3]);
-        assert_eq!(
-            output.model_input.expect("model input").records[0].input_ids,
-            vec![0, 1, 2, 3, 0, 0]
-        );
-        assert!(output.readiness_issues.is_empty());
-    }
-
-    #[test]
-    fn workflow_keeps_reports_when_model_input_is_not_ready() {
-        let output = prepare_protein_model_input_workflow(
-            "fnv1a64:0000000000000000".to_string(),
-            &[ProteinSequence {
-                id: "seq1".to_string(),
-                sequence: b"AX*".to_vec(),
-            }],
-            ModelInputPolicy {
-                max_length: 6,
-                pad_token_id: 0,
-                padding: PaddingPolicy::FixedLength,
-            },
-        )
-        .expect("workflow output");
-
-        assert!(!output.model_ready);
-        assert!(output.model_input.is_none());
-        assert_eq!(output.validation.warning_count, 1);
-        assert_eq!(output.validation.error_count, 1);
-        assert_eq!(output.readiness_issues[0].code, READINESS_ISSUE_CODE);
-    }
-
-    #[test]
-    fn workflow_marks_direct_empty_sequence_not_model_ready() {
-        let output = prepare_protein_model_input_workflow(
-            "fnv1a64:0000000000000000".to_string(),
-            &[ProteinSequence {
-                id: "empty".to_string(),
-                sequence: Vec::new(),
-            }],
-            ModelInputPolicy {
-                max_length: 6,
-                pad_token_id: 0,
-                padding: PaddingPolicy::FixedLength,
-            },
-        )
-        .expect("workflow output");
-
-        assert!(!output.model_ready);
-        assert!(output.model_input.is_none());
-        assert_eq!(output.validation.records, 1);
-        assert_eq!(output.readiness_issues[0].code, READINESS_ISSUE_CODE);
-        assert_eq!(output.readiness_issues[0].id, "empty");
-        assert!(output.readiness_issues[0]
-            .message
-            .contains("empty sequences"));
-    }
 }

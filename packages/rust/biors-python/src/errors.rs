@@ -50,6 +50,7 @@ pub(crate) fn py_serialization_error(error: serde_json::Error) -> PyErr {
 pub(crate) fn py_model_input_error(error: ModelInputBuildError) -> PyErr {
     let code = match &error {
         ModelInputBuildError::InvalidPolicy { .. } => "model_input.invalid_policy",
+        ModelInputBuildError::InvalidInputHash { .. } => "workflow.invalid_input_hash",
         ModelInputBuildError::EmptyTokenizedSequence { .. }
         | ModelInputBuildError::InvalidTokenizedSequence { .. } => "model_input.invalid_sequence",
     };

@@ -83,6 +83,25 @@ fn cli_outputs_match_sequence_schemas() {
 }
 
 #[test]
+fn direct_core_workflow_output_matches_shared_schema() {
+    let output = biors_core::workflow::prepare_protein_model_input_workflow(
+        "fnv1a64:08a331cb13c7bd72".to_string(),
+        &[biors_core::sequence::ProteinSequence::new_normalized(
+            "seq1", "ACDE",
+        )],
+        biors_core::model_input::ModelInputPolicy {
+            max_length: 4,
+            pad_token_id: 0,
+            padding: biors_core::model_input::PaddingPolicy::NoPadding,
+        },
+    )
+    .expect("direct core workflow output");
+    let value = serde_json::to_value(output).expect("workflow JSON");
+
+    common::assert_json_value_matches_schema(&value, "schemas/sequence-workflow-output.v0.json");
+}
+
+#[test]
 fn pipeline_schema_constrains_nested_workflow_payload() {
     let pipeline =
         common::run_biors_stdin(&["pipeline", "--max-length", "4", "-"], ">seq1\nACDE\n").stdout;

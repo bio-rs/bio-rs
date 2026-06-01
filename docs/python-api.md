@@ -165,7 +165,9 @@ print(output.records[0].input_ids[:8])
 ### `prepare_workflow(input_hash, records, max_length, pad_token_id=0, padding="no_padding") -> SequenceWorkflowOutput`
 
 Runs the standard protein validation, tokenization, and model-input workflow for
-records already parsed by `parse_fasta_records`.
+records already parsed by `parse_fasta_records`. `input_hash` must match
+`fnv1a64:<16 lowercase hex>`; prefer `prepare_workflow_from_fasta` when Python
+has the original FASTA text.
 
 ### `prepare_workflow_from_fasta(fasta_text, max_length, pad_token_id=0, padding="no_padding") -> SequenceWorkflowOutput`
 
