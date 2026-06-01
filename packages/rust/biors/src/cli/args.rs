@@ -55,6 +55,8 @@ pub enum Command {
         path: PathBuf,
     },
     ModelInput {
+        #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
+        profile: TokenizerProfileArg,
         #[arg(long)]
         max_length: usize,
         #[arg(long, default_value_t = 0)]

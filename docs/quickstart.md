@@ -103,8 +103,8 @@ biors tokenize --profile rna-iupac-special rna.fasta
 
 `tokenize` emits stable token IDs for explicit protein, DNA, and RNA profiles.
 Ambiguous or invalid residues keep positional alignment by using the profile
-unknown token ID. DNA/RNA tokenization does not imply model-input or workflow
-support yet; those model-ready paths remain protein-only.
+unknown token ID. DNA/RNA tokenization now supports direct `model-input`
+generation, but not the end-to-end `workflow` path yet.
 
 Inspect tokenizer profiles and special token policy:
 
@@ -127,10 +127,12 @@ before copying the preview fragments into a package. The command keeps
 
 ```bash
 biors model-input --max-length 8 examples/protein.fasta
+biors model-input --profile dna-iupac --max-length 128 dna.fasta
 ```
 
 `model-input` emits `input_ids`, `attention_mask`, and truncation metadata. It
-rejects sequences with unresolved residue warnings or errors.
+rejects sequences with unresolved residue warnings or errors. Use `--profile`
+for explicit protein, DNA, or RNA tokenizer profiles.
 
 ## Run The Stable Workflow
 

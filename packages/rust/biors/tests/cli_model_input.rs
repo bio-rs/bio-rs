@@ -73,6 +73,36 @@ fn public_behavior_snapshot_for_model_input_stdout() {
 }
 
 #[test]
+fn model_input_accepts_nucleotide_profiles() {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("model-input")
+        .arg("--profile")
+        .arg("dna-iupac")
+        .arg("--max-length")
+        .arg("6")
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn biors model-input")
+        .tap_stdin(">dna\nACGT\n");
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
+    assert_eq!(
+        value["data"]["records"][0]["input_ids"],
+        serde_json::json!([0, 1, 2, 3, 0, 0])
+    );
+    assert_eq!(
+        value["data"]["records"][0]["attention_mask"],
+        serde_json::json!([1, 1, 1, 1, 0, 0])
+    );
+}
+
+#[test]
 fn model_input_json_error_rejects_non_model_ready_sequences() {
     let output = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("--json")

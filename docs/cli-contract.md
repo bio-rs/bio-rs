@@ -18,7 +18,7 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors tokenizer convert-hf <tokenizer_config.json> [--output <json>]`
 - `biors tokenizer inspect [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>]`
 - `biors inspect <path|->`
-- `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
+- `biors model-input [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
@@ -37,7 +37,8 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 - `biors service contract`
 
-`model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
+`model-input` tokenizes FASTA records with the selected tokenizer profile and
+emits deterministic model-ready `input_ids` plus `attention_mask` records.
 `model-input-output.v0.json` is the structural JSON contract; integration
 boundaries that accept externally supplied model-input JSON must also run the
 core `validate_model_input_payload` semantic validator for cross-field

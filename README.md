@@ -12,7 +12,7 @@ bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI wor
 FASTA -> validated sequence -> token IDs -> model-ready JSON for protein workflows
 ```
 
-DNA and RNA FASTA validation and tokenization are supported through explicit nucleotide profiles. Model-input and workflow generation remain protein-only until nucleotide model-ready contracts are promoted.
+DNA and RNA FASTA validation, tokenization, and direct model-input generation are supported through explicit nucleotide profiles. End-to-end workflow generation remains protein-only until nucleotide validation/provenance workflow contracts are promoted.
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
@@ -125,12 +125,12 @@ remains a historical reference.
 - Positional token alignment preserved with explicit unknown-token IDs
 
 ### Model input
-- `model-input` CLI: `input_ids`, `attention_mask`, and truncation metadata
+- `model-input` CLI: profile-aware `input_ids`, `attention_mask`, and truncation metadata for protein, DNA, and RNA token profiles
 - `workflow` CLI: end-to-end validation → tokenization → model input with readiness issues and reproducibility provenance
 - `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/YAML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
-- Model-input and workflow paths are currently protein-only; nucleotide model-ready contracts are not yet promoted.
+- `workflow` remains protein-only until nucleotide validation/provenance workflow contracts are promoted.
 
 ### Batch and dataset operations
 - `batch validate`: multiple files, recursive directories, quoted globs

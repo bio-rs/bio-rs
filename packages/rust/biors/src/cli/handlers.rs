@@ -15,8 +15,8 @@ use biors_core::{
     service::current_service_interface_document,
     tokenizer::{
         inspect_protein_tokenizer_config, protein_tokenizer_config_for_profile,
-        summarize_fasta_records_reader, tokenize_fasta_records_reader,
-        tokenize_fasta_records_reader_with_config, ProteinTokenizerConfig,
+        summarize_fasta_records_reader, tokenize_fasta_records_reader_with_config,
+        ProteinTokenizerConfig,
     },
 };
 use clap::CommandFactory;
@@ -34,11 +34,12 @@ pub fn run(command: Command) -> Result<(), CliError> {
         Command::Fasta { command } => run_fasta_command(command),
         Command::Inspect { path } => run_inspect(path),
         Command::ModelInput {
+            profile,
             max_length,
             pad_token_id,
             padding,
             path,
-        } => run_model_input(max_length, pad_token_id, padding, path),
+        } => run_model_input(profile, max_length, pad_token_id, padding, path),
         Command::Package { command } => run_package_command(command),
         Command::Pipeline {
             config,
@@ -115,13 +116,15 @@ fn run_inspect(path: PathBuf) -> Result<(), CliError> {
 }
 
 fn run_model_input(
+    profile: TokenizerProfileArg,
     max_length: usize,
     pad_token_id: u8,
     padding: PaddingArg,
     path: PathBuf,
 ) -> Result<(), CliError> {
+    let config = protein_tokenizer_config_for_profile(profile.into());
     let reader = open_fasta_input(&path)?;
-    let output = tokenize_fasta_records_reader(reader)
+    let output = tokenize_fasta_records_reader_with_config(reader, &config)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     let model_input = build_model_inputs_checked(
         &output.records,
