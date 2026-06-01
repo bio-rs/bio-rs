@@ -176,6 +176,53 @@ review.
 - final shape of schema version migration helpers beyond the current
   `biors_core::versioning` policy API
 
+## Pre-1.0 Unstable Public Rust APIs
+
+The Rust API reference documents every current public `biors-core` item. Public
+items not listed in the stable-candidate sections above are still available in
+pre-1.0 releases, but they are explicitly unstable until a future contract
+review promotes them, hides them, or moves them behind a feature/module boundary.
+
+- Package authoring, migration, and filesystem helpers:
+  - `validate_package_manifest`
+  - `inspect_package_manifest`
+  - `plan_runtime_bridge`
+  - `convert_package_manifest`
+  - `diff_package_manifests`
+  - `plan_package_schema_migration`
+  - `read_package_file`
+  - `resolve_package_asset_path`
+  - `PackageArtifactError`
+- Fixture verification and hashing helpers:
+  - `stable_input_hash`
+  - `StableInputHasher`
+  - `verify_package_outputs`
+  - `verify_package_outputs_with_observation_base`
+  - `FixtureVerificationResult`
+  - `VerificationStatus`
+- Lower-level model-input structs and validation errors:
+  - `validate_model_input_policy`
+  - `validate_model_input_payload`
+  - `ModelInputRecord`
+  - `ModelInputBuildError`
+  - `ModelInputPayloadError`
+- Lower-level tokenizer helpers and data types:
+  - `tokenize_protein`
+  - `summarize_fasta_records_reader`
+  - `summarize_tokenized_proteins`
+  - `load_protein_20_vocab`
+  - `protein_20_unknown_token_policy`
+  - `SpecialTokenSet`
+  - `TokenizedProtein`
+  - `Vocabulary`
+  - `TokenizerError`
+- Versioning policy helpers:
+  - `package_manifest_policy`
+  - `pipeline_config_policy`
+  - `manifest_schema_compatibility`
+  - `manifest_schema_migration_plan`
+  - versioning policy types
+
 ## Not Yet Stable
 
 - internal scanner modules and low-level byte parsing helpers
