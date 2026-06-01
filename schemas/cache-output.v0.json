@@ -26,13 +26,15 @@
         "environment_variable",
         "default_root",
         "portable_artifact_paths",
-        "clean_requires_dry_run_or_yes"
+        "clean_requires_dry_run_or_yes",
+        "clean_requires_artifact_store_root"
       ],
       "properties": {
         "environment_variable": { "const": "BIORS_ARTIFACT_STORE" },
         "default_root": { "const": ".biors/artifacts" },
         "portable_artifact_paths": { "type": "boolean" },
-        "clean_requires_dry_run_or_yes": { "type": "boolean" }
+        "clean_requires_dry_run_or_yes": { "type": "boolean" },
+        "clean_requires_artifact_store_root": { "type": "boolean" }
       },
       "additionalProperties": false
     },

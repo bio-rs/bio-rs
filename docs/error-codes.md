@@ -44,7 +44,7 @@ declarations.
 ## Cache
 
 - `cache.clean_requires_confirmation`: cache cleaning was requested without `--dry-run` or `--yes`
-- `cache.invalid_root`: cache cleaning was requested for a root path that is too broad to clean safely
+- `cache.invalid_root`: cache cleaning was requested for a broad or non-artifact-store root path
 
 ## I/O
 

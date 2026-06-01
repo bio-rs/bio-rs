@@ -89,4 +89,6 @@ Delete files only when the target root has been inspected:
 biors cache clean --yes
 ```
 
-`cache clean` rejects broad roots and requires either `--dry-run` or `--yes`.
+`cache clean` rejects broad roots and generic directories, requires the target
+to be `.biors/artifacts` or an existing artifact-store layout, and still
+requires either `--dry-run` or `--yes`.

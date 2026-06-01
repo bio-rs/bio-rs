@@ -250,4 +250,6 @@ biors cache clean --dry-run
 ```
 
 The default artifact store root is `.biors/artifacts`, or
-`BIORS_ARTIFACT_STORE` when set. Cleaning requires `--dry-run` or `--yes`.
+`BIORS_ARTIFACT_STORE` when set. Cleaning accepts only `.biors/artifacts` or an
+existing artifact-store layout, rejects broad or generic roots, and requires
+`--dry-run` or `--yes`.

@@ -25,6 +25,7 @@ struct CachePolicy {
     default_root: &'static str,
     portable_artifact_paths: bool,
     clean_requires_dry_run_or_yes: bool,
+    clean_requires_artifact_store_root: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -101,6 +102,7 @@ fn report(
             default_root: ".biors/artifacts",
             portable_artifact_paths: true,
             clean_requires_dry_run_or_yes: true,
+            clean_requires_artifact_store_root: true,
         },
         layout: vec![
             CacheLayoutEntry {
@@ -215,13 +217,50 @@ fn collect_dirs(path: &Path, dirs: &mut Vec<PathBuf>) -> Result<(), CliError> {
 }
 
 fn validate_clean_root(root: &Path) -> Result<(), CliError> {
-    let components = root.components().count();
-    if components < 2 || root == Path::new("/") || root == Path::new(".") {
+    if is_broad_clean_root(root) || !is_artifact_store_root(root) {
         return Err(CliError::Validation {
             code: "cache.invalid_root",
-            message: "cache root is too broad to clean safely".to_string(),
+            message: "cache clean root must be a bio-rs artifact store".to_string(),
             location: Some(root.display().to_string()),
         });
     }
     Ok(())
+}
+
+fn is_broad_clean_root(root: &Path) -> bool {
+    if root == Path::new("/") || root == Path::new(".") || root.components().count() < 2 {
+        return true;
+    }
+
+    let candidate = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    if candidate == Path::new("/")
+        || candidate == Path::new("/tmp")
+        || candidate == Path::new("/private/tmp")
+    {
+        return true;
+    }
+    if let Some(home) = std::env::var_os("HOME") {
+        if candidate.as_os_str() == home {
+            return true;
+        }
+    }
+    candidate.join(".git").exists() || candidate.join("Cargo.toml").is_file()
+}
+
+fn is_artifact_store_root(root: &Path) -> bool {
+    has_default_artifact_suffix(root)
+        || ["packages", "datasets", "locks"]
+            .iter()
+            .all(|name| root.join(name).is_dir())
+}
+
+fn has_default_artifact_suffix(root: &Path) -> bool {
+    let mut components = root.components().rev();
+    let Some(last) = components.next() else {
+        return false;
+    };
+    let Some(parent) = components.next() else {
+        return false;
+    };
+    last.as_os_str() == "artifacts" && parent.as_os_str() == ".biors"
 }

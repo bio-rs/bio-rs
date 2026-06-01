@@ -88,8 +88,9 @@ because `samples[]` is an explicit per-record mapping. Empty datasets fail with
 `dataset.no_inputs`.
 `cache inspect` reports the local artifact store root, layout policy, and file
 inventory. The default root is `.biors/artifacts`, overridden by
-`BIORS_ARTIFACT_STORE` or `--root`. `cache clean` requires `--dry-run` or
-`--yes`.
+`BIORS_ARTIFACT_STORE` or `--root`. `cache clean` accepts only `.biors/artifacts`
+or an existing artifact-store layout, rejects broad or generic roots, and
+requires `--dry-run` or `--yes`.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 Without `--config`, tokenization defaults to the stable `protein-20` profile.
