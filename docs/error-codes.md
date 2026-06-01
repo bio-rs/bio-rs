@@ -40,6 +40,7 @@ declarations.
 - `dataset.no_inputs`: dataset inspection did not resolve any FASTA files from the provided paths, directories, or glob patterns
 - `dataset.invalid_glob`: a dataset glob pattern could not be interpreted as a UTF-8 file pattern
 - `dataset.invalid_metadata`: dataset metadata was not supplied as non-empty `key=value`
+- `dataset.duplicate_metadata_key`: dataset metadata supplied the same normalized key more than once
 
 ## Cache
 

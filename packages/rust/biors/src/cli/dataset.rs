@@ -216,6 +216,13 @@ fn parse_metadata(values: Vec<String>) -> Result<BTreeMap<String, String>, CliEr
                 location: Some(value),
             });
         }
+        if metadata.contains_key(key) {
+            return Err(CliError::Validation {
+                code: "dataset.duplicate_metadata_key",
+                message: format!("dataset metadata key '{key}' was provided more than once"),
+                location: Some(key.to_string()),
+            });
+        }
         metadata.insert(key.to_string(), val.to_string());
     }
     Ok(metadata)

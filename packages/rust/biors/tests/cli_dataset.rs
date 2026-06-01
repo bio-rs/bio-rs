@@ -106,6 +106,8 @@ fn dataset_inspect_accepts_descriptor_and_metadata() {
         .arg("train")
         .arg("--metadata")
         .arg("organism=human")
+        .arg("--metadata")
+        .arg("reviewed=true")
         .arg(&input)
         .output()
         .expect("run biors dataset inspect with descriptor");
@@ -121,7 +123,42 @@ fn dataset_inspect_accepts_descriptor_and_metadata() {
     assert_eq!(value["data"]["descriptor"]["version"], "2026_02");
     assert_eq!(value["data"]["descriptor"]["split"], "train");
     assert_eq!(value["data"]["metadata"]["organism"], "human");
+    assert_eq!(value["data"]["metadata"]["reviewed"], "true");
     assert_eq!(value["data"]["samples"][0]["dataset"]["version"], "2026_02");
+}
+
+#[test]
+fn dataset_inspect_rejects_duplicate_metadata_keys() {
+    let temp = TempDir::new("biors-dataset-duplicate-metadata");
+    let input = temp.write("train.fasta", ">P53_HUMAN\nMEEPQSDPSV\n");
+
+    let value = dataset_inspect_metadata_error(&[
+        "--metadata",
+        "organism=human",
+        "--metadata",
+        "organism=mouse",
+        input.to_str().expect("input path"),
+    ]);
+
+    assert_eq!(value["error"]["code"], "dataset.duplicate_metadata_key");
+    assert_eq!(value["error"]["location"], "organism");
+}
+
+#[test]
+fn dataset_inspect_rejects_whitespace_normalized_duplicate_metadata_keys() {
+    let temp = TempDir::new("biors-dataset-trimmed-duplicate-metadata");
+    let input = temp.write("train.fasta", ">P53_HUMAN\nMEEPQSDPSV\n");
+
+    let value = dataset_inspect_metadata_error(&[
+        "--metadata",
+        "organism=human",
+        "--metadata",
+        " organism = mouse ",
+        input.to_str().expect("input path"),
+    ]);
+
+    assert_eq!(value["error"]["code"], "dataset.duplicate_metadata_key");
+    assert_eq!(value["error"]["location"], "organism");
 }
 
 #[test]
@@ -163,4 +200,18 @@ fn dataset_inspect_json(input: &std::path::Path) -> Value {
         String::from_utf8_lossy(&output.stderr)
     );
     serde_json::from_slice(&output.stdout).expect("valid JSON output")
+}
+
+fn dataset_inspect_metadata_error(args: &[&str]) -> Value {
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("dataset")
+        .arg("inspect")
+        .args(args)
+        .output()
+        .expect("run biors dataset inspect");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON error")
 }

@@ -20,7 +20,9 @@ The descriptor fields are:
 - `version`: dataset release, snapshot, or commit identifier
 - `split`: training/evaluation split name
 
-Metadata is supplied as repeatable `--metadata key=value` pairs.
+Metadata is supplied as repeatable `--metadata key=value` pairs. Keys are
+trimmed before validation, and duplicate keys are rejected instead of silently
+overwriting earlier values.
 
 ## Provenance
 
