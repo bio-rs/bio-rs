@@ -59,6 +59,10 @@ print(f"Model ready: {output.model_ready}")
 print(output.report_json)
 ```
 
+Errors raised by core parsing, model-input, and package helpers are
+`BioRsError` values with stable `code`, `message`, and optional `location`
+attributes, while still subclassing `ValueError`.
+
 ## Development
 
 Build locally with maturin:

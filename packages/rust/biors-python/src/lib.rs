@@ -1,4 +1,5 @@
 mod conversion;
+mod errors;
 mod model_input;
 mod package;
 mod sequence;
@@ -21,6 +22,7 @@ fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModelInput>()?;
     m.add_class::<PyModelInputRecord>()?;
     m.add_class::<PySequenceWorkflowOutput>()?;
+    errors::register(m)?;
     m.add_function(wrap_pyfunction!(sequence::parse_fasta_records, m)?)?;
     m.add_function(wrap_pyfunction!(sequence::validate_fasta_input, m)?)?;
     m.add_function(wrap_pyfunction!(tokenizer::tokenize_fasta_records, m)?)?;

@@ -1,3 +1,4 @@
+use crate::errors::py_error;
 use biors_core::{model_input, sequence, tokenizer};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -98,9 +99,11 @@ pub(crate) fn parse_padding_policy(padding: &str) -> PyResult<model_input::Paddi
     match padding {
         "fixed_length" => Ok(model_input::PaddingPolicy::FixedLength),
         "no_padding" => Ok(model_input::PaddingPolicy::NoPadding),
-        other => Err(PyValueError::new_err(format!(
-            "invalid padding: '{other}'. Expected 'fixed_length' or 'no_padding'"
-        ))),
+        other => Err(py_error(
+            "model_input.invalid_policy",
+            format!("invalid padding: '{other}'. Expected 'fixed_length' or 'no_padding'"),
+            None,
+        )),
     }
 }
 

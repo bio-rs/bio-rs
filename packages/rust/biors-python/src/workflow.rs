@@ -1,7 +1,7 @@
+use crate::errors::{py_diagnostic_error, py_model_input_error, py_serialization_error};
 use crate::model_input::model_input_record_to_py;
 use crate::types::{PyProteinSequence, PySequenceWorkflowOutput};
 use biors_core::{fasta, model_input, sequence, workflow};
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::io::Cursor;
 
@@ -27,10 +27,9 @@ pub(crate) fn prepare_workflow(
         })
         .collect::<Vec<_>>();
     let output = workflow::prepare_protein_model_input_workflow(input_hash, &sequences, policy)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        .map_err(py_model_input_error)?;
     let output_input_hash = output.provenance.input_hash.clone();
-    let report_json =
-        serde_json::to_string(&output).map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let report_json = serde_json::to_string(&output).map_err(py_serialization_error)?;
     let records = output
         .model_input
         .map(|model_input| {
@@ -58,7 +57,7 @@ pub(crate) fn prepare_workflow_from_fasta(
     padding: &str,
 ) -> PyResult<PySequenceWorkflowOutput> {
     let input = fasta::parse_fasta_records_reader(Cursor::new(fasta_text.as_bytes()))
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        .map_err(py_diagnostic_error)?;
     prepare_workflow(
         input.input_hash,
         input

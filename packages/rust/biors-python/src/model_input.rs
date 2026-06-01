@@ -1,9 +1,9 @@
 use crate::conversion::{
     parse_padding_policy, residue_issues_from_py, PyModelInputRecord, PyTokenizedProtein,
 };
+use crate::errors::{py_error, py_model_input_error};
 use crate::types::PyModelInput;
 use biors_core::{model_input, tokenizer};
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyfunction]
@@ -23,8 +23,8 @@ pub(crate) fn build_model_inputs_checked(
         .into_iter()
         .map(tokenized_protein_from_py)
         .collect::<PyResult<Vec<_>>>()?;
-    let model_input = model_input::build_model_inputs_checked(&proteins, policy)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let model_input =
+        model_input::build_model_inputs_checked(&proteins, policy).map_err(py_model_input_error)?;
     let records = model_input
         .records
         .into_iter()
@@ -50,9 +50,11 @@ fn tokenized_protein_from_py(record: PyTokenizedProtein) -> PyResult<tokenizer::
         .into_iter()
         .map(|token| {
             u8::try_from(token).map_err(|_| {
-                PyValueError::new_err(format!(
-                    "token id {token} is outside the supported 0..=255 range"
-                ))
+                py_error(
+                    "model_input.invalid_sequence",
+                    format!("token id {token} is outside the supported 0..=255 range"),
+                    None,
+                )
             })
         })
         .collect::<PyResult<Vec<_>>>()?;

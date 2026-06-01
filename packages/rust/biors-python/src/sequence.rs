@@ -1,12 +1,11 @@
+use crate::errors::py_diagnostic_error;
 use crate::types::{PyProteinSequence, PySequenceValidationReport};
 use biors_core::fasta;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyfunction]
 pub(crate) fn parse_fasta_records(fasta_text: &str) -> PyResult<Vec<PyProteinSequence>> {
-    let records =
-        fasta::parse_fasta_records(fasta_text).map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let records = fasta::parse_fasta_records(fasta_text).map_err(py_diagnostic_error)?;
     Ok(records
         .into_iter()
         .map(|r| PyProteinSequence {
@@ -18,8 +17,7 @@ pub(crate) fn parse_fasta_records(fasta_text: &str) -> PyResult<Vec<PyProteinSeq
 
 #[pyfunction]
 pub(crate) fn validate_fasta_input(fasta_text: &str) -> PyResult<PySequenceValidationReport> {
-    let report = fasta::validate_fasta_input(fasta_text)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let report = fasta::validate_fasta_input(fasta_text).map_err(py_diagnostic_error)?;
     Ok(PySequenceValidationReport {
         records: report.records,
         valid_records: report.valid_records,

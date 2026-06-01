@@ -1,6 +1,12 @@
 from collections.abc import Sequence
 
 
+class BioRsError(ValueError):
+    code: str
+    message: str
+    location: dict[str, int | None] | None
+
+
 class ResidueIssue:
     residue: str
     position: int

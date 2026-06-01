@@ -15,6 +15,21 @@ def test_parse_fasta_records():
     assert records[0].id == "seq1"
     assert records[0].sequence == "ACDEFG"
 
+def test_python_errors_expose_stable_code_and_location_for_empty_fasta():
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.parse_fasta_records("")
+
+    assert exc_info.value.code == "fasta.empty_input"
+    assert exc_info.value.message == "FASTA input is empty"
+    assert exc_info.value.location is None
+
+def test_python_errors_expose_stable_code_and_location_for_invalid_fasta():
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.parse_fasta_records("ACDE")
+
+    assert exc_info.value.code == "fasta.missing_header"
+    assert exc_info.value.location == {"line": 1, "record_index": None}
+
 def test_validate_fasta_input():
     fasta = ">seq1\nACDEFG"
     report = biors.validate_fasta_input(fasta)
@@ -67,6 +82,21 @@ def test_checked_model_input_rejects_non_model_ready_tokenization():
         assert "1 warnings and 1 errors" in str(exc)
     else:
         raise AssertionError("expected non-model-ready tokenization to be rejected")
+
+def test_python_errors_expose_stable_code_for_invalid_padding():
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.build_model_inputs_checked([], max_length=10, padding="left")
+
+    assert exc_info.value.code == "model_input.invalid_policy"
+    assert exc_info.value.location is None
+
+def test_python_errors_expose_stable_code_for_invalid_model_input_policy():
+    tokenized = [biors.TokenizedProtein("seq1", [0, 1])]
+
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.build_model_inputs_checked(tokenized, max_length=0)
+
+    assert exc_info.value.code == "model_input.invalid_policy"
 
 def test_build_model_inputs():
     fasta = ">seq1\nACDEFG"
@@ -232,12 +262,20 @@ def test_package_json_helpers_match_shared_schemas():
     assert_matches_schema(validation, "package-validation-report.v0.json")
     assert_matches_schema(bridge, "package-bridge-output.v0.json")
 
+def test_python_errors_expose_stable_code_for_invalid_package_json():
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.inspect_package_manifest("{")
+
+    assert exc_info.value.code == "json.invalid"
+    assert "invalid JSON" in exc_info.value.message
+
 def test_package_json_helpers_reject_unknown_manifest_fields():
     manifest = json.loads((REPO_ROOT / "examples/protein-package/manifest.json").read_text())
     manifest["unexpected_top"] = True
 
-    with pytest.raises(ValueError, match="unknown field"):
+    with pytest.raises(biors.BioRsError, match="unknown field") as exc_info:
         biors.validate_package_manifest(json.dumps(manifest))
+    assert exc_info.value.code == "json.invalid"
 
 def assert_matches_schema(value, schema_name):
     schema = json.loads((REPO_ROOT / "schemas" / schema_name).read_text())

@@ -43,8 +43,10 @@ for the public functions and compact PyO3 classes listed below.
 | `ModelInputRecord` | `id: str`, `input_ids: list[int]`, `attention_mask: list[int]`, `truncated: bool` |
 | `SequenceWorkflowOutput` | `model_ready: bool`, `input_hash: str`, `records: list[ModelInputRecord]`, `report_json: str` |
 
-Errors are raised as `ValueError` for malformed FASTA, invalid padding policy,
-invalid package JSON, or model-input records that are not model-ready.
+Errors are raised as `BioRsError`, a `ValueError` subclass with stable
+`code`, `message`, and `location` attributes. FASTA parse errors preserve
+structured locations such as `{"line": 1, "record_index": null}`; errors
+without a source location expose `location = None`.
 
 ## FASTA Parsing
 
