@@ -1,3 +1,4 @@
+use crate::conversion::validated_sequence_to_py;
 use crate::errors::py_diagnostic_error;
 use crate::types::{PyProteinSequence, PySequenceValidationReport};
 use biors_core::fasta;
@@ -23,5 +24,10 @@ pub(crate) fn validate_fasta_input(fasta_text: &str) -> PyResult<PySequenceValid
         valid_records: report.valid_records,
         warning_count: report.warning_count,
         error_count: report.error_count,
+        sequences: report
+            .sequences
+            .into_iter()
+            .map(validated_sequence_to_py)
+            .collect(),
     })
 }

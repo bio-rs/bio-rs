@@ -37,7 +37,8 @@ for the public functions and compact PyO3 classes listed below.
 | --- | --- |
 | `ResidueIssue` | `residue: str`, `position: int` |
 | `ProteinSequence` | `id: str`, `sequence: str` |
-| `SequenceValidationReport` | `records: int`, `valid_records: int`, `warning_count: int`, `error_count: int` |
+| `ValidatedSequence` | `id: str`, `sequence: str`, `alphabet: str`, `valid: bool`, `warnings: list[ResidueIssue]`, `errors: list[ResidueIssue]` |
+| `SequenceValidationReport` | `records: int`, `valid_records: int`, `warning_count: int`, `error_count: int`, `sequences: list[ValidatedSequence]` |
 | `TokenizedProtein` | `id: str`, `alphabet: str`, `valid: bool`, `tokens: list[int]`, `length: int`, `warnings: list[ResidueIssue]`, `errors: list[ResidueIssue]` |
 | `ModelInput` | `records: list[ModelInputRecord]` |
 | `ModelInputRecord` | `id: str`, `input_ids: list[int]`, `attention_mask: list[int]`, `truncated: bool` |
@@ -75,13 +76,19 @@ strings. Malformed input raises `ValueError`.
 report = biors.validate_fasta_input(fasta_text)
 print(report.valid_records, report.records)
 print(report.warning_count, report.error_count)
+for record in report.sequences:
+    for issue in record.warnings:
+        print(record.id, "ambiguous", issue.residue, issue.position)
+    for issue in record.errors:
+        print(record.id, "invalid", issue.residue, issue.position)
 ```
 
 ### `validate_fasta_input(fasta_text: str) -> SequenceValidationReport`
 
-Returns a compact validation summary for FASTA input. The current Python class
-does not expose per-residue diagnostics; use the Rust CLI JSON output when a
-notebook needs residue-level warnings and errors.
+Returns a validation summary plus per-record diagnostics for FASTA input.
+`warning_count` counts ambiguous but recognized residues such as `X`; `error_count`
+counts residues outside the supported protein alphabet and ambiguity policy.
+Diagnostic positions are one-based offsets in the normalized sequence.
 
 ## Tokenization
 

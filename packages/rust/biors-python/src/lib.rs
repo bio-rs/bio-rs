@@ -7,7 +7,7 @@ mod tokenizer;
 mod types;
 mod workflow;
 
-use conversion::{PyModelInputRecord, PyResidueIssue, PyTokenizedProtein};
+use conversion::{PyModelInputRecord, PyResidueIssue, PyTokenizedProtein, PyValidatedSequence};
 use pyo3::prelude::*;
 use types::{
     PyModelInput, PyProteinSequence, PySequenceValidationReport, PySequenceWorkflowOutput,
@@ -16,6 +16,7 @@ use types::{
 #[pymodule]
 fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyResidueIssue>()?;
+    m.add_class::<PyValidatedSequence>()?;
     m.add_class::<PyProteinSequence>()?;
     m.add_class::<PySequenceValidationReport>()?;
     m.add_class::<PyTokenizedProtein>()?;

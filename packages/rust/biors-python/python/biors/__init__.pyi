@@ -21,11 +21,31 @@ class ProteinSequence:
     def __init__(self, id: str, sequence: str) -> None: ...
 
 
+class ValidatedSequence:
+    id: str
+    sequence: str
+    alphabet: str
+    valid: bool
+    warnings: list[ResidueIssue]
+    errors: list[ResidueIssue]
+
+    def __init__(
+        self,
+        id: str,
+        sequence: str,
+        alphabet: str = "protein-20",
+        valid: bool = True,
+        warnings: Sequence[ResidueIssue] | None = None,
+        errors: Sequence[ResidueIssue] | None = None,
+    ) -> None: ...
+
+
 class SequenceValidationReport:
     records: int
     valid_records: int
     warning_count: int
     error_count: int
+    sequences: list[ValidatedSequence]
 
 
 class TokenizedProtein:

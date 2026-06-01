@@ -25,6 +25,46 @@ impl PyResidueIssue {
     }
 }
 
+#[pyclass(name = "ValidatedSequence")]
+#[derive(Clone, Debug)]
+pub struct PyValidatedSequence {
+    #[pyo3(get)]
+    pub id: String,
+    #[pyo3(get)]
+    pub sequence: String,
+    #[pyo3(get)]
+    pub alphabet: String,
+    #[pyo3(get)]
+    pub valid: bool,
+    #[pyo3(get)]
+    pub warnings: Vec<PyResidueIssue>,
+    #[pyo3(get)]
+    pub errors: Vec<PyResidueIssue>,
+}
+
+#[pymethods]
+impl PyValidatedSequence {
+    #[new]
+    #[pyo3(signature = (id, sequence, alphabet="protein-20", valid=true, warnings=None, errors=None))]
+    fn new(
+        id: String,
+        sequence: String,
+        alphabet: &str,
+        valid: bool,
+        warnings: Option<Vec<PyResidueIssue>>,
+        errors: Option<Vec<PyResidueIssue>>,
+    ) -> Self {
+        Self {
+            id,
+            sequence,
+            alphabet: alphabet.to_string(),
+            valid,
+            warnings: warnings.unwrap_or_default(),
+            errors: errors.unwrap_or_default(),
+        }
+    }
+}
+
 #[pyclass(name = "TokenizedProtein")]
 #[derive(Clone, Debug)]
 pub struct PyTokenizedProtein {
@@ -114,6 +154,17 @@ pub(crate) fn tokenized_protein_to_py(record: tokenizer::TokenizedProtein) -> Py
         valid: record.valid,
         tokens: record.tokens.into_iter().map(usize::from).collect(),
         length: record.length,
+        warnings: residue_issues_to_py(record.warnings),
+        errors: residue_issues_to_py(record.errors),
+    }
+}
+
+pub(crate) fn validated_sequence_to_py(record: sequence::ValidatedSequence) -> PyValidatedSequence {
+    PyValidatedSequence {
+        id: record.id,
+        sequence: record.sequence,
+        alphabet: record.alphabet,
+        valid: record.valid,
         warnings: residue_issues_to_py(record.warnings),
         errors: residue_issues_to_py(record.errors),
     }

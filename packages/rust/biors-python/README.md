@@ -26,6 +26,11 @@ records = biors.parse_fasta_records(fasta_text)
 # Validate
 report = biors.validate_fasta_input(fasta_text)
 print(f"Valid records: {report.valid_records}/{report.records}")
+for record in report.sequences:
+    for issue in record.warnings:
+        print(f"{record.id}: ambiguous residue {issue.residue} at {issue.position}")
+    for issue in record.errors:
+        print(f"{record.id}: invalid residue {issue.residue} at {issue.position}")
 
 # Tokenize
 tokenized = biors.tokenize_fasta_records(fasta_text)

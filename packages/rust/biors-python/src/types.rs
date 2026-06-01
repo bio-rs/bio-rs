@@ -1,4 +1,4 @@
-use crate::conversion::PyModelInputRecord;
+use crate::conversion::{PyModelInputRecord, PyValidatedSequence};
 use pyo3::prelude::*;
 
 #[pyclass(name = "ProteinSequence")]
@@ -29,6 +29,8 @@ pub struct PySequenceValidationReport {
     pub warning_count: usize,
     #[pyo3(get)]
     pub error_count: usize,
+    #[pyo3(get)]
+    pub sequences: Vec<PyValidatedSequence>,
 }
 
 #[pyclass(name = "ModelInput")]

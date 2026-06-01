@@ -36,6 +36,26 @@ def test_validate_fasta_input():
     assert report.records == 1
     assert report.valid_records == 1
     assert report.error_count == 0
+    assert len(report.sequences) == 1
+    assert report.sequences[0].id == "seq1"
+    assert report.sequences[0].sequence == "ACDEFG"
+    assert report.sequences[0].valid == True
+
+def test_validate_fasta_input_exposes_sequence_diagnostics():
+    fasta = ">seq1\nAC*X\n"
+    report = biors.validate_fasta_input(fasta)
+    assert report.records == 1
+    assert report.valid_records == 0
+    assert report.warning_count == 1
+    assert report.error_count == 1
+
+    sequence = report.sequences[0]
+    assert sequence.id == "seq1"
+    assert sequence.sequence == "AC*X"
+    assert sequence.alphabet == "protein-20"
+    assert sequence.valid == False
+    assert [(issue.residue, issue.position) for issue in sequence.warnings] == [("X", 4)]
+    assert [(issue.residue, issue.position) for issue in sequence.errors] == [("*", 3)]
 
 def test_tokenize_fasta_records():
     fasta = ">seq1\nACDEFG"
