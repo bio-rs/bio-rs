@@ -77,6 +77,7 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.init_invalid_path`: package initialization received an asset path that cannot be represented inside the package layout
 - `package.init_missing_metadata`: package initialization is missing required research metadata
 - `package.project_model_missing`: Python project conversion could not find an ONNX model and no `--model` override was supplied
+- `package.project_tokenizer_config_ambiguous`: Python project conversion found multiple non-generated `tokenizer_config.json` candidates and requires `--tokenizer-config`
 
 Package verification reports also expose per-fixture `issue_code` values such
 as `observation_missing`, `output_checksum_mismatch`, and

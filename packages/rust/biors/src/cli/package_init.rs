@@ -28,11 +28,11 @@ pub(crate) fn run_package_convert_project(args: PackageConvertProjectArgs) -> Re
     };
     let tokenizer_config = match args.tokenizer_config {
         Some(path) => Some(path),
-        None => find_named_file(
+        None => select_optional_tokenizer_config_candidate(
             &args.project_dir,
             "tokenizer_config.json",
             args.include_generated,
-        ),
+        )?,
     };
 
     create_package_skeleton(PackageSkeletonRequest {
@@ -84,12 +84,31 @@ fn select_single_model_candidate(
     }
 }
 
-fn find_named_file(root: &Path, name: &str, include_generated: bool) -> Option<PathBuf> {
-    find_files(root, include_generated, &mut |path| {
+fn select_optional_tokenizer_config_candidate(
+    root: &Path,
+    name: &str,
+    include_generated: bool,
+) -> Result<Option<PathBuf>, CliError> {
+    let candidates = find_files(root, include_generated, &mut |path| {
         path.file_name().and_then(|value| value.to_str()) == Some(name)
-    })
-    .into_iter()
-    .next()
+    });
+
+    match candidates.as_slice() {
+        [] => Ok(None),
+        [candidate] => Ok(Some(candidate.clone())),
+        _ => Err(CliError::ValidationDetails {
+            code: "package.project_tokenizer_config_ambiguous",
+            message: "found multiple tokenizer_config.json candidates; pass --tokenizer-config"
+                .to_string(),
+            location: Some(root.display().to_string()),
+            details: serde_json::json!({
+                "candidates": candidates
+                    .iter()
+                    .map(|path| path.display().to_string())
+                    .collect::<Vec<_>>()
+            }),
+        }),
+    }
 }
 
 fn find_files(

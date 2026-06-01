@@ -91,8 +91,9 @@ biors package convert-project ./python-project \
 Generated and cache directories such as `.venv`, `.git`, `.cache`,
 `__pycache__`, notebook checkpoints, `target`, `build`, and `dist` are skipped
 by default. Pass `--include-generated` only when the intended model or tokenizer
-config really lives in one of those directories. If multiple ONNX candidates are
-found, the command returns their sorted paths and requires `--model`.
+config really lives in one of those directories. If multiple ONNX or
+`tokenizer_config.json` candidates are found, the command returns their sorted
+paths and requires `--model` or `--tokenizer-config`.
 
 ## Verify
 

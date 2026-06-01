@@ -181,8 +181,10 @@ SHA-256 checksums. Python project conversion scans for one ONNX model and an
 optional `tokenizer_config.json`, skipping generated/cache directories unless
 `--include-generated` is passed. If multiple ONNX candidates remain, it fails
 with `package.project_model_ambiguous` and returns the sorted candidate list in
-JSON error details. Optional model artifact metadata is left unset for the
-package author to fill in.
+JSON error details. If multiple tokenizer config candidates remain, it fails
+with `package.project_tokenizer_config_ambiguous` and returns the sorted
+candidate list in JSON error details. Optional model artifact metadata is left
+unset for the package author to fill in.
 
 FASTA validation reports include `kind_counts` and per-record `kind` /
 `alphabet` fields. Records produced by `--kind auto` also include

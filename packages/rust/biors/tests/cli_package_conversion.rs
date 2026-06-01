@@ -295,6 +295,181 @@ fn package_convert_project_skips_generated_model_directories() {
 }
 
 #[test]
+fn package_convert_project_skips_generated_tokenizer_config_directories() {
+    let temp = TempDir::new("package-convert-project-skip-tokenizer-generated");
+    let project = temp.path().join("python-project");
+    std::fs::create_dir_all(project.join(".venv/cache")).expect("create cache");
+    std::fs::create_dir_all(project.join("export")).expect("create export");
+    let model = project.join("export/real.onnx");
+    std::fs::write(&model, b"real").expect("write real model");
+    std::fs::write(
+        project.join(".venv/cache/tokenizer_config.json"),
+        r#"{"profile":"protein-20","add_special_tokens":false}"#,
+    )
+    .expect("write cached tokenizer config");
+    std::fs::write(
+        project.join("export/tokenizer_config.json"),
+        r#"{"profile":"protein-20-special","add_special_tokens":true}"#,
+    )
+    .expect("write exported tokenizer config");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("convert-project")
+        .arg(&project)
+        .arg("--model")
+        .arg(&model)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("protein-project")
+        .args(skeleton_metadata_args())
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .output()
+        .expect("run biors package convert-project");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let manifest: Value = serde_json::from_slice(
+        &std::fs::read(output_dir.join("manifest.json")).expect("read generated manifest"),
+    )
+    .expect("manifest JSON");
+    assert_eq!(manifest["tokenizer"]["name"], "protein-20-special");
+    assert!(output_dir
+        .join("tokenizers/protein-20-special.json")
+        .exists());
+    assert!(!output_dir.join("tokenizers/protein-20.json").exists());
+}
+
+#[test]
+fn package_convert_project_rejects_ambiguous_tokenizer_config_candidates() {
+    let temp = TempDir::new("package-convert-project-ambiguous-tokenizer");
+    let project = temp.path().join("python-project");
+    std::fs::create_dir_all(project.join("export-a")).expect("create export a");
+    std::fs::create_dir_all(project.join("export-b")).expect("create export b");
+    let model = project.join("model.onnx");
+    std::fs::write(&model, b"model").expect("write model");
+    std::fs::write(
+        project.join("export-a/tokenizer_config.json"),
+        r#"{"profile":"protein-20","add_special_tokens":false}"#,
+    )
+    .expect("write tokenizer config a");
+    std::fs::write(
+        project.join("export-b/tokenizer_config.json"),
+        r#"{"profile":"protein-20-special","add_special_tokens":true}"#,
+    )
+    .expect("write tokenizer config b");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("convert-project")
+        .arg(&project)
+        .arg("--model")
+        .arg(&model)
+        .arg("--output")
+        .arg(temp.path().join("package"))
+        .arg("--name")
+        .arg("protein-project")
+        .args(skeleton_metadata_args())
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .output()
+        .expect("run biors package convert-project");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(
+        value["error"]["code"],
+        "package.project_tokenizer_config_ambiguous"
+    );
+    let candidates = value["error"]["details"]["candidates"]
+        .as_array()
+        .expect("candidate list");
+    assert_eq!(candidates.len(), 2);
+    assert!(candidates[0]
+        .as_str()
+        .expect("candidate")
+        .ends_with("export-a/tokenizer_config.json"));
+    assert!(candidates[1]
+        .as_str()
+        .expect("candidate")
+        .ends_with("export-b/tokenizer_config.json"));
+}
+
+#[test]
+fn package_convert_project_accepts_explicit_tokenizer_config_override() {
+    let temp = TempDir::new("package-convert-project-tokenizer-override");
+    let project = temp.path().join("python-project");
+    std::fs::create_dir_all(project.join("export-a")).expect("create export a");
+    std::fs::create_dir_all(project.join("export-b")).expect("create export b");
+    let model = project.join("model.onnx");
+    std::fs::write(&model, b"model").expect("write model");
+    std::fs::write(
+        project.join("export-a/tokenizer_config.json"),
+        r#"{"profile":"protein-20","add_special_tokens":false}"#,
+    )
+    .expect("write tokenizer config a");
+    let intended_tokenizer = project.join("export-b/tokenizer_config.json");
+    std::fs::write(
+        &intended_tokenizer,
+        r#"{"profile":"protein-20-special","add_special_tokens":true}"#,
+    )
+    .expect("write tokenizer config b");
+    let fixture_input = temp.write("tiny.fasta", ">tiny\nACDE\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("convert-project")
+        .arg(&project)
+        .arg("--model")
+        .arg(&model)
+        .arg("--tokenizer-config")
+        .arg(&intended_tokenizer)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("protein-project")
+        .args(skeleton_metadata_args())
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .output()
+        .expect("run biors package convert-project");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let manifest: Value = serde_json::from_slice(
+        &std::fs::read(output_dir.join("manifest.json")).expect("read generated manifest"),
+    )
+    .expect("manifest JSON");
+    assert_eq!(manifest["tokenizer"]["name"], "protein-20-special");
+    assert!(output_dir
+        .join("tokenizers/protein-20-special.json")
+        .exists());
+}
+
+#[test]
 fn package_init_infers_onnx_runtime_defaults_from_extension() {
     let manifest = run_package_init_with_model("model.onnx");
 
