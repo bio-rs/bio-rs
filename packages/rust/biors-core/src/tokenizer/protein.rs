@@ -1,4 +1,4 @@
-use super::config::{profile_vocabulary_name, protein_special_tokens};
+use super::config::{profile_vocabulary_name, special_tokens_for_profile};
 use super::lookup::{push_tokenized_residue, push_tokenized_residue_byte};
 use super::{
     load_protein_20_vocab, protein_20_vocabulary, ProteinTokenizerConfig, TokenizedProtein,
@@ -57,25 +57,46 @@ pub fn tokenize_protein_with_config(
     let mut errors = Vec::with_capacity(sequence.len());
 
     if config.add_special_tokens {
-        tokens.push(protein_special_tokens().cls.token_id);
+        tokens.push(special_tokens_for_profile(config.profile).cls.token_id);
     }
 
     if sequence.is_ascii() {
         for (index, byte) in sequence.iter().enumerate() {
-            push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
+            push_tokenized_residue_byte(
+                config.profile,
+                *byte,
+                index + 1,
+                &mut tokens,
+                &mut warnings,
+                &mut errors,
+            );
         }
     } else if let Ok(s) = std::str::from_utf8(&sequence) {
         for (index, residue) in s.chars().enumerate() {
-            push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
+            push_tokenized_residue(
+                config.profile,
+                residue,
+                index + 1,
+                &mut tokens,
+                &mut warnings,
+                &mut errors,
+            );
         }
     } else {
         for (index, byte) in sequence.iter().enumerate() {
-            push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
+            push_tokenized_residue_byte(
+                config.profile,
+                *byte,
+                index + 1,
+                &mut tokens,
+                &mut warnings,
+                &mut errors,
+            );
         }
     }
 
     if config.add_special_tokens {
-        tokens.push(protein_special_tokens().sep.token_id);
+        tokens.push(special_tokens_for_profile(config.profile).sep.token_id);
     }
 
     TokenizedProtein {

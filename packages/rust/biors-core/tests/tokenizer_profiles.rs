@@ -57,3 +57,25 @@ fn tokenizer_inspection_exposes_vocab_and_special_tokens() {
     assert_eq!(inspection.special_tokens.sep.token_id, 23);
     assert_eq!(inspection.special_tokens.mask.token_id, 24);
 }
+
+#[test]
+fn nucleotide_profiles_tokenize_iupac_dna_and_rna() {
+    let dna_config = protein_tokenizer_config_for_profile(ProteinTokenizerProfile::DnaIupac);
+    let dna =
+        tokenize_fasta_records_reader_with_config(Cursor::new(">dna1\nACGTN?\n"), &dna_config)
+            .expect("dna tokenization");
+
+    assert_eq!(dna.records[0].alphabet, "dna-iupac");
+    assert_eq!(dna.records[0].tokens, vec![0, 1, 2, 3, 4, 4]);
+    assert_eq!(dna.records[0].warnings.len(), 1);
+    assert_eq!(dna.records[0].errors.len(), 1);
+
+    let rna_config = protein_tokenizer_config_for_profile(ProteinTokenizerProfile::RnaIupacSpecial);
+    let rna = tokenize_fasta_records_reader_with_config(Cursor::new(">rna1\nACGUN\n"), &rna_config)
+        .expect("rna tokenization");
+
+    assert_eq!(rna.records[0].alphabet, "rna-iupac-special");
+    assert_eq!(rna.records[0].tokens, vec![6, 0, 1, 2, 3, 4, 7]);
+    assert_eq!(rna.records[0].warnings.len(), 1);
+    assert_eq!(rna.records[0].errors.len(), 0);
+}

@@ -1,7 +1,11 @@
-use super::{protein_20_vocabulary, UnknownTokenPolicy, Vocabulary};
+use super::{
+    dna_iupac_vocabulary, protein_20_vocabulary, rna_iupac_vocabulary, UnknownTokenPolicy,
+    Vocabulary,
+};
+use crate::sequence::SequenceKind;
 use serde::{Deserialize, Serialize};
 
-/// Built-in protein tokenizer profiles.
+/// Built-in sequence tokenizer profiles.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ProteinTokenizerProfile {
@@ -11,6 +15,18 @@ pub enum ProteinTokenizerProfile {
     /// Protein-20 residue tokens plus explicit PAD/CLS/SEP/MASK token policy.
     #[serde(rename = "protein-20-special")]
     Protein20Special,
+    /// DNA IUPAC canonical base tokens with ambiguous bases emitted as unknown.
+    #[serde(rename = "dna-iupac")]
+    DnaIupac,
+    /// DNA IUPAC canonical base tokens plus explicit PAD/CLS/SEP/MASK token policy.
+    #[serde(rename = "dna-iupac-special")]
+    DnaIupacSpecial,
+    /// RNA IUPAC canonical base tokens with ambiguous bases emitted as unknown.
+    #[serde(rename = "rna-iupac")]
+    RnaIupac,
+    /// RNA IUPAC canonical base tokens plus explicit PAD/CLS/SEP/MASK token policy.
+    #[serde(rename = "rna-iupac-special")]
+    RnaIupacSpecial,
 }
 
 impl ProteinTokenizerProfile {
@@ -19,14 +35,27 @@ impl ProteinTokenizerProfile {
         match self {
             Self::Protein20 => "protein-20",
             Self::Protein20Special => "protein-20-special",
+            Self::DnaIupac => "dna-iupac",
+            Self::DnaIupacSpecial => "dna-iupac-special",
+            Self::RnaIupac => "rna-iupac",
+            Self::RnaIupacSpecial => "rna-iupac-special",
         }
     }
 
     /// Whether profile defaults to emitting sequence boundary tokens.
     pub const fn default_add_special_tokens(self) -> bool {
         match self {
-            Self::Protein20 => false,
-            Self::Protein20Special => true,
+            Self::Protein20 | Self::DnaIupac | Self::RnaIupac => false,
+            Self::Protein20Special | Self::DnaIupacSpecial | Self::RnaIupacSpecial => true,
+        }
+    }
+
+    /// Biological sequence kind this tokenizer profile accepts.
+    pub const fn sequence_kind(self) -> SequenceKind {
+        match self {
+            Self::Protein20 | Self::Protein20Special => SequenceKind::Protein,
+            Self::DnaIupac | Self::DnaIupacSpecial => SequenceKind::Dna,
+            Self::RnaIupac | Self::RnaIupacSpecial => SequenceKind::Rna,
         }
     }
 }
@@ -109,14 +138,14 @@ pub fn load_protein_tokenizer_config_json(
 pub fn inspect_protein_tokenizer_config(
     config: &ProteinTokenizerConfig,
 ) -> ProteinTokenizerInspection {
-    let vocabulary = protein_20_vocabulary().clone();
+    let vocabulary = profile_vocabulary(config.profile).clone();
     ProteinTokenizerInspection {
         profile: config.profile,
         config: config.clone(),
         unknown_token_policy: vocabulary.unknown_token_policy.clone(),
         unknown_token_id: vocabulary.unknown_token_id,
         vocabulary,
-        special_tokens: protein_special_tokens(),
+        special_tokens: special_tokens_for_profile(config.profile),
     }
 }
 
@@ -124,13 +153,28 @@ pub(crate) fn profile_vocabulary_name(profile: ProteinTokenizerProfile) -> Strin
     profile.as_str().to_string()
 }
 
-pub(crate) fn protein_special_tokens() -> SpecialTokenSet {
+pub(crate) fn profile_vocabulary(profile: ProteinTokenizerProfile) -> &'static Vocabulary {
+    match profile {
+        ProteinTokenizerProfile::Protein20 | ProteinTokenizerProfile::Protein20Special => {
+            protein_20_vocabulary()
+        }
+        ProteinTokenizerProfile::DnaIupac | ProteinTokenizerProfile::DnaIupacSpecial => {
+            dna_iupac_vocabulary()
+        }
+        ProteinTokenizerProfile::RnaIupac | ProteinTokenizerProfile::RnaIupacSpecial => {
+            rna_iupac_vocabulary()
+        }
+    }
+}
+
+pub(crate) fn special_tokens_for_profile(profile: ProteinTokenizerProfile) -> SpecialTokenSet {
+    let unknown_token_id = profile_vocabulary(profile).unknown_token_id;
     SpecialTokenSet {
-        unk: special("UNK", 20),
-        pad: special("PAD", 21),
-        cls: special("CLS", 22),
-        sep: special("SEP", 23),
-        mask: special("MASK", 24),
+        unk: special("UNK", unknown_token_id),
+        pad: special("PAD", unknown_token_id + 1),
+        cls: special("CLS", unknown_token_id + 2),
+        sep: special("SEP", unknown_token_id + 3),
+        mask: special("MASK", unknown_token_id + 4),
     }
 }
 

@@ -12,12 +12,30 @@
     "special_tokens"
   ],
   "properties": {
-    "profile": { "enum": ["protein-20", "protein-20-special"] },
+    "profile": {
+      "enum": [
+        "protein-20",
+        "protein-20-special",
+        "dna-iupac",
+        "dna-iupac-special",
+        "rna-iupac",
+        "rna-iupac-special"
+      ]
+    },
     "config": {
       "type": "object",
       "required": ["profile", "add_special_tokens"],
       "properties": {
-        "profile": { "enum": ["protein-20", "protein-20-special"] },
+        "profile": {
+          "enum": [
+            "protein-20",
+            "protein-20-special",
+            "dna-iupac",
+            "dna-iupac-special",
+            "rna-iupac",
+            "rna-iupac-special"
+          ]
+        },
         "add_special_tokens": { "type": "boolean" }
       },
       "additionalProperties": false
@@ -26,10 +44,10 @@
       "type": "object",
       "required": ["name", "tokens", "unknown_token_id", "unknown_token_policy"],
       "properties": {
-        "name": { "const": "protein-20" },
+        "name": { "enum": ["protein-20", "dna-iupac", "rna-iupac"] },
         "tokens": {
           "type": "array",
-          "minItems": 20,
+          "minItems": 4,
           "items": {
             "type": "object",
             "required": ["residue", "token_id"],
@@ -40,13 +58,13 @@
             "additionalProperties": false
           }
         },
-        "unknown_token_id": { "const": 20 },
+        "unknown_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
         "unknown_token_policy": { "const": "warn_or_error_with_unknown_token" }
       },
       "additionalProperties": false
     },
     "unknown_token_policy": { "const": "warn_or_error_with_unknown_token" },
-    "unknown_token_id": { "const": 20 },
+    "unknown_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
     "special_tokens": {
       "type": "object",
       "required": ["unk", "pad", "cls", "sep", "mask"],

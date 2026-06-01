@@ -19,9 +19,10 @@ use sinks::{SummaryRecordSink, TokenizedRecordSink};
 pub use types::{ProteinBatchSummary, SummarizedFastaInput, TokenizedFastaInput, TokenizedProtein};
 use vocab::TOKEN_LOOKUP_MISSING;
 pub use vocab::{
-    load_protein_20_vocab, load_vocab_json, protein_20_unknown_token_policy,
-    protein_20_vocab_tokens, protein_20_vocabulary, TokenizerError, UnknownTokenPolicy, VocabToken,
-    Vocabulary, PROTEIN_20_UNKNOWN_TOKEN_ID,
+    dna_iupac_vocab_tokens, dna_iupac_vocabulary, load_protein_20_vocab, load_vocab_json,
+    protein_20_unknown_token_policy, protein_20_vocab_tokens, protein_20_vocabulary,
+    rna_iupac_vocab_tokens, rna_iupac_vocabulary, TokenizerError, UnknownTokenPolicy, VocabToken,
+    Vocabulary, NUCLEOTIDE_UNKNOWN_TOKEN_ID, PROTEIN_20_UNKNOWN_TOKEN_ID,
 };
 
 /// Parse FASTA text and tokenize each protein sequence.
@@ -63,7 +64,16 @@ pub fn tokenize_fasta_records_reader_with_config<R: BufRead>(
 pub fn summarize_fasta_records_reader<R: BufRead>(
     reader: R,
 ) -> Result<SummarizedFastaInput, crate::error::FastaReadError> {
+    summarize_fasta_records_reader_with_config(reader, &ProteinTokenizerConfig::default())
+}
+
+/// Summarize FASTA records from a buffered reader using an explicit tokenizer config.
+pub fn summarize_fasta_records_reader_with_config<R: BufRead>(
+    reader: R,
+    config: &ProteinTokenizerConfig,
+) -> Result<SummarizedFastaInput, crate::error::FastaReadError> {
     let mut sink = SummaryRecordSink::default();
+    sink.set_config(config.clone());
     let mut hasher = StableInputHasher::new();
     scan_fasta_reader(reader, &mut sink, |line| hasher.update(line))?;
 

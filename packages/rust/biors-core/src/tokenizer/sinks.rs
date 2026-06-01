@@ -1,12 +1,12 @@
-use super::config::{profile_vocabulary_name, protein_special_tokens};
+use super::config::{profile_vocabulary_name, special_tokens_for_profile};
 use super::lookup::{
-    is_ambiguous_residue_byte, protein_20_token_id, protein_20_token_id_byte,
-    push_tokenized_residue, push_tokenized_residue_byte,
+    is_ambiguous_byte_for_profile, is_ambiguous_for_profile, profile_token_id,
+    profile_token_id_byte, push_tokenized_residue, push_tokenized_residue_byte,
 };
 use super::{ProteinBatchSummary, ProteinTokenizerConfig, TokenizedProtein};
 use crate::error::BioRsError;
 use crate::fasta_scan::FastaRecordSink;
-use crate::sequence::{is_ambiguous_residue, normalized_residues, ResidueIssue};
+use crate::sequence::{normalized_residues, ResidueIssue};
 
 #[derive(Default)]
 pub(super) struct TokenizedRecordSink {
@@ -56,7 +56,7 @@ impl FastaRecordSink for TokenizedRecordSink {
 
         if self.config.add_special_tokens {
             self.current_tokens
-                .push(protein_special_tokens().sep.token_id);
+                .push(special_tokens_for_profile(self.config.profile).sep.token_id);
         }
 
         self.records.push(TokenizedProtein {
@@ -81,10 +81,11 @@ impl TokenizedRecordSink {
     fn push_residue(&mut self, residue: char) {
         if self.current_length == 0 && self.config.add_special_tokens {
             self.current_tokens
-                .push(protein_special_tokens().cls.token_id);
+                .push(special_tokens_for_profile(self.config.profile).cls.token_id);
         }
         self.current_length += 1;
         push_tokenized_residue(
+            self.config.profile,
             residue,
             self.current_length,
             &mut self.current_tokens,
@@ -96,10 +97,11 @@ impl TokenizedRecordSink {
     fn push_residue_byte(&mut self, residue: u8) {
         if self.current_length == 0 && self.config.add_special_tokens {
             self.current_tokens
-                .push(protein_special_tokens().cls.token_id);
+                .push(special_tokens_for_profile(self.config.profile).cls.token_id);
         }
         self.current_length += 1;
         push_tokenized_residue_byte(
+            self.config.profile,
             residue,
             self.current_length,
             &mut self.current_tokens,
@@ -112,6 +114,7 @@ impl TokenizedRecordSink {
 #[derive(Default)]
 pub(super) struct SummaryRecordSink {
     pub(super) summary: ProteinBatchSummary,
+    config: ProteinTokenizerConfig,
     current_length: usize,
     current_warning_count: usize,
     current_error_count: usize,
@@ -168,13 +171,17 @@ impl FastaRecordSink for SummaryRecordSink {
 }
 
 impl SummaryRecordSink {
+    pub(super) fn set_config(&mut self, config: ProteinTokenizerConfig) {
+        self.config = config;
+    }
+
     fn push_residue(&mut self, residue: char) {
         self.current_length += 1;
-        if protein_20_token_id(residue).is_some() {
+        if profile_token_id(self.config.profile, residue).is_some() {
             return;
         }
 
-        if is_ambiguous_residue(residue) {
+        if is_ambiguous_for_profile(self.config.profile, residue) {
             self.current_warning_count += 1;
         } else {
             self.current_error_count += 1;
@@ -183,11 +190,11 @@ impl SummaryRecordSink {
 
     fn push_residue_byte(&mut self, residue: u8) {
         self.current_length += 1;
-        if protein_20_token_id_byte(residue).is_some() {
+        if profile_token_id_byte(self.config.profile, residue).is_some() {
             return;
         }
 
-        if is_ambiguous_residue_byte(residue) {
+        if is_ambiguous_byte_for_profile(self.config.profile, residue) {
             self.current_warning_count += 1;
         } else {
             self.current_error_count += 1;

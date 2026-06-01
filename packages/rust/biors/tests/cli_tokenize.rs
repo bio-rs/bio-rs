@@ -63,6 +63,44 @@ fn tokenize_preserves_unknown_token_positions() {
 }
 
 #[test]
+fn tokenize_accepts_dna_and_rna_profiles() {
+    let dna_output = common::run_biors_stdin(
+        &["tokenize", "--profile", "dna-iupac", "-"],
+        ">dna\nACGTN\n",
+    )
+    .stdout;
+    let dna: Value = serde_json::from_slice(&dna_output).expect("valid DNA JSON output");
+    assert_eq!(dna["data"][0]["alphabet"], "dna-iupac");
+    assert_eq!(dna["data"][0]["tokens"], serde_json::json!([0, 1, 2, 3, 4]));
+    assert_eq!(
+        dna["data"][0]["warnings"]
+            .as_array()
+            .expect("warnings")
+            .len(),
+        1
+    );
+
+    let rna_output = common::run_biors_stdin(
+        &["tokenize", "--profile", "rna-iupac-special", "-"],
+        ">rna\nACGUN\n",
+    )
+    .stdout;
+    let rna: Value = serde_json::from_slice(&rna_output).expect("valid RNA JSON output");
+    assert_eq!(rna["data"][0]["alphabet"], "rna-iupac-special");
+    assert_eq!(
+        rna["data"][0]["tokens"],
+        serde_json::json!([6, 0, 1, 2, 3, 4, 7])
+    );
+    assert_eq!(
+        rna["data"][0]["warnings"]
+            .as_array()
+            .expect("warnings")
+            .len(),
+        1
+    );
+}
+
+#[test]
 fn public_behavior_snapshot_for_tokenize_stdout() {
     let output = common::run_biors_stdin(&["tokenize", "-"], ">seq1\nACDE\n").stdout;
     let value: Value = serde_json::from_slice(&output).expect("valid JSON output");

@@ -6,13 +6,13 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/public-contract-1.0-candidates.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs turns protein FASTA into validated, tokenized, model-ready inputs for bio-AI workflows.
+bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI workflows, with protein model-ready workflows.
 
 ```txt
-FASTA -> validated protein sequence -> token IDs -> model-ready JSON
+FASTA -> validated sequence -> token IDs -> model-ready JSON for protein workflows
 ```
 
-DNA and RNA FASTA validation is also supported; tokenization is currently protein-only.
+DNA and RNA FASTA validation and tokenization are supported through explicit nucleotide profiles. Model-input and workflow generation remain protein-only until nucleotide model-ready contracts are promoted.
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
@@ -118,6 +118,8 @@ remains a historical reference.
 ### Tokenization
 - `protein-20` tokenization with stable IDs
 - `protein-20-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
+- `dna-iupac` and `rna-iupac` tokenization with stable canonical base IDs
+- `dna-iupac-special` and `rna-iupac-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
 - JSON tokenizer config loading and inspection
 - Hugging Face tokenizer config conversion
 - Positional token alignment preserved with explicit unknown-token IDs
@@ -128,6 +130,7 @@ remains a historical reference.
 - `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/YAML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
+- Model-input and workflow paths are currently protein-only; nucleotide model-ready contracts are not yet promoted.
 
 ### Batch and dataset operations
 - `batch validate`: multiple files, recursive directories, quoted globs

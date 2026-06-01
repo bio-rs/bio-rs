@@ -97,10 +97,14 @@ biors tokenize examples/protein.fasta
 biors tokenize \
   --config examples/model-input-contract/protein-20-special.config.json \
   examples/model-input-contract/protein.fasta
+biors tokenize --profile dna-iupac dna.fasta
+biors tokenize --profile rna-iupac-special rna.fasta
 ```
 
-`tokenize` emits stable `protein-20` token IDs. Ambiguous or invalid residues
-keep positional alignment by using the explicit unknown token ID.
+`tokenize` emits stable token IDs for explicit protein, DNA, and RNA profiles.
+Ambiguous or invalid residues keep positional alignment by using the profile
+unknown token ID. DNA/RNA tokenization does not imply model-input or workflow
+support yet; those model-ready paths remain protein-only.
 
 Inspect tokenizer profiles and special token policy:
 

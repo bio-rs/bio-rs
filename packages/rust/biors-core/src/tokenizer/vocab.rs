@@ -65,6 +65,28 @@ pub fn protein_20_vocabulary() -> &'static Vocabulary {
     })
 }
 
+/// Borrow the cached built-in DNA IUPAC vocabulary.
+pub fn dna_iupac_vocabulary() -> &'static Vocabulary {
+    static VOCABULARY: OnceLock<Vocabulary> = OnceLock::new();
+    VOCABULARY.get_or_init(|| Vocabulary {
+        name: "dna-iupac".to_string(),
+        tokens: dna_iupac_vocab_tokens().to_vec(),
+        unknown_token_id: NUCLEOTIDE_UNKNOWN_TOKEN_ID,
+        unknown_token_policy: UnknownTokenPolicy::WarnOrErrorWithUnknownToken,
+    })
+}
+
+/// Borrow the cached built-in RNA IUPAC vocabulary.
+pub fn rna_iupac_vocabulary() -> &'static Vocabulary {
+    static VOCABULARY: OnceLock<Vocabulary> = OnceLock::new();
+    VOCABULARY.get_or_init(|| Vocabulary {
+        name: "rna-iupac".to_string(),
+        tokens: rna_iupac_vocab_tokens().to_vec(),
+        unknown_token_id: NUCLEOTIDE_UNKNOWN_TOKEN_ID,
+        unknown_token_policy: UnknownTokenPolicy::WarnOrErrorWithUnknownToken,
+    })
+}
+
 /// Load a vocabulary from its JSON representation.
 pub fn load_vocab_json(input: &str) -> Result<Vocabulary, TokenizerError> {
     serde_json::from_str(input).map_err(|e| TokenizerError::InvalidVocabJson(e.to_string()))
@@ -77,11 +99,22 @@ pub const fn protein_20_unknown_token_policy() -> UnknownTokenPolicy {
 
 /// Unknown token ID emitted for unresolved residues in the built-in vocabulary.
 pub const PROTEIN_20_UNKNOWN_TOKEN_ID: u8 = 20;
+pub const NUCLEOTIDE_UNKNOWN_TOKEN_ID: u8 = 4;
 pub(crate) const TOKEN_LOOKUP_MISSING: u8 = u8::MAX;
 
 /// Borrow the static built-in `protein-20` token definitions.
 pub fn protein_20_vocab_tokens() -> &'static [VocabToken; 20] {
     &PROTEIN_20_VOCAB_TOKENS
+}
+
+/// Borrow the static built-in DNA IUPAC canonical base token definitions.
+pub fn dna_iupac_vocab_tokens() -> &'static [VocabToken; 4] {
+    &DNA_IUPAC_VOCAB_TOKENS
+}
+
+/// Borrow the static built-in RNA IUPAC canonical base token definitions.
+pub fn rna_iupac_vocab_tokens() -> &'static [VocabToken; 4] {
+    &RNA_IUPAC_VOCAB_TOKENS
 }
 
 const PROTEIN_20_VOCAB_TOKENS: [VocabToken; 20] = [
@@ -164,5 +197,43 @@ const PROTEIN_20_VOCAB_TOKENS: [VocabToken; 20] = [
     VocabToken {
         residue: 'Y',
         token_id: 19,
+    },
+];
+
+const DNA_IUPAC_VOCAB_TOKENS: [VocabToken; 4] = [
+    VocabToken {
+        residue: 'A',
+        token_id: 0,
+    },
+    VocabToken {
+        residue: 'C',
+        token_id: 1,
+    },
+    VocabToken {
+        residue: 'G',
+        token_id: 2,
+    },
+    VocabToken {
+        residue: 'T',
+        token_id: 3,
+    },
+];
+
+const RNA_IUPAC_VOCAB_TOKENS: [VocabToken; 4] = [
+    VocabToken {
+        residue: 'A',
+        token_id: 0,
+    },
+    VocabToken {
+        residue: 'C',
+        token_id: 1,
+    },
+    VocabToken {
+        residue: 'G',
+        token_id: 2,
+    },
+    VocabToken {
+        residue: 'U',
+        token_id: 3,
     },
 ];

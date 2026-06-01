@@ -14,9 +14,9 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors doctor`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
-- `biors tokenize [--profile protein-20|protein-20-special] [--config <json>] <path|->`
+- `biors tokenize [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>] <path|->`
 - `biors tokenizer convert-hf <tokenizer_config.json> [--output <json>]`
-- `biors tokenizer inspect [--profile protein-20|protein-20-special] [--config <json>]`
+- `biors tokenizer inspect [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>]`
 - `biors inspect <path|->`
 - `biors model-input --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors workflow --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
@@ -100,6 +100,11 @@ requires `--dry-run` or `--yes`.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 Without `--config`, tokenization defaults to the stable `protein-20` profile.
+DNA and RNA tokenization are available through explicit `dna-iupac`,
+`dna-iupac-special`, `rna-iupac`, or `rna-iupac-special` profiles. The
+nucleotide profiles assign canonical bases to stable IDs, emit the profile
+unknown token for ambiguous IUPAC symbols as warnings, and emit the same unknown
+token for invalid symbols as errors.
 Tokenizer config JSON currently supports `profile` and `add_special_tokens`.
 `tokenizer convert-hf` accepts a Hugging Face `tokenizer_config.json`, maps it
 to the closest supported protein tokenizer config, and emits preview
