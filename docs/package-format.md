@@ -161,6 +161,8 @@ under the declared `package_layout.pipelines` directory. CLI package validation
 also parses the referenced config with the same validator used by
 `biors pipeline --config`, so malformed config files fail package validation
 even when the file exists and its checksum matches.
+For package-declared pipeline configs, `input.path` must be relative and must
+resolve inside the package root.
 
 When a manifest declares a tokenizer asset, package validation parses the JSON
 as a bio-rs tokenizer config and requires `tokenizer.name` and

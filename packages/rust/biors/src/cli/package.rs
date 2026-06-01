@@ -176,15 +176,57 @@ pub(crate) fn validate_cli_package_manifest_artifacts(
         manifest,
         manifest_base_dir,
         Some(&|path| {
-            load_pipeline_config(path).map(|_| ()).map_err(|error| {
-                ReferencedConfigError::new(
-                    error.code(),
-                    error.to_string(),
-                    error.location().map(location_label),
-                )
-            })
+            load_pipeline_config(path)
+                .and_then(|resolved| {
+                    validate_package_pipeline_input(manifest_base_dir, path, &resolved)
+                })
+                .map_err(|error| {
+                    ReferencedConfigError::new(
+                        error.code(),
+                        error.to_string(),
+                        error.location().map(location_label),
+                    )
+                })
         }),
     )
+}
+
+fn validate_package_pipeline_input(
+    manifest_base_dir: &Path,
+    config_path: &Path,
+    resolved: &super::pipeline_config::ResolvedPipelineConfig,
+) -> Result<(), CliError> {
+    let declared_input = Path::new(&resolved.config.input.path);
+    if declared_input.is_absolute() {
+        return Err(CliError::Validation {
+            code: "pipeline.invalid_config",
+            message: "package pipeline input.path must be package-relative".to_string(),
+            location: Some("input.path".to_string()),
+        });
+    }
+
+    let package_root = canonicalize_package_validation_path(manifest_base_dir)?;
+    let input_path = config_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(declared_input);
+    let input_canonical = canonicalize_package_validation_path(&input_path)?;
+    if !input_canonical.starts_with(&package_root) {
+        return Err(CliError::Validation {
+            code: "pipeline.invalid_config",
+            message: "package pipeline input.path must stay inside the package root".to_string(),
+            location: Some("input.path".to_string()),
+        });
+    }
+
+    Ok(())
+}
+
+fn canonicalize_package_validation_path(path: &Path) -> Result<PathBuf, CliError> {
+    path.canonicalize().map_err(|source| CliError::Read {
+        path: path.to_path_buf(),
+        source,
+    })
 }
 
 fn location_label(location: ErrorLocationValue) -> String {

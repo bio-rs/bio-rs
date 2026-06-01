@@ -107,3 +107,5 @@ config/profile consistency. Declared vocab artifacts must parse as bio-rs
 `Vocabulary` JSON and match their declared contract. Verification compares
 package fixture expected outputs against observed output artifacts supplied by
 the caller.
+Package-declared pipeline configs must keep `input.path` relative to the config
+file and inside the package root.

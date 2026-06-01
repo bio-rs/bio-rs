@@ -310,6 +310,83 @@ padding = "fixed_length"
 }
 
 #[test]
+fn package_validate_rejects_pipeline_config_with_absolute_input() {
+    let temp = common::TempDir::new("absolute-pipeline-input-source");
+    let external = temp.write("external.fasta", ">external\nACDE\n");
+    let value = validate_package_with_pipeline_config(
+        "invalid-pipeline-absolute-input",
+        &valid_pipeline_config_with_input(&external.display().to_string()),
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_pipeline_config");
+    assert_invalid_pipeline_config_issue(&value, "package-relative");
+}
+
+#[test]
+fn package_validate_rejects_pipeline_config_input_that_escapes_package() {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new("invalid-pipeline-escaping-input");
+    let package_dir = temp.path().join("package");
+    copy_dir_all(&source_package, &package_dir);
+    fs::write(temp.path().join("outside.fasta"), ">external\nACDE\n").expect("write outside");
+    let config_path = package_dir.join("pipelines/protein.toml");
+    fs::write(
+        &config_path,
+        valid_pipeline_config_with_input("../../outside.fasta"),
+    )
+    .expect("write pipeline config");
+    let manifest_path = package_dir.join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    let config_bytes = fs::read(&config_path).expect("read pipeline config");
+    manifest["preprocessing"][0]["config"]["checksum"] =
+        Value::String(sha256_bytes_digest(&config_bytes));
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.invalid_pipeline_config");
+    assert_invalid_pipeline_config_issue(&value, "package root");
+}
+
+#[test]
+fn package_validate_accepts_pipeline_config_input_inside_package() {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new("valid-pipeline-package-input");
+    copy_dir_all(&source_package, temp.path());
+    let manifest_path = temp.path().join("manifest.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn package_validate_rejects_tokenizer_config_with_unknown_profile() {
     let value = validate_package_with_tokenizer_config(
         "invalid-tokenizer-profile",
@@ -455,6 +532,33 @@ fn validate_package_with_pipeline_config(name: &str, config: &str) -> Value {
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stderr.is_empty());
     serde_json::from_slice(&output.stdout).expect("valid JSON error")
+}
+
+fn valid_pipeline_config_with_input(input_path: &str) -> String {
+    format!(
+        r#"schema_version = "biors.pipeline.v0"
+name = "protein-package-fixture-pipeline"
+
+[input]
+format = "fasta"
+path = "{input_path}"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "protein"
+
+[tokenize]
+profile = "protein-20"
+
+[export]
+format = "model-input-json"
+max_length = 8
+pad_token_id = 0
+padding = "fixed_length"
+"#
+    )
 }
 
 fn validate_package_with_tokenizer_config(
