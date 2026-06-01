@@ -411,6 +411,65 @@ fn benchmark_workflow_runs_smoke_and_scheduled_criterion_suite() {
 }
 
 #[test]
+fn published_rust_crates_include_discovery_metadata() {
+    let repo = common::repo_root();
+
+    for manifest_path in [
+        "packages/rust/biors/Cargo.toml",
+        "packages/rust/biors-core/Cargo.toml",
+        "packages/rust/biors-backend-candle/Cargo.toml",
+        "packages/rust/biors-mcp-server/Cargo.toml",
+    ] {
+        let manifest = fs::read_to_string(repo.join(manifest_path))
+            .unwrap_or_else(|_| panic!("read {manifest_path}"));
+        let manifest: toml::Table = manifest
+            .parse()
+            .unwrap_or_else(|_| panic!("parse {manifest_path}"));
+        let package = manifest
+            .get("package")
+            .and_then(toml::Value::as_table)
+            .unwrap_or_else(|| panic!("{manifest_path} missing [package] table"));
+        let name = package
+            .get("name")
+            .and_then(toml::Value::as_str)
+            .unwrap_or(manifest_path);
+
+        let readme = package
+            .get("readme")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
+        assert!(
+            !readme.is_empty(),
+            "{name} must declare a readme before crates.io publishing"
+        );
+
+        let keywords = package
+            .get("keywords")
+            .and_then(toml::Value::as_array)
+            .unwrap_or_else(|| panic!("{name} must declare crates.io keywords"));
+        assert!(
+            !keywords.is_empty() && keywords.len() <= 5,
+            "{name} must declare 1-5 crates.io keywords"
+        );
+        assert!(
+            keywords.iter().all(|keyword| keyword
+                .as_str()
+                .is_some_and(|keyword| !keyword.is_empty() && keyword.len() <= 20)),
+            "{name} keywords must be non-empty and within crates.io length limits"
+        );
+
+        let categories = package
+            .get("categories")
+            .and_then(toml::Value::as_array)
+            .unwrap_or_else(|| panic!("{name} must declare crates.io categories"));
+        assert!(
+            !categories.is_empty() && categories.len() <= 5,
+            "{name} must declare 1-5 crates.io categories"
+        );
+    }
+}
+
+#[test]
 fn local_check_scripts_use_rendered_benchmark_docs_gate() {
     let repo = common::repo_root();
     let check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read check.sh");

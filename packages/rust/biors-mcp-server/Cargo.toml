@@ -6,6 +6,9 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 description = "Model Context Protocol server for bio-rs biological sequence processing tools."
+readme = "README.md"
+keywords = ["bioinformatics", "mcp", "sequence", "tools"]
+categories = ["command-line-utilities", "science"]
 
 [dependencies]
 biors-core = { workspace = true }
