@@ -295,6 +295,11 @@ The `package` module is the largest surface in `biors-core`. It handles manifest
 - `pub fn validate_package_manifest_artifacts(manifest: &PackageManifest, base_dir: &Path) -> PackageValidationReport`
   Validate manifests including artifact presence and checksum verification.
 
+- `pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(manifest: &PackageManifest, base_dir: &Path, pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>) -> PackageValidationReport`
+  Validate manifests including package artifacts and optional referenced
+  pipeline config content without adding TOML/YAML parser dependencies to
+  `biors-core`.
+
 - `pub fn inspect_package_manifest(manifest: &PackageManifest) -> PackageManifestSummary`
   Build a compact summary for inspect-style output.
 

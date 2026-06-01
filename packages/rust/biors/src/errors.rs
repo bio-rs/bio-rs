@@ -179,6 +179,12 @@ pub(crate) fn classify_validation_code(report: &PackageValidationReport) -> &'st
         .any(|issue| issue.code == PackageValidationIssueCode::AssetReadFailed)
     {
         "package.asset_read_failed"
+    } else if report
+        .structured_issues
+        .iter()
+        .any(|issue| issue.code == PackageValidationIssueCode::InvalidPipelineConfig)
+    {
+        "package.invalid_pipeline_config"
     } else {
         "package.validation_failed"
     }

@@ -24,6 +24,7 @@
               "invalid_asset_path",
               "asset_read_failed",
               "layout_mismatch",
+              "invalid_pipeline_config",
               "unsupported_runtime_backend"
             ]
           },

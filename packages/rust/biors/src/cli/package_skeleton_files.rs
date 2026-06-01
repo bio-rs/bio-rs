@@ -46,7 +46,6 @@ pub(crate) fn write_tokenizer_config(
 pub(crate) fn write_pipeline_config(
     output_dir: &Path,
     fixture_input_rel: &str,
-    profile: ProteinTokenizerProfile,
     created_files: &mut Vec<String>,
 ) -> Result<String, CliError> {
     let rel = "pipelines/protein.toml".to_string();
@@ -70,15 +69,14 @@ policy = "strip_ascii_whitespace_uppercase"
 kind = "protein"
 
 [tokenize]
-profile = "{}"
+profile = "protein-20"
 
 [export]
 format = "model-input-json"
 max_length = 512
 pad_token_id = 0
 padding = "fixed_length"
-"#,
-        profile.as_str()
+"#
     );
     std::fs::write(&path, contents).map_err(CliError::Write)?;
     created_files.push(path.display().to_string());

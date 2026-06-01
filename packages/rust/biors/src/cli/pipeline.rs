@@ -1,4 +1,5 @@
 use super::{
+    package::validate_cli_package_manifest_artifacts,
     pipeline_config::load_pipeline_config,
     pipeline_lock::{write_pipeline_lock, PipelineLockPackage},
     pipeline_output::PipelineOutput,
@@ -8,7 +9,6 @@ use super::{
 use crate::errors::CliError;
 use crate::input::read_package_manifest;
 use crate::output::print_success;
-use biors_core::package::validate_package_manifest_artifacts;
 use std::path::PathBuf;
 
 pub(crate) struct PipelineRunOptions {
@@ -149,7 +149,7 @@ fn load_lock_package(
     }
 
     let (manifest, base_dir) = read_package_manifest(path.clone())?;
-    let validation = validate_package_manifest_artifacts(&manifest, &base_dir);
+    let validation = validate_cli_package_manifest_artifacts(&manifest, &base_dir);
     if !validation.valid {
         return Err(CliError::Validation {
             code: "pipeline.invalid_lock_package",

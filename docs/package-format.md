@@ -157,7 +157,10 @@ Preprocessing steps may also reference a checked pipeline config artifact:
 ```
 
 When a step declares `config`, the path is package-relative and should live
-under the declared `package_layout.pipelines` directory.
+under the declared `package_layout.pipelines` directory. CLI package validation
+also parses the referenced config with the same validator used by
+`biors pipeline --config`, so malformed config files fail package validation
+even when the file exists and its checksum matches.
 
 Tokenizer/vocab asset names and contract versions, plus preprocessing and
 postprocessing step names, implementations, contracts, and contract versions,

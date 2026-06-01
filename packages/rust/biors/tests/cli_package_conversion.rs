@@ -189,6 +189,9 @@ fn package_convert_project_creates_valid_package_skeleton() {
         manifest["preprocessing"][0]["config"]["path"],
         "pipelines/protein.toml"
     );
+    let pipeline_config =
+        std::fs::read_to_string(output_dir.join("pipelines/protein.toml")).expect("read pipeline");
+    assert!(pipeline_config.contains(r#"profile = "protein-20""#));
 
     let validate = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("package")

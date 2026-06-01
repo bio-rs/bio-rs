@@ -85,12 +85,8 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
     )?;
     let (tokenizer_asset, tokenizer_profile, notes) =
         write_tokenizer_config(&request, &mut created_files)?;
-    let pipeline_rel = write_pipeline_config(
-        &request.output_dir,
-        &fixture_input_rel,
-        tokenizer_profile,
-        &mut created_files,
-    )?;
+    let pipeline_rel =
+        write_pipeline_config(&request.output_dir, &fixture_input_rel, &mut created_files)?;
     let metadata = write_docs(&request, &mut created_files)?;
 
     let manifest = PackageManifest {

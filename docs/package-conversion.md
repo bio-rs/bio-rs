@@ -101,6 +101,7 @@ biors package validate ./protein-package/manifest.json
 biors package verify ./protein-package/manifest.json ./protein-package/observations.json
 ```
 
-Validation checks portable paths, v1 metadata, declared layout placement, and
-checksums. Verification compares package fixture expected outputs against
-observed output artifacts supplied by the caller.
+Validation checks portable paths, v1 metadata, declared layout placement,
+checksums, and referenced pipeline config syntax/contract validity. Verification
+compares package fixture expected outputs against observed output artifacts
+supplied by the caller.

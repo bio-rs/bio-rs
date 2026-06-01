@@ -126,6 +126,8 @@ Absolute observation paths and `..` parent traversal are rejected for the same r
 `package verify` runs package artifact validation before fixture comparison. If
 the manifest is invalid, the command fails with a package validation error and
 includes the structured validation report in `error.details.validation`.
+For CLI commands, package artifact validation also parses manifest-referenced
+pipeline config artifacts with the `biors pipeline --config` validator.
 
 The package manifest contract is closed over enumerated values for
 `schema_version`, `model.format`, `runtime.backend`, `runtime.target`, and

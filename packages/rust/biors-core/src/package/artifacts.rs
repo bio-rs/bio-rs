@@ -6,9 +6,19 @@ use super::{
 use crate::hash::{is_sha256_checksum, sha256_bytes_digest};
 use std::path::Path;
 
+pub type ReferencedConfigValidator<'a> = dyn Fn(&Path) -> Result<(), ReferencedConfigError> + 'a;
+
 pub fn validate_package_manifest_artifacts(
     manifest: &PackageManifest,
     base_dir: &Path,
+) -> PackageValidationReport {
+    validate_package_manifest_artifacts_with_pipeline_config_validator(manifest, base_dir, None)
+}
+
+pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(
+    manifest: &PackageManifest,
+    base_dir: &Path,
+    pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>,
 ) -> PackageValidationReport {
     let mut report = validate_package_manifest(manifest);
 
@@ -45,12 +55,14 @@ pub fn validate_package_manifest_artifacts(
         "preprocessing",
         &manifest.preprocessing,
         base_dir,
+        pipeline_config_validator,
     );
     validate_pipeline_configs(
         &mut report,
         "postprocessing",
         &manifest.postprocessing,
         base_dir,
+        pipeline_config_validator,
     );
 
     if let Some(metadata) = &manifest.metadata {
@@ -103,22 +115,81 @@ pub fn validate_package_manifest_artifacts(
     report.finish()
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReferencedConfigError {
+    pub code: String,
+    pub message: String,
+    pub location: Option<String>,
+}
+
+impl ReferencedConfigError {
+    pub fn new(
+        code: impl Into<String>,
+        message: impl Into<String>,
+        location: Option<String>,
+    ) -> Self {
+        Self {
+            code: code.into(),
+            message: message.into(),
+            location,
+        }
+    }
+}
+
 fn validate_pipeline_configs(
     report: &mut PackageValidationReport,
     section: &str,
     steps: &[super::PipelineStep],
     base_dir: &Path,
+    pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>,
 ) {
     for (index, step) in steps.iter().enumerate() {
         if let Some(config) = &step.config {
-            validate_artifact(
+            let field = format!("{section}[{index}].config");
+            let artifact_valid = validate_artifact(
                 report,
-                &format!("{section}[{index}].config"),
+                &field,
                 &config.path,
                 config.checksum.as_deref(),
                 base_dir,
             );
+            if artifact_valid {
+                validate_referenced_config(
+                    report,
+                    &field,
+                    &config.path,
+                    base_dir,
+                    pipeline_config_validator,
+                );
+            }
         }
+    }
+}
+
+fn validate_referenced_config(
+    report: &mut PackageValidationReport,
+    field: &str,
+    path: &str,
+    base_dir: &Path,
+    pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>,
+) {
+    let Some(validator) = pipeline_config_validator else {
+        return;
+    };
+    let config_path = base_dir.join(path);
+    if let Err(error) = validator(&config_path) {
+        let mut message = format!(
+            "{field}: pipeline config '{path}' is invalid: {}: {}",
+            error.code, error.message
+        );
+        if let Some(location) = error.location {
+            message.push_str(&format!(" at {location}"));
+        }
+        report.push_issue(
+            PackageValidationIssueCode::InvalidPipelineConfig,
+            field,
+            &message,
+        );
     }
 }
 
@@ -128,9 +199,9 @@ fn validate_artifact(
     path: &str,
     checksum: Option<&str>,
     base_dir: &Path,
-) {
+) -> bool {
     if path.trim().is_empty() {
-        return;
+        return false;
     }
 
     validate_checksum_format(report, field, checksum);
@@ -141,21 +212,27 @@ fn validate_artifact(
             field,
             &error.to_string(),
         );
-        return;
+        return false;
     }
 
     match read_package_file(base_dir, path) {
         Ok(bytes) => validate_checksum_value(report, field, checksum, &bytes),
-        Err(PackageArtifactError::PathEscape { .. }) => report.push_issue(
-            PackageValidationIssueCode::InvalidAssetPath,
-            field,
-            &format!("{field}: asset path '{path}' must stay inside the package root"),
-        ),
-        Err(error) => report.push_issue(
-            PackageValidationIssueCode::AssetReadFailed,
-            field,
-            &format!("{field}: {error}"),
-        ),
+        Err(PackageArtifactError::PathEscape { .. }) => {
+            report.push_issue(
+                PackageValidationIssueCode::InvalidAssetPath,
+                field,
+                &format!("{field}: asset path '{path}' must stay inside the package root"),
+            );
+            false
+        }
+        Err(error) => {
+            report.push_issue(
+                PackageValidationIssueCode::AssetReadFailed,
+                field,
+                &format!("{field}: {error}"),
+            );
+            false
+        }
     }
 }
 
@@ -181,12 +258,12 @@ fn validate_checksum_value(
     field: &str,
     checksum: Option<&str>,
     bytes: &[u8],
-) {
+) -> bool {
     let Some(checksum) = checksum else {
-        return;
+        return true;
     };
     if !is_sha256_checksum(checksum) {
-        return;
+        return false;
     }
 
     let actual = sha256_bytes_digest(bytes);
@@ -196,5 +273,7 @@ fn validate_checksum_value(
             &format!("{field}.checksum"),
             &format!("{field}.checksum mismatch: expected '{checksum}' but computed '{actual}'"),
         );
+        return false;
     }
+    true
 }

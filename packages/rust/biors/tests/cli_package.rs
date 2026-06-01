@@ -1,3 +1,4 @@
+use biors_core::hash::sha256_bytes_digest;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
@@ -211,6 +212,103 @@ fn package_validate_rejects_empty_contract_identifiers() {
     }
 }
 
+#[test]
+fn package_validate_rejects_pipeline_config_with_zero_max_length() {
+    let value = validate_package_with_pipeline_config(
+        "invalid-pipeline-max-length",
+        r#"schema_version = "biors.pipeline.v0"
+name = "protein-package-fixture-pipeline"
+
+[input]
+format = "fasta"
+path = "../fixtures/tiny.fasta"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "protein"
+
+[tokenize]
+profile = "protein-20"
+
+[export]
+format = "model-input-json"
+max_length = 0
+pad_token_id = 0
+padding = "fixed_length"
+"#,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_pipeline_config");
+    assert_invalid_pipeline_config_issue(&value, "export.max_length");
+}
+
+#[test]
+fn package_validate_rejects_pipeline_config_with_invalid_padding() {
+    let value = validate_package_with_pipeline_config(
+        "invalid-pipeline-padding",
+        r#"schema_version = "biors.pipeline.v0"
+name = "protein-package-fixture-pipeline"
+
+[input]
+format = "fasta"
+path = "../fixtures/tiny.fasta"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "protein"
+
+[tokenize]
+profile = "protein-20"
+
+[export]
+format = "model-input-json"
+max_length = 8
+pad_token_id = 0
+padding = "left"
+"#,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_pipeline_config");
+    assert_invalid_pipeline_config_issue(&value, "export.padding");
+}
+
+#[test]
+fn package_validate_rejects_pipeline_config_with_unknown_field() {
+    let value = validate_package_with_pipeline_config(
+        "invalid-pipeline-unknown-field",
+        r#"schema_version = "biors.pipeline.v0"
+name = "protein-package-fixture-pipeline"
+unexpected = true
+
+[input]
+format = "fasta"
+path = "../fixtures/tiny.fasta"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "protein"
+
+[tokenize]
+profile = "protein-20"
+
+[export]
+format = "model-input-json"
+max_length = 8
+pad_token_id = 0
+padding = "fixed_length"
+"#,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_pipeline_config");
+    assert_invalid_pipeline_config_issue(&value, "unknown field");
+}
+
 fn copy_dir_all(source: &Path, destination: &Path) {
     fs::create_dir_all(destination).expect("create destination");
     for entry in fs::read_dir(source).expect("read source directory") {
@@ -223,6 +321,51 @@ fn copy_dir_all(source: &Path, destination: &Path) {
             fs::copy(entry.path(), destination_path).expect("copy package fixture file");
         }
     }
+}
+
+fn validate_package_with_pipeline_config(name: &str, config: &str) -> Value {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new(name);
+    copy_dir_all(&source_package, temp.path());
+    let config_path = temp.path().join("pipelines/protein.toml");
+    fs::write(&config_path, config).expect("write pipeline config");
+
+    let manifest_path = temp.path().join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    let config_bytes = fs::read(&config_path).expect("read pipeline config");
+    manifest["preprocessing"][0]["config"]["checksum"] =
+        Value::String(sha256_bytes_digest(&config_bytes));
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+}
+
+fn assert_invalid_pipeline_config_issue(value: &Value, expected_message: &str) {
+    let issues = value["error"]["details"]["structured_issues"]
+        .as_array()
+        .expect("structured issues");
+    assert!(issues.iter().any(|issue| {
+        issue["code"] == "invalid_pipeline_config"
+            && issue["field"] == "preprocessing[0].config"
+            && issue["message"]
+                .as_str()
+                .expect("message")
+                .contains(expected_message)
+    }));
 }
 
 #[test]

@@ -111,6 +111,8 @@ pub enum PackageValidationIssueCode {
     AssetReadFailed,
     /// Asset path does not live under the declared v1 package layout directory.
     LayoutMismatch,
+    /// Referenced pipeline config artifact exists but cannot be parsed or validated.
+    InvalidPipelineConfig,
     /// Runtime backend exists internally but is not part of the public package manifest contract.
     UnsupportedRuntimeBackend,
 }

@@ -11,7 +11,11 @@ mod tooling;
 mod types;
 mod validation;
 
-pub use artifacts::validate_package_manifest_artifacts;
+pub use artifacts::{
+    validate_package_manifest_artifacts,
+    validate_package_manifest_artifacts_with_pipeline_config_validator, ReferencedConfigError,
+    ReferencedConfigValidator,
+};
 pub use manifest::{
     CitationMetadata, DataShape, DocumentArtifact, LicenseMetadata, ModelArtifact,
     ModelArtifactMetadata, ModelCardMetadata, PackageDirectoryLayout, PackageFixture,
