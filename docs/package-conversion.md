@@ -22,14 +22,19 @@ and emits:
 
 - converted bio-rs tokenizer config
 - `conversion_status` showing the result is a preview, not package-ready
-- preview tokenizer asset and preprocessing step fragments
+- preview tokenizer asset and preprocessing step fragments. `output_path` is the
+  host write destination, while `preview_tokenizer_asset.path` is always a
+  package-relative `tokenizers/...` path suitable for a package manifest once
+  fixture parity is validated.
 - conversion assumptions and warnings
 - SHA-256 of the converted config
 
 The conversion does not read Hugging Face vocab files, token IDs, normalizer
 rules, or pre-tokenizer rules. Treat the fragments as scaffolding only until a
 fixture parity check proves the converted bio-rs tokens match the source
-tokenizer for representative protein inputs.
+tokenizer for representative protein inputs. If `--output` points outside a
+package `tokenizers/` directory, copy the written config into the package
+`tokenizers/` directory before using the preview asset fragment.
 
 ## Initialize A Package From Explicit Assets
 

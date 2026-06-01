@@ -8,7 +8,7 @@ use biors_core::{
 };
 use serde::Serialize;
 use serde_json::Value;
-use std::path::PathBuf;
+use std::path::{Component, Path, PathBuf};
 
 #[derive(Debug, Serialize)]
 struct TokenizerConversionOutput {
@@ -37,6 +37,7 @@ struct TokenizerConversionStatus {
 struct PackageTokenizerAsset {
     name: String,
     path: String,
+    checksum: String,
     contract_version: String,
 }
 
@@ -60,15 +61,14 @@ pub(crate) fn run_tokenizer_convert_hf(
     let converted = convert_huggingface_tokenizer_config(&value, &path, output.as_ref())?;
 
     if let Some(output_path) = &output {
-        let config_json =
-            serde_json::to_string_pretty(&converted.config).map_err(CliError::Serialization)?;
+        let config_json = serialized_tokenizer_config(&converted.config)?;
         if let Some(parent) = output_path
             .parent()
             .filter(|path| !path.as_os_str().is_empty())
         {
             std::fs::create_dir_all(parent).map_err(CliError::Write)?;
         }
-        std::fs::write(output_path, format!("{config_json}\n")).map_err(CliError::Write)?;
+        std::fs::write(output_path, config_json).map_err(CliError::Write)?;
     }
 
     print_success(None, converted)
@@ -84,11 +84,10 @@ fn convert_huggingface_tokenizer_config(
         "preview conversion only: bio-rs does not read the Hugging Face vocab, token IDs, normalizer, or pre-tokenizer; validate fixture parity before using these fragments in a package"
             .to_string(),
     );
-    let config_bytes = serde_json::to_vec(&config).map_err(CliError::Serialization)?;
+    let config_bytes = serialized_tokenizer_config(&config)?.into_bytes();
+    let config_sha256 = sha256_bytes_digest(&config_bytes);
     let config_name = config.profile.as_str().to_string();
-    let tokenizer_path = output_path
-        .map(|path| path.display().to_string())
-        .unwrap_or_else(|| format!("tokenizers/{config_name}.json"));
+    let tokenizer_path = preview_tokenizer_path(output_path, &config_name, &mut warnings);
 
     Ok(TokenizerConversionOutput {
         source_format: "huggingface.tokenizer_config",
@@ -103,6 +102,7 @@ fn convert_huggingface_tokenizer_config(
         preview_tokenizer_asset: PackageTokenizerAsset {
             name: config_name.clone(),
             path: tokenizer_path,
+            checksum: config_sha256.clone(),
             contract_version: format!("{config_name}.v0"),
         },
         preview_preprocessing_step: PackagePreprocessingStep {
@@ -115,8 +115,52 @@ fn convert_huggingface_tokenizer_config(
         assumptions,
         warnings,
         output_path: output_path.map(|path| path.display().to_string()),
-        config_sha256: sha256_bytes_digest(&config_bytes),
+        config_sha256,
     })
+}
+
+fn serialized_tokenizer_config(config: &ProteinTokenizerConfig) -> Result<String, CliError> {
+    let config_json = serde_json::to_string_pretty(config).map_err(CliError::Serialization)?;
+    Ok(format!("{config_json}\n"))
+}
+
+fn preview_tokenizer_path(
+    output_path: Option<&PathBuf>,
+    config_name: &str,
+    warnings: &mut Vec<String>,
+) -> String {
+    let default_path = format!("tokenizers/{config_name}.json");
+    let Some(output_path) = output_path else {
+        return default_path;
+    };
+
+    if let Some(path) = tokenizer_dir_relative_path(output_path) {
+        return path;
+    }
+
+    warnings.push(format!(
+        "output path '{}' is outside a package tokenizers/ directory; copy the written config to {default_path} before using preview_tokenizer_asset",
+        output_path.display()
+    ));
+    default_path
+}
+
+fn tokenizer_dir_relative_path(path: &Path) -> Option<String> {
+    let components: Vec<_> = path
+        .components()
+        .filter_map(|component| match component {
+            Component::Normal(value) => Some(value.to_string_lossy().into_owned()),
+            _ => None,
+        })
+        .collect();
+    let start = components
+        .iter()
+        .position(|component| component == "tokenizers")?;
+    let relative = &components[start..];
+    if relative.len() < 2 {
+        return None;
+    }
+    Some(relative.join("/"))
 }
 
 pub(crate) fn hf_config_to_biors_config(

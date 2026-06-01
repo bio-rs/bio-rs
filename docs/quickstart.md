@@ -115,7 +115,9 @@ contract tests and Python preprocessing parity fixtures.
 `tokenizer convert-hf` maps a Hugging Face `tokenizer_config.json` into the
 small bio-rs tokenizer config as a preview. It does not read the Hugging Face
 vocab, token IDs, normalizer, or pre-tokenizer, so validate fixture parity
-before copying the preview fragments into a package.
+before copying the preview fragments into a package. The command keeps
+`output_path` as the host write destination and emits
+`preview_tokenizer_asset.path` as a package-relative `tokenizers/...` path.
 
 ## Build Model Input
 

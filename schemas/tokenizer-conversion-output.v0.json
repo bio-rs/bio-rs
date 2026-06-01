@@ -39,10 +39,11 @@
     },
     "preview_tokenizer_asset": {
       "type": "object",
-      "required": ["name", "path", "contract_version"],
+      "required": ["name", "path", "checksum", "contract_version"],
       "properties": {
         "name": { "enum": ["protein-20", "protein-20-special"] },
         "path": { "type": "string", "minLength": 1 },
+        "checksum": { "$ref": "#/$defs/sha256" },
         "contract_version": {
           "enum": ["protein-20.v0", "protein-20-special.v0"]
         }
