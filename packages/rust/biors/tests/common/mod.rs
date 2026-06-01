@@ -109,11 +109,8 @@ pub fn assert_json_matches_schema(output: &[u8], schema_path: &str) {
 }
 
 pub fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
-    let schema: Value = serde_json::from_str(
-        &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),
-    )
-    .expect("schema JSON");
-    let compiled = JSONSchema::compile(&schema).expect("compile schema");
+    let schema = read_schema(schema_path);
+    let compiled = compile_schema_with_local_documents(&schema);
     let validation = compiled.validate(value);
     if let Err(errors) = validation {
         let messages: Vec<_> = errors.map(|error| error.to_string()).collect();
@@ -122,16 +119,39 @@ pub fn assert_json_value_matches_schema(value: &Value, schema_path: &str) {
 }
 
 pub fn assert_payload_rejected_by_schema(payload: &Value, schema_path: &str) {
-    let schema: Value = serde_json::from_str(
-        &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),
-    )
-    .expect("schema JSON");
-    let compiled = JSONSchema::compile(&schema).expect("compile schema");
+    let schema = read_schema(schema_path);
+    let compiled = compile_schema_with_local_documents(&schema);
 
     assert!(
         compiled.validate(payload).is_err(),
         "payload unexpectedly matched schema {schema_path}"
     );
+}
+
+fn read_schema(schema_path: &str) -> Value {
+    serde_json::from_str(
+        &fs::read_to_string(repo_root().join(schema_path)).expect("read payload schema"),
+    )
+    .expect("schema JSON")
+}
+
+fn compile_schema_with_local_documents(schema: &Value) -> JSONSchema {
+    let schemas_dir = repo_root().join("schemas");
+    let mut options = JSONSchema::options();
+    for entry in fs::read_dir(&schemas_dir).expect("read schemas directory") {
+        let entry = entry.expect("read schema entry");
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
+            continue;
+        }
+        let document: Value =
+            serde_json::from_str(&fs::read_to_string(&path).expect("read schema document"))
+                .expect("schema document JSON");
+        if let Some(id) = document.get("$id").and_then(Value::as_str) {
+            options.with_document(id.to_string(), document);
+        }
+    }
+    options.compile(schema).expect("compile schema")
 }
 
 pub fn run_biors_stdin_expect_failure(args: &[&str], input: &str) -> std::process::Output {

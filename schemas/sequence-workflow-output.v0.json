@@ -36,6 +36,8 @@
             "command": {
               "enum": [
                 "biors workflow",
+                "biors pipeline",
+                "biors pipeline --config",
                 "biors-core prepare_protein_model_input_workflow",
                 "biors-mcp workflow"
               ]

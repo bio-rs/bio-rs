@@ -83,6 +83,21 @@ fn cli_outputs_match_sequence_schemas() {
 }
 
 #[test]
+fn pipeline_schema_constrains_nested_workflow_payload() {
+    let pipeline =
+        common::run_biors_stdin(&["pipeline", "--max-length", "4", "-"], ">seq1\nACDE\n").stdout;
+    let envelope: Value = serde_json::from_slice(&pipeline).expect("pipeline JSON");
+    let workflow = &envelope["data"]["workflow"];
+    common::assert_json_value_matches_schema(workflow, "schemas/sequence-workflow-output.v0.json");
+
+    let mut incomplete = envelope["data"].clone();
+    incomplete["workflow"] = serde_json::json!({
+        "workflow": "protein_model_input.v0"
+    });
+    common::assert_payload_rejected_by_schema(&incomplete, "schemas/pipeline-output.v0.json");
+}
+
+#[test]
 fn cli_outputs_match_diff_schema() {
     let expected = common::repo_root().join("examples/protein-package/fixtures/tiny.output.json");
     let observed =

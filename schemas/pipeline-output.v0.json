@@ -61,7 +61,12 @@
       },
       "additionalProperties": false
     },
-    "workflow": { "type": ["object", "null"] }
+    "workflow": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "https://bio-rs.dev/schemas/sequence-workflow-output.v0.json" }
+      ]
+    }
   },
   "$defs": {
     "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
