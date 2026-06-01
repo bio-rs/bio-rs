@@ -14,6 +14,7 @@ fn package_facade_delegates_to_focused_modules() {
     let package = read_src("package.rs");
 
     for module in [
+        "mod artifact_content;",
         "mod artifacts;",
         "mod manifest;",
         "mod reports;",

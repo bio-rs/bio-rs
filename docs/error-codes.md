@@ -62,6 +62,7 @@ Package validation also emits typed `structured_issues[*].code` values in valida
 - `package.asset_read_failed`: a manifest-relative asset path could not be read
 - `package.layout_mismatch`: a manifest v1 asset path is outside the declared package layout
 - `package.invalid_pipeline_config`: a manifest-referenced pipeline config artifact is present but cannot be parsed or validated
+- `package.invalid_tokenizer_config`: a manifest-referenced tokenizer config artifact is present but cannot be parsed or does not match manifest tokenizer metadata
 - `package.observed_output_missing`: a verification observation is missing or its output artifact could not be read
 - `package.output_content_mismatch`: observed output content does not match the expected output artifact
 - `package.validation_failed`: package manifest validation failed

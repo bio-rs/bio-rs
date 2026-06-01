@@ -162,6 +162,10 @@ also parses the referenced config with the same validator used by
 `biors pipeline --config`, so malformed config files fail package validation
 even when the file exists and its checksum matches.
 
+When a manifest declares a tokenizer asset, package validation parses the JSON
+as a bio-rs tokenizer config and requires `tokenizer.name` and
+`tokenizer.contract_version` to match the config profile.
+
 Tokenizer/vocab asset names and contract versions, plus preprocessing and
 postprocessing step names, implementations, contracts, and contract versions,
 must be non-empty when present. Empty contract identifiers are rejected by both

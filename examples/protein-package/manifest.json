@@ -57,7 +57,7 @@
   "tokenizer": {
     "name": "protein-20",
     "path": "tokenizers/protein-20.json",
-    "checksum": "sha256:b6649e6ced53687bcdc945fd739d75ec4e52feddaf9f16eb4db8960da2f33732",
+    "checksum": "sha256:72d60dc0d5e535d8d9851c3f179b81c926874dbd90166ab011515d04e8b7f8f0",
     "contract_version": "protein-20.v0"
   },
   "vocab": {

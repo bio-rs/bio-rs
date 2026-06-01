@@ -1,6 +1,4 @@
 {
-  "name": "protein-20",
-  "type": "character",
-  "unknown_token_policy": "warn_or_error_with_unknown_token",
-  "unknown_token_id": 20
+  "profile": "protein-20",
+  "add_special_tokens": false
 }

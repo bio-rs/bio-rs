@@ -309,6 +309,67 @@ padding = "fixed_length"
     assert_invalid_pipeline_config_issue(&value, "unknown field");
 }
 
+#[test]
+fn package_validate_rejects_tokenizer_config_with_unknown_profile() {
+    let value = validate_package_with_tokenizer_config(
+        "invalid-tokenizer-profile",
+        r#"{
+  "profile": "bad",
+  "add_special_tokens": false
+}"#,
+        None,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_tokenizer_config");
+    assert_invalid_tokenizer_config_issue(&value, "unknown variant");
+}
+
+#[test]
+fn package_validate_rejects_tokenizer_config_with_invalid_json_type() {
+    let value = validate_package_with_tokenizer_config(
+        "invalid-tokenizer-json-type",
+        r#"{
+  "profile": "protein-20",
+  "add_special_tokens": "yes"
+}"#,
+        None,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_tokenizer_config");
+    assert_invalid_tokenizer_config_issue(&value, "invalid tokenizer config JSON");
+}
+
+#[test]
+fn package_validate_rejects_tokenizer_config_with_invalid_special_policy() {
+    let value = validate_package_with_tokenizer_config(
+        "invalid-tokenizer-special-policy",
+        r#"{
+  "profile": "protein-20-special",
+  "add_special_tokens": false
+}"#,
+        Some(("protein-20-special", "protein-20-special.v0")),
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_tokenizer_config");
+    assert_invalid_tokenizer_config_issue(&value, "add_special_tokens");
+}
+
+#[test]
+fn package_validate_rejects_tokenizer_manifest_profile_mismatch() {
+    let value = validate_package_with_tokenizer_config(
+        "invalid-tokenizer-manifest-mismatch",
+        r#"{
+  "profile": "protein-20-special",
+  "add_special_tokens": true
+}"#,
+        None,
+    );
+
+    assert_eq!(value["error"]["code"], "package.invalid_tokenizer_config");
+    assert_invalid_tokenizer_config_issue(&value, "tokenizer.name must match");
+    assert_invalid_tokenizer_config_issue(&value, "tokenizer.contract_version must match");
+}
+
 fn copy_dir_all(source: &Path, destination: &Path) {
     fs::create_dir_all(destination).expect("create destination");
     for entry in fs::read_dir(source).expect("read source directory") {
@@ -354,6 +415,44 @@ fn validate_package_with_pipeline_config(name: &str, config: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("valid JSON error")
 }
 
+fn validate_package_with_tokenizer_config(
+    name: &str,
+    config: &str,
+    manifest_identity: Option<(&str, &str)>,
+) -> Value {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new(name);
+    copy_dir_all(&source_package, temp.path());
+    let config_path = temp.path().join("tokenizers/protein-20.json");
+    fs::write(&config_path, config).expect("write tokenizer config");
+
+    let manifest_path = temp.path().join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    let config_bytes = fs::read(&config_path).expect("read tokenizer config");
+    manifest["tokenizer"]["checksum"] = Value::String(sha256_bytes_digest(&config_bytes));
+    if let Some((name, contract_version)) = manifest_identity {
+        manifest["tokenizer"]["name"] = Value::String(name.to_string());
+        manifest["tokenizer"]["contract_version"] = Value::String(contract_version.to_string());
+    }
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+    serde_json::from_slice(&output.stdout).expect("valid JSON error")
+}
+
 fn assert_invalid_pipeline_config_issue(value: &Value, expected_message: &str) {
     let issues = value["error"]["details"]["structured_issues"]
         .as_array()
@@ -361,6 +460,19 @@ fn assert_invalid_pipeline_config_issue(value: &Value, expected_message: &str) {
     assert!(issues.iter().any(|issue| {
         issue["code"] == "invalid_pipeline_config"
             && issue["field"] == "preprocessing[0].config"
+            && issue["message"]
+                .as_str()
+                .expect("message")
+                .contains(expected_message)
+    }));
+}
+
+fn assert_invalid_tokenizer_config_issue(value: &Value, expected_message: &str) {
+    let issues = value["error"]["details"]["structured_issues"]
+        .as_array()
+        .expect("structured issues");
+    assert!(issues.iter().any(|issue| {
+        issue["code"] == "invalid_tokenizer_config"
             && issue["message"]
                 .as_str()
                 .expect("message")

@@ -25,6 +25,7 @@
               "asset_read_failed",
               "layout_mismatch",
               "invalid_pipeline_config",
+              "invalid_tokenizer_config",
               "unsupported_runtime_backend"
             ]
           },

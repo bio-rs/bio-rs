@@ -113,6 +113,8 @@ pub enum PackageValidationIssueCode {
     LayoutMismatch,
     /// Referenced pipeline config artifact exists but cannot be parsed or validated.
     InvalidPipelineConfig,
+    /// Referenced tokenizer config artifact exists but cannot be parsed or mismatches manifest metadata.
+    InvalidTokenizerConfig,
     /// Runtime backend exists internally but is not part of the public package manifest contract.
     UnsupportedRuntimeBackend,
 }

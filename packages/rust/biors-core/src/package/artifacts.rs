@@ -1,12 +1,13 @@
 use super::{
+    artifact_content::{
+        validate_referenced_pipeline_config, validate_tokenizer_config, ReferencedConfigValidator,
+    },
     read_package_file, validate_declared_layout, validate_package_manifest,
     validate_package_relative_path, PackageArtifactError, PackageManifest,
     PackageValidationIssueCode, PackageValidationReport,
 };
 use crate::hash::{is_sha256_checksum, sha256_bytes_digest};
 use std::path::Path;
-
-pub type ReferencedConfigValidator<'a> = dyn Fn(&Path) -> Result<(), ReferencedConfigError> + 'a;
 
 pub fn validate_package_manifest_artifacts(
     manifest: &PackageManifest,
@@ -31,13 +32,15 @@ pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(
     );
 
     if let Some(tokenizer) = &manifest.tokenizer {
-        validate_artifact(
+        if let Some(bytes) = validated_artifact_bytes(
             &mut report,
             "tokenizer",
             &tokenizer.path,
             tokenizer.checksum.as_deref(),
             base_dir,
-        );
+        ) {
+            validate_tokenizer_config(&mut report, tokenizer, &bytes);
+        }
     }
 
     if let Some(vocab) = &manifest.vocab {
@@ -115,27 +118,6 @@ pub fn validate_package_manifest_artifacts_with_pipeline_config_validator(
     report.finish()
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ReferencedConfigError {
-    pub code: String,
-    pub message: String,
-    pub location: Option<String>,
-}
-
-impl ReferencedConfigError {
-    pub fn new(
-        code: impl Into<String>,
-        message: impl Into<String>,
-        location: Option<String>,
-    ) -> Self {
-        Self {
-            code: code.into(),
-            message: message.into(),
-            location,
-        }
-    }
-}
-
 fn validate_pipeline_configs(
     report: &mut PackageValidationReport,
     section: &str,
@@ -154,7 +136,7 @@ fn validate_pipeline_configs(
                 base_dir,
             );
             if artifact_valid {
-                validate_referenced_config(
+                validate_referenced_pipeline_config(
                     report,
                     &field,
                     &config.path,
@@ -166,33 +148,6 @@ fn validate_pipeline_configs(
     }
 }
 
-fn validate_referenced_config(
-    report: &mut PackageValidationReport,
-    field: &str,
-    path: &str,
-    base_dir: &Path,
-    pipeline_config_validator: Option<&ReferencedConfigValidator<'_>>,
-) {
-    let Some(validator) = pipeline_config_validator else {
-        return;
-    };
-    let config_path = base_dir.join(path);
-    if let Err(error) = validator(&config_path) {
-        let mut message = format!(
-            "{field}: pipeline config '{path}' is invalid: {}: {}",
-            error.code, error.message
-        );
-        if let Some(location) = error.location {
-            message.push_str(&format!(" at {location}"));
-        }
-        report.push_issue(
-            PackageValidationIssueCode::InvalidPipelineConfig,
-            field,
-            &message,
-        );
-    }
-}
-
 fn validate_artifact(
     report: &mut PackageValidationReport,
     field: &str,
@@ -200,8 +155,18 @@ fn validate_artifact(
     checksum: Option<&str>,
     base_dir: &Path,
 ) -> bool {
+    validated_artifact_bytes(report, field, path, checksum, base_dir).is_some()
+}
+
+fn validated_artifact_bytes(
+    report: &mut PackageValidationReport,
+    field: &str,
+    path: &str,
+    checksum: Option<&str>,
+    base_dir: &Path,
+) -> Option<Vec<u8>> {
     if path.trim().is_empty() {
-        return false;
+        return None;
     }
 
     validate_checksum_format(report, field, checksum);
@@ -212,18 +177,18 @@ fn validate_artifact(
             field,
             &error.to_string(),
         );
-        return false;
+        return None;
     }
 
     match read_package_file(base_dir, path) {
-        Ok(bytes) => validate_checksum_value(report, field, checksum, &bytes),
+        Ok(bytes) => validate_checksum_value(report, field, checksum, &bytes).then_some(bytes),
         Err(PackageArtifactError::PathEscape { .. }) => {
             report.push_issue(
                 PackageValidationIssueCode::InvalidAssetPath,
                 field,
                 &format!("{field}: asset path '{path}' must stay inside the package root"),
             );
-            false
+            None
         }
         Err(error) => {
             report.push_issue(
@@ -231,7 +196,7 @@ fn validate_artifact(
                 field,
                 &format!("{field}: {error}"),
             );
-            false
+            None
         }
     }
 }
