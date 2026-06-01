@@ -457,6 +457,8 @@ The `sequence` module handles biological sequence types, normalization, alphabet
 - **`ProteinSequence`** — Named protein sequence.
   - `pub id: String`
   - `pub sequence: Vec<u8>` — normalized, whitespace removed, ASCII uppercased
+  - `pub fn new_normalized(id: impl Into<String>, sequence: impl AsRef<str>) -> Self`
+  - Directly constructed values are normalized by validation and tokenization before residue classification.
 
 - **`SequenceKind`** — Biological alphabet family.
   - `Protein`, `Dna`, `Rna`
@@ -528,7 +530,7 @@ The `sequence` module handles biological sequence types, normalization, alphabet
   Detect the most likely sequence kind and return candidate-kind ambiguity metadata.
 
 - `pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence`
-  Validate one protein against the protein-20 policy.
+  Normalize and validate one protein against the protein-20 policy.
 
 - `pub fn validate_sequence_record(record: &SequenceRecord) -> ValidatedSequenceRecord`
   Validate one sequence against its assigned alphabet policy.
@@ -797,10 +799,7 @@ use biors_core::tokenizer::{
 };
 use biors_core::sequence::ProteinSequence;
 
-let protein = ProteinSequence {
-    id: "seq1".into(),
-    sequence: b"ACDE".to_vec(),
-};
+let protein = ProteinSequence::new_normalized("seq1", "ACDE");
 
 let config = ProteinTokenizerConfig {
     profile: ProteinTokenizerProfile::Protein20Special,
@@ -820,10 +819,7 @@ use biors_core::model_input::{
 use biors_core::tokenizer::tokenize_protein;
 use biors_core::sequence::ProteinSequence;
 
-let protein = ProteinSequence {
-    id: "seq1".into(),
-    sequence: b"ACDEFGHIKLMNPQRSTVWY".to_vec(),
-};
+let protein = ProteinSequence::new_normalized("seq1", "ACDEFGHIKLMNPQRSTVWY");
 let tokenized = tokenize_protein(&protein);
 
 let policy = ModelInputPolicy {

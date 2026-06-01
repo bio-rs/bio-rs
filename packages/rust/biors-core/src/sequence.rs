@@ -16,7 +16,7 @@ pub use normalization::normalize_sequence;
 pub(crate) use normalization::{
     append_normalized_sequence, append_normalized_sequence_bytes,
     append_normalized_sequence_bytes_to_vec, append_normalized_sequence_to_vec,
-    normalized_residues,
+    normalize_sequence_bytes, normalized_residues,
 };
 pub use report::{summarize_validated_sequence_records, summarize_validated_sequences};
 pub(crate) use residue::{

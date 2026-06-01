@@ -197,10 +197,7 @@ mod tests {
     fn workflow_preserves_validation_tokenization_and_model_input() {
         let output = prepare_protein_model_input_workflow(
             "fnv1a64:0000000000000000".to_string(),
-            &[ProteinSequence {
-                id: "seq1".to_string(),
-                sequence: b"ACDE".to_vec(),
-            }],
+            &[ProteinSequence::new_normalized("seq1", "ACDE")],
             ModelInputPolicy {
                 max_length: 6,
                 pad_token_id: 0,
@@ -228,6 +225,32 @@ mod tests {
             .hashes
             .output_data_sha256
             .starts_with("sha256:"));
+        assert!(output.readiness_issues.is_empty());
+    }
+
+    #[test]
+    fn workflow_normalizes_direct_lowercase_sequences_before_model_input() {
+        let output = prepare_protein_model_input_workflow(
+            "fnv1a64:0000000000000000".to_string(),
+            &[ProteinSequence {
+                id: "seq1".to_string(),
+                sequence: b"ac de".to_vec(),
+            }],
+            ModelInputPolicy {
+                max_length: 6,
+                pad_token_id: 0,
+                padding: PaddingPolicy::FixedLength,
+            },
+        )
+        .expect("workflow output");
+
+        assert!(output.model_ready);
+        assert_eq!(output.validation.sequences[0].sequence, "ACDE");
+        assert_eq!(output.tokenization.records[0].tokens, vec![0, 1, 2, 3]);
+        assert_eq!(
+            output.model_input.expect("model input").records[0].input_ids,
+            vec![0, 1, 2, 3, 0, 0]
+        );
         assert!(output.readiness_issues.is_empty());
     }
 

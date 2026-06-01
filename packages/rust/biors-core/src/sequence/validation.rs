@@ -7,30 +7,31 @@ use super::{
     SymbolClass, ValidatedSequence, ValidatedSequenceRecord, PROTEIN_20,
 };
 
-/// Validate one normalized protein sequence against the `protein-20` policy.
+/// Validate one protein sequence against the `protein-20` policy.
 pub fn validate_protein_sequence(protein: &ProteinSequence) -> ValidatedSequence {
     validate_protein_sequence_owned(protein.id.clone(), protein.sequence.clone())
 }
 
 pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> ValidatedSequence {
+    let normalized = super::normalize_sequence_bytes(&sequence);
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
-    if sequence.is_ascii() {
-        for (index, byte) in sequence.iter().enumerate() {
+    if normalized.is_ascii() {
+        for (index, byte) in normalized.iter().enumerate() {
             push_protein_byte_issue(*byte, index + 1, &mut warnings, &mut errors);
         }
-    } else if let Ok(s) = std::str::from_utf8(&sequence) {
+    } else if let Ok(s) = std::str::from_utf8(&normalized) {
         for (index, residue) in s.chars().enumerate() {
             push_protein_issue(residue, index + 1, &mut warnings, &mut errors);
         }
     } else {
-        for (index, byte) in sequence.iter().enumerate() {
+        for (index, byte) in normalized.iter().enumerate() {
             push_protein_byte_issue(*byte, index + 1, &mut warnings, &mut errors);
         }
     }
 
-    let normalized_sequence = String::from_utf8(sequence)
+    let normalized_sequence = String::from_utf8(normalized)
         .unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
 
     ValidatedSequence {
@@ -148,16 +149,27 @@ mod tests {
 
     #[test]
     fn validate_protein_sequence_accepts_all_standard_residues() {
-        let protein = ProteinSequence {
-            id: "std20".into(),
-            sequence: b"ACDEFGHIKLMNPQRSTVWY".to_vec(),
-        };
+        let protein = ProteinSequence::new_normalized("std20", "ACDEFGHIKLMNPQRSTVWY");
         let result = validate_protein_sequence(&protein);
         assert!(result.valid);
         assert!(result.warnings.is_empty());
         assert!(result.errors.is_empty());
         assert_eq!(result.sequence, "ACDEFGHIKLMNPQRSTVWY");
         assert_eq!(result.alphabet, "protein-20");
+    }
+
+    #[test]
+    fn validate_protein_sequence_normalizes_direct_lowercase_input() {
+        let protein = ProteinSequence {
+            id: "raw".into(),
+            sequence: b"ac de\tfg".to_vec(),
+        };
+        let result = validate_protein_sequence(&protein);
+
+        assert!(result.valid);
+        assert!(result.warnings.is_empty());
+        assert!(result.errors.is_empty());
+        assert_eq!(result.sequence, "ACDEFG");
     }
 
     #[test]

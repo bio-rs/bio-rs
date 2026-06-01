@@ -51,24 +51,25 @@ pub fn tokenize_protein_with_config(
     protein: &ProteinSequence,
     config: &ProteinTokenizerConfig,
 ) -> TokenizedProtein {
-    let mut tokens = Vec::with_capacity(protein.sequence.len());
-    let mut warnings = Vec::with_capacity(protein.sequence.len());
-    let mut errors = Vec::with_capacity(protein.sequence.len());
+    let sequence = crate::sequence::normalize_sequence_bytes(&protein.sequence);
+    let mut tokens = Vec::with_capacity(sequence.len());
+    let mut warnings = Vec::with_capacity(sequence.len());
+    let mut errors = Vec::with_capacity(sequence.len());
 
     if config.add_special_tokens {
         tokens.push(protein_special_tokens().cls.token_id);
     }
 
-    if protein.sequence.is_ascii() {
-        for (index, byte) in protein.sequence.iter().enumerate() {
+    if sequence.is_ascii() {
+        for (index, byte) in sequence.iter().enumerate() {
             push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
-    } else if let Ok(s) = std::str::from_utf8(&protein.sequence) {
+    } else if let Ok(s) = std::str::from_utf8(&sequence) {
         for (index, residue) in s.chars().enumerate() {
             push_tokenized_residue(residue, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
     } else {
-        for (index, byte) in protein.sequence.iter().enumerate() {
+        for (index, byte) in sequence.iter().enumerate() {
             push_tokenized_residue_byte(*byte, index + 1, &mut tokens, &mut warnings, &mut errors);
         }
     }

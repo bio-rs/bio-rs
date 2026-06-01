@@ -4,6 +4,12 @@ pub fn normalize_sequence(sequence: &str) -> String {
     normalized
 }
 
+pub(crate) fn normalize_sequence_bytes(sequence: &[u8]) -> Vec<u8> {
+    let mut normalized = Vec::with_capacity(sequence.len());
+    append_normalized_sequence_bytes_to_vec(sequence, &mut normalized);
+    normalized
+}
+
 pub(crate) fn append_normalized_sequence(sequence: &str, output: &mut String) {
     output.reserve(sequence.len());
     if sequence.is_ascii() {

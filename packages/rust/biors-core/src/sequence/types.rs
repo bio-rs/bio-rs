@@ -26,6 +26,16 @@ pub struct ProteinSequence {
     pub sequence: Vec<u8>,
 }
 
+impl ProteinSequence {
+    /// Build a protein sequence using the same normalization policy as FASTA parsing.
+    pub fn new_normalized(id: impl Into<String>, sequence: impl AsRef<str>) -> Self {
+        Self {
+            id: id.into(),
+            sequence: super::normalize_sequence(sequence.as_ref()).into_bytes(),
+        }
+    }
+}
+
 /// A residue-level validation warning or error with a one-based sequence position.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ResidueIssue {

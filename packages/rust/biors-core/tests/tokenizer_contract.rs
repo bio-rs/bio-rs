@@ -1,4 +1,4 @@
-use biors_core::sequence::ProteinSequence;
+use biors_core::sequence::{validate_protein_sequence, ProteinSequence};
 use biors_core::tokenizer::{
     load_vocab_json, protein_20_vocabulary, tokenize_fasta_records, tokenize_fasta_records_reader,
     ProteinTokenizer, Tokenizer, UnknownTokenPolicy, PROTEIN_20_UNKNOWN_TOKEN_ID,
@@ -9,10 +9,7 @@ use std::io::Cursor;
 #[test]
 fn protein_tokenizer_trait_matches_public_tokenize_function() {
     let tokenizer = ProteinTokenizer;
-    let record = ProteinSequence {
-        id: "seq1".to_string(),
-        sequence: b"ACDE".to_vec(),
-    };
+    let record = ProteinSequence::new_normalized("seq1", "ACDE");
 
     assert_eq!(tokenizer.alphabet(), "protein-20");
     assert_eq!(tokenizer.vocabulary().tokens.len(), 20);
@@ -25,6 +22,23 @@ fn protein_tokenizer_trait_matches_public_tokenize_function() {
         UnknownTokenPolicy::WarnOrErrorWithUnknownToken
     );
     assert_eq!(tokenizer.tokenize(&record).tokens, vec![0, 1, 2, 3]);
+}
+
+#[test]
+fn direct_protein_sequence_input_normalizes_for_validation_and_tokenization() {
+    let record = ProteinSequence {
+        id: "seq1".to_string(),
+        sequence: b"ac de\tfg".to_vec(),
+    };
+
+    let validation = validate_protein_sequence(&record);
+    let tokenized = ProteinTokenizer.tokenize(&record);
+
+    assert!(validation.valid);
+    assert_eq!(validation.sequence, "ACDEFG");
+    assert_eq!(tokenized.tokens, vec![0, 1, 2, 3, 4, 5]);
+    assert_eq!(tokenized.length, 6);
+    assert!(tokenized.valid);
 }
 
 #[test]
