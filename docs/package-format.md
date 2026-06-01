@@ -156,6 +156,10 @@ postprocessing step names, implementations, contracts, and contract versions,
 must be non-empty when present. Empty contract identifiers are rejected by both
 the Rust manifest validator and the published JSON schemas.
 
+Fixture names and declared `expected_input.shape` / `expected_output.shape`
+dimensions must also be non-empty so JSON schema preflight matches the Rust
+validator.
+
 ## Migration And Compatibility
 
 `biors package migrate <manifest|-> --to biors.package.v1` emits an inspectable

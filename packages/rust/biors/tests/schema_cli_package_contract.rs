@@ -67,6 +67,30 @@ fn package_manifest_schemas_reject_empty_contract_identifiers() {
 }
 
 #[test]
+fn package_manifest_schemas_reject_empty_fixture_names_and_shapes() {
+    let mut v1_manifest: Value = serde_json::from_str(
+        &fs::read_to_string(common::repo_root().join("examples/protein-package/manifest.json"))
+            .expect("read package manifest"),
+    )
+    .expect("manifest JSON");
+    v1_manifest["fixtures"][0]["name"] = Value::String(String::new());
+    v1_manifest["expected_input"]["shape"] = Value::Array(vec![]);
+    v1_manifest["expected_output"]["shape"] = Value::Array(vec![]);
+    common::assert_payload_rejected_by_schema(&v1_manifest, "schemas/package-manifest.v1.json");
+
+    let mut v0_manifest = v1_manifest;
+    v0_manifest["schema_version"] = Value::String("biors.package.v0".into());
+    if let Some(object) = v0_manifest.as_object_mut() {
+        object.remove("package_layout");
+        object.remove("metadata");
+        if let Some(runtime) = object.get_mut("runtime").and_then(Value::as_object_mut) {
+            runtime.remove("version");
+        }
+    }
+    common::assert_payload_rejected_by_schema(&v0_manifest, "schemas/package-manifest.v0.json");
+}
+
+#[test]
 fn cli_outputs_match_package_schemas() {
     let manifest = common::repo_root().join("examples/protein-package/manifest.json");
     let observations = common::repo_root().join("examples/protein-package/observations.json");
