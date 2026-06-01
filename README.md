@@ -6,13 +6,13 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/public-contract-1.0-candidates.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI workflows, with protein model-ready workflows.
+bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI workflows, with protein, DNA, and RNA model-ready workflows.
 
 ```txt
 FASTA -> validated sequence -> token IDs -> model-ready JSON
 ```
 
-DNA and RNA FASTA validation, tokenization, model-input generation, and CLI workflow generation are supported through explicit nucleotide profiles. Package, Python, WASM, MCP, and benchmark parity are still being promoted before broad full-support claims.
+DNA and RNA FASTA validation, tokenization, model-input generation, workflow generation, Python/WASM/MCP bindings, package artifact validation, and benchmark regression guards are supported through explicit nucleotide profiles. Package generation and Python/Hugging Face conversion remain protein-first; see the [sequence-kind support matrix](docs/sequence-kind-support.md) before making broad full-support claims.
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
@@ -130,7 +130,7 @@ remains a historical reference.
 - `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/YAML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
-- Package, Python, WASM, MCP, and benchmark parity for nucleotide model-ready workflows are not fully promoted yet.
+- Python, WASM, MCP, package artifact validation, and regression benchmarks cover nucleotide model-ready workflows. Package skeleton/conversion helpers remain protein-first; see [Protein, DNA, and RNA support](docs/sequence-kind-support.md).
 
 ### Batch and dataset operations
 - `batch validate`: multiple files, recursive directories, quoted globs
@@ -175,6 +175,7 @@ remains a historical reference.
 - [Backend architecture](docs/backend-architecture.md) — runtime abstraction boundary
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
+- [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)

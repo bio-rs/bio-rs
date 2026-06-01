@@ -154,6 +154,104 @@ fn pipeline_runs_json_config() {
 }
 
 #[test]
+fn pipeline_config_accepts_nucleotide_profiles() {
+    let temp = TempDir::new("biors-pipeline-nucleotide");
+    let fasta = temp.write("dna.fasta", ">dna\nACGT\n");
+    let config = temp.write(
+        "dna.toml",
+        &format!(
+            r#"schema_version = "biors.pipeline.v0"
+name = "dna-pipeline"
+
+[input]
+format = "fasta"
+path = "{}"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "dna"
+
+[tokenize]
+profile = "dna-iupac"
+
+[export]
+format = "model-input-json"
+max_length = 6
+pad_token_id = 0
+padding = "fixed_length"
+"#,
+            fasta.file_name().expect("fasta filename").to_string_lossy()
+        ),
+    );
+    let config_arg = config.to_string_lossy();
+
+    let value = run_biors(&["pipeline", "--config", &config_arg], &[]);
+
+    assert_eq!(value["data"]["ready"], true);
+    assert_eq!(value["data"]["config"]["name"], "dna-pipeline");
+    assert_eq!(
+        value["data"]["workflow"]["provenance"]["validation_alphabet"],
+        "dna-iupac"
+    );
+    assert_eq!(
+        value["data"]["workflow"]["provenance"]["tokenizer"]["name"],
+        "dna-iupac"
+    );
+    assert_eq!(
+        value["data"]["workflow"]["model_input"]["records"][0]["input_ids"],
+        serde_json::json!([0, 1, 2, 3, 0, 0])
+    );
+}
+
+#[test]
+fn pipeline_config_rejects_kind_profile_mismatch() {
+    let temp = TempDir::new("biors-pipeline-profile-mismatch");
+    temp.write("dna.fasta", ">dna\nACGT\n");
+    let config = temp.write(
+        "mismatch.toml",
+        r#"schema_version = "biors.pipeline.v0"
+name = "mismatch"
+
+[input]
+format = "fasta"
+path = "dna.fasta"
+
+[normalize]
+policy = "strip_ascii_whitespace_uppercase"
+
+[validate]
+kind = "protein"
+
+[tokenize]
+profile = "dna-iupac"
+
+[export]
+format = "model-input-json"
+max_length = 6
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("pipeline")
+        .arg("--config")
+        .arg(config)
+        .output()
+        .expect("run biors pipeline");
+
+    assert_eq!(output.status.code(), Some(2));
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "pipeline.invalid_config");
+    assert_eq!(value["error"]["location"], "validate.kind");
+    assert!(value["error"]["message"]
+        .as_str()
+        .expect("error message")
+        .contains("validate.kind must be 'dna'"));
+}
+
+#[test]
 fn pipeline_writes_lockfile_with_package_provenance() {
     let temp = TempDir::new("biors-pipeline-lock");
     let lockfile = temp.path().join("pipeline.lock");

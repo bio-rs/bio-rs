@@ -28,7 +28,7 @@
       "type": "object",
       "required": ["kind"],
       "properties": {
-        "kind": { "const": "protein" }
+        "kind": { "enum": ["protein", "dna", "rna"] }
       },
       "additionalProperties": false
     },
@@ -36,7 +36,16 @@
       "type": "object",
       "required": ["profile"],
       "properties": {
-        "profile": { "const": "protein-20" }
+        "profile": {
+          "enum": [
+            "protein-20",
+            "protein-20-special",
+            "dna-iupac",
+            "dna-iupac-special",
+            "rna-iupac",
+            "rna-iupac-special"
+          ]
+        }
       },
       "additionalProperties": false
     },

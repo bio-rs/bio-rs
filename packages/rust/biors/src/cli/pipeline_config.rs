@@ -1,4 +1,4 @@
-use crate::cli::PaddingArg;
+use crate::cli::{PaddingArg, TokenizerProfileArg};
 use crate::errors::CliError;
 use biors_core::package::PipelineConfigVersion;
 use serde::{Deserialize, Serialize};
@@ -6,8 +6,6 @@ use std::path::{Path, PathBuf};
 
 const FASTA_FORMAT: &str = "fasta";
 const NORMALIZE_POLICY: &str = "strip_ascii_whitespace_uppercase";
-const VALIDATE_KIND: &str = "protein";
-const TOKENIZER_PROFILE: &str = "protein-20";
 const EXPORT_FORMAT: &str = "model-input-json";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -63,6 +61,7 @@ pub(crate) struct ResolvedPipelineConfig {
     pub config: PipelineConfig,
     pub input_path: PathBuf,
     pub padding: PaddingArg,
+    pub profile: TokenizerProfileArg,
 }
 
 pub(crate) fn load_pipeline_config(path: &Path) -> Result<ResolvedPipelineConfig, CliError> {
@@ -71,10 +70,11 @@ pub(crate) fn load_pipeline_config(path: &Path) -> Result<ResolvedPipelineConfig
         source,
     })?;
     let config = parse_pipeline_config(path, &contents)?;
-    validate_pipeline_config(&config)?;
+    let profile = validate_pipeline_config(&config)?;
     Ok(ResolvedPipelineConfig {
         input_path: resolve_input_path(path, &config.input.path),
         padding: parse_padding(&config.export.padding)?,
+        profile,
         config,
     })
 }
@@ -96,7 +96,7 @@ fn parse_pipeline_config(path: &Path, contents: &str) -> Result<PipelineConfig, 
     }
 }
 
-fn validate_pipeline_config(config: &PipelineConfig) -> Result<(), CliError> {
+fn validate_pipeline_config(config: &PipelineConfig) -> Result<TokenizerProfileArg, CliError> {
     require_non_empty("name", &config.name)?;
     require_value("input.format", &config.input.format, FASTA_FORMAT)?;
     require_non_empty("input.path", &config.input.path)?;
@@ -105,12 +105,8 @@ fn validate_pipeline_config(config: &PipelineConfig) -> Result<(), CliError> {
         &config.normalize.policy,
         NORMALIZE_POLICY,
     )?;
-    require_value("validate.kind", &config.validate.kind, VALIDATE_KIND)?;
-    require_value(
-        "tokenize.profile",
-        &config.tokenize.profile,
-        TOKENIZER_PROFILE,
-    )?;
+    let profile = parse_profile(&config.tokenize.profile)?;
+    validate_kind_matches_profile(&config.validate.kind, profile)?;
     require_value("export.format", &config.export.format, EXPORT_FORMAT)?;
     if config.export.max_length == 0 {
         return Err(CliError::Validation {
@@ -120,7 +116,7 @@ fn validate_pipeline_config(config: &PipelineConfig) -> Result<(), CliError> {
         });
     }
     parse_padding(&config.export.padding)?;
-    Ok(())
+    Ok(profile)
 }
 
 fn require_non_empty(field: &str, value: &str) -> Result<(), CliError> {
@@ -154,6 +150,59 @@ fn parse_padding(value: &str) -> Result<PaddingArg, CliError> {
             message: "export.padding must be 'fixed_length' or 'no_padding'".to_string(),
             location: Some("export.padding".to_string()),
         }),
+    }
+}
+
+fn parse_profile(value: &str) -> Result<TokenizerProfileArg, CliError> {
+    match value {
+        "protein-20" => Ok(TokenizerProfileArg::Protein20),
+        "protein-20-special" => Ok(TokenizerProfileArg::Protein20Special),
+        "dna-iupac" => Ok(TokenizerProfileArg::DnaIupac),
+        "dna-iupac-special" => Ok(TokenizerProfileArg::DnaIupacSpecial),
+        "rna-iupac" => Ok(TokenizerProfileArg::RnaIupac),
+        "rna-iupac-special" => Ok(TokenizerProfileArg::RnaIupacSpecial),
+        _ => Err(CliError::Validation {
+            code: "pipeline.invalid_config",
+            message: "tokenize.profile must be one of protein-20, protein-20-special, dna-iupac, dna-iupac-special, rna-iupac, rna-iupac-special".to_string(),
+            location: Some("tokenize.profile".to_string()),
+        }),
+    }
+}
+
+fn validate_kind_matches_profile(kind: &str, profile: TokenizerProfileArg) -> Result<(), CliError> {
+    let expected = match profile {
+        TokenizerProfileArg::Protein20 | TokenizerProfileArg::Protein20Special => "protein",
+        TokenizerProfileArg::DnaIupac | TokenizerProfileArg::DnaIupacSpecial => "dna",
+        TokenizerProfileArg::RnaIupac | TokenizerProfileArg::RnaIupacSpecial => "rna",
+    };
+    if kind == expected {
+        return Ok(());
+    }
+    if !matches!(kind, "protein" | "dna" | "rna") {
+        return Err(CliError::Validation {
+            code: "pipeline.invalid_config",
+            message: "validate.kind must be one of protein, dna, rna".to_string(),
+            location: Some("validate.kind".to_string()),
+        });
+    }
+    Err(CliError::Validation {
+        code: "pipeline.invalid_config",
+        message: format!(
+            "validate.kind must be '{expected}' for profile '{}'",
+            profile_name(profile)
+        ),
+        location: Some("validate.kind".to_string()),
+    })
+}
+
+fn profile_name(profile: TokenizerProfileArg) -> &'static str {
+    match profile {
+        TokenizerProfileArg::Protein20 => "protein-20",
+        TokenizerProfileArg::Protein20Special => "protein-20-special",
+        TokenizerProfileArg::DnaIupac => "dna-iupac",
+        TokenizerProfileArg::DnaIupacSpecial => "dna-iupac-special",
+        TokenizerProfileArg::RnaIupac => "rna-iupac",
+        TokenizerProfileArg::RnaIupacSpecial => "rna-iupac-special",
     }
 }
 

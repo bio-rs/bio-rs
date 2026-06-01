@@ -137,7 +137,7 @@ print(first.id, len(first.input_ids), len(first.attention_mask), first.truncated
 
 ### `build_model_inputs_checked(tokenized, max_length, pad_token_id=0, padding="no_padding") -> ModelInput`
 
-Builds model-ready token arrays from tokenized protein records. Records with
+Builds model-ready token arrays from tokenized sequence records. Records with
 unresolved tokenization warnings or errors are rejected with `ValueError`
 instead of being silently converted into model input.
 

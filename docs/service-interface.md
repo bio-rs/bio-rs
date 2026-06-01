@@ -44,8 +44,8 @@ need before inference:
 |---|---|---|
 | `sequence.validate` | Validate FASTA and emit structured residue diagnostics | deterministic core |
 | `sequence.inspect` | Summarize FASTA records and input hashes | deterministic core |
-| `sequence.tokenize` | Tokenize protein FASTA with stable profiles | deterministic core |
-| `model_input.build` | Build model-ready `input_ids` and `attention_mask` arrays | deterministic core |
+| `sequence.tokenize` | Tokenize protein, DNA, or RNA FASTA with stable profiles | deterministic core |
+| `model_input.build` | Build model-ready `input_ids` and `attention_mask` arrays for explicit profiles | deterministic core |
 | `package.inspect` | Inspect package metadata and artifact declarations | package contract |
 | `package.validate` | Validate package layout, checksums, fixtures, and metadata | package contract |
 | `package.bridge.plan` | Produce runtime bridge readiness without executing a backend | runtime planning only |
@@ -65,8 +65,8 @@ contract.
 |---|---|---|
 | `sequence.validate` | `{ "fasta_text": ">seq1\nACDE\n", "kind": "auto" }` | `fasta-validation-output.v0.json` |
 | `sequence.inspect` | `{ "fasta_text": ">seq1\nACDE\n" }` | `inspect-output.v0.json` |
-| `sequence.tokenize` | `{ "fasta_text": ">seq1\nACDE\n", "profile": "protein-20" }` | `tokenize-output.v0.json` |
-| `model_input.build` | `{ "fasta_text": ">seq1\nACDE\n", "max_length": 512, "pad_token_id": 0, "padding": "fixed_length" }` | `model-input-output.v0.json` |
+| `sequence.tokenize` | `{ "fasta_text": ">seq1\nACDE\n", "profile": "protein-20" }` or `{ "fasta_text": ">dna\nACGT\n", "profile": "dna-iupac" }` | `tokenize-output.v0.json` |
+| `model_input.build` | `{ "fasta_text": ">seq1\nACDE\n", "profile": "protein-20", "max_length": 512, "pad_token_id": 0, "padding": "fixed_length" }` | `model-input-output.v0.json` |
 | `package.inspect` | `{ "manifest": { "schema_version": "biors.package.v0", "...": "..." } }` | `package-inspect-output.v0.json` |
 | `package.validate` | `{ "manifest": { "schema_version": "biors.package.v0", "...": "..." } }` | `package-validation-report.v0.json` |
 | `package.bridge.plan` | `{ "manifest": { "schema_version": "biors.package.v0", "...": "..." } }` | `package-bridge-output.v0.json` |

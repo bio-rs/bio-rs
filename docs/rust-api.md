@@ -151,11 +151,11 @@ checksums and canonical JSON comparisons.
 
 ### Module: `model_input`
 
-The `model_input` module converts tokenized proteins into model-ready arrays with truncation, padding, and attention masks.
+The `model_input` module converts tokenized sequence records into model-ready arrays with truncation, padding, and attention masks.
 
 #### Types
 
-- **`ModelInputPolicy`** — Policy for converting tokenized proteins into model-ready arrays.
+- **`ModelInputPolicy`** — Policy for converting tokenized records into model-ready arrays.
   - `pub max_length: usize`
   - `pub pad_token_id: u8`
   - `pub padding: PaddingPolicy`
@@ -168,7 +168,7 @@ The `model_input` module converts tokenized proteins into model-ready arrays wit
   - `pub policy: ModelInputPolicy`
   - `pub records: Vec<ModelInputRecord>`
 
-- **`ModelInputRecord`** — Model-ready representation of one tokenized protein.
+- **`ModelInputRecord`** — Model-ready representation of one tokenized record.
   - `pub id: String`
   - `pub input_ids: Vec<u8>`
   - `pub attention_mask: Vec<u8>` — `1` for real tokens, `0` for padding
@@ -582,14 +582,16 @@ The `sequence` module handles biological sequence types, normalization, alphabet
 
 ### Module: `tokenizer`
 
-The `tokenizer` module converts protein sequences into stable token IDs. It supports the built-in `protein-20` and `protein-20-special` profiles.
+The `tokenizer` module converts biological sequences into stable token IDs. It supports built-in protein, DNA, and RNA profiles.
 
 #### Types
 
 - **`ProteinTokenizerProfile`** — Built-in profiles.
-  - `Protein20`, `Protein20Special`
+  - `Protein20`, `Protein20Special`, `DnaIupac`, `DnaIupacSpecial`,
+    `RnaIupac`, `RnaIupacSpecial`
   - `pub const fn as_str(self) -> &'static str`
   - `pub const fn default_add_special_tokens(self) -> bool`
+  - `pub const fn sequence_kind(self) -> SequenceKind`
 
 - **`ProteinTokenizerConfig`** — JSON tokenizer configuration.
   - `pub profile: ProteinTokenizerProfile`
@@ -614,7 +616,9 @@ The `tokenizer` module converts protein sequences into stable token IDs. It supp
 - **`ProteinTokenizer`** — Default protein tokenizer.
   - `pub fn vocabulary_ref(&self) -> &'static Vocabulary`
 
-- **`TokenizedProtein`** — Tokenized sequence.
+- **`TokenizedProtein`** — Tokenized sequence. The legacy type name is retained
+  for API compatibility; its `alphabet` field identifies protein, DNA, or RNA
+  profiles.
   - `pub id: String`, `pub length: usize`, `pub alphabet: String`, `pub valid: bool`, `pub tokens: Vec<u8>`, `pub warnings: Vec<ResidueIssue>`, `pub errors: Vec<ResidueIssue>`
 
 - **`ProteinBatchSummary`** — Aggregate summary.
@@ -641,7 +645,7 @@ The `tokenizer` module converts protein sequences into stable token IDs. It supp
   Tokenize with the default protein-20 profile.
 
 - `pub fn tokenize_protein_with_config(protein: &ProteinSequence, config: &ProteinTokenizerConfig) -> TokenizedProtein`
-  Tokenize with an explicit config.
+  Tokenize with an explicit profile config.
 
 - `pub fn tokenize_fasta_records(input: &str) -> Result<Vec<TokenizedProtein>, BioRsError>`
   Tokenize FASTA text.
@@ -798,12 +802,18 @@ The `workflow` module orchestrates the end-to-end pipeline: validation, tokeniza
 #### Functions
 
 - `pub fn prepare_protein_model_input_workflow(input_hash: String, records: &[ProteinSequence], policy: ModelInputPolicy) -> Result<SequenceWorkflowOutput, ModelInputBuildError>`
-  Build the stable validation-to-tokenization-to-model-input workflow. Manual
+  Build the default protein validation-to-tokenization-to-model-input workflow.
+  Manual `input_hash` values must match `fnv1a64:<16 lowercase hex>`.
+
+- `pub fn prepare_model_input_workflow_with_config(input_hash: String, records: &[ProteinSequence], policy: ModelInputPolicy, tokenizer_config: ProteinTokenizerConfig, invocation: SequenceWorkflowInvocation) -> Result<SequenceWorkflowOutput, ModelInputBuildError>`
+  Build the profile-aware validation-to-tokenization-to-model-input workflow for
+  protein, DNA, or RNA profiles. Manual
   `input_hash` values must match `fnv1a64:<16 lowercase hex>`.
 
 - `pub fn prepare_protein_model_input_workflow_with_invocation(input_hash: String, records: &[ProteinSequence], policy: ModelInputPolicy, invocation: SequenceWorkflowInvocation) -> Result<SequenceWorkflowOutput, ModelInputBuildError>`
-  Same as above but captures the invocation in provenance and validates the same
-  stable input-hash shape before constructing workflow output.
+  Build the default protein workflow while capturing the invocation in
+  provenance and validating the same stable input-hash shape before
+  constructing workflow output.
 
 ## Usage Examples
 

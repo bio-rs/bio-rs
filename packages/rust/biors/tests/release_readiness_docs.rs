@@ -577,7 +577,9 @@ fn phase7_status_separates_implementation_from_release_readiness() {
         "does not claim every",
         "binding and integration surface is fully researcher-grade",
         "docs/pre-release-audit-main-2026-05-30.md",
-        "Do not describe Python, WASM, or MCP as fully researcher-grade",
+        "docs/sequence-kind-support.md",
+        "Do not describe the entire project as fully researcher-grade",
+        "protein-first package skeleton/conversion limitations",
     ] {
         assert!(
             status.contains(expected),
@@ -720,6 +722,82 @@ fn service_interface_docs_list_request_response_examples() {
         assert!(
             service_doc.contains(expected),
             "service interface docs missing request/response example detail: {expected}"
+        );
+    }
+}
+
+#[test]
+fn sequence_kind_support_matrix_covers_promoted_surfaces() {
+    let repo = common::repo_root();
+    let matrix =
+        fs::read_to_string(repo.join("docs/sequence-kind-support.md")).expect("read matrix");
+    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+    let service_tokenize_schema =
+        fs::read_to_string(repo.join("schemas/service-sequence-tokenize-request.v0.json"))
+            .expect("read service tokenize schema");
+    let service_model_input_schema =
+        fs::read_to_string(repo.join("schemas/service-model-input-request.v0.json"))
+            .expect("read service model-input schema");
+    let pipeline_config_schema = fs::read_to_string(repo.join("schemas/pipeline-config.v0.json"))
+        .expect("read pipeline config schema");
+
+    assert!(
+        readme.contains("docs/sequence-kind-support.md"),
+        "README must link the sequence-kind support matrix before broad DNA/RNA claims"
+    );
+
+    for expected in [
+        "CLI `fasta validate` / `seq validate`",
+        "CLI `batch validate`",
+        "CLI `tokenize`",
+        "CLI `model-input`",
+        "CLI `workflow`",
+        "CLI `pipeline --config`",
+        "Python bindings",
+        "WASM / JavaScript bindings",
+        "MCP server",
+        "Service contract schemas",
+        "Package manifest validation",
+        "Package conversion from Python/HF projects",
+        "Benchmarks",
+        "Package skeleton/conversion helpers remain protein-first",
+    ] {
+        assert!(
+            matrix.contains(expected),
+            "support matrix missing promoted surface or limitation: {expected}"
+        );
+    }
+
+    for profile in [
+        "protein-20",
+        "protein-20-special",
+        "dna-iupac",
+        "dna-iupac-special",
+        "rna-iupac",
+        "rna-iupac-special",
+    ] {
+        assert!(
+            matrix.contains(profile),
+            "support matrix missing tokenizer profile: {profile}"
+        );
+        assert!(
+            service_tokenize_schema.contains(profile),
+            "service tokenize schema missing tokenizer profile: {profile}"
+        );
+        assert!(
+            service_model_input_schema.contains(profile),
+            "service model-input schema missing tokenizer profile: {profile}"
+        );
+        assert!(
+            pipeline_config_schema.contains(profile),
+            "pipeline config schema missing tokenizer profile: {profile}"
+        );
+    }
+
+    for kind in ["protein", "dna", "rna"] {
+        assert!(
+            pipeline_config_schema.contains(kind),
+            "pipeline config schema missing sequence kind: {kind}"
         );
     }
 }

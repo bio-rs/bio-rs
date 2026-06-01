@@ -25,11 +25,12 @@ Configure your MCP client (Claude Desktop, Cursor, etc.) to launch:
 
 ## Tools
 
-- `tokenize` — Tokenize protein FASTA text into stable token IDs
+- `tokenize` — Tokenize protein, DNA, or RNA FASTA text into stable token IDs
 - `validate` — Validate biological sequences (protein, DNA, RNA, or auto-detect)
-- `workflow` — Protein-only validate → tokenize → model-input workflow with
-  `kind` (`auto` or `protein`), `max_length`, `pad_token_id`, and `padding`
-  (`fixed_length` or `no_padding`) parameters
+- `workflow` — Validate → tokenize → model-input workflow with `kind`
+  (`auto`, `protein`, `dna`, or `rna`), explicit tokenizer `profile`,
+  `max_length`, `pad_token_id`, and `padding` (`fixed_length` or
+  `no_padding`) parameters. Explicit kind/profile mismatches are rejected.
 - `package_validate` — Validate a package manifest and its filesystem
   artifacts. Pass either `manifest_path` or `manifest_json` plus `base_dir`.
 - `package_validate_fields` — Validate only the package manifest JSON fields,

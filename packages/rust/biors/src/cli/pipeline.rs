@@ -119,7 +119,7 @@ fn run_config_pipeline(
     }
     let workflow = workflow_output(
         "biors pipeline --config",
-        TokenizerProfileArg::Protein20,
+        resolved.profile,
         resolved.config.export.max_length,
         resolved.config.export.pad_token_id,
         resolved.padding,

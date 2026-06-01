@@ -9,7 +9,16 @@
     "max_length": { "type": "integer", "minimum": 1 },
     "pad_token_id": { "type": "integer", "minimum": 0, "maximum": 255 },
     "padding": { "enum": ["fixed_length", "no_padding"] },
-    "profile": { "enum": ["protein-20", "protein-20-special"] }
+    "profile": {
+      "enum": [
+        "protein-20",
+        "protein-20-special",
+        "dna-iupac",
+        "dna-iupac-special",
+        "rna-iupac",
+        "rna-iupac-special"
+      ]
+    }
   },
   "additionalProperties": false
 }

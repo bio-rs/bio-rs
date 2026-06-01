@@ -46,28 +46,25 @@ Current implemented guarantees:
 - crates.io publication for `biors`, `biors-core`, `biors-backend-candle`, and
   `biors-mcp-server`
 
-External binding surfaces covered by this repository's tag release workflow, but
-still treated as contract-hardening candidates before a full researcher-grade
-claim:
+External binding surfaces are covered by this repository's tag release workflow
+and by the support matrix in `docs/sequence-kind-support.md`:
 
 - `biors-python` PyO3 wheels/source distribution on PyPI
 - `@bio-rs/biors-wasm` package with TypeScript definitions on npm; future tag
   releases publish it from GitHub Actions through npm trusted publishing
 - `biors-mcp-server` package and JSON tool contracts
 
-Do not describe Python, WASM, or MCP as fully researcher-grade until the
-pre-release audit items for those bindings are closed and their schema parity,
-provenance, validation, and model-input readiness behavior are covered by the
-release gate.
+Do not describe the entire project as fully researcher-grade without also
+naming the remaining protein-first package skeleton/conversion limitations in
+the support matrix.
 
 ## Performance Status
 
-The committed FASTA benchmark is the latest recorded public baseline. It should
-remain the source for numeric throughput claims until rerun and committed with
-new environment metadata. The `0.47.4` patch adds benchmark coverage for
-fixed-length model-input construction and reduces repeated ASCII classification
-in reader FASTA scanning; no new throughput claim is made until the benchmark
-artifact is regenerated.
+The committed FASTA benchmark is a historical public baseline, not current
+`0.47.4` throughput evidence. Current benchmark artifacts cover fixed-length
+model-input construction, binding/MCP/package smoke surfaces, and nucleotide
+workflow regression guards, but no new public throughput claim is made until
+the FASTA benchmark artifact is regenerated for the current release candidate.
 
 ## Deferred
 

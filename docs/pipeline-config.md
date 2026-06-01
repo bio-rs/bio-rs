@@ -88,15 +88,18 @@ pad_token_id = 0
 padding = "fixed_length"
 ```
 
-The current config contract intentionally supports one static workflow:
+The current config contract supports one static preprocessing workflow shape:
 
 1. parse FASTA input
 2. normalize sequence records with `strip_ascii_whitespace_uppercase`
-3. validate protein records
-4. tokenize with `protein-20`
+3. validate records with `kind = "protein"`, `"dna"`, or `"rna"`
+4. tokenize with the matching profile (`protein-20`, `protein-20-special`,
+   `dna-iupac`, `dna-iupac-special`, `rna-iupac`, or `rna-iupac-special`)
 5. export model-ready JSON
 
-Unknown fields and unsupported values fail with `pipeline.invalid_config`.
+`validate.kind` must match `tokenize.profile`; for example `kind = "dna"`
+requires a `dna-*` profile. Unknown fields and unsupported values fail with
+`pipeline.invalid_config`.
 YAML is intentionally not part of the default CLI config contract; keeping the
 contract to JSON and TOML avoids a native YAML parser dependency in the default
 researcher workflow.

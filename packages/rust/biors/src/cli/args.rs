@@ -216,7 +216,7 @@ impl From<PaddingArg> for PaddingPolicy {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum TokenizerProfileArg {
     #[default]
     #[value(name = "protein-20")]

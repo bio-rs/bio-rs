@@ -2,8 +2,8 @@
 
 `biors-wasm` exposes a browser-safe and Node.js-safe subset of
 `biors-core` as a WebAssembly module. It supports FASTA parsing, sequence
-validation, protein tokenization, model-input construction, and the standard
-protein preprocessing workflow.
+validation, profile-aware protein/DNA/RNA tokenization, model-input
+construction, and the standard preprocessing workflow.
 
 > **Status:** The `biors-wasm` crate is implemented in this repository. Tag
 > releases build, test, and publish the npm package through npm trusted
@@ -103,8 +103,9 @@ interface ValidationReport {
 
 ### `tokenize(records: FastaRecord[], profile: string): TokenizeOutput`
 
-Tokenizes parsed FASTA records with `"protein-20"` or
-`"protein-20-special"`.
+Tokenizes parsed FASTA records with `"protein-20"`, `"protein-20-special"`,
+`"dna-iupac"`, `"dna-iupac-special"`, `"rna-iupac"`, or
+`"rna-iupac-special"`.
 
 ```javascript
 const tokenized = tokenize(records, "protein-20");
@@ -200,7 +201,14 @@ console.log(workflow.provenance.input_hash);
 ```typescript
 interface WorkflowConfig {
   fastaBytes: Uint8Array;
-  kind?: "auto" | "protein";
+  kind?: "auto" | "protein" | "dna" | "rna";
+  profile?:
+    | "protein-20"
+    | "protein-20-special"
+    | "dna-iupac"
+    | "dna-iupac-special"
+    | "rna-iupac"
+    | "rna-iupac-special";
   maxLength: number;
   padding?: "fixed_length" | "no_padding";
   padTokenId?: number;
@@ -258,11 +266,9 @@ interface WorkflowOutput {
 }
 ```
 
-`runWorkflow` is currently the protein model-input workflow. `kind` may be
-omitted, `"auto"`, or `"protein"`; auto-detected DNA/RNA input is rejected
-instead of silently running the protein workflow. The workflow uses the default
-`protein-20` tokenizer internally and rejects unsupported `profile` values if a
-caller passes that legacy field.
+`runWorkflow` defaults to `protein-20`. Pass `kind` and `profile` when running
+DNA or RNA workflows. Explicit kind/profile mismatches are rejected before a
+workflow payload is emitted.
 
 ## Complete Example
 
