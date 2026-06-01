@@ -1,6 +1,6 @@
 {
   "schema_version": "biors.benchmark.backend_smoke.v1",
-  "generated_at_utc": "2026-05-31T14:39:05.020130+00:00",
+  "generated_at_utc": "2026-06-01T15:43:23.012848+00:00",
   "methodology": {
     "scope": "Optional Candle CPU backend smoke execution on a synthetic 32x128 model-input payload",
     "criterion_estimates": "target/criterion/candle_linear_probe_32x128_cpu/new/estimates.json"
@@ -9,10 +9,10 @@
     "os": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
     "machine": "arm64",
     "processor": "arm",
-    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
-    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
-    "biors_backend_candle": "0.47.4",
-    "git_commit": "ad33d9fc8a5ce5b69d2df63b06b93114b6eee598"
+    "rustc": "rustc 1.88.0 (6b00bc388 2025-06-23)",
+    "cargo": "cargo 1.88.0 (873a06493 2025-05-10)",
+    "biors_backend_candle": "0.47.5",
+    "git_commit": "753307b44d8cb08ef6878f733835b3b0d4954a09"
   },
   "workloads": [
     {
@@ -22,47 +22,47 @@
         "mean": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 231728.57204906206,
-            "upper_bound": 237460.4653088023
+            "lower_bound": 228843.8560237495,
+            "upper_bound": 229642.37899630412
           },
-          "point_estimate": 233821.16606637803,
-          "standard_error": 1657.9222337792164
+          "point_estimate": 229217.6576967134,
+          "standard_error": 205.71640320023727
         },
         "median": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 231336.12012987013,
-            "upper_bound": 233150.86571428573
+            "lower_bound": 228679.22134760703,
+            "upper_bound": 229641.03554785895
           },
-          "point_estimate": 232147.52745310246,
-          "standard_error": 639.6768027835979
+          "point_estimate": 229099.92722202232,
+          "standard_error": 266.4431067235033
         },
         "median_abs_dev": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 122.79586145630607,
-            "upper_bound": 2083.598508463287
+            "lower_bound": 93.3707479393317,
+            "upper_bound": 1149.2555442062312
           },
-          "point_estimate": 1226.206237018372,
-          "standard_error": 633.0551828341311
+          "point_estimate": 606.2043817818119,
+          "standard_error": 247.24747318128544
         },
         "slope": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 231498.0262651324,
-            "upper_bound": 232760.61632882582
+            "lower_bound": 229160.80889884467,
+            "upper_bound": 229827.30196815098
           },
-          "point_estimate": 232175.32922246584,
-          "standard_error": 330.4810416287854
+          "point_estimate": 229504.85150969937,
+          "standard_error": 168.15591377576982
         },
         "std_dev": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 584.0442355666926,
-            "upper_bound": 8543.614673500768
+            "lower_bound": 347.7171439552052,
+            "upper_bound": 886.483558040885
           },
-          "point_estimate": 5557.561839032404,
-          "standard_error": 2844.1060561454556
+          "point_estimate": 680.4585829377821,
+          "standard_error": 144.1302661032205
         }
       }
     }

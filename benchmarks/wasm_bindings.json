@@ -1,6 +1,6 @@
 {
   "schema_version": "biors.benchmark.wasm_bindings.v1",
-  "generated_at_utc": "2026-06-01T13:18:59.877648+00:00",
+  "generated_at_utc": "2026-06-01T15:42:11.820470+00:00",
   "loops": 3,
   "methodology": {
     "scope": "Node.js WASM binding regression guard timings on deterministic synthetic FASTA input",
@@ -17,8 +17,8 @@
     "cargo": "cargo 1.88.0 (873a06493 2025-05-10)",
     "wasm_pack": "wasm-pack 0.15.0",
     "node": "v25.2.1",
-    "biors_wasm": "0.47.4",
-    "git_commit": "58a7ce2e3fecd5335f2b606f4647bcd903a8d675"
+    "biors_wasm": "0.47.5",
+    "git_commit": "753307b44d8cb08ef6878f733835b3b0d4954a09"
   },
   "workloads": [
     {
@@ -32,10 +32,10 @@
         "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
       },
       "summary": {
-        "mean_s": 0.0003337636666666667,
-        "median_s": 0.000340375,
-        "min_s": 0.000310708,
-        "max_s": 0.000350208,
+        "mean_s": 0.0002936666666666667,
+        "median_s": 0.000293292,
+        "min_s": 0.000279875,
+        "max_s": 0.000307833,
         "output_hash": "sha256:bd91a4ffaa9dc65118264325a31a98309fbd5d9b344b5d2cd83ff060af793d04",
         "output_bytes": 40595
       }
@@ -51,10 +51,10 @@
         "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
       },
       "summary": {
-        "mean_s": 0.0006386946666666666,
-        "median_s": 0.00062325,
-        "min_s": 0.000605167,
-        "max_s": 0.000687667,
+        "mean_s": 0.0006228196666666666,
+        "median_s": 0.000611125,
+        "min_s": 0.000587834,
+        "max_s": 0.0006695,
         "output_hash": "sha256:e54f7f78b58f92f9519584d2a399403647eb98945f66c96ad5cb49410bb27f0e",
         "output_bytes": 61203
       }
@@ -70,10 +70,10 @@
         "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
       },
       "summary": {
-        "mean_s": 0.003131319333333333,
-        "median_s": 0.0030025,
-        "min_s": 0.002637041,
-        "max_s": 0.003754417,
+        "mean_s": 0.0025343889999999997,
+        "median_s": 0.002592375,
+        "min_s": 0.002294625,
+        "max_s": 0.002716167,
         "output_hash": "sha256:e25759a970a26d3227dc989de8bf46a938deaf9d94baaaa43283fcdfa420248c",
         "output_bytes": 259658
       }
@@ -89,11 +89,11 @@
         "sha256": "sha256:149392585862f8ef5ebc38517b6a5562d7266cb09c2c5d1c7336a84a0a720e29"
       },
       "summary": {
-        "mean_s": 0.010078152666666666,
-        "median_s": 0.010086291,
-        "min_s": 0.009767125,
-        "max_s": 0.010381042,
-        "output_hash": "sha256:04b3cc85680a2684d35ed9155eac64aec05b719d6b9989d2c99c1632f6ad7b77",
+        "mean_s": 0.010132083,
+        "median_s": 0.010091625,
+        "min_s": 0.010037166,
+        "max_s": 0.010267458,
+        "output_hash": "sha256:da11a40b37c81085e3b82d98a11719a6ff6da1783776d3cece4232e31c7205dc",
         "output_bytes": 364030
       }
     },
@@ -108,10 +108,10 @@
         "sha256": "sha256:8e8b92f8bc54590a889c54864aa2f54b0c382056b91c652279531a62e7720a12"
       },
       "summary": {
-        "mean_s": 0.0019518889999999998,
-        "median_s": 0.001992459,
-        "min_s": 0.001828291,
-        "max_s": 0.002034917,
+        "mean_s": 0.001870833,
+        "median_s": 0.001871208,
+        "min_s": 0.001866583,
+        "max_s": 0.001874708,
         "output_hash": "sha256:95ee9af9f755e9aff378cbb21fd645b7e626762e031bdebed04a52623e086959",
         "output_bytes": 226392
       }
@@ -127,11 +127,11 @@
         "sha256": "sha256:8e8b92f8bc54590a889c54864aa2f54b0c382056b91c652279531a62e7720a12"
       },
       "summary": {
-        "mean_s": 0.008578458666666667,
-        "median_s": 0.008462584,
-        "min_s": 0.008373375,
-        "max_s": 0.008899417,
-        "output_hash": "sha256:5b32b5da899a68781269ce228c5d4e90cea4d0f31edea64855e120323a81740e",
+        "mean_s": 0.008365736,
+        "median_s": 0.008340792,
+        "min_s": 0.008272708,
+        "max_s": 0.008483708,
+        "output_hash": "sha256:373500e103e2f70b36f97c0a46df1a8390d82c517773aec5fc5732a7bf67389b",
         "output_bytes": 330504
       }
     },
@@ -146,10 +146,10 @@
         "sha256": "sha256:0122eb93ce17de1c9e72ebf8c38a9a6156bb75e231c5a7ab770dfdce941e961b"
       },
       "summary": {
-        "mean_s": 0.0017667086666666668,
-        "median_s": 0.001763084,
-        "min_s": 0.001754834,
-        "max_s": 0.001782208,
+        "mean_s": 0.0017014166666666664,
+        "median_s": 0.001699625,
+        "min_s": 0.00169875,
+        "max_s": 0.001705875,
         "output_hash": "sha256:d57e7b342125b1ae8b408812dff61c351a8e93e4b6640242c9486fdf4be6fadd",
         "output_bytes": 226392
       }
@@ -165,11 +165,11 @@
         "sha256": "sha256:0122eb93ce17de1c9e72ebf8c38a9a6156bb75e231c5a7ab770dfdce941e961b"
       },
       "summary": {
-        "mean_s": 0.008435333333333335,
-        "median_s": 0.008483083,
-        "min_s": 0.008259584,
-        "max_s": 0.008563333,
-        "output_hash": "sha256:faa3ac0264fd92fcc0967dadef256a6d2ba0a46013b12806582a18a4fec399a2",
+        "mean_s": 0.008596263666666666,
+        "median_s": 0.008550458,
+        "min_s": 0.008528542,
+        "max_s": 0.008709791,
+        "output_hash": "sha256:41ded786d63782c7f65bd12bfc6533c23df5ce060dcedc16ea8bd8d08b8736f1",
         "output_bytes": 330504
       }
     }

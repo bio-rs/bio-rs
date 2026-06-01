@@ -1,6 +1,6 @@
 {
   "schema_version": "biors.benchmark.mcp_server.v1",
-  "generated_at_utc": "2026-05-31T14:43:17.963743+00:00",
+  "generated_at_utc": "2026-06-01T15:44:17.810847+00:00",
   "methodology": {
     "scope": "MCP doctor tool request over rmcp client/server duplex transport",
     "criterion_estimates": "target/criterion/mcp_doctor_request_duplex/new/estimates.json"
@@ -9,10 +9,10 @@
     "os": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
     "machine": "arm64",
     "processor": "arm",
-    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
-    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
-    "biors_mcp_server": "0.47.4",
-    "git_commit": "64d4cd4f56a95c2053303755238ea78406b05a1f"
+    "rustc": "rustc 1.88.0 (6b00bc388 2025-06-23)",
+    "cargo": "cargo 1.88.0 (873a06493 2025-05-10)",
+    "biors_mcp_server": "0.47.5",
+    "git_commit": "753307b44d8cb08ef6878f733835b3b0d4954a09"
   },
   "workloads": [
     {
@@ -22,47 +22,47 @@
         "mean": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 53881.66015867528,
-            "upper_bound": 54598.256790244006
+            "lower_bound": 58566.64007969303,
+            "upper_bound": 61563.0361801948
           },
-          "point_estimate": 54212.11638584938,
-          "standard_error": 184.24245055931192
+          "point_estimate": 60143.04869309983,
+          "standard_error": 768.4967133859141
         },
         "median": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 53737.30112462006,
-            "upper_bound": 54735.986474164136
+            "lower_bound": 57838.76303620622,
+            "upper_bound": 62331.159607438014
           },
-          "point_estimate": 54055.93763931104,
-          "standard_error": 219.65419228253862
+          "point_estimate": 61088.889663682276,
+          "standard_error": 1306.6935667056741
         },
         "median_abs_dev": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 85.42042558986965,
-            "upper_bound": 871.764604852866
+            "lower_bound": 337.00738007063984,
+            "upper_bound": 4183.417804241882
           },
-          "point_estimate": 394.9891176683937,
-          "standard_error": 209.27053950469846
+          "point_estimate": 2247.1155071339635,
+          "standard_error": 1109.549620772207
         },
         "slope": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 53816.52612765958,
-            "upper_bound": 54782.07102145119
+            "lower_bound": 57997.00807236084,
+            "upper_bound": 62059.49466465757
           },
-          "point_estimate": 54240.886064816645,
-          "standard_error": 264.85298071837093
+          "point_estimate": 60545.396567206895,
+          "standard_error": 1036.1726956868624
         },
         "std_dev": {
           "confidence_interval": {
             "confidence_level": 0.95,
-            "lower_bound": 218.9664015556632,
-            "upper_bound": 766.7984826117156
+            "lower_bound": 1370.0330286314709,
+            "upper_bound": 3028.007934019592
           },
-          "point_estimate": 613.8854957025376,
-          "standard_error": 144.2653184932933
+          "point_estimate": 2565.997202466034,
+          "standard_error": 414.47449078621156
         }
       }
     }

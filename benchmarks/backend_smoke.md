@@ -5,13 +5,13 @@ backend smoke path. It is not a broad model-serving throughput claim.
 
 ## Environment
 
-- Date: 2026-05-31 (UTC)
+- Date: 2026-06-01 (UTC)
 - OS: macOS-26.3.1-arm64-arm-64bit-Mach-O
 - Machine: `arm64`
-- Rust: `rustc 1.95.0 (59807616e 2026-04-14)`
-- Cargo: `cargo 1.95.0 (f2d3ce0bd 2026-03-21)`
-- biors-backend-candle: `v0.47.4`
-- Git commit: `ad33d9fc8a5ce5b69d2df63b06b93114b6eee598`
+- Rust: `rustc 1.88.0 (6b00bc388 2025-06-23)`
+- Cargo: `cargo 1.88.0 (873a06493 2025-05-10)`
+- biors-backend-candle: `v0.47.5`
+- Git commit: `753307b44d8cb08ef6878f733835b3b0d4954a09`
 - Benchmark schema: `biors.benchmark.backend_smoke.v1`
 
 ## Methodology
@@ -25,7 +25,7 @@ The script runs the existing Criterion bench and exports the generated
 
 | Workload | Surface | Mean | Median | Slope | 95% CI mean |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `candle_linear_probe_32x128_cpu` | `candle_backend_cpu_smoke` | 233.82 us | 232.15 us | 232.18 us | 231.73-237.46 us |
+| `candle_linear_probe_32x128_cpu` | `candle_backend_cpu_smoke` | 229.22 us | 229.10 us | 229.50 us | 228.84-229.64 us |
 
 ## Reproduce
 

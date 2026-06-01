@@ -20,11 +20,11 @@
       }
     },
     "citation": {
-      "preferred_citation": "bio-rs protein package fixture, version 0.47.4",
+      "preferred_citation": "bio-rs protein package fixture, version 0.47.5",
       "doi": "10.0000/biors.fixture",
       "file": {
         "path": "docs/CITATION.cff",
-        "checksum": "sha256:6a5b1b59f1c278081ed9e2e53c0b0d86cc53d53db167739c13a0ede5f7584447"
+        "checksum": "sha256:4e03e53d00de52ea976246de6cfef17671420f22335ac917f268078e60db8fe1"
       }
     },
     "model_card": {
@@ -92,11 +92,17 @@
     "version": "onnx-webgpu.v0"
   },
   "expected_input": {
-    "shape": ["batch", "sequence"],
+    "shape": [
+      "batch",
+      "sequence"
+    ],
     "dtype": "uint8"
   },
   "expected_output": {
-    "shape": ["batch", "classes"],
+    "shape": [
+      "batch",
+      "classes"
+    ],
     "dtype": "float32"
   },
   "fixtures": [
