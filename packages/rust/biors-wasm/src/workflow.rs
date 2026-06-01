@@ -1,6 +1,6 @@
 use biors_core::model_input::{ModelInputPolicy, PaddingPolicy};
-use biors_core::sequence::{SequenceKind, SequenceKindSelection};
-use biors_core::workflow::prepare_protein_model_input_workflow;
+use biors_core::tokenizer::protein_tokenizer_config_for_profile;
+use biors_core::workflow::{prepare_model_input_workflow_with_config, SequenceWorkflowInvocation};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 
@@ -13,11 +13,14 @@ pub fn run_workflow(config: JsValue) -> Result<JsValue, JsValue> {
     let kind = get_string_opt(&config, "kind")?;
     let profile = get_string_opt(&config, "profile")?;
 
-    ensure_supported_workflow_kind(kind.as_deref(), &fasta_bytes)?;
-    ensure_default_workflow_profile(profile.as_deref())?;
-
     let input = biors_core::fasta::parse_fasta_records_reader(Cursor::new(&fasta_bytes))
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let profile = crate::profile::resolve_workflow_profile(
+        kind.as_deref(),
+        profile.as_deref(),
+        &fasta_bytes,
+    )?;
+    let tokenizer_config = protein_tokenizer_config_for_profile(profile);
 
     let padding_policy = match padding.as_deref() {
         Some("no_padding") | None => PaddingPolicy::NoPadding,
@@ -35,56 +38,23 @@ pub fn run_workflow(config: JsValue) -> Result<JsValue, JsValue> {
         padding: padding_policy,
     };
 
-    let output = prepare_protein_model_input_workflow(input.input_hash, &input.records, policy)
-        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let output = prepare_model_input_workflow_with_config(
+        input.input_hash,
+        &input.records,
+        policy,
+        tokenizer_config,
+        SequenceWorkflowInvocation {
+            command: "biors-core prepare_protein_model_input_workflow".to_string(),
+            arguments: vec![
+                format!("records={}", input.records.len()),
+                format!("profile={}", profile.as_str()),
+            ],
+        },
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let json = serde_json::to_string(&output).map_err(|e| JsValue::from_str(&e.to_string()))?;
     js_sys::JSON::parse(&json)
-}
-
-fn ensure_supported_workflow_kind(kind: Option<&str>, fasta_bytes: &[u8]) -> Result<(), JsValue> {
-    match kind {
-        None | Some("auto") => reject_non_protein_auto_detected_input(fasta_bytes),
-        Some("protein") => Ok(()),
-        Some("dna") | Some("rna") => Err(JsValue::from_str(
-            "unsupported workflow kind: runWorkflow currently supports protein model-input workflows only",
-        )),
-        Some(other) => Err(JsValue::from_str(&format!(
-            "invalid kind: '{other}'. Expected 'auto' or 'protein'"
-        ))),
-    }
-}
-
-fn reject_non_protein_auto_detected_input(fasta_bytes: &[u8]) -> Result<(), JsValue> {
-    let fasta_text = std::str::from_utf8(fasta_bytes)
-        .map_err(|e| JsValue::from_str(&format!("invalid UTF-8 FASTA input: {e}")))?;
-    let report = biors_core::sequence::kind_validation::validate_fasta_input_with_kind(
-        fasta_text,
-        SequenceKindSelection::Auto,
-    )
-    .map_err(|e| JsValue::from_str(&e.to_string()))?;
-    if report
-        .sequences
-        .iter()
-        .any(|record| record.kind != SequenceKind::Protein)
-    {
-        return Err(JsValue::from_str(
-            "unsupported workflow kind: runWorkflow auto-detected non-protein input, but the workflow currently supports protein model-input workflows only",
-        ));
-    }
-    Ok(())
-}
-
-fn ensure_default_workflow_profile(profile: Option<&str>) -> Result<(), JsValue> {
-    match profile {
-        None | Some("protein-20") => Ok(()),
-        Some("protein-20-special") => Err(JsValue::from_str(
-            "unsupported workflow profile: runWorkflow currently supports protein-20 only",
-        )),
-        Some(other) => Err(JsValue::from_str(&format!(
-            "invalid profile: '{other}'. Expected 'protein-20'"
-        ))),
-    }
 }
 
 fn get_bytes(obj: &JsValue, key: &str) -> Result<Vec<u8>, JsValue> {

@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 
 mod fasta;
 mod model_input;
+mod profile;
 mod tokenize;
 mod types;
 mod workflow;

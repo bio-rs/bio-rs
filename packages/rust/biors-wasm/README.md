@@ -19,12 +19,19 @@ const bytes = new TextEncoder().encode(fastaText);
 const parsed = parseFasta(bytes);
 const validated = validateFasta(bytes, "protein");
 const tokenized = tokenize(parsed, "protein-20");
+const dnaTokens = tokenize(parseFasta(new TextEncoder().encode(">dna\nACGT\n")), "dna-iupac");
 const modelInput = buildModelInputWithPolicy(tokenized.records, 8, 0, "fixed_length");
 const workflow = runWorkflow({
   fastaBytes: bytes,
   maxLength: 8,
   padding: "fixed_length",
   padTokenId: 0,
+});
+const dnaWorkflow = runWorkflow({
+  fastaBytes: new TextEncoder().encode(">dna\nACGT\n"),
+  kind: "dna",
+  profile: "dna-iupac",
+  maxLength: 8,
 });
 ```
 

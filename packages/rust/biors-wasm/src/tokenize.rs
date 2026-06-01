@@ -1,7 +1,5 @@
 use biors_core::sequence::ProteinSequence;
-use biors_core::tokenizer::{
-    tokenize_protein_with_config, ProteinTokenizerConfig, ProteinTokenizerProfile, TokenizedProtein,
-};
+use biors_core::tokenizer::{tokenize_protein_with_config, TokenizedProtein};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -13,21 +11,7 @@ pub fn tokenize(records: JsValue, profile: String) -> Result<JsValue, JsValue> {
     let records: Vec<FastaRecord> =
         serde_json::from_str(&json_str).map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    let config = match profile.as_str() {
-        "protein-20" => ProteinTokenizerConfig {
-            profile: ProteinTokenizerProfile::Protein20,
-            add_special_tokens: false,
-        },
-        "protein-20-special" => ProteinTokenizerConfig {
-            profile: ProteinTokenizerProfile::Protein20Special,
-            add_special_tokens: true,
-        },
-        _ => {
-            return Err(JsValue::from_str(&format!(
-                "invalid profile: '{profile}'. Expected 'protein-20' or 'protein-20-special'"
-            )))
-        }
-    };
+    let config = crate::profile::tokenizer_config_for_profile(&profile)?;
 
     let mut tokenized: Vec<TokenizedProtein> = Vec::with_capacity(records.len());
     let mut input_ids: Vec<Vec<u8>> = Vec::with_capacity(records.len());

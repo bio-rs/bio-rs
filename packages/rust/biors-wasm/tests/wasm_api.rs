@@ -43,6 +43,19 @@ fn test_tokenize() {
 }
 
 #[wasm_bindgen_test]
+fn test_tokenize_accepts_nucleotide_profiles() {
+    let records = js_sys::JSON::parse(r#"[{"id":"dna","sequence":"ACGT"}]"#).unwrap();
+    let result = biors_wasm::tokenize(records, "dna-iupac".to_string()).unwrap();
+    let records = js_sys::Reflect::get(&result, &"records".into()).unwrap();
+    let first_record = js_sys::Array::from(&records).get(0);
+    let alphabet = js_sys::Reflect::get(&first_record, &"alphabet".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    assert_eq!(alphabet, "dna-iupac");
+}
+
+#[wasm_bindgen_test]
 fn test_tokenize_invalid_profile() {
     let records = js_sys::JSON::parse(r#"[{"id":"seq1","sequence":"ACDE"}]"#).unwrap();
     let result = biors_wasm::tokenize(records, "invalid".to_string());
@@ -114,21 +127,54 @@ fn test_run_workflow() {
 }
 
 #[wasm_bindgen_test]
-fn test_run_workflow_rejects_unsupported_kind_and_profile() {
+fn test_run_workflow_accepts_nucleotide_kind_and_profile() {
     let config = workflow_config(">seq1\nACGT\n");
-    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"maxLength".into(), &6.into()).unwrap();
     js_sys::Reflect::set(&config, &"kind".into(), &"dna".into()).unwrap();
-    assert!(biors_wasm::run_workflow(config.into()).is_err());
+    js_sys::Reflect::set(&config, &"profile".into(), &"dna-iupac".into()).unwrap();
+    js_sys::Reflect::set(&config, &"padding".into(), &"fixed_length".into()).unwrap();
+    let output = biors_wasm::run_workflow(config.into()).unwrap();
+    let workflow = js_sys::Reflect::get(&output, &"workflow".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    assert_eq!(workflow, "sequence_model_input.v0");
+    let provenance = js_sys::Reflect::get(&output, &"provenance".into()).unwrap();
+    let tokenizer = js_sys::Reflect::get(&provenance, &"tokenizer".into()).unwrap();
+    let tokenizer_name = js_sys::Reflect::get(&tokenizer, &"name".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    assert_eq!(tokenizer_name, "dna-iupac");
 
     let config = workflow_config(">seq1\nACGT\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
     js_sys::Reflect::set(&config, &"kind".into(), &"auto".into()).unwrap();
-    assert!(biors_wasm::run_workflow(config.into()).is_err());
+    let output = biors_wasm::run_workflow(config.into()).unwrap();
+    let provenance = js_sys::Reflect::get(&output, &"provenance".into()).unwrap();
+    let tokenizer = js_sys::Reflect::get(&provenance, &"tokenizer".into()).unwrap();
+    let tokenizer_name = js_sys::Reflect::get(&tokenizer, &"name".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    assert_eq!(tokenizer_name, "dna-iupac");
+}
 
+#[wasm_bindgen_test]
+fn test_run_workflow_rejects_kind_profile_mismatch() {
+    let config = workflow_config(">seq1\nACGT\n");
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"kind".into(), &"dna".into()).unwrap();
+    js_sys::Reflect::set(&config, &"profile".into(), &"protein-20".into()).unwrap();
+    assert!(biors_wasm::run_workflow(config.into()).is_err());
+}
+
+#[wasm_bindgen_test]
+fn test_run_workflow_accepts_special_profiles() {
     let config = workflow_config(">seq1\nACDE\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
     js_sys::Reflect::set(&config, &"profile".into(), &"protein-20-special".into()).unwrap();
-    assert!(biors_wasm::run_workflow(config.into()).is_err());
+    assert!(biors_wasm::run_workflow(config.into()).is_ok());
 }
 
 #[wasm_bindgen_test]
@@ -212,7 +258,11 @@ fn assert_matches_shared_workflow_schema_contract(
         );
     }
 
-    assert_eq!(value["workflow"], schema["properties"]["workflow"]["const"]);
+    assert_schema_enum_contains(
+        &schema["properties"]["workflow"]["enum"],
+        &value["workflow"],
+        "workflow",
+    );
     let allowed_commands = schema["properties"]["provenance"]["properties"]["invocation"]
         ["properties"]["command"]["enum"]
         .as_array()
@@ -225,18 +275,32 @@ fn assert_matches_shared_workflow_schema_contract(
         value["provenance"]["normalization"],
         schema["properties"]["provenance"]["properties"]["normalization"]["const"]
     );
-    assert_eq!(
-        value["provenance"]["validation_alphabet"],
-        schema["properties"]["provenance"]["properties"]["validation_alphabet"]["const"]
+    assert_schema_enum_contains(
+        &schema["properties"]["provenance"]["properties"]["validation_alphabet"]["enum"],
+        &value["provenance"]["validation_alphabet"],
+        "validation_alphabet",
     );
-    assert_eq!(
-        value["provenance"]["tokenizer"]["name"],
-        schema["properties"]["provenance"]["properties"]["tokenizer"]["properties"]["name"]
-            ["const"]
+    assert_schema_enum_contains(
+        &schema["properties"]["provenance"]["properties"]["tokenizer"]["properties"]["name"]
+            ["enum"],
+        &value["provenance"]["tokenizer"]["name"],
+        "tokenizer.name",
     );
-    assert_eq!(
-        value["validation"]["sequences"][0]["alphabet"],
-        schema["properties"]["validation"]["properties"]["sequences"]["items"]["properties"]
-            ["alphabet"]["const"]
+    assert_schema_enum_contains(
+        &schema["properties"]["validation"]["properties"]["sequences"]["items"]["properties"]
+            ["alphabet"]["enum"],
+        &value["validation"]["sequences"][0]["alphabet"],
+        "validation.sequences[].alphabet",
+    );
+}
+
+fn assert_schema_enum_contains(
+    enum_values: &serde_json::Value,
+    value: &serde_json::Value,
+    field: &str,
+) {
+    assert!(
+        enum_values.as_array().unwrap().contains(value),
+        "WASM output {field} is outside the shared schema enum"
     );
 }

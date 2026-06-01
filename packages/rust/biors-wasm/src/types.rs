@@ -104,7 +104,8 @@ export interface ModelInputOutput {
 const TS_WORKFLOW: &'static str = r#"
 export interface WorkflowConfig {
     fastaBytes: Uint8Array;
-    kind?: "auto" | "protein";
+    kind?: "auto" | "protein" | "dna" | "rna";
+    profile?: "protein-20" | "protein-20-special" | "dna-iupac" | "dna-iupac-special" | "rna-iupac" | "rna-iupac-special";
     maxLength: number;
     padding?: "fixed_length" | "no_padding";
     padTokenId?: number;
