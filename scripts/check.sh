@@ -24,7 +24,9 @@ echo "==> module size"
 python3 scripts/check-module-size.py
 
 echo "==> benchmark docs"
-python3 scripts/check-benchmark-artifact.py
+# Keep this aligned with check-fast.sh: the release gate must diff rendered
+# benchmark Markdown, not only validate the machine-readable artifact.
+scripts/check-benchmark-docs.sh
 
 echo "==> release workflow"
 python3 scripts/check-release-workflow.py

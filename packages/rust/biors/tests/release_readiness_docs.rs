@@ -375,6 +375,25 @@ fn benchmark_workflow_runs_smoke_and_scheduled_criterion_suite() {
 }
 
 #[test]
+fn local_check_scripts_use_rendered_benchmark_docs_gate() {
+    let repo = common::repo_root();
+    let check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read check.sh");
+    let check_fast =
+        fs::read_to_string(repo.join("scripts/check-fast.sh")).expect("read check-fast.sh");
+
+    for (name, script) in [("check.sh", check), ("check-fast.sh", check_fast)] {
+        assert!(
+            script.contains("scripts/check-benchmark-docs.sh"),
+            "{name} must run the rendered benchmark docs gate"
+        );
+        assert!(
+            !script.contains("python3 scripts/check-benchmark-artifact.py"),
+            "{name} must not use the artifact-only benchmark check as its top-level benchmark gate"
+        );
+    }
+}
+
+#[test]
 fn github_templates_cover_promoted_release_surfaces() {
     let repo = common::repo_root();
     let pr_template = fs::read_to_string(repo.join(".github/pull_request_template.md"))
