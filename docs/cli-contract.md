@@ -38,6 +38,10 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors service contract`
 
 `model-input` tokenizes FASTA records and emits deterministic model-ready `input_ids` plus `attention_mask` records.
+`model-input-output.v0.json` is the structural JSON contract; integration
+boundaries that accept externally supplied model-input JSON must also run the
+core `validate_model_input_payload` semantic validator for cross-field
+invariants that JSON Schema cannot express portably.
 `workflow` runs protein FASTA validation, deterministic `protein-20`
 tokenization, model-input generation, readiness reporting, and reproducibility
 provenance in a single JSON payload. It keeps validation and tokenization

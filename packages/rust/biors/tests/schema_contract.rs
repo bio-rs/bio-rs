@@ -63,6 +63,24 @@ fn invalid_payload_examples_are_rejected_by_schemas() {
         &zero_model_input,
         "schemas/model-input-output.v0.json",
     );
+
+    let non_binary_mask = serde_json::json!({
+        "policy": {
+            "max_length": 2,
+            "pad_token_id": 0,
+            "padding": "fixed_length"
+        },
+        "records": [{
+            "id": "seq1",
+            "input_ids": [1, 0],
+            "attention_mask": [1, 2],
+            "truncated": false
+        }]
+    });
+    common::assert_payload_rejected_by_schema(
+        &non_binary_mask,
+        "schemas/model-input-output.v0.json",
+    );
 }
 
 #[test]

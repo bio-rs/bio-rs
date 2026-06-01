@@ -67,6 +67,18 @@ pub enum ModelInputPayloadError {
         input_ids: usize,
         attention_mask: usize,
     },
+    /// Fixed-length payload records must match the policy max length.
+    FixedLengthMismatch {
+        id: String,
+        expected: usize,
+        actual: usize,
+    },
+    /// No-padding payload records cannot exceed the policy max length.
+    NoPaddingLengthExceeded {
+        id: String,
+        max_length: usize,
+        actual: usize,
+    },
     /// Attention masks must contain only `0` and `1`.
     NonBinaryAttentionMask { id: String, index: usize, value: u8 },
     /// A record has no tokens selected by its attention mask.
@@ -131,6 +143,23 @@ pub fn validate_model_input_payload(input: &ModelInput) -> Result<(), ModelInput
                 input_ids: record.input_ids.len(),
                 attention_mask: record.attention_mask.len(),
             });
+        }
+        match input.policy.padding {
+            PaddingPolicy::FixedLength if record.input_ids.len() != input.policy.max_length => {
+                return Err(ModelInputPayloadError::FixedLengthMismatch {
+                    id: record.id.clone(),
+                    expected: input.policy.max_length,
+                    actual: record.input_ids.len(),
+                });
+            }
+            PaddingPolicy::NoPadding if record.input_ids.len() > input.policy.max_length => {
+                return Err(ModelInputPayloadError::NoPaddingLengthExceeded {
+                    id: record.id.clone(),
+                    max_length: input.policy.max_length,
+                    actual: record.input_ids.len(),
+                });
+            }
+            _ => {}
         }
 
         for (index, value) in record.attention_mask.iter().copied().enumerate() {
@@ -214,6 +243,8 @@ impl ModelInputPayloadError {
     pub const fn code(&self) -> &'static str {
         match self {
             Self::LengthMismatch { .. } => "model_input.length_mismatch",
+            Self::FixedLengthMismatch { .. } => "model_input.fixed_length_mismatch",
+            Self::NoPaddingLengthExceeded { .. } => "model_input.no_padding_length_exceeded",
             Self::NonBinaryAttentionMask { .. } => "model_input.non_binary_attention_mask",
             Self::EmptyUnmaskedTokens { .. } => "model_input.empty_attention_mask",
         }
@@ -230,6 +261,22 @@ impl fmt::Display for ModelInputPayloadError {
             } => write!(
                 f,
                 "record '{id}' has {input_ids} input ids but {attention_mask} attention-mask values"
+            ),
+            Self::FixedLengthMismatch {
+                id,
+                expected,
+                actual,
+            } => write!(
+                f,
+                "record '{id}' has {actual} input ids, expected fixed length {expected}"
+            ),
+            Self::NoPaddingLengthExceeded {
+                id,
+                max_length,
+                actual,
+            } => write!(
+                f,
+                "record '{id}' has {actual} input ids, exceeding max_length {max_length}"
             ),
             Self::NonBinaryAttentionMask { id, index, value } => write!(
                 f,

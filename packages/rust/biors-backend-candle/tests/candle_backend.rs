@@ -113,8 +113,8 @@ fn candle_backend_rejects_non_binary_attention_mask() {
     let error = execute_payload_expect_error(
         model_input_payload_with_record(ModelInputRecord {
             id: "protein-a".to_string(),
-            input_ids: vec![1, 2, 0],
-            attention_mask: vec![1, 2, 0],
+            input_ids: vec![1, 2, 0, 0],
+            attention_mask: vec![1, 2, 0, 0],
             truncated: false,
         }),
         "non-binary-mask",
@@ -141,12 +141,28 @@ fn candle_backend_rejects_attention_mask_length_mismatch() {
 }
 
 #[test]
+fn candle_backend_rejects_fixed_length_record_size_mismatch() {
+    let error = execute_payload_expect_error(
+        model_input_payload_with_record(ModelInputRecord {
+            id: "protein-a".to_string(),
+            input_ids: vec![1, 2],
+            attention_mask: vec![1, 1],
+            truncated: false,
+        }),
+        "fixed-length-size-mismatch",
+    );
+
+    assert!(error.contains("model_input.fixed_length_mismatch"));
+    assert!(error.contains("expected fixed length 4"));
+}
+
+#[test]
 fn candle_backend_rejects_empty_unmasked_tokens() {
     let error = execute_payload_expect_error(
         model_input_payload_with_record(ModelInputRecord {
             id: "protein-a".to_string(),
-            input_ids: vec![0, 0],
-            attention_mask: vec![0, 0],
+            input_ids: vec![0, 0, 0, 0],
+            attention_mask: vec![0, 0, 0, 0],
             truncated: false,
         }),
         "empty-mask",
@@ -161,8 +177,8 @@ fn candle_backend_rejects_token_ids_outside_embedding_vocab() {
     let error = execute_payload_expect_error(
         model_input_payload_with_record(ModelInputRecord {
             id: "protein-a".to_string(),
-            input_ids: vec![4],
-            attention_mask: vec![1],
+            input_ids: vec![4, 0, 0, 0],
+            attention_mask: vec![1, 0, 0, 0],
             truncated: false,
         }),
         "token-out-of-range",

@@ -176,7 +176,15 @@ The `model_input` module converts tokenized proteins into model-ready arrays wit
 
 - **`ModelInputBuildError`** — Errors from checked builders.
   - `InvalidPolicy { message }`
+  - `InvalidInputHash { input_hash }`
   - `InvalidTokenizedSequence { id, warning_count, error_count }`
+
+- **`ModelInputPayloadError`** — Semantic validation errors for externally supplied model-input payloads.
+  - `LengthMismatch { id, input_ids, attention_mask }`
+  - `FixedLengthMismatch { id, expected, actual }`
+  - `NoPaddingLengthExceeded { id, max_length, actual }`
+  - `NonBinaryAttentionMask { id, index, value }`
+  - `EmptyUnmaskedTokens { id }`
 
 #### Functions
 
@@ -188,6 +196,11 @@ The `model_input` module converts tokenized proteins into model-ready arrays wit
 
 - `pub fn validate_model_input_policy(policy: &ModelInputPolicy) -> Result<(), ModelInputBuildError>`
   Validate a model-input policy without building records.
+
+- `pub fn validate_model_input_payload(input: &ModelInput) -> Result<(), ModelInputPayloadError>`
+  Validate semantic invariants that JSON Schema cannot fully express, including
+  matching `input_ids`/`attention_mask` lengths, fixed-length record sizes,
+  no-padding maximum length, binary masks, and at least one unmasked token.
 
 ### Module: `package`
 

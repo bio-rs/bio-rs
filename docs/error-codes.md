@@ -29,6 +29,11 @@ declarations.
 
 - `model_input.invalid_sequence`: a tokenized sequence still contains warnings or errors and cannot be emitted as model-ready input safely
 - `model_input.invalid_policy`: model input policy values are invalid, such as `max_length=0`
+- `model_input.fixed_length_mismatch`: fixed-length model-input payload record length does not equal `policy.max_length`
+- `model_input.no_padding_length_exceeded`: no-padding model-input payload record length exceeds `policy.max_length`
+- `model_input.length_mismatch`: model-input `input_ids` and `attention_mask` lengths differ
+- `model_input.non_binary_attention_mask`: model-input `attention_mask` contains a value other than `0` or `1`
+- `model_input.empty_attention_mask`: model-input record has no unmasked token
 - `workflow.invalid_input_hash`: workflow provenance input hash does not match `fnv1a64:<16 lowercase hex>`
 
 ## Batch
