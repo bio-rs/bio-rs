@@ -76,10 +76,15 @@ against [docs/dependency-policy.md](dependency-policy.md), including:
 - whether `biors-core` still has only its approved normal dependencies
 - whether optional Candle, MCP, Python, and WASM dependencies remain isolated in
   their package-specific crates
+- whether published crate dependency-count budgets in
+  [docs/dependency-policy.md](dependency-policy.md) still match the intended
+  release footprint
 - whether `cargo tree --locked -p biors-core --duplicates` and
   `cargo tree --locked -p biors --duplicates` remain clean
 - whether `cargo-deny` advisory, license, source, and duplicate-version findings
   are resolved or explicitly documented before tagging
+- whether `cargo machete` and `cargo udeps` were run, or the reason they were
+  unavailable is recorded in release notes
 - why any new dependency is needed and whether it affects the default CLI/core
   install path
 

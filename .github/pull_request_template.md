@@ -27,7 +27,12 @@
 
 - [ ] `Cargo.toml` / `Cargo.lock` changes are justified, or no dependency files changed
 - [ ] Default `biors-core` / `biors` dependency tree impact reviewed
+- [ ] Published crate dependency-count budget impact reviewed
 - [ ] Dependency/advisory/license audit impact reviewed
+
+Dependency release-note impact:
+
+-
 
 ## Benchmark / Evidence (if applicable)
 

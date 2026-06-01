@@ -9,6 +9,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE_DEPS = {"serde", "serde_json", "sha2"}
+PUBLISHED_CRATE_NORMAL_DEP_BUDGETS = {
+    "biors-core": 21,
+    "biors": 48,
+    "biors-backend-candle": 123,
+    "biors-mcp-server": 61,
+}
 FORBIDDEN_CORE_OR_CLI_DEPS = {
     "biors-backend-candle",
     "biors-mcp-server",
@@ -26,6 +32,8 @@ EXPECTED_INTEGRATION_DEPS = {
     "packages/rust/biors-python/Cargo.toml": {"pyo3"},
     "packages/rust/biors-wasm/Cargo.toml": {"js-sys", "wasm-bindgen"},
 }
+CANDLE_EXPECTED_HEAVY_TRANSITIVES = {"rayon", "tokenizers", "zip"}
+CANDLE_ALLOWED_DUPLICATE_ROOTS = {"hashbrown", "itertools", "thiserror", "thiserror-impl"}
 
 
 def main() -> int:
@@ -54,6 +62,32 @@ def main() -> int:
                 f"{package} must not have duplicate dependencies:\n{duplicate_tree}"
             )
 
+    for package, budget in PUBLISHED_CRATE_NORMAL_DEP_BUDGETS.items():
+        count = normal_dependency_count(package)
+        if count > budget:
+            raise AssertionError(
+                f"{package} normal dependency count {count} exceeds budget {budget}; "
+                "review dependency growth and update docs/dependency-policy.md if intentional"
+            )
+
+    candle_duplicates = cargo_tree_duplicate_roots("biors-backend-candle")
+    unexpected_candle_duplicates = sorted(candle_duplicates - CANDLE_ALLOWED_DUPLICATE_ROOTS)
+    if unexpected_candle_duplicates:
+        raise AssertionError(
+            "biors-backend-candle has new duplicate dependency roots: "
+            f"{unexpected_candle_duplicates}"
+        )
+
+    candle_tree = cargo_tree_normal("biors-backend-candle")
+    missing_heavy = sorted(
+        dependency for dependency in CANDLE_EXPECTED_HEAVY_TRANSITIVES if dependency not in candle_tree
+    )
+    if missing_heavy:
+        raise AssertionError(
+            "biors-backend-candle dependency policy changed; update the documented "
+            f"heavy transitive review list, missing {missing_heavy}"
+        )
+
     wasm_tree = cargo_tree_normal("biors-wasm", "wasm32-unknown-unknown")
     if "console_error_panic_hook" in wasm_tree:
         raise AssertionError("biors-wasm default features must not enable console_error_panic_hook")
@@ -79,9 +113,32 @@ def cargo_tree_duplicates(package: str) -> str:
     return completed.stdout.strip()
 
 
-def cargo_tree_normal(package: str, target: str) -> str:
+def cargo_tree_duplicate_roots(package: str) -> set[str]:
+    roots = set()
+    for line in cargo_tree_duplicates(package).splitlines():
+        if line and line[0].isalnum() and " v" in line:
+            roots.add(line.split(" v", 1)[0])
+    return roots
+
+
+def normal_dependency_count(package: str) -> int:
+    names = set()
+    for line in cargo_tree_normal(package, prefix_none=True).splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        names.add(line.split(" ", 1)[0])
+    return len(names)
+
+
+def cargo_tree_normal(package: str, target: str | None = None, prefix_none: bool = False) -> str:
+    command = ["cargo", "tree", "--locked", "-p", package, "--edges", "normal"]
+    if target is not None:
+        command.extend(["--target", target])
+    if prefix_none:
+        command.extend(["--prefix", "none"])
     completed = subprocess.run(
-        ["cargo", "tree", "--locked", "-p", package, "--target", target, "--edges", "normal"],
+        command,
         cwd=ROOT,
         check=True,
         stdout=subprocess.PIPE,

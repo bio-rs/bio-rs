@@ -76,6 +76,16 @@ and other device-specific Candle features remain out of the default workspace
 build. Those should be added behind explicit crate features only after platform
 CI and artifact policy are defined.
 
+## Dependency Budget
+
+`biors-backend-candle` is intentionally isolated because it is not
+dependency-light. The current release budget is 123 normal dependency package
+names for this crate, tracked by `scripts/check-dependency-policy.py`.
+Known unavoidable Candle transitives include `tokenizers`, `zip`, `rayon`, GEMM
+crates, and duplicate roots for `hashbrown`, `itertools`, `thiserror`, and
+`thiserror-impl`. Any growth beyond that budget requires an explicit dependency
+review before publishing the backend crate.
+
 ## Core And CLI Separation
 
 `biors-core` does not depend on Candle. The `biors` CLI does not link this
