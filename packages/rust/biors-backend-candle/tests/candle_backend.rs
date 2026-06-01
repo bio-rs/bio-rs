@@ -1,11 +1,12 @@
 use biors_backend_candle::{
-    CandleBackend, CandleBackendConfig, CandleDevice, CandleInferenceOutput,
+    CandleBackend, CandleBackendConfig, CandleDevice, CandleInferenceOutput, CANDLE_ERROR_CODES,
     CANDLE_MODEL_INPUT_FORMAT, CANDLE_OUTPUT_FORMAT,
 };
 use biors_core::model_input::{ModelInput, ModelInputPolicy, ModelInputRecord, PaddingPolicy};
 use biors_core::runtime::{Backend, ExecutionContext};
 use candle_core::{safetensors, Device, Tensor};
 use std::collections::HashMap;
+use std::fs;
 use std::path::PathBuf;
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -169,6 +170,26 @@ fn candle_backend_rejects_token_ids_outside_embedding_vocab() {
 
     assert!(error.contains("candle.token_id_out_of_range"));
     assert!(error.contains("token id 4 exceeds embedding vocabulary size 4"));
+}
+
+#[test]
+fn candle_error_codes_are_registered_in_release_docs() {
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let error_codes =
+        fs::read_to_string(repo.join("docs/error-codes.md")).expect("read error-code registry");
+    let candle_docs =
+        fs::read_to_string(repo.join("docs/candle-backend.md")).expect("read Candle docs");
+
+    for code in CANDLE_ERROR_CODES {
+        assert!(
+            error_codes.contains(code),
+            "docs/error-codes.md is missing {code}"
+        );
+        assert!(
+            candle_docs.contains(code),
+            "docs/candle-backend.md is missing {code}"
+        );
+    }
 }
 
 fn execute_payload_expect_error(payload: Vec<u8>, fixture_name: &str) -> String {

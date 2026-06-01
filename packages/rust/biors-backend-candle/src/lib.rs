@@ -8,7 +8,7 @@ mod tensor;
 
 pub use backend::CandleBackend;
 pub use config::{CandleBackendConfig, CandleDevice};
-pub use error::CandleBackendError;
+pub use error::{CandleBackendError, CANDLE_ERROR_CODES};
 pub use output::{CandleInferenceOutput, CandleInferenceRecord};
 
 pub const CANDLE_MODEL_INPUT_FORMAT: &str = "biors.model-input.v0+json";

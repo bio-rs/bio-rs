@@ -1,5 +1,8 @@
 use crate::config::CandleBackendConfig;
-use crate::error::{candle_error, CandleBackendError};
+use crate::error::{
+    candle_error, CandleBackendError, CANDLE_INFERENCE_FAILED, CANDLE_LOAD_FAILED,
+    CANDLE_OUTPUT_FAILED, CANDLE_TENSOR_FAILED, CANDLE_TOKEN_ID_OUT_OF_RANGE,
+};
 use crate::output::{CandleInferenceOutput, CandleInferenceRecord};
 use crate::tensor::{take_tensor, validate_model_tensors};
 use crate::{CANDLE_MODEL_INPUT_FORMAT, CANDLE_OUTPUT_FORMAT};
@@ -26,7 +29,7 @@ impl CandleBackend {
         let device = config.device.candle_device();
         let mut tensors = safetensors::load(&config.weights_path, &device).map_err(|error| {
             CandleBackendError::new(
-                "candle.load_failed",
+                CANDLE_LOAD_FAILED,
                 format!(
                     "failed to load Candle safetensors '{}': {error}",
                     config.weights_path.display()
@@ -109,7 +112,7 @@ impl CandleBackend {
             .find(|token_id| **token_id as usize >= vocab_size)
         {
             return Err(CandleBackendError::new(
-                "candle.token_id_out_of_range",
+                CANDLE_TOKEN_ID_OUT_OF_RANGE,
                 format!(
                     "record '{}' token id {} exceeds embedding vocabulary size {vocab_size}",
                     record.id, token_id
@@ -118,22 +121,22 @@ impl CandleBackend {
         }
 
         let ids = Tensor::new(ids.as_slice(), &self.device)
-            .map_err(|error| candle_error("candle.tensor_failed", error))?;
+            .map_err(|error| candle_error(CANDLE_TENSOR_FAILED, error))?;
         let pooled = self
             .embedding
             .embedding(&ids)
             .and_then(|embedded| embedded.mean(0))
-            .map_err(|error| candle_error("candle.inference_failed", error))?;
+            .map_err(|error| candle_error(CANDLE_INFERENCE_FAILED, error))?;
         let mut scores = pooled
             .unsqueeze(0)
             .and_then(|pooled| pooled.matmul(&self.projection_weight))
             .and_then(|projected| projected.squeeze(0))
-            .map_err(|error| candle_error("candle.inference_failed", error))?;
+            .map_err(|error| candle_error(CANDLE_INFERENCE_FAILED, error))?;
 
         if let Some(bias) = &self.projection_bias {
             scores = scores
                 .broadcast_add(bias)
-                .map_err(|error| candle_error("candle.inference_failed", error))?;
+                .map_err(|error| candle_error(CANDLE_INFERENCE_FAILED, error))?;
         }
 
         Ok(CandleInferenceRecord {
@@ -141,7 +144,7 @@ impl CandleBackend {
             values: scores
                 .to_dtype(DType::F32)
                 .and_then(|scores| scores.to_vec1::<f32>())
-                .map_err(|error| candle_error("candle.output_failed", error))?,
+                .map_err(|error| candle_error(CANDLE_OUTPUT_FAILED, error))?,
             truncated: record.truncated,
         })
     }

@@ -49,9 +49,25 @@ Successful results include metadata:
 - `candle.elapsed_millis`
 - `candle.output_records`
 
-Errors from payload parsing, tensor loading, shape validation, token ID checks,
-and Candle execution are mapped into `runtime.execution_failed` with the
-configured backend id.
+When called through the generic `Backend` trait, backend failures are wrapped as
+`runtime.execution_failed` with the configured backend id. The wrapped message
+preserves the lower-level code so callers can distinguish model-input,
+safetensors, tensor-shape, vocabulary, execution, and output failures.
+
+Crate-local `CandleBackendError` values use this stable taxonomy:
+
+- `candle.load_failed`: safetensors weights could not be loaded
+- `candle.missing_tensor`: the configured tensor name was not present
+- `candle.invalid_shape`: embedding, projection, or bias tensor shape is not supported
+- `candle.invalid_dtype`: a configured tensor is not floating point
+- `candle.token_id_out_of_range`: an unmasked token id exceeds the embedding vocabulary
+- `candle.tensor_failed`: Candle tensor construction failed before inference
+- `candle.inference_failed`: Candle embedding, pooling, projection, or bias execution failed
+- `candle.output_failed`: Candle output conversion failed
+
+Model-input contract failures preserve the shared `model_input.*` codes from
+`biors-core`, such as `model_input.length_mismatch`,
+`model_input.non_binary_attention_mask`, and `model_input.empty_attention_mask`.
 
 ## Device And Feature Policy
 

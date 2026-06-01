@@ -96,6 +96,22 @@ They are not emitted by the CLI until a concrete backend command exists.
 - `runtime.process_stderr_too_large`: an external process wrote more stderr than the configured diagnostic limit
 - `runtime.process_invalid_output`: an external process stdout payload was not a valid `ExecutionResult` JSON document
 
+## Candle Backend
+
+Candle backend codes are crate-local Rust API diagnostics from
+`biors-backend-candle`. When the backend is called through the generic runtime
+trait, these lower-level messages are wrapped by `runtime.execution_failed`.
+Model-input validation failures keep the shared `model_input.*` codes.
+
+- `candle.load_failed`: safetensors weights could not be loaded
+- `candle.missing_tensor`: a configured tensor name was not present
+- `candle.invalid_shape`: embedding, projection, or bias tensor shape is not supported
+- `candle.invalid_dtype`: a configured tensor is not floating point
+- `candle.token_id_out_of_range`: an unmasked token id exceeds the embedding vocabulary
+- `candle.tensor_failed`: Candle tensor construction failed before inference
+- `candle.inference_failed`: Candle embedding, pooling, projection, or bias execution failed
+- `candle.output_failed`: Candle output conversion failed
+
 ## Pipeline
 
 - `pipeline.invalid_config`: a pipeline config is malformed, unsupported, or missing required legacy no-config arguments
