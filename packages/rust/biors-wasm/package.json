@@ -11,7 +11,9 @@
   "files": [
     "LICENSE-APACHE",
     "LICENSE-MIT",
+    "biors_wasm_bg.js",
     "biors_wasm_bg.wasm",
+    "biors_wasm_bg.wasm.d.ts",
     "biors_wasm.js",
     "biors_wasm.d.ts",
     "index.d.ts",

@@ -12,6 +12,15 @@ from pathlib import Path
 
 LICENSES = {"LICENSE-APACHE", "LICENSE-MIT"}
 PYTHON_TYPING_FILES = {"__init__.pyi", "py.typed"}
+WASM_PACKAGE_FILES = {
+    "README.md",
+    "biors_wasm.js",
+    "biors_wasm.d.ts",
+    "biors_wasm_bg.js",
+    "biors_wasm_bg.wasm",
+    "biors_wasm_bg.wasm.d.ts",
+    "index.d.ts",
+}
 
 
 def main() -> int:
@@ -68,7 +77,7 @@ def check_wasm_package(package_dir: Path) -> None:
     print(completed.stdout, end="")
     pack = json.loads(completed.stdout)
     files = [file["path"] for file in pack[0]["files"]]
-    require_entry_basenames(package_dir, files, LICENSES)
+    require_entry_basenames(package_dir, files, LICENSES | WASM_PACKAGE_FILES)
 
 
 def check_binary_tarball(archive_path: Path) -> None:
