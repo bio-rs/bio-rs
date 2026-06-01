@@ -108,6 +108,34 @@ fn pipeline_schema_constrains_nested_workflow_payload() {
     let envelope: Value = serde_json::from_slice(&pipeline).expect("pipeline JSON");
     let workflow = &envelope["data"]["workflow"];
     common::assert_json_value_matches_schema(workflow, "schemas/sequence-workflow-output.v0.json");
+    assert_eq!(
+        workflow["provenance"]["invocation"]["command"],
+        "biors pipeline"
+    );
+
+    let pipeline_config_path = common::repo_root().join("examples/pipeline/protein.toml");
+    let pipeline_config_arg = pipeline_config_path.to_string_lossy();
+    let pipeline_config = common::run_biors_paths(
+        &[
+            "pipeline",
+            "--config",
+            &pipeline_config_arg,
+            "--explain-plan",
+        ],
+        &[],
+    )
+    .stdout;
+    let config_envelope: Value =
+        serde_json::from_slice(&pipeline_config).expect("config pipeline JSON");
+    let config_workflow = &config_envelope["data"]["workflow"];
+    common::assert_json_value_matches_schema(
+        config_workflow,
+        "schemas/sequence-workflow-output.v0.json",
+    );
+    assert_eq!(
+        config_workflow["provenance"]["invocation"]["command"],
+        "biors pipeline --config"
+    );
 
     let mut incomplete = envelope["data"].clone();
     incomplete["workflow"] = serde_json::json!({
