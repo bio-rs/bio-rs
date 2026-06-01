@@ -1,4 +1,6 @@
 use serde_json::Value;
+use std::fs;
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 mod common;
@@ -151,6 +153,76 @@ fn package_validate_rejects_unknown_manifest_fields() {
         .as_str()
         .expect("message")
         .contains("unknown field"));
+}
+
+#[test]
+fn package_validate_rejects_empty_contract_identifiers() {
+    let source_package = common::repo_root().join("examples/protein-package");
+    let temp = common::TempDir::new("empty-contract-package");
+    copy_dir_all(&source_package, temp.path());
+    let manifest_path = temp.path().join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_str(&fs::read_to_string(&manifest_path).expect("read manifest"))
+            .expect("manifest JSON");
+    manifest["tokenizer"]["name"] = Value::String(String::new());
+    manifest["tokenizer"]["contract_version"] = Value::String(String::new());
+    manifest["vocab"]["name"] = Value::String(String::new());
+    manifest["vocab"]["contract_version"] = Value::String(String::new());
+    manifest["preprocessing"][0]["name"] = Value::String(String::new());
+    manifest["preprocessing"][0]["implementation"] = Value::String(String::new());
+    manifest["preprocessing"][0]["contract"] = Value::String(String::new());
+    manifest["preprocessing"][0]["contract_version"] = Value::String(String::new());
+    fs::write(&manifest_path, manifest.to_string()).expect("write manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("package")
+        .arg("validate")
+        .arg(&manifest_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("run biors package validate");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stderr.is_empty());
+
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(value["error"]["code"], "package.validation_failed");
+    let issues = value["error"]["details"]["structured_issues"]
+        .as_array()
+        .expect("structured issues");
+    let fields: Vec<_> = issues
+        .iter()
+        .filter(|issue| issue["code"] == "required_field")
+        .map(|issue| issue["field"].as_str().expect("field"))
+        .collect();
+    for field in [
+        "tokenizer.name",
+        "tokenizer.contract_version",
+        "vocab.name",
+        "vocab.contract_version",
+        "preprocessing[0].name",
+        "preprocessing[0].implementation",
+        "preprocessing[0].contract",
+        "preprocessing[0].contract_version",
+    ] {
+        assert!(fields.contains(&field), "missing {field}: {fields:?}");
+    }
+}
+
+fn copy_dir_all(source: &Path, destination: &Path) {
+    fs::create_dir_all(destination).expect("create destination");
+    for entry in fs::read_dir(source).expect("read source directory") {
+        let entry = entry.expect("read source entry");
+        let file_type = entry.file_type().expect("read source file type");
+        let destination_path = destination.join(entry.file_name());
+        if file_type.is_dir() {
+            copy_dir_all(&entry.path(), &destination_path);
+        } else {
+            fs::copy(entry.path(), destination_path).expect("copy package fixture file");
+        }
+    }
 }
 
 #[test]

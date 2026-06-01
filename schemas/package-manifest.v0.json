@@ -55,10 +55,10 @@
       "type": "object",
       "required": ["name", "path"],
       "properties": {
-        "name": { "type": "string" },
+        "name": { "type": "string", "minLength": 1 },
         "path": { "type": "string", "minLength": 1 },
         "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-        "contract_version": { "type": "string" }
+        "contract_version": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
     },
@@ -66,10 +66,10 @@
       "type": "object",
       "required": ["name", "implementation", "contract"],
       "properties": {
-        "name": { "type": "string" },
-        "implementation": { "type": "string" },
-        "contract": { "type": "string" },
-        "contract_version": { "type": "string" }
+        "name": { "type": "string", "minLength": 1 },
+        "implementation": { "type": "string", "minLength": 1 },
+        "contract": { "type": "string", "minLength": 1 },
+        "contract_version": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
     },

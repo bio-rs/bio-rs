@@ -151,6 +151,11 @@ Preprocessing steps may also reference a checked pipeline config artifact:
 When a step declares `config`, the path is package-relative and should live
 under the declared `package_layout.pipelines` directory.
 
+Tokenizer/vocab asset names and contract versions, plus preprocessing and
+postprocessing step names, implementations, contracts, and contract versions,
+must be non-empty when present. Empty contract identifiers are rejected by both
+the Rust manifest validator and the published JSON schemas.
+
 ## Migration And Compatibility
 
 `biors package migrate <manifest|-> --to biors.package.v1` emits an inspectable

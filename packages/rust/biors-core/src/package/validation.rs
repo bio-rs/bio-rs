@@ -14,6 +14,7 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     if let Some(metadata) = &manifest.model.metadata {
         push_required_issue(&mut report, "model.metadata.name", &metadata.name);
     }
+    validate_contract_identifiers(&mut report, manifest);
     validate_runtime_contract(&mut report, manifest);
     validate_fixture_list(&mut report, manifest);
     validate_optional_shape(
@@ -28,6 +29,59 @@ pub fn validate_package_manifest(manifest: &PackageManifest) -> PackageValidatio
     );
 
     report.finish()
+}
+
+fn validate_contract_identifiers(report: &mut PackageValidationReport, manifest: &PackageManifest) {
+    if let Some(tokenizer) = &manifest.tokenizer {
+        validate_token_asset_identifiers(report, "tokenizer", tokenizer);
+    }
+    if let Some(vocab) = &manifest.vocab {
+        validate_token_asset_identifiers(report, "vocab", vocab);
+    }
+    validate_pipeline_step_identifiers(report, "preprocessing", &manifest.preprocessing);
+    validate_pipeline_step_identifiers(report, "postprocessing", &manifest.postprocessing);
+}
+
+fn validate_token_asset_identifiers(
+    report: &mut PackageValidationReport,
+    field: &str,
+    asset: &super::TokenAsset,
+) {
+    push_required_issue(report, &format!("{field}.name"), &asset.name);
+    if let Some(contract_version) = &asset.contract_version {
+        push_required_issue(
+            report,
+            &format!("{field}.contract_version"),
+            contract_version,
+        );
+    }
+}
+
+fn validate_pipeline_step_identifiers(
+    report: &mut PackageValidationReport,
+    section: &str,
+    steps: &[super::PipelineStep],
+) {
+    for (index, step) in steps.iter().enumerate() {
+        push_required_issue(report, &format!("{section}[{index}].name"), &step.name);
+        push_required_issue(
+            report,
+            &format!("{section}[{index}].implementation"),
+            &step.implementation,
+        );
+        push_required_issue(
+            report,
+            &format!("{section}[{index}].contract"),
+            &step.contract,
+        );
+        if let Some(contract_version) = &step.contract_version {
+            push_required_issue(
+                report,
+                &format!("{section}[{index}].contract_version"),
+                contract_version,
+            );
+        }
+    }
 }
 
 fn validate_runtime_contract(report: &mut PackageValidationReport, manifest: &PackageManifest) {
