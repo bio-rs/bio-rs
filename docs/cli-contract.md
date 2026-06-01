@@ -53,7 +53,9 @@ includes the static plan with an executing run. `--write-lock` records a
 `biors.pipeline.lock.v0` file for an executed config pipeline. When `--package`
 is supplied, the lock pins the package manifest path, model checksum, runtime
 backend, runtime target, and backend version alongside the pipeline config hash,
-vocabulary hash, input hash, and output-content hash.
+vocabulary hash, input hash, and output-content hash. In that mode `--config`
+must resolve to a preprocessing or postprocessing config artifact declared by
+the package manifest.
 `debug` emits a step-by-step per-record view from normalized sequence to token
 IDs to model-input records, with compact `W`/`E` residue markers for warnings
 and errors.

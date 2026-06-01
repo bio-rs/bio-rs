@@ -34,13 +34,12 @@ pub(crate) fn run_pipeline(options: PipelineRunOptions) -> Result<(), CliError> 
                     location: Some("pipeline".to_string()),
                 });
             }
-            let package = load_lock_package(options.package, options.write_lock.is_some())?;
             run_config_pipeline(
                 config_path,
                 options.dry_run,
                 options.explain_plan,
                 options.write_lock,
-                package,
+                options.package,
             )?
         }
         None => {
@@ -94,7 +93,7 @@ fn run_config_pipeline(
     dry_run: bool,
     explain_plan: bool,
     write_lock: Option<PathBuf>,
-    package: Option<PipelineLockPackage>,
+    package_path: Option<PathBuf>,
 ) -> Result<PipelineOutput, CliError> {
     if dry_run && write_lock.is_some() {
         return Err(CliError::Validation {
@@ -107,6 +106,7 @@ fn run_config_pipeline(
     }
 
     let resolved = load_pipeline_config(&config_path)?;
+    let package = load_lock_package(package_path, write_lock.is_some(), &config_path)?;
     if dry_run {
         return Ok(PipelineOutput::dry_run(resolved, explain_plan));
     }
@@ -136,6 +136,7 @@ fn run_config_pipeline(
 fn load_lock_package(
     package_path: Option<PathBuf>,
     lock_requested: bool,
+    config_path: &std::path::Path,
 ) -> Result<Option<PipelineLockPackage>, CliError> {
     let Some(path) = package_path else {
         return Ok(None);
@@ -157,9 +158,47 @@ fn load_lock_package(
             location: Some(path.display().to_string()),
         });
     }
+    validate_config_belongs_to_package(&manifest, &base_dir, config_path)?;
 
     Ok(Some(PipelineLockPackage {
         manifest_path: path,
         manifest,
     }))
+}
+
+fn validate_config_belongs_to_package(
+    manifest: &biors_core::package::PackageManifest,
+    base_dir: &std::path::Path,
+    config_path: &std::path::Path,
+) -> Result<(), CliError> {
+    let config_canonical = canonicalize_lock_path(config_path)?;
+    let matches_declared_config = manifest
+        .preprocessing
+        .iter()
+        .chain(manifest.postprocessing.iter())
+        .filter_map(|step| step.config.as_ref())
+        .any(|config| {
+            canonicalize_lock_path(&base_dir.join(&config.path))
+                .is_ok_and(|declared| declared == config_canonical)
+        });
+
+    if matches_declared_config {
+        return Ok(());
+    }
+
+    Err(CliError::Validation {
+        code: "pipeline.lock_config_not_in_package",
+        message: format!(
+            "--config '{}' is not declared by the supplied package manifest",
+            config_path.display()
+        ),
+        location: Some("pipeline.config".to_string()),
+    })
+}
+
+fn canonicalize_lock_path(path: &std::path::Path) -> Result<PathBuf, CliError> {
+    path.canonicalize().map_err(|source| CliError::Read {
+        path: path.to_path_buf(),
+        source,
+    })
 }

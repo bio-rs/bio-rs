@@ -121,6 +121,7 @@ Model-input validation failures keep the shared `model_input.*` codes.
 
 - `pipeline.invalid_config`: a pipeline config is malformed, unsupported, or missing required legacy no-config arguments
 - `pipeline.invalid_lock_package`: a package manifest supplied for pipeline lock generation failed package validation
+- `pipeline.lock_config_not_in_package`: `--package` was supplied for lock generation but `--config` is not one of the package-declared pipeline config artifacts
 - `pipeline.lock_requires_model_checksum`: a package manifest supplied for pipeline lock generation did not declare `model.checksum`
 
 ## Tokenizer

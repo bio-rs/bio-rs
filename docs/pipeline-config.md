@@ -59,6 +59,10 @@ with `--dry-run`. The generated `biors.pipeline.lock.v0` JSON pins:
 - package manifest path, model SHA-256, runtime backend, runtime target, and
   backend version when `--package` is supplied
 
+When `--package` is supplied, `--config` must resolve to a pipeline config
+artifact declared by that package manifest. This prevents lockfiles from mixing
+an unrelated external config with package provenance.
+
 ## Config Shape
 
 ```toml

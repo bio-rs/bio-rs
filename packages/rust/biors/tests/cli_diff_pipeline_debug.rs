@@ -201,6 +201,71 @@ fn pipeline_writes_lockfile_with_package_provenance() {
 }
 
 #[test]
+fn pipeline_lock_rejects_package_with_unrelated_config() {
+    let temp = TempDir::new("biors-pipeline-lock-unrelated");
+    let lockfile = temp.path().join("pipeline.lock");
+    let repo = repo_root();
+    let config = repo.join("examples/pipeline/protein.toml");
+    let package = repo.join("examples/protein-package/manifest.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("pipeline")
+        .arg("--config")
+        .arg(&config)
+        .arg("--package")
+        .arg(&package)
+        .arg("--write-lock")
+        .arg(&lockfile)
+        .output()
+        .expect("run biors pipeline lock generation");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(!lockfile.exists(), "pipeline.lock should not be written");
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(
+        value["error"]["code"],
+        "pipeline.lock_config_not_in_package"
+    );
+    assert_eq!(value["error"]["location"], "pipeline.config");
+}
+
+#[test]
+fn pipeline_lock_rejects_same_basename_config_outside_package() {
+    let temp = TempDir::new("biors-pipeline-lock-same-basename");
+    let lockfile = temp.path().join("pipeline.lock");
+    let other_dir = temp.path().join("other");
+    fs::create_dir_all(&other_dir).expect("create other config dir");
+    let config = other_dir.join("protein.toml");
+    fs::copy(
+        repo_root().join("examples/protein-package/pipelines/protein.toml"),
+        &config,
+    )
+    .expect("copy config");
+    let package = repo_root().join("examples/protein-package/manifest.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("--json")
+        .arg("pipeline")
+        .arg("--config")
+        .arg(&config)
+        .arg("--package")
+        .arg(&package)
+        .arg("--write-lock")
+        .arg(&lockfile)
+        .output()
+        .expect("run biors pipeline lock generation");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(!lockfile.exists(), "pipeline.lock should not be written");
+    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON error");
+    assert_eq!(
+        value["error"]["code"],
+        "pipeline.lock_config_not_in_package"
+    );
+}
+
+#[test]
 fn checked_in_pipeline_lock_matches_current_generator() {
     let temp = TempDir::new("biors-pipeline-lock-current");
     let generated_lock = temp.path().join("pipeline.lock");
