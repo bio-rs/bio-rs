@@ -17,7 +17,7 @@
     "cargo": "cargo 1.88.0 (873a06493 2025-05-10)",
     "wasm_pack": "wasm-pack 0.15.0",
     "node": "v25.2.1",
-    "biors_wasm": "0.47.7",
+    "biors_wasm": "0.47.8",
     "git_commit": "753307b44d8cb08ef6878f733835b3b0d4954a09"
   },
   "workloads": [

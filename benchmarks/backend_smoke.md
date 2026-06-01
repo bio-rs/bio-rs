@@ -10,7 +10,7 @@ backend smoke path. It is not a broad model-serving throughput claim.
 - Machine: `arm64`
 - Rust: `rustc 1.88.0 (6b00bc388 2025-06-23)`
 - Cargo: `cargo 1.88.0 (873a06493 2025-05-10)`
-- biors-backend-candle: `v0.47.7`
+- biors-backend-candle: `v0.47.8`
 - Git commit: `753307b44d8cb08ef6878f733835b3b0d4954a09`
 - Benchmark schema: `biors.benchmark.backend_smoke.v1`
 

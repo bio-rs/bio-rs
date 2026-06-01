@@ -82,17 +82,33 @@ jobs:
         run: |
           version="$(cargo metadata --no-deps --format-version 1 \
             | python3 -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"] == "biors-core"))')"
+          crate="biors-core"
 
-          for attempt in $(seq 1 30); do
-            if cargo search biors-core --limit 1 | grep -q "biors-core = \"$version\""; then
-              exit 0
-            fi
-            echo "biors-core $version not visible in crates index yet; attempt $attempt/30"
-            sleep 10
-          done
+          python3 - "$crate" "$version" <<'PY'
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
 
-          echo "biors-core $version did not appear in crates index in time" >&2
-          exit 1
+          crate, version = sys.argv[1:]
+          url = f"https://crates.io/api/v1/crates/{crate}/{version}"
+          for attempt in range(1, 91):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      if response.status == 200:
+                          sys.exit(0)
+              except urllib.error.HTTPError as error:
+                  if error.code != 404:
+                      print(f"{crate} {version} registry check returned HTTP {error.code}; attempt {attempt}/90")
+                  else:
+                      print(f"{crate} {version} not visible in crates registry yet; attempt {attempt}/90")
+              except urllib.error.URLError as error:
+                  print(f"{crate} {version} registry check failed: {error.reason}; attempt {attempt}/90")
+              time.sleep(10)
+
+          print(f"{crate} {version} did not appear in crates registry in time", file=sys.stderr)
+          sys.exit(1)
+          PY
       - name: Dry-run publish biors-mcp-server
         run: cargo publish --locked -p biors-mcp-server --dry-run
       - name: Publish biors-mcp-server
@@ -105,17 +121,33 @@ jobs:
         run: |
           version="$(cargo metadata --no-deps --format-version 1 \
             | python3 -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"] == "biors-backend-candle"))')"
+          crate="biors-backend-candle"
 
-          for attempt in $(seq 1 30); do
-            if cargo search biors-backend-candle --limit 1 | grep -q "biors-backend-candle = \"$version\""; then
-              exit 0
-            fi
-            echo "biors-backend-candle $version not visible in crates index yet; attempt $attempt/30"
-            sleep 10
-          done
+          python3 - "$crate" "$version" <<'PY'
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
 
-          echo "biors-backend-candle $version did not appear in crates index in time" >&2
-          exit 1
+          crate, version = sys.argv[1:]
+          url = f"https://crates.io/api/v1/crates/{crate}/{version}"
+          for attempt in range(1, 91):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      if response.status == 200:
+                          sys.exit(0)
+              except urllib.error.HTTPError as error:
+                  if error.code != 404:
+                      print(f"{crate} {version} registry check returned HTTP {error.code}; attempt {attempt}/90")
+                  else:
+                      print(f"{crate} {version} not visible in crates registry yet; attempt {attempt}/90")
+              except urllib.error.URLError as error:
+                  print(f"{crate} {version} registry check failed: {error.reason}; attempt {attempt}/90")
+              time.sleep(10)
+
+          print(f"{crate} {version} did not appear in crates registry in time", file=sys.stderr)
+          sys.exit(1)
+          PY
       - name: Dry-run publish biors
         run: cargo publish --locked -p biors --dry-run
       - name: Publish biors

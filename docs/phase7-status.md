@@ -61,7 +61,7 @@ the support matrix.
 ## Performance Status
 
 The committed FASTA benchmark is a historical public baseline, not current
-`0.47.7` throughput evidence. Current benchmark artifacts cover fixed-length
+`0.47.8` throughput evidence. Current benchmark artifacts cover fixed-length
 model-input construction, binding/MCP/package smoke surfaces, and nucleotide
 workflow regression guards, but no new public throughput claim is made until
 the FASTA benchmark artifact is regenerated for the current release candidate.

@@ -1,8 +1,8 @@
 {
   "schema_version": "biors.pipeline.lock.v0",
   "generated_by": {
-    "biors_version": "0.47.7",
-    "biors_core_version": "0.47.7"
+    "biors_version": "0.47.8",
+    "biors_core_version": "0.47.8"
   },
   "pipeline_config": {
     "schema_version": "biors.pipeline.v0",
@@ -38,6 +38,6 @@
   },
   "hashes": {
     "vocabulary_sha256": "sha256:ae89a88cbf0ab48e74075da93f4c145df0a5bde7bab6081786419764171b6076",
-    "output_data_sha256": "sha256:eb2725c43ca04f4609bbabf00b00a81231f03479550f3ff03257427cdd818739"
+    "output_data_sha256": "sha256:42b6486b3b04a3d69f74dd45c12621419e59e2040049f403fef0bec5e5bce4f9"
   }
 }
