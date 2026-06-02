@@ -20,11 +20,11 @@
       }
     },
     "citation": {
-      "preferred_citation": "bio-rs protein package fixture, version 0.47.11",
+      "preferred_citation": "bio-rs protein package fixture, version 0.47.12",
       "doi": "10.0000/biors.fixture",
       "file": {
         "path": "docs/CITATION.cff",
-        "checksum": "sha256:8b1460003d27e621dbcde145aa67155a136547724c55e2c486ade44d06c44b9b"
+        "checksum": "sha256:b9022e61b5a4ffbfd810e71e5ba03c3ded5d9756183b6fb5ee850deb6097c9c0"
       }
     },
     "model_card": {
