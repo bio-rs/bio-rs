@@ -37,7 +37,7 @@ def main() -> int:
             "checked-in pipeline lockfile in one command."
         ),
     )
-    parser.add_argument("version", help="new release version, for example 0.47.11")
+    parser.add_argument("version", help="new release version, for example 0.48.0")
     parser.add_argument(
         "--verify",
         action="store_true",
