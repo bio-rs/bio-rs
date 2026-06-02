@@ -33,7 +33,30 @@ if [ -z "$run_id" ]; then
   exit 1
 fi
 
-gh run watch "$run_id" --exit-status
+python3 - "$run_id" <<'PY'
+import json
+import subprocess
+import sys
+import time
+
+run_id = sys.argv[1]
+for _ in range(180):
+    output = subprocess.check_output(
+        ["gh", "run", "view", run_id, "--json", "status,conclusion,jobs"],
+        text=True,
+    )
+    data = json.loads(output)
+    jobs = "; ".join(
+        f"{job['name']}:{job['status']}:{job.get('conclusion') or '-'}"
+        for job in data["jobs"]
+    )
+    print(f"run:{data['status']}:{data.get('conclusion') or '-'} | {jobs}", flush=True)
+    if data["status"] == "completed":
+        raise SystemExit(0 if data.get("conclusion") == "success" else 1)
+    time.sleep(30)
+
+raise SystemExit("release workflow did not complete in time")
+PY
 
 echo "==> compact release status"
 python3 scripts/release-status.py
