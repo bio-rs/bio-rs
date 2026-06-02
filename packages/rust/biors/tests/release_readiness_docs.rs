@@ -301,12 +301,10 @@ fn final_release_checklist_covers_required_gates() {
             "final release script missing {expected}"
         );
     }
-    for expected in ["scripts/check-benchmark-docs.sh"] {
-        assert!(
-            full_check.contains(expected),
-            "full release check missing {expected}"
-        );
-    }
+    assert!(
+        full_check.contains("scripts/check-benchmark-docs.sh"),
+        "full release check missing scripts/check-benchmark-docs.sh"
+    );
     assert!(
         package_artifacts.contains("scripts/check-release-artifact-contents.py"),
         "package artifact gate must verify artifact contents"
