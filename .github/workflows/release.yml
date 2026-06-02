@@ -163,12 +163,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      RUSTUP_TOOLCHAIN: 1.88.0
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install Rust
         uses: dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c
-        env:
-          RUSTUP_TOOLCHAIN: 1.88.0
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
