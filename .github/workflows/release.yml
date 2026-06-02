@@ -334,7 +334,7 @@ jobs:
           path: dist
           merge-multiple: true
       - name: Verify binary archive checksums
-        run: python scripts/write-release-checksums.py --verify dist/*.tar.gz
+        run: python scripts/write-release-checksums.py --verify dist/biors-v*.tar.gz
       - name: Create release if missing
         env:
           GH_TOKEN: ${{ github.token }}
@@ -348,5 +348,5 @@ jobs:
           gh release create "$TAG_NAME" \
             --title "bio-rs ${TAG_NAME#v}" \
             --generate-notes \
-            dist/*.tar.gz \
-            dist/*.tar.gz.sha256
+            dist/biors-v*.tar.gz \
+            dist/biors-v*.tar.gz.sha256

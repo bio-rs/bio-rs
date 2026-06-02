@@ -263,8 +263,8 @@ def assert_release_jobs(workflow: dict[str, Any]) -> None:
         tag_only=True,
         steps=[
             StepCheck(uses="actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"),
-            StepCheck(name="Verify binary archive checksums", run_contains=["scripts/write-release-checksums.py --verify dist/*.tar.gz"]),
-            StepCheck(name="Create release if missing", run_contains=["gh release create", "--generate-notes", "dist/*.tar.gz.sha256"]),
+            StepCheck(name="Verify binary archive checksums", run_contains=["scripts/write-release-checksums.py --verify dist/biors-v*.tar.gz"]),
+            StepCheck(name="Create release if missing", run_contains=["gh release create", "--generate-notes", "dist/biors-v*.tar.gz.sha256"]),
         ],
     )
 
@@ -412,9 +412,9 @@ def assert_secondary_text_markers(
         'scripts/check-release-artifact-contents.py binary-tarball "${{ matrix.archive }}"',
         'scripts/write-release-checksums.py "${{ matrix.archive }}"',
         'scripts/write-release-checksums.py --verify "${{ matrix.archive }}"',
-        "scripts/write-release-checksums.py --verify dist/*.tar.gz",
+        "scripts/write-release-checksums.py --verify dist/biors-v*.tar.gz",
         "${{ matrix.archive }}.sha256",
-        "dist/*.tar.gz.sha256",
+        "dist/biors-v*.tar.gz.sha256",
         "npm publish packages/rust/biors-wasm/pkg --access public --provenance",
         "tar -C dist -czf \"${{ matrix.archive }}\" biors README.md LICENSE-APACHE LICENSE-MIT",
         "scripts/check-registry-versions.py",
