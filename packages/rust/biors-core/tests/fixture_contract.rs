@@ -7,12 +7,14 @@ use std::path::Path;
 fn fixture_corpus_covers_valid_and_invalid_fasta_contracts() {
     let fixture_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/fasta");
     let valid = fixture_dir.join("valid/mixed_case_whitespace.fasta");
+    let long_header = fixture_dir.join("valid/long_descriptive_header.fasta");
     let missing_header = fixture_dir.join("invalid/missing_header.fasta");
     let missing_sequence = fixture_dir.join("invalid/missing_sequence.fasta");
     let empty_identifier = fixture_dir.join("invalid/empty_identifier.fasta");
 
     for path in [
         &valid,
+        &long_header,
         &missing_header,
         &missing_sequence,
         &empty_identifier,
@@ -24,6 +26,11 @@ fn fixture_corpus_covers_valid_and_invalid_fasta_contracts() {
     let records = parse_fasta_records(&valid_input).expect("valid fixture parses");
     assert_eq!(records[0].id, "seq-valid");
     assert_eq!(records[0].sequence, b"ACDEXBZJUO");
+
+    let long_header_input = std::fs::read_to_string(long_header).expect("read long-header fixture");
+    let records = parse_fasta_records(&long_header_input).expect("long-header fixture parses");
+    assert_eq!(records[0].id, "sp|P69905|HBA_HUMAN");
+    assert_eq!(records[0].sequence, b"MVLSPADKTNVKAAW");
 
     let missing_header_input =
         std::fs::read_to_string(missing_header).expect("read missing-header fixture");
