@@ -274,4 +274,3 @@ The package does not currently depend on NumPy. Convert `input_ids` and
 
 - [Python Interop](python-interop.md)
 - [Rust API](rust-api.md)
-- [Phase 7 Status](phase7-status.md)

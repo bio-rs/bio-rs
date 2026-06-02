@@ -184,7 +184,6 @@ remains a historical reference.
 - [Python API](docs/python-api.md)
 - [WASM readiness](docs/wasm-readiness.md)
 - [WASM API](docs/wasm-api.md)
-- [Phase 7 status](docs/phase7-status.md)
 - [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
 - [Schema versioning](docs/schema-versioning.md)

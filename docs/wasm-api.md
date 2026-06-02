@@ -329,4 +329,3 @@ helpers for those schema-rich reports.
 
 - [WASM Readiness](wasm-readiness.md)
 - [Rust API](rust-api.md)
-- [Phase 7 Status](phase7-status.md)
