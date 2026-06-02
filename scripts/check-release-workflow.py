@@ -221,7 +221,12 @@ def assert_release_jobs(workflow: dict[str, Any]) -> None:
             StepCheck(name="Test WASM package", run_contains=["wasm-pack test --node packages/rust/biors-wasm"]),
             StepCheck(name="Build npm package", run_contains=["scripts/build-wasm-npm-package.sh"]),
             StepCheck(name="Check npm package artifact contents", run_contains=["scripts/check-release-artifact-contents.py wasm-package packages/rust/biors-wasm/pkg"]),
-            StepCheck(name="Publish npm package with trusted publishing", run_contains=["npm publish packages/rust/biors-wasm/pkg --access public"]),
+            StepCheck(
+                name="Publish npm package with trusted publishing",
+                run_contains=[
+                    "npm publish packages/rust/biors-wasm/pkg --access public --provenance",
+                ],
+            ),
         ],
     )
     assert_job(
@@ -410,7 +415,7 @@ def assert_secondary_text_markers(
         "scripts/write-release-checksums.py --verify dist/*.tar.gz",
         "${{ matrix.archive }}.sha256",
         "dist/*.tar.gz.sha256",
-        "npm publish packages/rust/biors-wasm/pkg --access public",
+        "npm publish packages/rust/biors-wasm/pkg --access public --provenance",
         "tar -C dist -czf \"${{ matrix.archive }}\" biors README.md LICENSE-APACHE LICENSE-MIT",
         "scripts/check-registry-versions.py",
         "cargo install --locked cargo-deny",
@@ -420,6 +425,16 @@ def assert_secondary_text_markers(
     for text in required_text:
         if text not in workflow_text:
             raise SystemExit(f"release workflow is missing packaging marker: {text}")
+    forbidden_text = [
+        "NODE_AUTH_TOKEN",
+        "NPM_TOKEN",
+    ]
+    for text in forbidden_text:
+        if text in workflow_text:
+            raise SystemExit(
+                "npm trusted publishing must use GitHub OIDC instead of "
+                f"long-lived npm token configuration: found {text}"
+            )
 
 
 def read_release_tool_versions() -> dict[str, str]:

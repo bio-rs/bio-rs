@@ -258,7 +258,7 @@ jobs:
       - name: Check npm package artifact contents
         run: python scripts/check-release-artifact-contents.py wasm-package packages/rust/biors-wasm/pkg
       - name: Publish npm package with trusted publishing
-        run: npm publish packages/rust/biors-wasm/pkg --access public
+        run: npm publish packages/rust/biors-wasm/pkg --access public --provenance
 
   build-release-binaries:
     name: Build Release Binary (${{ matrix.target }})

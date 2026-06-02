@@ -257,6 +257,32 @@ settings for `@bio-rs/biors-wasm` allow GitHub Actions publishing from:
 - Workflow filename: `release.yml`
 - Allowed action: `npm publish`
 
+The workflow must grant `id-token: write` to the npm publish job and publish
+with provenance:
+
+```bash
+npm publish packages/rust/biors-wasm/pkg --access public --provenance
+```
+
+Do not configure `NPM_TOKEN` or `NODE_AUTH_TOKEN` for the WASM npm publish job.
+If npm returns `404 Not Found` for `@bio-rs/biors-wasm`, treat it as an npm
+package/scope trusted-publisher configuration problem before pushing another
+release tag.
+
+## Release Status Snapshot
+
+Use the release status helper instead of repeatedly querying each registry and
+workflow by hand:
+
+```bash
+python3 scripts/release-status.py
+```
+
+It reports the local workspace version, expected tag, recent GitHub Actions
+runs for the current commit, and registry visibility for crates.io, PyPI, and
+npm. Use it before tagging and after a failed release attempt to avoid manually
+reconstructing the same state from separate commands.
+
 ## Public Demo Dry Run
 
 Run the installed or release binary through:
