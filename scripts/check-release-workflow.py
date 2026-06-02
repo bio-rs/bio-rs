@@ -428,6 +428,8 @@ def assert_secondary_text_markers(
     forbidden_text = [
         "NODE_AUTH_TOKEN",
         "NPM_TOKEN",
+        "registry-url: 'https://registry.npmjs.org'",
+        'registry-url: "https://registry.npmjs.org"',
     ]
     for text in forbidden_text:
         if text in workflow_text:

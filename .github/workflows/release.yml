@@ -54,7 +54,6 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.BIORS_RELEASE_NODE_VERSION }}
-          registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
       - name: Check package versions are unpublished
         run: scripts/check-registry-versions.py
@@ -243,7 +242,6 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.BIORS_RELEASE_NODE_VERSION }}
-          registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
       - name: Install wasm-pack
         run: |
