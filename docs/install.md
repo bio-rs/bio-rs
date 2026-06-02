@@ -5,7 +5,7 @@ bio-rs supports three install paths for the pre-1.0 line.
 ## Cargo Install
 
 ```bash
-cargo install biors --version 0.47.10
+cargo install biors --version 0.47.11
 biors --version
 biors doctor
 ```

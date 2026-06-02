@@ -41,7 +41,7 @@ The goal is to make the input layer around bio-AI models faster, more portable, 
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.47.10
+cargo install biors --version 0.47.11
 biors tokenize examples/protein.fasta
 biors workflow --max-length 8 examples/protein.fasta
 biors batch validate --kind auto examples/
@@ -56,7 +56,7 @@ Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
 
 Current release posture: no current-version numeric throughput claim is made for
-`0.47.10`. The committed benchmark artifact is historical performance evidence
+`0.47.11`. The committed benchmark artifact is historical performance evidence
 from `biors-core v0.20.0`; rerun and commit a fresh artifact before using these
 numbers as evidence for a later release.
 
@@ -103,7 +103,7 @@ Benchmark details:
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
 bio-rs is faster than Biopython across every FASTA workload or researcher input
-shape. Until the artifact is refreshed for `0.47.10`, the numeric table above
+shape. Until the artifact is refreshed for `0.47.11`, the numeric table above
 remains a historical reference.
 
 ## What works today
