@@ -3,7 +3,7 @@
 [![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
 [![Release](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml/badge.svg)](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml)
 [![Benchmark](https://img.shields.io/badge/benchmark-UniProt%20FASTA-blue)](benchmarks/fasta_vs_biopython.md)
-[![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/public-contract-1.0-candidates.md)
+[![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/cli-contract.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI workflows, with protein, DNA, and RNA model-ready workflows.
@@ -180,13 +180,9 @@ remains a historical reference.
 - [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)
 - [Reliability and input safety](docs/reliability.md)
-- [Python interop](docs/python-interop.md)
 - [Python API](docs/python-api.md)
-- [WASM readiness](docs/wasm-readiness.md)
 - [WASM API](docs/wasm-api.md)
-- [1.0 contract candidates](docs/public-contract-1.0-candidates.md)
 - [Versioning policy](docs/versioning.md)
-- [Schema versioning](docs/schema-versioning.md)
 - [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
 - [Citation metadata](CITATION.cff)

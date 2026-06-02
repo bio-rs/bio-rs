@@ -1,6 +1,5 @@
 use biors_core::error::Diagnostic;
 use biors_core::sequence::{SequenceKind, SequenceValidationIssue};
-use biors_core::service;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
@@ -20,9 +19,6 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/candle-backend.md",
         "docs/error-codes.md",
         "docs/reliability.md",
-        "docs/python-interop.md",
-        "docs/wasm-readiness.md",
-        "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
     ];
@@ -44,9 +40,6 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/candle-backend.md",
         "docs/error-codes.md",
         "docs/reliability.md",
-        "docs/python-interop.md",
-        "docs/wasm-readiness.md",
-        "docs/public-contract-1.0-candidates.md",
         "docs/versioning.md",
         "docs/final-release-checklist.md",
         "CITATION.cff",
@@ -567,107 +560,6 @@ fn contributing_docs_cover_promoted_surface_checks() {
         assert!(
             contributing.contains(expected),
             "CONTRIBUTING.md missing promoted surface guidance: {expected}"
-        );
-    }
-}
-
-#[test]
-fn public_contract_candidates_separate_stable_bindings_and_experimental_runtime() {
-    let repo = common::repo_root();
-    let candidates = fs::read_to_string(repo.join("docs/public-contract-1.0-candidates.md"))
-        .expect("read public contract candidates");
-
-    for expected in [
-        "Stable-Candidate Core Contracts",
-        "CLI And JSON Schemas",
-        "Binding Contracts",
-        "Experimental Runtime And Integration Contracts",
-        "Pre-1.0 Unstable Public Rust APIs",
-        "Python package: `packages/rust/biors-python`",
-        "WASM/npm package: `packages/rust/biors-wasm`",
-        "MCP server: `packages/rust/biors-mcp-server`",
-        "Transport-agnostic service contract",
-        "SERVICE_INTERFACE_SCHEMA_VERSION",
-        "ServiceInterfaceDocument",
-        "RuntimeServiceSeparation",
-        "OpenApiDirection",
-        "ServiceRoute",
-        "current_service_interface_document",
-        "service_interface_document",
-        "service_routes",
-        "schemas/service-interface-output.v0.json",
-        "internal scanner modules and low-level byte parsing helpers",
-    ] {
-        assert!(
-            candidates.contains(expected),
-            "public contract candidates missing scoped section: {expected}"
-        );
-    }
-
-    for expected in [
-        "validate_package_manifest",
-        "inspect_package_manifest",
-        "plan_runtime_bridge",
-        "convert_package_manifest",
-        "diff_package_manifests",
-        "plan_package_schema_migration",
-        "read_package_file",
-        "resolve_package_asset_path",
-        "PackageArtifactError",
-        "stable_input_hash",
-        "StableInputHasher",
-        "verify_package_outputs",
-        "verify_package_outputs_with_observation_base",
-        "FixtureVerificationResult",
-        "VerificationStatus",
-        "validate_model_input_policy",
-        "validate_model_input_payload",
-        "ModelInputRecord",
-        "ModelInputBuildError",
-        "ModelInputPayloadError",
-        "tokenize_protein",
-        "summarize_fasta_records_reader",
-        "summarize_tokenized_proteins",
-        "load_protein_20_vocab",
-        "protein_20_unknown_token_policy",
-        "SpecialTokenSet",
-        "TokenizedProtein",
-        "Vocabulary",
-        "TokenizerError",
-        "package_manifest_policy",
-        "pipeline_config_policy",
-        "manifest_schema_compatibility",
-        "manifest_schema_migration_plan",
-        "versioning policy types",
-    ] {
-        assert!(
-            candidates.contains(expected),
-            "public contract candidates missing Rust API stability classification: {expected}"
-        );
-    }
-
-    let service_document = service::current_service_interface_document();
-    for route in service_document.routes {
-        for schema in [&route.request_schema, &route.response_schema] {
-            assert!(
-                candidates.contains(&format!("schemas/{schema}")),
-                "public contract candidates missing service route schema {schema}"
-            );
-        }
-    }
-
-    let stable_section = candidates
-        .split("## Experimental Runtime And Integration Contracts")
-        .next()
-        .expect("stable candidate section");
-    for experimental in [
-        "ExternalProcessBackend",
-        "ExternalProcessConfig",
-        "CandleBackend",
-    ] {
-        assert!(
-            !stable_section.contains(experimental),
-            "experimental runtime API listed as stable candidate: {experimental}"
         );
     }
 }

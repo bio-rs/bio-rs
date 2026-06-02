@@ -62,7 +62,7 @@ directory.
 Manifest v1 uses `schema_version: "biors.package.v1"` and is described by
 `schemas/package-manifest.v1.json`.
 Version support and migration rules are defined in
-[Schema Versioning Policy](schema-versioning.md).
+[Versioning Policy](versioning.md).
 
 Required v1 sections:
 

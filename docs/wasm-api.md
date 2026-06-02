@@ -18,6 +18,10 @@ npm install @bio-rs/biors-wasm
 The package contains the `.wasm` binary, JS glue, and TypeScript declarations.
 No hosted service or external runtime is required.
 
+Release builds use empty default features so browser-only debug helpers do not
+ship unless explicitly requested. Enable `console_error_panic_hook` only for
+local debugging builds that need browser panic stack traces.
+
 ## Module Loading
 
 Import the named exports from the package entrypoint. The bundler-target
@@ -321,11 +325,23 @@ console.log({
 
 ## Boundary
 
+bio-rs keeps `biors-core` usable without CLI file-system assumptions:
+
+- `biors-core` exposes string, byte, and buffered-reader APIs for FASTA,
+  tokenization, workflow, package contracts, and verification helpers.
+- Local file I/O lives in the `biors` CLI input layer or in package artifact
+  helpers that explicitly take a base directory.
+- `scripts/check.sh` builds `biors-core` for `wasm32-unknown-unknown` so
+  accidental platform-specific dependencies are caught.
+
+Public sequence validation and tokenization APIs return structured validation
+reports for invalid direct byte input. The CLI still rejects invalid UTF-8 FASTA
+input as `io.read_failed` because FASTA reader paths are UTF-8 text contracts.
+
 The WASM package does not currently export package-manifest validation or
 runtime bridge planning helpers. Use the native Rust crate, CLI, or Python JSON
 helpers for those schema-rich reports.
 
 ## Related Documents
 
-- [WASM Readiness](wasm-readiness.md)
 - [Rust API](rust-api.md)

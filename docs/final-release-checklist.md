@@ -38,12 +38,13 @@ against the release binary.
 
 ## Public Contract Freeze
 
-The public contract candidates remain:
+The public contract sources remain:
 
 - CLI command list and output policy in `docs/cli-contract.md`
 - error codes in `docs/error-codes.md`
 - schemas in `schemas/`
-- stabilization candidates in `docs/public-contract-1.0-candidates.md`
+- binding/API boundaries in `docs/python-api.md`, `docs/wasm-api.md`,
+  `docs/service-interface.md`, and `docs/rust-api.md`
 
 Before tagging, check whether any CLI flag, JSON field, schema, error code, or
 package manifest field changed without a matching test and doc update.

@@ -10,7 +10,7 @@ fn python_interop_examples_are_present_and_dependency_light() {
         "examples/python/esm_from_biors_json.py",
         "examples/python/protbert_from_biors_json.py",
         "examples/python/pandas_numpy_friendly.py",
-        "docs/python-interop.md",
+        "docs/python-api.md",
     ];
 
     for path in required {
@@ -20,7 +20,7 @@ fn python_interop_examples_are_present_and_dependency_light() {
         );
     }
 
-    let docs = fs::read_to_string(repo.join("docs/python-interop.md")).expect("read Python docs");
+    let docs = fs::read_to_string(repo.join("docs/python-api.md")).expect("read Python docs");
     for expected in ["ESM", "ProtBERT", "pandas", "NumPy", "PyO3"] {
         assert!(
             docs.contains(expected),
@@ -29,7 +29,7 @@ fn python_interop_examples_are_present_and_dependency_light() {
     }
 
     let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
-    assert!(readme.contains("docs/python-interop.md"));
+    assert!(readme.contains("docs/python-api.md"));
 }
 
 #[test]
