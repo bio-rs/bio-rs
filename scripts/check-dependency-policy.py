@@ -84,7 +84,7 @@ def main() -> int:
         if count > budget:
             raise AssertionError(
                 f"{package} normal dependency count {count} exceeds budget {budget}; "
-                "review dependency growth and update docs/dependency-policy.md if intentional"
+                "review dependency growth and update this script's dependency budget if intentional"
             )
 
     candle_duplicates = cargo_tree_duplicate_roots("biors-backend-candle")

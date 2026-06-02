@@ -166,24 +166,20 @@ remains a historical reference.
 
 ## Documentation
 
-- [Quickstart](docs/quickstart.md) — install, first commands, demos
-- [Launch demo](docs/demo.md) — researcher-facing demo workflow
+- [Quickstart](docs/quickstart.md) — install and first commands
 - [Installation and distribution](docs/install.md) — cargo, binaries, completions
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
-- [Backend architecture](docs/backend-architecture.md) — runtime abstraction boundary
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
-- [Dataset inputs and artifact store](docs/dataset-inputs.md)
 - [Error code registry](docs/error-codes.md)
-- [Reliability and input safety](docs/reliability.md)
+- [Rust API](docs/rust-api.md)
 - [Python API](docs/python-api.md)
 - [WASM API](docs/wasm-api.md)
 - [Versioning policy](docs/versioning.md)
-- [Final release checklist](docs/final-release-checklist.md)
 - [JSON schemas](schemas)
 - [Citation metadata](CITATION.cff)
 

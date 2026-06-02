@@ -98,9 +98,10 @@ when your change touches that surface:
 
 Run `scripts/check.sh` before pushing a PR that changes more than docs. For
 release-affecting changes, also review
-[docs/final-release-checklist.md](docs/final-release-checklist.md); it is the
+[scripts/check-final-release.sh](scripts/check-final-release.sh); it is the
 source of truth for packaging, registry, checksum, provenance, and install-flow
-preflight.
+preflight. Local internal notes may exist under `docs/internal/`, but they are
+not part of the public repository documentation set.
 
 ## Scope expectations
 

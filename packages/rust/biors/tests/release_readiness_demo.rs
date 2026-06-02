@@ -10,11 +10,12 @@ fn launch_demo_assets_cover_first_impression_workflow() {
     let dataset = repo.join("examples/launch-demo.fasta");
     let script = repo.join("scripts/launch-demo.sh");
     let recorded_script = repo.join("scripts/record-cli-demo.sh");
-    let demo = fs::read_to_string(repo.join("docs/demo.md")).expect("read demo doc");
-    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
     let benchmark =
         fs::read_to_string(repo.join("benchmarks/fasta_vs_biopython.md")).expect("read benchmark");
     let fasta = fs::read_to_string(&dataset).expect("read launch demo FASTA");
+    let launch_script = fs::read_to_string(&script).expect("read launch demo script");
+    let recorded_demo_script =
+        fs::read_to_string(&recorded_script).expect("read recorded CLI demo script");
 
     assert!(script.exists(), "missing launch demo script");
     assert!(recorded_script.exists(), "missing recorded CLI demo script");
@@ -22,21 +23,10 @@ fn launch_demo_assets_cover_first_impression_workflow() {
     assert!(fasta.contains(">cftr_human_fragment"));
     assert!(fasta.contains(">tp53_human_fragment"));
 
-    for expected in [
-        "Website Demo Script",
-        "Contributor Demo",
-        "CLI Recorded Demo Script",
-        "scripts/record-cli-demo.sh",
-        "Benchmark Visual Draft",
-        "Deferred",
-        "Browser playground: deferred to a later release pass",
-    ] {
-        assert!(demo.contains(expected), "demo doc missing {expected}");
-    }
-    assert!(
-        readme.contains("docs/demo.md"),
-        "README does not link the demo doc"
-    );
+    assert!(launch_script.contains("seq validate"));
+    assert!(launch_script.contains("model-input"));
+    assert!(recorded_demo_script.contains("--version"));
+    assert!(recorded_demo_script.contains("examples/launch-demo.fasta"));
     for expected in [
         "## Environment",
         "## Matched results",

@@ -12,15 +12,19 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
     let required = [
         "CITATION.cff",
         "docs/quickstart.md",
-        "docs/demo.md",
         "docs/install.md",
         "docs/cli-contract.md",
-        "docs/backend-architecture.md",
         "docs/candle-backend.md",
         "docs/error-codes.md",
-        "docs/reliability.md",
+        "docs/package-conversion.md",
+        "docs/package-format.md",
+        "docs/pipeline-config.md",
+        "docs/python-api.md",
+        "docs/rust-api.md",
+        "docs/sequence-kind-support.md",
+        "docs/service-interface.md",
         "docs/versioning.md",
-        "docs/final-release-checklist.md",
+        "docs/wasm-api.md",
     ];
 
     for path in required {
@@ -33,27 +37,29 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
     let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
     for link in [
         "docs/quickstart.md",
-        "docs/demo.md",
         "docs/install.md",
         "docs/cli-contract.md",
-        "docs/backend-architecture.md",
         "docs/candle-backend.md",
         "docs/error-codes.md",
-        "docs/reliability.md",
+        "docs/package-conversion.md",
+        "docs/package-format.md",
+        "docs/pipeline-config.md",
+        "docs/python-api.md",
+        "docs/rust-api.md",
+        "docs/sequence-kind-support.md",
+        "docs/service-interface.md",
         "docs/versioning.md",
-        "docs/final-release-checklist.md",
+        "docs/wasm-api.md",
         "CITATION.cff",
     ] {
         assert!(readme.contains(link), "README does not link {link}");
     }
 
     let quickstart = fs::read_to_string(repo.join("docs/quickstart.md")).expect("read quickstart");
-    let demo = fs::read_to_string(repo.join("docs/demo.md")).expect("read demo");
     let cli_contract =
         fs::read_to_string(repo.join("docs/cli-contract.md")).expect("read CLI contract");
     for (name, contents) in [
         ("quickstart", quickstart.as_str()),
-        ("demo", demo.as_str()),
         ("CLI contract", cli_contract.as_str()),
     ] {
         assert!(
@@ -127,8 +133,8 @@ fn example_package_metadata_versions_match_workspace_package_version() {
         .expect("read example package citation");
     let package_format =
         fs::read_to_string(repo.join("docs/package-format.md")).expect("read package format doc");
-    let checklist = fs::read_to_string(repo.join("docs/final-release-checklist.md"))
-        .expect("read final release checklist");
+    let release_script =
+        fs::read_to_string(repo.join("scripts/check-final-release.sh")).expect("read final script");
 
     assert_eq!(
         manifest["metadata"]["citation"]["preferred_citation"],
@@ -150,8 +156,8 @@ fn example_package_metadata_versions_match_workspace_package_version() {
         );
     }
     assert!(
-        checklist.contains("Example Metadata Version Audit"),
-        "final release checklist must include an example metadata version audit"
+        release_script.contains("scripts/check-package-artifacts.sh"),
+        "final release gate must verify package artifacts after metadata version changes"
     );
 }
 
@@ -206,20 +212,13 @@ fn python_api_docs_use_runtime_bridge_ready_field() {
 #[test]
 fn reliability_docs_match_json_parse_error_contract() {
     let repo = common::repo_root();
-    let reliability =
-        fs::read_to_string(repo.join("docs/reliability.md")).expect("read reliability docs");
     let cli_contract =
         fs::read_to_string(repo.join("docs/cli-contract.md")).expect("read CLI contract");
 
-    for (name, contents) in [
-        ("reliability docs", reliability.as_str()),
-        ("CLI contract", cli_contract.as_str()),
-    ] {
-        assert!(
-            contents.contains("--json") && contents.contains("cli.invalid_arguments"),
-            "{name} must document JSON-mode CLI argument parse failures"
-        );
-    }
+    assert!(
+        cli_contract.contains("--json") && cli_contract.contains("cli.invalid_arguments"),
+        "CLI contract must document JSON-mode CLI argument parse failures"
+    );
 
     assert!(
         cli_contract.contains("location: null"),
@@ -277,63 +276,16 @@ fn sequence_issue_codes_match_docs_schemas_wasm_and_diagnostic_contracts() {
 #[test]
 fn final_release_checklist_covers_required_gates() {
     let repo = common::repo_root();
-    let checklist =
-        fs::read_to_string(repo.join("docs/final-release-checklist.md")).expect("read checklist");
     let script =
         fs::read_to_string(repo.join("scripts/check-final-release.sh")).expect("read final script");
+    let full_check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read full check");
+    let package_artifacts = fs::read_to_string(repo.join("scripts/check-package-artifacts.sh"))
+        .expect("read package artifact check");
+    let workflow_check = fs::read_to_string(repo.join("scripts/check-release-workflow.py"))
+        .expect("read release workflow check");
+    let release_workflow = fs::read_to_string(repo.join(".github/workflows/release.yml"))
+        .expect("read release workflow");
     let attributes = fs::read_to_string(repo.join(".gitattributes")).expect("read attributes");
-
-    for expected in [
-        "Full End-To-End Workflow Validation",
-        "Public Contract Freeze",
-        "Dependency Policy",
-        "Public Security Surface",
-        "Breaking Change Cleanup",
-        "Benchmark Artifact Coverage",
-        "Release Artifact Contents",
-        "Registry Preflight",
-        "Version Tag",
-        "Binary Release Test",
-        "Install Flow Final Test",
-        "GitHub Release Dry Run",
-        "Public Demo Dry Run",
-        "Final Release Checklist",
-    ] {
-        assert!(
-            checklist.contains(expected),
-            "final checklist missing {expected}"
-        );
-    }
-
-    for expected in [
-        "docs/pre-release-audit-main-2026-05-30.md",
-        "scripts/check-dependency-policy.py",
-        "Cargo.lock",
-        "scripts/check-benchmark-docs.sh",
-        "scripts/check-release-artifact-contents.py",
-        "scripts/check-registry-versions.py",
-        "scripts/print-release-tool-versions.sh",
-        "LICENSE-APACHE",
-        "LICENSE-MIT",
-        ".github/workflows/benchmarks.yml",
-        "cargo test --workspace --benches --all-features",
-        "SECURITY.md",
-        "WASM/npm package",
-        "MCP tools",
-        "external-process backend contracts",
-        "optional Candle model artifact loading",
-        "external services by",
-    ] {
-        assert!(
-            checklist.contains(expected),
-            "final checklist missing release gate detail {expected}"
-        );
-    }
-
-    assert!(
-        !checklist.contains("No known breaking cleanup is deferred"),
-        "final checklist must not claim there is no deferred cleanup while an audit queue exists"
-    );
 
     for expected in [
         "scripts/check.sh",
@@ -347,6 +299,43 @@ fn final_release_checklist_covers_required_gates() {
         assert!(
             script.contains(expected),
             "final release script missing {expected}"
+        );
+    }
+    for expected in ["scripts/check-benchmark-docs.sh"] {
+        assert!(
+            full_check.contains(expected),
+            "full release check missing {expected}"
+        );
+    }
+    assert!(
+        package_artifacts.contains("scripts/check-release-artifact-contents.py"),
+        "package artifact gate must verify artifact contents"
+    );
+    assert!(
+        script.contains("scripts/check.sh")
+            && full_check.contains("scripts/check-dependency-policy.py"),
+        "final release gate must transitively run the dependency policy check"
+    );
+
+    for expected in ["id-token: write", "npm publish", "--provenance"] {
+        assert!(
+            release_workflow.contains(expected),
+            "release workflow missing trusted publishing invariant {expected}"
+        );
+    }
+
+    for expected in [
+        "--provenance",
+        "npm publish",
+        "scripts/check-release-artifact-contents.py",
+        "scripts/check-registry-versions.py",
+        "scripts/print-release-tool-versions.sh",
+        "NPM_TOKEN",
+        "NODE_AUTH_TOKEN",
+    ] {
+        assert!(
+            workflow_check.contains(expected),
+            "release workflow check missing trusted publishing invariant {expected}"
         );
     }
 
@@ -555,7 +544,7 @@ fn contributing_docs_cover_promoted_surface_checks() {
         "Dependencies/security",
         "scripts/check-package-artifacts.sh",
         "scripts/check-security-audit.sh",
-        "docs/final-release-checklist.md",
+        "scripts/check-final-release.sh",
     ] {
         assert!(
             contributing.contains(expected),
