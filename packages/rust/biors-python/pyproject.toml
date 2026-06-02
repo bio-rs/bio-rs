@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "biors"
-version = "0.47.9"
+version = "0.47.10"
 description = "Python bindings for bio-rs core"
 readme = "README.md"
 license = { text = "MIT OR Apache-2.0" }
