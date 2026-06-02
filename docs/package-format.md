@@ -215,6 +215,26 @@ context with a canonical manifest content diff. JSON manifests are compared as
 parsed JSON values, so formatting-only changes do not produce content
 mismatches.
 
+## Fixture Verification Mismatches
+
+`biors package verify` checks declared fixture outputs against observed outputs.
+It verifies preprocessing and package fixture contracts; it does not run model
+inference.
+
+The example package includes a deliberate mismatch observation file:
+
+```bash
+biors package verify \
+  examples/protein-package/manifest.json \
+  --observations examples/protein-package/observations.mismatch.json \
+  --json
+```
+
+That command is expected to fail with `package.output_content_mismatch`. Inspect
+`error.details.results[0].diff.fields` to see the field-level mismatch between
+the declared expected fixture output and the observed output without committing
+large generated JSON snapshots.
+
 ## Checksums
 
 Package artifacts use byte-for-byte `sha256:<64 lowercase hex>` checksums.
