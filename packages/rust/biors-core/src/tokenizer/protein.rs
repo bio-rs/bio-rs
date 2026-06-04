@@ -53,8 +53,8 @@ pub fn tokenize_protein_with_config(
 ) -> TokenizedProtein {
     let sequence = crate::sequence::normalize_sequence_bytes(&protein.sequence);
     let mut tokens = Vec::with_capacity(sequence.len());
-    let mut warnings = Vec::with_capacity(sequence.len());
-    let mut errors = Vec::with_capacity(sequence.len());
+    let mut warnings = Vec::new();
+    let mut errors = Vec::new();
 
     if config.add_special_tokens {
         tokens.push(special_tokens_for_profile(config.profile).cls.token_id);

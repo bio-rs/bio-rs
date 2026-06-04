@@ -1,5 +1,6 @@
 use std::fmt;
 use std::fs;
+use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 
 /// Error type for package artifact path resolution and file reads.
@@ -57,12 +58,36 @@ pub fn read_package_file(
     base_dir: &Path,
     relative_path: &str,
 ) -> Result<Vec<u8>, PackageArtifactError> {
+    let (mut file, resolved) = open_package_file(base_dir, relative_path)?;
+    let mut bytes = Vec::new();
+    file.read_to_end(&mut bytes)
+        .map_err(|error| PackageArtifactError::AssetReadFailed {
+            path: relative_path.to_string(),
+            resolved: resolved.display().to_string(),
+            reason: error.to_string(),
+        })?;
+    Ok(bytes)
+}
+
+pub(crate) fn open_package_file(
+    base_dir: &Path,
+    relative_path: &str,
+) -> Result<(fs::File, PathBuf), PackageArtifactError> {
     let resolved = resolve_existing_package_asset_path(base_dir, relative_path)?;
-    fs::read(&resolved).map_err(|error| PackageArtifactError::AssetReadFailed {
-        path: relative_path.to_string(),
-        resolved: resolved.display().to_string(),
-        reason: error.to_string(),
-    })
+    if !resolved.is_file() {
+        return Err(PackageArtifactError::AssetReadFailed {
+            path: relative_path.to_string(),
+            resolved: resolved.display().to_string(),
+            reason: "asset path is not a file".to_string(),
+        });
+    }
+    let file =
+        fs::File::open(&resolved).map_err(|error| PackageArtifactError::AssetReadFailed {
+            path: relative_path.to_string(),
+            resolved: resolved.display().to_string(),
+            reason: error.to_string(),
+        })?;
+    Ok((file, resolved))
 }
 
 /// Validate that an asset path is relative and cannot escape the package root.

@@ -21,3 +21,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 [[bench]]
 name = "fasta_workloads"
 harness = false
+
+[[bench]]
+name = "package_validation"
+harness = false

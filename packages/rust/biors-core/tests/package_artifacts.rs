@@ -197,6 +197,46 @@ fn package_artifact_validation_uses_raw_file_sha256_for_json_artifacts() {
 }
 
 #[test]
+fn accepts_large_checksum_only_model_artifact() {
+    let base = common::temp_package_dir("large-model-checksum");
+    fs::create_dir_all(base.join("models")).expect("create models dir");
+    fs::create_dir_all(base.join("fixtures")).expect("create fixtures dir");
+    fs::write(base.join("fixtures/tiny.fasta"), b">seq1\nACDEFG\n").expect("write input");
+    fs::write(base.join("fixtures/tiny.output.json"), b"{\"ok\":true}\n").expect("write output");
+
+    let model_bytes = vec![b'M'; 2 * 1024 * 1024];
+    fs::write(base.join("models/protein-seed.onnx"), &model_bytes).expect("write model");
+
+    let mut manifest = common::valid_manifest();
+    manifest.model.checksum = Some(sha256_bytes_digest(&model_bytes));
+
+    let report = validate_package_manifest_artifacts(&manifest, &base);
+
+    assert!(report.valid, "{:?}", report.structured_issues);
+}
+
+#[test]
+fn rejects_directory_artifact_path_without_checksum() {
+    let base = common::temp_package_dir("directory-artifact");
+    fs::create_dir_all(base.join("models")).expect("create models dir");
+    fs::create_dir_all(base.join("fixtures")).expect("create fixtures dir");
+    fs::write(base.join("fixtures/tiny.fasta"), b">seq1\nACDEFG\n").expect("write input");
+    fs::write(base.join("fixtures/tiny.output.json"), b"{\"ok\":true}\n").expect("write output");
+
+    let mut manifest = common::valid_manifest();
+    manifest.model.path = "models".to_string();
+
+    let report = validate_package_manifest_artifacts(&manifest, &base);
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::AssetReadFailed
+            && issue.field == "model"
+            && issue.message.contains("asset path is not a file")
+    }));
+}
+
+#[test]
 fn rejects_missing_manifest_relative_artifact() {
     let mut manifest = common::example_manifest();
     manifest.vocab.as_mut().expect("vocab").path = "vocabs/missing.json".to_string();

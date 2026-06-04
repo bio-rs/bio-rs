@@ -1,5 +1,6 @@
 //! Portable package manifest inspection, validation, artifact checks, and runtime planning.
 
+mod artifact_checks;
 mod artifact_content;
 mod artifacts;
 mod layout;
@@ -51,5 +52,5 @@ pub use types::{
 pub use validation::validate_package_manifest;
 
 pub(crate) use layout::validate_declared_layout;
-pub(crate) use paths::validate_package_relative_path;
+pub(crate) use paths::{open_package_file, validate_package_relative_path};
 pub use paths::{read_package_file, resolve_package_asset_path, PackageArtifactError};

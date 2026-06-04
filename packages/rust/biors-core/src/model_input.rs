@@ -105,6 +105,7 @@ pub fn build_model_inputs_checked(
 ) -> Result<ModelInput, ModelInputBuildError> {
     validate_model_input_policy(&policy)?;
 
+    let mut records = Vec::with_capacity(tokenized.len());
     for record in tokenized {
         if record.tokens.is_empty() {
             return Err(ModelInputBuildError::EmptyTokenizedSequence {
@@ -118,9 +119,10 @@ pub fn build_model_inputs_checked(
                 error_count: record.errors.len(),
             });
         }
+        records.push(model_input_from_tokenized(record, &policy));
     }
 
-    Ok(build_model_inputs_unchecked(tokenized, policy))
+    Ok(ModelInput { policy, records })
 }
 
 /// Validate a model-input policy without building records.
@@ -194,16 +196,20 @@ fn model_input_from_tokenized(
         PaddingPolicy::NoPadding => end,
     };
 
-    let mut input_ids = Vec::with_capacity(output_len);
-    input_ids.extend_from_slice(&tokenized.tokens[..end]);
-
-    let mut attention_mask = Vec::with_capacity(output_len);
-    attention_mask.resize(end, 1);
-
-    if matches!(policy.padding, PaddingPolicy::FixedLength) {
-        input_ids.resize(policy.max_length, policy.pad_token_id);
-        attention_mask.resize(policy.max_length, 0);
-    }
+    let (input_ids, attention_mask) = match policy.padding {
+        PaddingPolicy::FixedLength => {
+            let mut input_ids = vec![policy.pad_token_id; output_len];
+            let mut attention_mask = vec![0; output_len];
+            input_ids[..end].copy_from_slice(&tokenized.tokens[..end]);
+            attention_mask[..end].fill(1);
+            (input_ids, attention_mask)
+        }
+        PaddingPolicy::NoPadding => {
+            let input_ids = tokenized.tokens[..end].to_vec();
+            let attention_mask = vec![1; end];
+            (input_ids, attention_mask)
+        }
+    };
 
     ModelInputRecord {
         id: tokenized.id.clone(),

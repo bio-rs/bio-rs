@@ -1,13 +1,11 @@
 use super::{
+    artifact_checks::{validate_artifact_reference, validated_artifact_bytes},
     artifact_content::{
         validate_referenced_pipeline_config, validate_tokenizer_config, validate_vocab_config,
         ReferencedConfigValidator,
     },
-    read_package_file, validate_declared_layout, validate_package_manifest,
-    validate_package_relative_path, PackageArtifactError, PackageManifest,
-    PackageValidationIssueCode, PackageValidationReport,
+    validate_declared_layout, validate_package_manifest, PackageManifest, PackageValidationReport,
 };
-use crate::hash::{is_sha256_checksum, sha256_bytes_digest};
 use std::path::Path;
 
 pub fn validate_package_manifest_artifacts(
@@ -184,90 +182,5 @@ fn validate_artifact(
     checksum: Option<&str>,
     base_dir: &Path,
 ) -> bool {
-    validated_artifact_bytes(report, field, path, checksum, base_dir).is_some()
-}
-
-fn validated_artifact_bytes(
-    report: &mut PackageValidationReport,
-    field: &str,
-    path: &str,
-    checksum: Option<&str>,
-    base_dir: &Path,
-) -> Option<Vec<u8>> {
-    if path.trim().is_empty() {
-        return None;
-    }
-
-    validate_checksum_format(report, field, checksum);
-
-    if let Err(error) = validate_package_relative_path(path) {
-        report.push_issue(
-            PackageValidationIssueCode::InvalidAssetPath,
-            field,
-            &error.to_string(),
-        );
-        return None;
-    }
-
-    match read_package_file(base_dir, path) {
-        Ok(bytes) => validate_checksum_value(report, field, checksum, &bytes).then_some(bytes),
-        Err(PackageArtifactError::PathEscape { .. }) => {
-            report.push_issue(
-                PackageValidationIssueCode::InvalidAssetPath,
-                field,
-                &format!("{field}: asset path '{path}' must stay inside the package root"),
-            );
-            None
-        }
-        Err(error) => {
-            report.push_issue(
-                PackageValidationIssueCode::AssetReadFailed,
-                field,
-                &format!("{field}: {error}"),
-            );
-            None
-        }
-    }
-}
-
-fn validate_checksum_format(
-    report: &mut PackageValidationReport,
-    field: &str,
-    checksum: Option<&str>,
-) {
-    let Some(checksum) = checksum else {
-        return;
-    };
-    if !is_sha256_checksum(checksum) {
-        report.push_issue(
-            PackageValidationIssueCode::InvalidChecksumFormat,
-            &format!("{field}.checksum"),
-            &format!("{field}.checksum must use sha256:<64 hex>"),
-        );
-    }
-}
-
-fn validate_checksum_value(
-    report: &mut PackageValidationReport,
-    field: &str,
-    checksum: Option<&str>,
-    bytes: &[u8],
-) -> bool {
-    let Some(checksum) = checksum else {
-        return true;
-    };
-    if !is_sha256_checksum(checksum) {
-        return false;
-    }
-
-    let actual = sha256_bytes_digest(bytes);
-    if actual != checksum {
-        report.push_issue(
-            PackageValidationIssueCode::ChecksumMismatch,
-            &format!("{field}.checksum"),
-            &format!("{field}.checksum mismatch: expected '{checksum}' but computed '{actual}'"),
-        );
-        return false;
-    }
-    true
+    validate_artifact_reference(report, field, path, checksum, base_dir)
 }

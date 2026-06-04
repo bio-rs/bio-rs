@@ -43,6 +43,8 @@ jobs:
         uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
       - name: Run core FASTA Criterion benchmarks
         run: cargo bench -p biors-core --bench fasta_workloads
+      - name: Run package validation Criterion benchmark
+        run: cargo bench -p biors-core --bench package_validation
       - name: Run Candle backend Criterion benchmark
         run: cargo bench -p biors-backend-candle --bench candle_linear_probe
       - name: Run MCP request overhead Criterion benchmark
