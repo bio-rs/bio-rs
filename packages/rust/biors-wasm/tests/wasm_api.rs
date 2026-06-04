@@ -315,10 +315,10 @@ fn validate_json_schema_subset(
     }
 
     if let Some(object) = value.as_object() {
-        validate_object_schema(object, &schema, root, path)?;
+        validate_object_schema(object, schema, root, path)?;
     }
     if let Some(array) = value.as_array() {
-        validate_array_schema(array, &schema, root, path)?;
+        validate_array_schema(array, schema, root, path)?;
     }
 
     Ok(())
