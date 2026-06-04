@@ -101,6 +101,12 @@ def parse_fasta_records(fasta_text: str) -> list[ProteinSequence]: ...
 def validate_fasta_input(fasta_text: str) -> SequenceValidationReport: ...
 
 
+def validate_fasta_input_with_kind(
+    fasta_text: str,
+    kind: str = "protein",
+) -> SequenceValidationReport: ...
+
+
 def tokenize_fasta_records(
     fasta_text: str,
     profile: str = "protein-20",

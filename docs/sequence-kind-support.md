@@ -3,6 +3,9 @@
 This matrix is the public capability boundary for sequence-kind support. A
 surface is listed as supported only when the implementation, tests, schemas or
 typed declarations, docs, and benchmark/non-claim boundaries are aligned.
+The surface/status cells are checked against
+`fixtures/support/sequence-kind-support.json` by
+`scripts/check-sequence-kind-support-docs.py`.
 
 | Surface | Protein | DNA | RNA | Notes |
 |---|---|---|---|---|
@@ -15,16 +18,16 @@ typed declarations, docs, and benchmark/non-claim boundaries are aligned.
 | CLI `pipeline --config` | Supported | Supported | Supported | `validate.kind` must match `tokenize.profile`; mismatches fail before input execution. |
 | Rust `biors-core` validation | Supported | Supported | Supported | Kind-aware validation and auto-detection live in the `sequence` module. |
 | Rust `biors-core` tokenization/model-input/workflow | Supported | Supported | Supported | Public type names still include legacy protein terminology, but built-in profiles are sequence-kind aware. |
-| Python bindings | Supported | Supported | Supported | Tokenization, checked model-input building, and workflow helpers accept explicit profiles. The standalone validation helper remains protein-default; use workflow/tokenization for nucleotide profile checks. |
+| Python bindings | Supported | Supported | Supported | `validate_fasta_input_with_kind`, tokenization, checked model-input building, and workflow helpers accept explicit kinds/profiles. `validate_fasta_input` remains protein-default for compatibility. |
 | WASM / JavaScript bindings | Supported | Supported | Supported | `validateFasta`, `tokenize`, and `runWorkflow` accept nucleotide kinds/profiles. |
 | MCP server | Supported | Supported | Supported | `validate`, `tokenize`, and `workflow` accept nucleotide kinds/profiles and reject kind/profile mismatches. |
 | Service contract schemas | Supported | Supported | Supported | The offline service request schemas enumerate the same profiles; service hosts own transport and route execution. |
-| Package manifest validation | Supported | Supported | Supported | Tokenizer config and vocab artifacts are validated for built-in protein, DNA, and RNA profile contracts. Package skeleton/conversion helpers remain protein-first. |
-| Package conversion from Python/HF projects | Supported for protein preview configs | Not promoted | Not promoted | `convert-hf`, `package init`, and `convert-project` remain protein-tokenizer preview tools until nucleotide package-generation fixtures exist. |
+| Package manifest validation | Supported | Supported | Supported | Tokenizer config and vocab artifacts are validated for built-in protein, DNA, and RNA profile contracts. `package init --tokenizer-config` generates a matching kind/profile pipeline. |
+| Package conversion from Python/HF projects | Supported for protein preview configs | Not promoted | Not promoted | `convert-hf` and `convert-project` remain protein-tokenizer preview tools until nucleotide project-conversion fixtures exist. |
 | Benchmarks | Supported | Supported | Supported | Current nucleotide numbers are committed regression guards only, not public throughput claims. |
 
 Do not describe DNA/RNA as "full support" without naming the remaining
-protein-first package-generation limitations above. The supported model-ready
+protein-first project-conversion limitations above. The supported model-ready
 nucleotide path today is explicit profile tokenization, model-input generation,
 workflow output, binding parity, MCP parity, package artifact validation, and
 benchmark regression coverage.

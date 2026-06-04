@@ -30,6 +30,8 @@ pub use types::{
     SequenceValidationIssue, SequenceValidationIssueCode, SequenceValidationReport,
     ValidatedSequence, ValidatedSequenceRecord,
 };
+pub type BiologicalSequence = ProteinSequence;
+pub type FastaSequence = ProteinSequence;
 pub(crate) use validation::validate_protein_sequence_owned;
 pub use validation::{validate_protein_sequence, validate_sequence_record};
 

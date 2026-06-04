@@ -16,6 +16,16 @@ DNA and RNA FASTA validation, tokenization, model-input generation, workflow gen
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
+## Current boundaries
+
+bio-rs is not a hosted model registry, a model training framework, or a remote
+inference service. It does not upload biological data or package artifacts by
+default. Current binary archives are limited to the platforms documented in
+[docs/install.md](docs/install.md); other platforms should use source builds
+until release artifacts are added. Package trust is local validation,
+checksums, schemas, and reproducible lockfiles, not a remote signing or review
+service.
+
 ## Why bio-rs?
 
 Most bio-AI models are born in Python, but the tooling around them often needs to run somewhere else:
@@ -127,7 +137,7 @@ remains a historical reference.
 ### Model input
 - `model-input` CLI: profile-aware `input_ids`, `attention_mask`, and truncation metadata for protein, DNA, and RNA token profiles
 - `workflow` CLI: profile-aware validation → tokenization → model input with readiness issues and reproducibility provenance
-- `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/YAML/JSON) workflows with lockfile generation
+- `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
 - Python, WASM, MCP, package artifact validation, and regression benchmarks cover nucleotide model-ready workflows. Package skeleton/conversion helpers remain protein-first; see [Protein, DNA, and RNA support](docs/sequence-kind-support.md).

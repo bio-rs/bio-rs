@@ -91,9 +91,20 @@ def environment(biors_module) -> dict[str, str | None]:
         "machine": platform.machine(),
         "processor": platform.processor() or None,
         "python": platform.python_version(),
+        "biors_python": cargo_package_version("biors-python"),
         "biors_module": str(Path(biors_module.__file__).relative_to(Path.cwd())),
         "git_commit": command_output(["git", "rev-parse", "HEAD"]),
     }
+
+
+def cargo_package_version(package_name: str) -> str | None:
+    output = command_output(["cargo", "metadata", "--no-deps", "--format-version", "1"])
+    if output is None:
+        return None
+    for package in json.loads(output).get("packages", []):
+        if package.get("name") == package_name:
+            return str(package.get("version"))
+    return None
 
 
 def command_output(command: list[str]) -> str | None:
@@ -228,6 +239,10 @@ def main() -> int:
             ],
         },
         "environment": environment(biors),
+        "release_status": {
+            "status": "current",
+            "claim_policy": "Regression guard timings only; not a public throughput claim.",
+        },
         "input": {
             "records": 512,
             "record_length": 128,

@@ -57,16 +57,18 @@ biors package init ./protein-package \
 - `manifest.json`
 - `models/`
 - `tokenizers/`
-- `pipelines/protein.toml`
+- `pipelines/<kind>.toml`
 - `fixtures/`
 - `observed/`
-- `docs/LICENSE.txt`
-- `docs/CITATION.cff`
+- `docs/LICENSE-SPDX.txt`
+- `docs/CITATION.txt`
 - `docs/model-card.md`
 
 It copies the supplied model and fixture artifacts, writes a bio-rs tokenizer
-config, writes a static pipeline config, and records byte-for-byte SHA-256
-checksums for all manifest-referenced files.
+config, writes a starter pipeline config matching the selected tokenizer
+profile's sequence kind, and records byte-for-byte SHA-256 checksums for all
+manifest-referenced files. Use `package convert --citation-file` for a
+validated `CITATION.cff`; `package init` writes free-form starter citation text.
 
 ## Convert A Python Project
 

@@ -11,6 +11,19 @@ Thanks for contributing to bio-rs.
 rustup target add wasm32-unknown-unknown
 ```
 
+- `cargo-deny` for dependency security audits:
+
+```bash
+cargo install --locked cargo-deny
+```
+
+Release maintainers also need pinned packaging tools such as `maturin`,
+`wasm-pack`, and Node.js. Print the exact release pins with:
+
+```bash
+scripts/print-release-tool-versions.sh
+```
+
 ## Local setup
 
 ```bash

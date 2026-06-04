@@ -1,4 +1,3 @@
-use crate::pipeline_config_validation::validate_pipeline_config_artifact;
 use biors_core::package::{PackageManifest, PackageValidationReport};
 use rmcp::{model::ErrorData as McpError, schemars};
 use serde::Deserialize;
@@ -29,7 +28,8 @@ pub fn validate_fields(
 
 pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport, McpError> {
     let (manifest, base_dir, manifest_path) = load_manifest_and_base_dir(&params)?;
-    let validator = |path: &Path| validate_pipeline_config_artifact(&base_dir, path);
+    let validator =
+        |path: &Path| biors_core::package::validate_pipeline_config_artifact(&base_dir, path);
     Ok(
         biors_core::package::validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
             &manifest,

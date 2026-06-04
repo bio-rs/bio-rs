@@ -40,6 +40,26 @@ pub(crate) fn workflow_output(
     padding: PaddingArg,
     path: PathBuf,
 ) -> Result<SequenceWorkflowOutput, CliError> {
+    workflow_output_with_invocation_path(
+        command,
+        profile,
+        max_length,
+        pad_token_id,
+        padding,
+        path.clone(),
+        path,
+    )
+}
+
+pub(crate) fn workflow_output_with_invocation_path(
+    command: &'static str,
+    profile: TokenizerProfileArg,
+    max_length: usize,
+    pad_token_id: u8,
+    padding: PaddingArg,
+    path: PathBuf,
+    invocation_path: PathBuf,
+) -> Result<SequenceWorkflowOutput, CliError> {
     let policy = ModelInputPolicy {
         max_length,
         pad_token_id,
@@ -49,8 +69,14 @@ pub(crate) fn workflow_output(
     let reader = open_fasta_input(&path)?;
     let input = parse_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path.clone(), error))?;
-    let invocation =
-        workflow_invocation(command, profile, max_length, pad_token_id, padding, &path);
+    let invocation = workflow_invocation(
+        command,
+        profile,
+        max_length,
+        pad_token_id,
+        padding,
+        &invocation_path,
+    );
     prepare_model_input_workflow_with_config(
         input.input_hash,
         &input.records,

@@ -58,6 +58,28 @@ def test_validate_fasta_input_exposes_sequence_diagnostics():
     assert [(issue.residue, issue.position) for issue in sequence.warnings] == [("X", 4)]
     assert [(issue.residue, issue.position) for issue in sequence.errors] == [("*", 3)]
 
+def test_validate_fasta_input_with_kind_accepts_nucleotides():
+    assert "validate_fasta_input_with_kind" in biors.__all__
+
+    dna = biors.validate_fasta_input_with_kind(">dna\nACGTN\n", "dna")
+    rna = biors.validate_fasta_input_with_kind(">rna\nACGUN\n", "rna")
+
+    assert dna.records == 1
+    assert dna.error_count == 0
+    assert dna.warning_count == 1
+    assert dna.sequences[0].alphabet == "dna-iupac"
+    assert [(issue.residue, issue.position) for issue in dna.sequences[0].warnings] == [("N", 5)]
+    assert rna.records == 1
+    assert rna.error_count == 0
+    assert rna.warning_count == 1
+    assert rna.sequences[0].alphabet == "rna-iupac"
+
+def test_validate_fasta_input_with_kind_rejects_unknown_kind():
+    with pytest.raises(biors.BioRsError) as exc_info:
+        biors.validate_fasta_input_with_kind(">seq\nACDE\n", "bad")
+
+    assert exc_info.value.code == "sequence.invalid_kind"
+
 def test_tokenize_fasta_records():
     fasta = ">seq1\nACDEFG"
     tokenized = biors.tokenize_fasta_records(fasta)
@@ -405,6 +427,43 @@ def test_package_file_validation_reports_checksum_mismatch(tmp_path):
     assert "checksum_mismatch" in codes
     assert_matches_schema(validation, "package-validation-report.v0.json")
 
+def test_package_file_validation_reports_invalid_pipeline_config(tmp_path):
+    package_dir = tmp_path / "protein-package"
+    shutil.copytree(REPO_ROOT / "examples/protein-package", package_dir)
+    config_path = package_dir / "pipelines/protein.toml"
+    config = config_path.read_text()
+    config_path.write_text(config.replace("max_length = 8", "max_length = 0"))
+    manifest_path = package_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["preprocessing"][0]["config"]["checksum"] = sha256_file(config_path)
+    manifest_path.write_text(json.dumps(manifest))
+
+    validation = json.loads(biors.validate_package_manifest_file(str(manifest_path)))
+
+    assert validation["valid"] == False
+    codes = {issue["code"] for issue in validation["structured_issues"]}
+    assert "invalid_pipeline_config" in codes
+    assert_matches_schema(validation, "package-validation-report.v0.json")
+
+def test_package_artifact_validation_reports_invalid_pipeline_config(tmp_path):
+    package_dir = tmp_path / "protein-package"
+    shutil.copytree(REPO_ROOT / "examples/protein-package", package_dir)
+    config_path = package_dir / "pipelines/protein.toml"
+    config = config_path.read_text()
+    config_path.write_text(config.replace("padding = \"fixed_length\"", "padding = \"bad\""))
+    manifest_path = package_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["preprocessing"][0]["config"]["checksum"] = sha256_file(config_path)
+
+    validation = json.loads(
+        biors.validate_package_manifest_artifacts(json.dumps(manifest), str(package_dir))
+    )
+
+    assert validation["valid"] == False
+    codes = {issue["code"] for issue in validation["structured_issues"]}
+    assert "invalid_pipeline_config" in codes
+    assert_matches_schema(validation, "package-validation-report.v0.json")
+
 def test_python_errors_expose_stable_code_for_invalid_package_json():
     with pytest.raises(biors.BioRsError) as exc_info:
         biors.inspect_package_manifest("{")
@@ -423,3 +482,8 @@ def test_package_json_helpers_reject_unknown_manifest_fields():
 def assert_matches_schema(value, schema_name):
     schema = json.loads((REPO_ROOT / "schemas" / schema_name).read_text())
     jsonschema.Draft202012Validator(schema).validate(value)
+
+def sha256_file(path):
+    import hashlib
+
+    return f"sha256:{hashlib.sha256(path.read_bytes()).hexdigest()}"

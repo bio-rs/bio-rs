@@ -191,7 +191,7 @@ fn package_convert_project_creates_valid_package_skeleton() {
     );
     let pipeline_config =
         std::fs::read_to_string(output_dir.join("pipelines/protein.toml")).expect("read pipeline");
-    assert!(pipeline_config.contains(r#"profile = "protein-20""#));
+    assert!(pipeline_config.contains(r#"profile = "protein-20-special""#));
 
     let validate = Command::new(env!("CARGO_BIN_EXE_biors"))
         .arg("package")
@@ -554,6 +554,59 @@ fn package_init_writes_non_misleading_metadata_files() {
         "Smith et al. 2026\nDOI: 10.1234/example\n"
     );
     assert!(!output_dir.join("docs/CITATION.cff").exists());
+}
+
+#[test]
+fn package_init_pipeline_matches_supplied_tokenizer_profile() {
+    let temp = TempDir::new("package-init-dna-profile");
+    let model = temp.write("model.onnx", "model");
+    let tokenizer_config = temp.write(
+        "dna-tokenizer.json",
+        r#"{"profile":"dna-iupac","add_special_tokens":false}"#,
+    );
+    let fixture_input = temp.write("tiny.fasta", ">dna\nACGT\n");
+    let fixture_output = temp.write("tiny.output.json", r#"{"label":"fixture","score":1.0}"#);
+    let output_dir = temp.path().join("package");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_biors"))
+        .arg("package")
+        .arg("init")
+        .arg(&output_dir)
+        .arg("--name")
+        .arg("dna-init")
+        .arg("--model")
+        .arg(&model)
+        .arg("--tokenizer-config")
+        .arg(&tokenizer_config)
+        .arg("--fixture-input")
+        .arg(&fixture_input)
+        .arg("--fixture-output")
+        .arg(&fixture_output)
+        .args(skeleton_metadata_args())
+        .output()
+        .expect("run biors package init");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+
+    let manifest: Value = serde_json::from_slice(
+        &std::fs::read(output_dir.join("manifest.json")).expect("read generated manifest"),
+    )
+    .expect("manifest JSON");
+    assert_eq!(
+        manifest["preprocessing"][0]["config"]["path"],
+        "pipelines/dna.toml"
+    );
+    assert_eq!(manifest["preprocessing"][0]["name"], "dna_fasta_tokenize");
+    assert_eq!(manifest["preprocessing"][0]["contract"], "dna-iupac");
+    let pipeline_config =
+        std::fs::read_to_string(output_dir.join("pipelines/dna.toml")).expect("read pipeline");
+    assert!(pipeline_config.contains(r#"kind = "dna""#));
+    assert!(pipeline_config.contains(r#"profile = "dna-iupac""#));
 }
 
 #[test]

@@ -1,6 +1,7 @@
 from .biors import (
     parse_fasta_records,
     validate_fasta_input,
+    validate_fasta_input_with_kind,
     tokenize_fasta_records,
     tokenize_protein,
     build_model_inputs_checked,
@@ -25,6 +26,7 @@ from .biors import (
 __all__ = [
     "parse_fasta_records",
     "validate_fasta_input",
+    "validate_fasta_input_with_kind",
     "tokenize_fasta_records",
     "tokenize_protein",
     "build_model_inputs_checked",

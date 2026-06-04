@@ -18,6 +18,7 @@ permissions:
 env:
   BIORS_RELEASE_MATURIN_VERSION: '1.13.3'
   BIORS_RELEASE_WASM_PACK_VERSION: '0.15.0'
+  BIORS_RELEASE_WASM_PACK_SHA256: 'c09f971ecaed9a2efc80fdcea7a00ef6b53c7fadc8c57d1f61b53a6aa66b668a'
   BIORS_RELEASE_NODE_VERSION: '24.16.0'
 
 jobs:
@@ -247,6 +248,7 @@ jobs:
         run: |
           archive="wasm-pack-v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}-x86_64-unknown-linux-musl"
           curl -fsSL "https://github.com/rustwasm/wasm-pack/releases/download/v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}/${archive}.tar.gz" -o wasm-pack.tar.gz
+          printf '%s  wasm-pack.tar.gz\n' "${{ env.BIORS_RELEASE_WASM_PACK_SHA256 }}" | sha256sum -c -
           tar -xzf wasm-pack.tar.gz
           echo "$PWD/${archive}" >> "$GITHUB_PATH"
       - name: Test WASM package

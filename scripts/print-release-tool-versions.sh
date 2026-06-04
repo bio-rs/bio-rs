@@ -8,4 +8,5 @@ cd "$repo_root"
 
 printf 'maturin=%s\n' "$BIORS_RELEASE_MATURIN_VERSION"
 printf 'wasm-pack=%s\n' "$BIORS_RELEASE_WASM_PACK_VERSION"
+printf 'wasm-pack-sha256=%s\n' "$BIORS_RELEASE_WASM_PACK_SHA256"
 printf 'node=%s\n' "$BIORS_RELEASE_NODE_VERSION"

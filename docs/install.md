@@ -19,6 +19,9 @@ Tagged releases build versioned binary archives for:
 - `x86_64-unknown-linux-gnu`
 - `aarch64-apple-darwin`
 
+Other platforms should use `cargo install` unless a future release explicitly
+adds a binary archive for that target.
+
 Archive names follow:
 
 ```txt
@@ -70,6 +73,9 @@ Homebrew packaging is not enabled yet. The current distribution strategy is:
 | Cargo install | `cargo install biors --version <version>` | `scripts/check-install-smoke.sh` |
 | Linux binary | `x86_64-unknown-linux-gnu` | `build-release-binaries` release job |
 | macOS binary | `aarch64-apple-darwin` | `build-release-binaries` release job |
+| Windows binary | Not currently published | Source install with Cargo only |
+| macOS Intel binary | Not currently published | Source install with Cargo only |
+| Linux ARM binary | Not currently published | Source install with Cargo only |
 | WASM-safe core | `wasm32-unknown-unknown` for `biors-core` | `scripts/check.sh` |
 | Feature flags | default features only | Cargo workspace metadata |
 

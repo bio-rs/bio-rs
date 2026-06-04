@@ -17,6 +17,10 @@ pub use config::{
 pub use protein::{tokenize_protein, tokenize_protein_with_config, ProteinTokenizer, Tokenizer};
 use sinks::{SummaryRecordSink, TokenizedRecordSink};
 pub use types::{ProteinBatchSummary, SummarizedFastaInput, TokenizedFastaInput, TokenizedProtein};
+pub type SequenceBatchSummary = ProteinBatchSummary;
+pub type TokenizedSequence = TokenizedProtein;
+pub type TokenizerConfig = ProteinTokenizerConfig;
+pub type TokenizerProfile = ProteinTokenizerProfile;
 use vocab::TOKEN_LOOKUP_MISSING;
 pub use vocab::{
     dna_iupac_vocab_tokens, dna_iupac_vocabulary, load_protein_20_vocab, load_vocab_json,

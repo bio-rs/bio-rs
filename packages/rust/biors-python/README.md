@@ -27,6 +27,7 @@ records = biors.parse_fasta_records(fasta_text)
 
 # Validate
 report = biors.validate_fasta_input(fasta_text)
+rna_report = biors.validate_fasta_input_with_kind(">rna\nACGUN\n", "rna")
 print(f"Valid records: {report.valid_records}/{report.records}")
 for record in report.sequences:
     for issue in record.warnings:

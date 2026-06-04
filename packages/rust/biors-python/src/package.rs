@@ -23,7 +23,12 @@ pub(crate) fn validate_package_manifest_artifacts(
     base_dir: &str,
 ) -> PyResult<String> {
     let manifest = parse_manifest(manifest_json)?;
-    let report = core_package::validate_package_manifest_artifacts(&manifest, Path::new(base_dir));
+    let base_dir = Path::new(base_dir);
+    let report = core_package::validate_package_manifest_artifacts_with_pipeline_config_validator(
+        &manifest,
+        base_dir,
+        Some(&|path| core_package::validate_pipeline_config_artifact(base_dir, path)),
+    );
     serde_json::to_string(&report).map_err(py_serialization_error)
 }
 
@@ -43,7 +48,7 @@ pub(crate) fn validate_package_manifest_file(manifest_path: &str) -> PyResult<St
             &manifest,
             base_dir,
             Some(path),
-            None,
+            Some(&|path| core_package::validate_pipeline_config_artifact(base_dir, path)),
         );
     serde_json::to_string(&report).map_err(py_serialization_error)
 }

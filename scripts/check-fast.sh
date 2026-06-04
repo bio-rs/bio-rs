@@ -20,6 +20,9 @@ python3 scripts/check-python-syntax.py
 echo "==> module size"
 python3 scripts/check-module-size.py
 
+echo "==> sequence-kind support docs"
+python3 scripts/check-sequence-kind-support-docs.py
+
 echo "==> benchmark docs"
 scripts/check-benchmark-docs.sh
 

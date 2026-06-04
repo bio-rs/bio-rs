@@ -592,6 +592,10 @@ fn sequence_kind_support_matrix_covers_promoted_surfaces() {
             .expect("read service model-input schema");
     let pipeline_config_schema = fs::read_to_string(repo.join("schemas/pipeline-config.v0.json"))
         .expect("read pipeline config schema");
+    let python_api = fs::read_to_string(repo.join("docs/python-api.md")).expect("read Python API");
+    let python_stub =
+        fs::read_to_string(repo.join("packages/rust/biors-python/python/biors/__init__.pyi"))
+            .expect("read Python stub");
 
     assert!(
         readme.contains("docs/sequence-kind-support.md"),
@@ -612,7 +616,8 @@ fn sequence_kind_support_matrix_covers_promoted_surfaces() {
         "Package manifest validation",
         "Package conversion from Python/HF projects",
         "Benchmarks",
-        "Package skeleton/conversion helpers remain protein-first",
+        "project-conversion limitations",
+        "validate_fasta_input_with_kind",
     ] {
         assert!(
             matrix.contains(expected),
@@ -650,6 +655,13 @@ fn sequence_kind_support_matrix_covers_promoted_surfaces() {
         assert!(
             pipeline_config_schema.contains(kind),
             "pipeline config schema missing sequence kind: {kind}"
+        );
+    }
+
+    for surface in [python_api.as_str(), python_stub.as_str()] {
+        assert!(
+            surface.contains("validate_fasta_input_with_kind"),
+            "Python kind-aware validation helper must be documented and typed"
         );
     }
 }

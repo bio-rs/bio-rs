@@ -287,6 +287,10 @@ def main() -> int:
             "package": str(pkg_dir),
         },
         "environment": environment(),
+        "release_status": {
+            "status": "current",
+            "claim_policy": "Regression guard timings only; not a public throughput claim.",
+        },
         "workloads": workloads,
     }
     RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n")

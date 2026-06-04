@@ -99,6 +99,7 @@ strings. Malformed input raises `ValueError`.
 
 ```python
 report = biors.validate_fasta_input(fasta_text)
+rna_report = biors.validate_fasta_input_with_kind(">rna\nACGUN\n", "rna")
 print(report.valid_records, report.records)
 print(report.warning_count, report.error_count)
 for record in report.sequences:
@@ -114,6 +115,13 @@ Returns a validation summary plus per-record diagnostics for FASTA input.
 `warning_count` counts ambiguous but recognized residues such as `X`; `error_count`
 counts residues outside the supported protein alphabet and ambiguity policy.
 Diagnostic positions are one-based offsets in the normalized sequence.
+
+### `validate_fasta_input_with_kind(fasta_text: str, kind: str) -> SequenceValidationReport`
+
+Runs the same FASTA validation with an explicit sequence kind. `kind` must be
+`auto`, `protein`, `dna`, or `rna`. DNA and RNA reports reuse the same
+`SequenceValidationReport` and per-record `ResidueIssue` objects as the
+protein-default helper.
 
 ## Tokenization
 

@@ -246,6 +246,19 @@ impl From<TokenizerProfileArg> for ProteinTokenizerProfile {
     }
 }
 
+impl From<ProteinTokenizerProfile> for TokenizerProfileArg {
+    fn from(value: ProteinTokenizerProfile) -> Self {
+        match value {
+            ProteinTokenizerProfile::Protein20 => Self::Protein20,
+            ProteinTokenizerProfile::Protein20Special => Self::Protein20Special,
+            ProteinTokenizerProfile::DnaIupac => Self::DnaIupac,
+            ProteinTokenizerProfile::DnaIupacSpecial => Self::DnaIupacSpecial,
+            ProteinTokenizerProfile::RnaIupac => Self::RnaIupac,
+            ProteinTokenizerProfile::RnaIupacSpecial => Self::RnaIupacSpecial,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
 pub enum KindArg {
     Auto,

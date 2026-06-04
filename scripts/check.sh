@@ -23,6 +23,9 @@ python3 scripts/check-python-syntax.py
 echo "==> module size"
 python3 scripts/check-module-size.py
 
+echo "==> sequence-kind support docs"
+python3 scripts/check-sequence-kind-support-docs.py
+
 echo "==> benchmark docs"
 # Keep this aligned with check-fast.sh: the release gate must diff rendered
 # benchmark Markdown, not only validate the machine-readable artifact.

@@ -87,6 +87,10 @@ def main() -> int:
             "criterion_estimates": str(ESTIMATES_PATH),
         },
         "environment": environment(),
+        "release_status": {
+            "status": "current",
+            "claim_policy": "Regression guard timings only; not a public throughput claim.",
+        },
         "workloads": [
             {
                 "name": "mcp_doctor_request_duplex",

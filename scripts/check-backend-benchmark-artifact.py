@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from benchmark_release_status import validate_release_status
+
 RESULT_PATH = Path("benchmarks/backend_smoke.json")
 
 
@@ -16,6 +18,11 @@ def main() -> int:
     for field in ["generated_at_utc", "methodology", "environment", "workloads"]:
         if field not in result:
             raise AssertionError(f"missing top-level field: {field}")
+    validate_release_status(
+        result,
+        environment_key="biors_backend_candle",
+        package_name="biors-backend-candle",
+    )
     workloads = result["workloads"]
     if len(workloads) != 1 or workloads[0].get("name") != "candle_linear_probe_32x128_cpu":
         raise AssertionError("backend smoke artifact must cover candle_linear_probe_32x128_cpu")

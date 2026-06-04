@@ -60,7 +60,8 @@ is supplied, the lock pins the package manifest path, model checksum, runtime
 backend, runtime target, and backend version alongside the pipeline config hash,
 vocabulary hash, input hash, and output-content hash. In that mode `--config`
 must resolve to a preprocessing or postprocessing config artifact declared by
-the package manifest.
+the package manifest, and lockfile paths are written as package/config-declared
+portable paths rather than local absolute filesystem paths.
 `debug` emits a step-by-step per-record view from normalized sequence to token
 IDs to model-input records, with compact `W`/`E` residue markers for warnings
 and errors.
@@ -190,9 +191,10 @@ Advanced `package convert` layout-directory overrides (`--models-dir`,
 non-default layout names; they must still produce manifest-relative package
 paths that pass artifact validation.
 Package skeleton reports use `schemas/package-skeleton-output.v0.json`.
-`package init` and `package convert-project` create a local package layout,
-write docs and pipeline config, copy supplied fixture artifacts, and record
-SHA-256 checksums. Python project conversion scans for one ONNX model and an
+`package init` creates a starter local package scaffold, while
+`package convert-project` creates a local package layout from a project
+directory. They write docs and pipeline config, copy supplied fixture artifacts,
+and record SHA-256 checksums. Python project conversion scans for one ONNX model and an
 optional `tokenizer_config.json`, skipping generated/cache directories unless
 `--include-generated` is passed. If multiple ONNX candidates remain, it fails
 with `package.project_model_ambiguous` and returns the sorted candidate list in

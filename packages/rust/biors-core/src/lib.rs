@@ -22,8 +22,9 @@ pub mod workflow;
 pub use error::{BioRsError, FastaReadError};
 pub use fasta::{parse_fasta_records, parse_fasta_records_reader, validate_fasta_reader};
 pub use model_input::ModelInput;
-pub use sequence::{ProteinSequence, SequenceKind};
+pub use sequence::{BiologicalSequence, FastaSequence, ProteinSequence, SequenceKind};
 pub use tokenizer::{
     tokenize_fasta_records_reader, tokenize_protein, ProteinTokenizer, ProteinTokenizerConfig,
+    TokenizedSequence, TokenizerConfig, TokenizerProfile,
 };
 pub use workflow::{prepare_protein_model_input_workflow, SequenceWorkflowOutput};

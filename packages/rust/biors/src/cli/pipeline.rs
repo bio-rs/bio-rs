@@ -3,7 +3,7 @@ use super::{
     pipeline_config::load_pipeline_config,
     pipeline_lock::{write_pipeline_lock, PipelineLockPackage},
     pipeline_output::PipelineOutput,
-    workflow::workflow_output,
+    workflow::{workflow_output, workflow_output_with_invocation_path},
     PaddingArg, TokenizerProfileArg,
 };
 use crate::errors::CliError;
@@ -117,13 +117,14 @@ fn run_config_pipeline(
     if dry_run {
         return Ok(PipelineOutput::dry_run(resolved, explain_plan));
     }
-    let workflow = workflow_output(
+    let workflow = workflow_output_with_invocation_path(
         "biors pipeline --config",
         resolved.profile,
         resolved.config.export.max_length,
         resolved.config.export.pad_token_id,
         resolved.padding,
         resolved.input_path.clone(),
+        PathBuf::from(&resolved.declared_input_path),
     )?;
     if let Some(lock_path) = write_lock {
         write_pipeline_lock(
@@ -166,32 +167,34 @@ fn load_lock_package(
             location: Some(path.display().to_string()),
         });
     }
-    validate_config_belongs_to_package(&manifest, &base_dir, config_path)?;
+    let pipeline_config_path = manifest_declared_config_path(&manifest, &base_dir, config_path)?;
 
     Ok(Some(PipelineLockPackage {
+        base_dir,
         manifest_path: path,
+        pipeline_config_path,
         manifest,
     }))
 }
 
-fn validate_config_belongs_to_package(
+fn manifest_declared_config_path(
     manifest: &biors_core::package::PackageManifest,
     base_dir: &std::path::Path,
     config_path: &std::path::Path,
-) -> Result<(), CliError> {
+) -> Result<String, CliError> {
     let config_canonical = canonicalize_lock_path(config_path)?;
-    let matches_declared_config = manifest
+    let declared_config = manifest
         .preprocessing
         .iter()
         .chain(manifest.postprocessing.iter())
         .filter_map(|step| step.config.as_ref())
-        .any(|config| {
+        .find(|config| {
             canonicalize_lock_path(&base_dir.join(&config.path))
                 .is_ok_and(|declared| declared == config_canonical)
         });
 
-    if matches_declared_config {
-        return Ok(());
+    if let Some(config) = declared_config {
+        return Ok(config.path.clone());
     }
 
     Err(CliError::Validation {

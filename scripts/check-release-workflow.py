@@ -216,6 +216,8 @@ def assert_release_jobs(workflow: dict[str, Any]) -> None:
                 run_contains=[
                     "github.com/rustwasm/wasm-pack/releases/download",
                     "wasm-pack-v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}-x86_64-unknown-linux-musl",
+                    "BIORS_RELEASE_WASM_PACK_SHA256",
+                    "sha256sum -c -",
                 ],
             ),
             StepCheck(name="Test WASM package", run_contains=["wasm-pack test --node packages/rust/biors-wasm"]),
@@ -399,11 +401,13 @@ def assert_secondary_text_markers(
     required_text = [
         f"BIORS_RELEASE_MATURIN_VERSION: '{tool_versions['BIORS_RELEASE_MATURIN_VERSION']}'",
         f"BIORS_RELEASE_WASM_PACK_VERSION: '{tool_versions['BIORS_RELEASE_WASM_PACK_VERSION']}'",
+        f"BIORS_RELEASE_WASM_PACK_SHA256: '{tool_versions['BIORS_RELEASE_WASM_PACK_SHA256']}'",
         f"BIORS_RELEASE_NODE_VERSION: '{tool_versions['BIORS_RELEASE_NODE_VERSION']}'",
         "node-version: ${{ env.BIORS_RELEASE_NODE_VERSION }}",
         '"maturin==${{ env.BIORS_RELEASE_MATURIN_VERSION }}"',
         "github.com/rustwasm/wasm-pack/releases/download",
         "wasm-pack-v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}-x86_64-unknown-linux-musl",
+        "sha256sum -c -",
         "x86_64-unknown-linux-gnu",
         "aarch64-apple-darwin",
         "scripts/check-release-artifact-contents.py python-dist dist",
@@ -450,6 +454,7 @@ def read_release_tool_versions() -> dict[str, str]:
     required = {
         "BIORS_RELEASE_MATURIN_VERSION",
         "BIORS_RELEASE_WASM_PACK_VERSION",
+        "BIORS_RELEASE_WASM_PACK_SHA256",
         "BIORS_RELEASE_NODE_VERSION",
     }
     missing = sorted(required - versions.keys())
@@ -484,7 +489,15 @@ def assert_release_tool_scripts_use_pins(tool_versions: dict[str, str]) -> None:
         if key not in version_printer:
             raise SystemExit(f"release tool version printer is missing {key}")
 
+    sha256 = tool_versions["BIORS_RELEASE_WASM_PACK_SHA256"]
+    if len(sha256) != 64 or any(char not in "0123456789abcdef" for char in sha256):
+        raise SystemExit(
+            "BIORS_RELEASE_WASM_PACK_SHA256 must be a lowercase 64-character sha256"
+        )
+
     for key, version in tool_versions.items():
+        if key.endswith("_SHA256"):
+            continue
         if not version or version.count(".") < 2:
             raise SystemExit(f"{key} must be pinned to an exact patch version, got {version!r}")
 

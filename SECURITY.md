@@ -39,6 +39,23 @@ bio-rs should not upload biological data, model inputs, package artifacts, or
 user content to external services by default. Reports about unintended network
 access, telemetry, or data exfiltration are in scope.
 
+## External Process Runtime Boundary
+
+`biors-core` includes a guarded external-process runtime adapter for local
+integration work. It is not promoted as a package manifest runtime backend:
+package runtime bridge planning rejects `external-process` manifests.
+
+The adapter executes the configured program directly without a shell, passes
+arguments without shell interpolation, clears the parent environment by default,
+and exposes only explicitly configured environment variables unless
+`inherit_environment` is intentionally enabled. Each execution has a timeout,
+stdout/stderr byte caps, and stderr byte-count diagnostics that avoid embedding
+stderr content in error messages.
+
+Treat the configured program path and optional working directory as trusted local
+operator inputs. Do not expose them to untrusted package manifests or remote user
+requests without adding a separate trust policy.
+
 Reports are most useful when they include:
 
 - affected command or crate API

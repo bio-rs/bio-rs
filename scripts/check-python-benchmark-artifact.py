@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from benchmark_release_status import validate_release_status
+
 RESULT_PATH = Path("benchmarks/python_bindings.json")
 REQUIRED_WORKLOADS = {
     "python_parse_fasta_records",
@@ -28,6 +30,11 @@ def main() -> int:
     for field in ["generated_at_utc", "loops", "methodology", "environment", "input", "workloads"]:
         if field not in result:
             raise AssertionError(f"missing top-level field: {field}")
+    validate_release_status(
+        result,
+        environment_key="biors_python",
+        package_name="biors-python",
+    )
     observed = {workload["name"]: workload for workload in result["workloads"]}
     missing = sorted(REQUIRED_WORKLOADS - set(observed))
     if missing:

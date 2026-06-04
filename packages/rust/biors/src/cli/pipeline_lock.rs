@@ -7,7 +7,9 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 
 pub(crate) struct PipelineLockPackage {
+    pub(crate) base_dir: PathBuf,
     pub(crate) manifest_path: PathBuf,
+    pub(crate) pipeline_config_path: String,
     pub(crate) manifest: PackageManifest,
 }
 
@@ -94,14 +96,14 @@ fn build_pipeline_lock(
         pipeline_config: PipelineLockConfig {
             schema_version: resolved.config.schema_version.to_string(),
             name: resolved.config.name.clone(),
-            path: config_path.display().to_string(),
+            path: pipeline_config_lock_path(config_path, package),
             sha256: file_sha256(config_path)?,
         },
         package: package.map(package_lock_section).transpose()?,
         execution: PipelineLockExecution {
             command: workflow.provenance.invocation.command.clone(),
             arguments: workflow.provenance.invocation.arguments.clone(),
-            input_path: resolved.input_path.display().to_string(),
+            input_path: resolved.declared_input_path.clone(),
             input_hash: workflow.provenance.input_hash.clone(),
             ready: workflow.model_ready,
         },
@@ -110,6 +112,12 @@ fn build_pipeline_lock(
             output_data_sha256: workflow.provenance.hashes.output_data_sha256.clone(),
         },
     })
+}
+
+fn pipeline_config_lock_path(config_path: &Path, package: Option<&PipelineLockPackage>) -> String {
+    package
+        .map(|package| package.pipeline_config_path.clone())
+        .unwrap_or_else(|| config_path.display().to_string())
 }
 
 fn package_lock_section(
@@ -136,12 +144,22 @@ fn package_lock_section(
     Ok(PipelineLockPackageSection {
         name: package.manifest.name.clone(),
         schema_version: package.manifest.schema_version.to_string(),
-        manifest_path: package.manifest_path.display().to_string(),
+        manifest_path: package_manifest_lock_path(package),
         model_sha256,
         runtime_backend: package.manifest.runtime.backend.to_string(),
         runtime_target: package.manifest.runtime.target.to_string(),
         backend_version,
     })
+}
+
+fn package_manifest_lock_path(package: &PipelineLockPackage) -> String {
+    package
+        .manifest_path
+        .strip_prefix(&package.base_dir)
+        .ok()
+        .unwrap_or(&package.manifest_path)
+        .to_string_lossy()
+        .replace('\\', "/")
 }
 
 fn file_sha256(path: &Path) -> Result<String, CliError> {

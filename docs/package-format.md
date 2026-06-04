@@ -142,9 +142,12 @@ extensions are rejected before a manifest is written.
 
 For generated skeleton metadata, `package init` keeps the SPDX expression in
 manifest metadata and writes `docs/LICENSE-SPDX.txt`; it writes free-form
-preferred citation text to `docs/CITATION.txt`. Use `package convert` with an
-explicit `--citation-file docs/CITATION.cff` when supplying a validated Citation
-File Format document.
+preferred citation text to `docs/CITATION.txt`. This is a starter scaffold, not
+a publication-quality metadata review. Use `package convert` with an explicit
+`--citation-file docs/CITATION.cff` when supplying a validated Citation File
+Format document. When `package init --tokenizer-config` is supplied, the
+generated pipeline config uses the tokenizer profile's sequence kind and profile
+instead of hardcoding the default protein profile.
 
 Preprocessing steps may also reference a checked pipeline config artifact:
 

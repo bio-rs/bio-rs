@@ -7,6 +7,9 @@ cd "$repo_root"
 echo "==> release workflow dry run"
 python3 scripts/check-release-workflow.py
 
+echo "==> local registry version preflight"
+python3 scripts/check-registry-versions.py --skip-network
+
 echo "==> dependency security audit"
 scripts/check-security-audit.sh
 

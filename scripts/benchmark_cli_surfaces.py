@@ -386,6 +386,10 @@ def main() -> int:
             "binary": str(binary),
         },
         "environment": environment(),
+        "release_status": {
+            "status": "current",
+            "claim_policy": "Regression guard timings only; not a public throughput claim.",
+        },
         "workloads": workloads,
     }
 

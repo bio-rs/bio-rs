@@ -109,6 +109,33 @@ fn external_process_backend_round_trips_context_over_stdin_and_stdout_json() {
 }
 
 #[test]
+fn external_process_backend_clears_parent_environment_by_default() {
+    std::env::set_var("BIORS_RUNTIME_PARENT_SECRET", "should-not-leak");
+    let backend = external_process_backend("echo");
+    let context = ExecutionContext {
+        trace_id: Some("trace-runtime-process-env-clear".to_string()),
+        input_format: "biors.model-input.v0".to_string(),
+        requested_output_format: Some("biors.echo.v0".to_string()),
+        payload: b"{}".to_vec(),
+        metadata: Vec::new(),
+    };
+
+    let result = backend
+        .execute_checked(context)
+        .expect("external process backend should execute fixture");
+    std::env::remove_var("BIORS_RUNTIME_PARENT_SECRET");
+
+    assert!(result
+        .metadata
+        .iter()
+        .any(|item| { item.key == "explicit_env_visible" && item.value == "yes" }));
+    assert!(result
+        .metadata
+        .iter()
+        .any(|item| { item.key == "parent_secret_visible" && item.value == "no" }));
+}
+
+#[test]
 fn external_process_backend_rejects_non_zero_exit_without_leaking_stderr_content() {
     let backend = external_process_backend("fail");
     let context = ExecutionContext {

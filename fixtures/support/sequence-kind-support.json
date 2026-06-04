@@ -1,0 +1,101 @@
+{
+  "schema_version": "biors.sequence_kind_support.v1",
+  "surfaces": [
+    {
+      "surface": "CLI `fasta validate` / `seq validate`",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "CLI `batch validate`",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "CLI `tokenize`",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "CLI `model-input`",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "CLI `workflow`",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "CLI `pipeline` no-config mode",
+      "protein": "Supported",
+      "dna": "Use `workflow` or config mode",
+      "rna": "Use `workflow` or config mode"
+    },
+    {
+      "surface": "CLI `pipeline --config`",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "Rust `biors-core` validation",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "Rust `biors-core` tokenization/model-input/workflow",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "Python bindings",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "WASM / JavaScript bindings",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "MCP server",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "Service contract schemas",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "Package manifest validation",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    },
+    {
+      "surface": "Package conversion from Python/HF projects",
+      "protein": "Supported for protein preview configs",
+      "dna": "Not promoted",
+      "rna": "Not promoted"
+    },
+    {
+      "surface": "Benchmarks",
+      "protein": "Supported",
+      "dna": "Supported",
+      "rna": "Supported"
+    }
+  ]
+}

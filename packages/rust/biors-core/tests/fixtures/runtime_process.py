@@ -46,6 +46,12 @@ def main() -> int:
             "value": os.environ.get("BIORS_RUNTIME_ALLOWED", "no"),
         }
     )
+    metadata.append(
+        {
+            "key": "parent_secret_visible",
+            "value": os.environ.get("BIORS_RUNTIME_PARENT_SECRET", "no"),
+        }
+    )
 
     json.dump(
         {

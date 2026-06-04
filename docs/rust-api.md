@@ -487,6 +487,10 @@ The `sequence` module handles biological sequence types, normalization, alphabet
   - `pub fn new_normalized(id: impl Into<String>, sequence: impl AsRef<str>) -> Self`
   - Directly constructed values are normalized by validation and tokenization before residue classification.
 
+- **`BiologicalSequence`** / **`FastaSequence`** — Sequence-generic aliases
+  for `ProteinSequence`. Prefer these aliases in new examples when the code is
+  not protein-specific.
+
 - **`SequenceKind`** — Biological alphabet family.
   - `Protein`, `Dna`, `Rna`
   - `pub const fn alphabet_name(self) -> &'static str`
@@ -620,6 +624,11 @@ The `tokenizer` module converts biological sequences into stable token IDs. It s
   for API compatibility; its `alphabet` field identifies protein, DNA, or RNA
   profiles.
   - `pub id: String`, `pub length: usize`, `pub alphabet: String`, `pub valid: bool`, `pub tokens: Vec<u8>`, `pub warnings: Vec<ResidueIssue>`, `pub errors: Vec<ResidueIssue>`
+
+- **`TokenizedSequence`** — Sequence-generic alias for `TokenizedProtein`.
+- **`TokenizerConfig`** — Sequence-generic alias for `ProteinTokenizerConfig`.
+- **`TokenizerProfile`** — Sequence-generic alias for `ProteinTokenizerProfile`.
+- **`SequenceBatchSummary`** — Sequence-generic alias for `ProteinBatchSummary`.
 
 - **`ProteinBatchSummary`** — Aggregate summary.
   - `pub records: usize`, `pub total_length: usize`, `pub valid_records: usize`, `pub warning_count: usize`, `pub error_count: usize`

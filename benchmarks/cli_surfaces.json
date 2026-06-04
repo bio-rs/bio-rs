@@ -27,6 +27,13 @@
     "biors": "0.47.8",
     "git_commit": "753307b44d8cb08ef6878f733835b3b0d4954a09"
   },
+  "release_status": {
+    "status": "regression_guard",
+    "recorded_package_version": "0.47.8",
+    "current_workspace_version": "0.47.12",
+    "stale_reason": "CLI timings were recorded on biors 0.47.8 and retained as deterministic regression guard evidence until regenerated for the current release candidate.",
+    "claim_policy": "Regression guard timings only; not current-version performance evidence and not a public throughput claim."
+  },
   "workloads": [
     {
       "name": "cli_workflow_fixed_length",

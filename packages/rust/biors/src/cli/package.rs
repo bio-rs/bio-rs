@@ -1,7 +1,5 @@
-use super::pipeline_config::load_pipeline_config;
 use super::PackageCommand;
 use crate::cli::{run_package_convert, run_package_convert_project, run_package_init};
-use crate::errors::ErrorLocationValue;
 use crate::errors::{classify_validation_code, classify_verification_code, CliError};
 use crate::input::{read_fixture_observations, read_package_manifest};
 use crate::output::print_success;
@@ -9,7 +7,8 @@ use biors_core::package::{
     compare_package_manifest_schemas, diff_package_manifests, inspect_package_manifest,
     plan_package_schema_migration, plan_runtime_bridge,
     validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator,
-    PackageManifest, PackageValidationReport, ReferencedConfigError,
+    validate_pipeline_config_artifact, PackageManifest, PackageValidationReport,
+    ReferencedConfigError,
 };
 use biors_core::verification::verify_package_outputs_with_observation_base;
 use serde::Serialize;
@@ -185,64 +184,11 @@ pub(crate) fn validate_cli_package_manifest_artifacts(
         manifest_base_dir,
         manifest_path,
         Some(&|path| {
-            load_pipeline_config(path)
-                .and_then(|resolved| {
-                    validate_package_pipeline_input(manifest_base_dir, path, &resolved)
-                })
-                .map_err(|error| {
-                    ReferencedConfigError::new(
-                        error.code(),
-                        error.to_string(),
-                        error.location().map(location_label),
-                    )
-                })
+            validate_pipeline_config_artifact(manifest_base_dir, path).map_err(|error| {
+                ReferencedConfigError::new(error.code, error.message, error.location)
+            })
         }),
     )
-}
-
-fn validate_package_pipeline_input(
-    manifest_base_dir: &Path,
-    config_path: &Path,
-    resolved: &super::pipeline_config::ResolvedPipelineConfig,
-) -> Result<(), CliError> {
-    let declared_input = Path::new(&resolved.config.input.path);
-    if declared_input.is_absolute() {
-        return Err(CliError::Validation {
-            code: "pipeline.invalid_config",
-            message: "package pipeline input.path must be package-relative".to_string(),
-            location: Some("input.path".to_string()),
-        });
-    }
-
-    let package_root = canonicalize_package_validation_path(manifest_base_dir)?;
-    let input_path = config_path
-        .parent()
-        .unwrap_or_else(|| Path::new("."))
-        .join(declared_input);
-    let input_canonical = canonicalize_package_validation_path(&input_path)?;
-    if !input_canonical.starts_with(&package_root) {
-        return Err(CliError::Validation {
-            code: "pipeline.invalid_config",
-            message: "package pipeline input.path must stay inside the package root".to_string(),
-            location: Some("input.path".to_string()),
-        });
-    }
-
-    Ok(())
-}
-
-fn canonicalize_package_validation_path(path: &Path) -> Result<PathBuf, CliError> {
-    path.canonicalize().map_err(|source| CliError::Read {
-        path: path.to_path_buf(),
-        source,
-    })
-}
-
-fn location_label(location: ErrorLocationValue) -> String {
-    match location {
-        ErrorLocationValue::Label(label) => label,
-        ErrorLocationValue::Core(location) => format!("{location:?}"),
-    }
 }
 
 fn read_manifest_bytes(path: &PathBuf) -> Result<Vec<u8>, CliError> {

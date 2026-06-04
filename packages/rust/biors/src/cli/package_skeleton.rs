@@ -85,8 +85,12 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
     )?;
     let (tokenizer_asset, tokenizer_profile, notes) =
         write_tokenizer_config(&request, &mut created_files)?;
-    let pipeline_rel =
-        write_pipeline_config(&request.output_dir, &fixture_input_rel, &mut created_files)?;
+    let pipeline_rel = write_pipeline_config(
+        &request.output_dir,
+        &fixture_input_rel,
+        tokenizer_profile,
+        &mut created_files,
+    )?;
     let metadata = write_docs(&request, &mut created_files)?;
 
     let manifest = PackageManifest {
@@ -112,7 +116,7 @@ pub(crate) fn create_package_skeleton(request: PackageSkeletonRequest) -> Result
         tokenizer: Some(tokenizer_asset),
         vocab: None,
         preprocessing: vec![PipelineStep {
-            name: "protein_fasta_tokenize".to_string(),
+            name: format!("{}_fasta_tokenize", tokenizer_profile.sequence_kind()),
             implementation: "biors-core".to_string(),
             contract: tokenizer_profile.as_str().to_string(),
             contract_version: Some(format!("{}.v0", tokenizer_profile.as_str())),

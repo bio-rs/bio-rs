@@ -46,14 +46,16 @@ pub(crate) fn write_tokenizer_config(
 pub(crate) fn write_pipeline_config(
     output_dir: &Path,
     fixture_input_rel: &str,
+    tokenizer_profile: ProteinTokenizerProfile,
     created_files: &mut Vec<String>,
 ) -> Result<String, CliError> {
-    let rel = "pipelines/protein.toml".to_string();
+    let rel = format!("pipelines/{}.toml", tokenizer_profile.sequence_kind());
     let path = output_dir.join(&rel);
     let input_name = Path::new(fixture_input_rel)
         .file_name()
         .and_then(|name| name.to_str())
         .unwrap_or("input.fasta");
+    let kind = tokenizer_profile.sequence_kind();
     let contents = format!(
         r#"schema_version = "biors.pipeline.v0"
 name = "package-preprocessing"
@@ -66,17 +68,18 @@ path = "../fixtures/{input_name}"
 policy = "strip_ascii_whitespace_uppercase"
 
 [validate]
-kind = "protein"
+kind = "{kind}"
 
 [tokenize]
-profile = "protein-20"
+profile = "{}"
 
 [export]
 format = "model-input-json"
 max_length = 512
 pad_token_id = 0
 padding = "fixed_length"
-"#
+"#,
+        tokenizer_profile.as_str()
     );
     std::fs::write(&path, contents).map_err(CliError::Write)?;
     created_files.push(path.display().to_string());
@@ -169,7 +172,9 @@ pub(crate) fn planned_write_paths(
         request
             .output_dir
             .join(format!("tokenizers/{}.json", config.profile.as_str())),
-        request.output_dir.join("pipelines/protein.toml"),
+        request
+            .output_dir
+            .join(format!("pipelines/{}.toml", config.profile.sequence_kind())),
         request.output_dir.join("docs/LICENSE-SPDX.txt"),
         request.output_dir.join("docs/CITATION.txt"),
         request.output_dir.join("docs/model-card.md"),

@@ -26,6 +26,10 @@ fn biors(m: &Bound<'_, PyModule>) -> PyResult<()> {
     errors::register(m)?;
     m.add_function(wrap_pyfunction!(sequence::parse_fasta_records, m)?)?;
     m.add_function(wrap_pyfunction!(sequence::validate_fasta_input, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        sequence::validate_fasta_input_with_kind,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(tokenizer::tokenize_fasta_records, m)?)?;
     m.add_function(wrap_pyfunction!(tokenizer::tokenize_protein, m)?)?;
     m.add_function(wrap_pyfunction!(

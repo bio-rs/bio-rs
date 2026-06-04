@@ -1,7 +1,6 @@
-use super::pipeline_config::{PipelineConfig, ResolvedPipelineConfig};
+use super::pipeline_config::ResolvedPipelineConfig;
 use biors_core::workflow::SequenceWorkflowOutput;
 use serde::Serialize;
-use std::path::Path;
 
 #[derive(Debug, Serialize)]
 pub(crate) struct PipelineOutput {
@@ -96,10 +95,7 @@ impl PipelineOutput {
             ready: false,
             dry_run: Some(true),
             explain_plan: Some(explain_plan),
-            config: Some(PipelineConfigSummary::from_config(
-                &resolved.config,
-                &resolved.input_path,
-            )),
+            config: Some(PipelineConfigSummary::from_config(&resolved)),
             steps: planned_steps(),
             plan: Some(pipeline_plan(&resolved)),
             workflow: None,
@@ -117,10 +113,7 @@ impl PipelineOutput {
             ready,
             dry_run: Some(false),
             explain_plan: Some(explain_plan),
-            config: Some(PipelineConfigSummary::from_config(
-                &resolved.config,
-                &resolved.input_path,
-            )),
+            config: Some(PipelineConfigSummary::from_config(&resolved)),
             steps: config_steps(&workflow),
             plan: explain_plan.then(|| pipeline_plan(&resolved)),
             workflow: Some(workflow),
@@ -129,12 +122,12 @@ impl PipelineOutput {
 }
 
 impl PipelineConfigSummary {
-    fn from_config(config: &PipelineConfig, input_path: &Path) -> Self {
+    fn from_config(resolved: &ResolvedPipelineConfig) -> Self {
         Self {
-            schema_version: config.schema_version.to_string(),
-            name: config.name.clone(),
-            input: input_path.display().to_string(),
-            export: config.export.format.clone(),
+            schema_version: resolved.config.schema_version.to_string(),
+            name: resolved.config.name.clone(),
+            input: resolved.declared_input_path.clone(),
+            export: resolved.config.export.format.clone(),
         }
     }
 }
@@ -195,7 +188,7 @@ impl PipelineStage {
 
     fn plan_detail(self, resolved: &ResolvedPipelineConfig) -> String {
         match self {
-            Self::Parse => format!("read {}", resolved.input_path.display()),
+            Self::Parse => format!("read {}", resolved.declared_input_path),
             Self::Normalize => resolved.config.normalize.policy.clone(),
             Self::Validate => resolved.config.validate.kind.clone(),
             Self::Tokenize => resolved.config.tokenize.profile.clone(),

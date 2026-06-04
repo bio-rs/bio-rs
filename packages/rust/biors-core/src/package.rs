@@ -5,6 +5,7 @@ mod artifacts;
 mod layout;
 mod manifest;
 mod paths;
+mod pipeline_config;
 mod reports;
 mod runtime;
 mod summary;
@@ -23,6 +24,11 @@ pub use manifest::{
     ModelArtifactMetadata, ModelCardMetadata, PackageDirectoryLayout, PackageFixture,
     PackageManifest, PackageMetadata, PipelineConfigArtifact, PipelineStep, RuntimeTarget,
     TokenAsset,
+};
+pub use pipeline_config::{
+    parse_pipeline_config, validate_pipeline_config, validate_pipeline_config_artifact,
+    PipelineConfig, PipelineExportConfig, PipelineInputConfig, PipelineNormalizeConfig,
+    PipelineTokenizeConfig, PipelineValidateConfig,
 };
 pub use reports::{
     BackendCapabilitiesSummary, BackendCompatibilityCheck, BenchmarkEvidence, BenchmarkMetric,
