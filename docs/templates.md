@@ -1,6 +1,6 @@
 # Task Templates
 
-Version: 0.53.0
+Version: 0.54.0
 
 Task templates are local, deterministic contracts for common bio-AI workflow
 families. They describe required inputs, validations, model-ready fields,
@@ -57,4 +57,4 @@ Template inputs mark format support with `core_reader`:
 
 The variant-effect template uses CSV/TSV as `contract_only` until a table parser
 is introduced. Structure templates use executable PDB support; mmCIF remains a
-reviewed structure candidate rather than a template input format in 0.53.0.
+reviewed structure candidate rather than a template input format in 0.54.0.

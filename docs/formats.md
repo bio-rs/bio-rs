@@ -1,8 +1,8 @@
 # Biological Format Support
 
-Version: 0.53.0
+Version: 0.54.0
 
-This document records the `0.53.0` format-expansion contract. bio-rs keeps
+This document records the `0.54.0` format-expansion contract. bio-rs keeps
 format support local-first: parsing and validation run on local input, emit
 machine-readable diagnostics, and do not upload biological data.
 
@@ -212,13 +212,13 @@ verified. See [Molecule support](molecule.md) for the detailed contract.
 
 ## `crates/biors-formats` Decision
 
-`0.53.0` does not introduce a separate `biors-formats` crate. The supported
+`0.54.0` does not introduce a separate `biors-formats` crate. The supported
 FASTQ parser, molecule parsers, and shared format contracts live in
 `biors-core` because:
 
 - the molecule contracts share validation and derived-feature code with the
   core conversion work planned for entity mapping
-- `FormatRecord` is needed by later core conversion work in `0.53.0`
+- `FormatRecord` is needed by later core conversion work in `0.54.0`
 - keeping the API in `biors-core` lets Rust, CLI, Python, WASM, MCP, and service
   surfaces converge on one contract first
 
