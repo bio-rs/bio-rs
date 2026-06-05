@@ -1,6 +1,9 @@
 use crate::tokenizer::TokenizedProtein;
 use serde::{Deserialize, Serialize};
-use std::fmt;
+
+mod errors;
+
+pub use errors::{ModelInputBuildError, ModelInputPayloadError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 /// Policy for converting tokenized proteins into model-ready arrays.
@@ -41,50 +44,6 @@ pub struct ModelInputRecord {
     pub truncated: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-/// Errors returned by checked model-input builders.
-pub enum ModelInputBuildError {
-    /// The model input policy is internally invalid.
-    InvalidPolicy { message: String },
-    /// Workflow provenance received an invalid input hash.
-    InvalidInputHash { input_hash: String },
-    /// A tokenized sequence has no model input tokens.
-    EmptyTokenizedSequence { id: String },
-    /// A tokenized sequence still contains unresolved warnings or errors.
-    InvalidTokenizedSequence {
-        id: String,
-        warning_count: usize,
-        error_count: usize,
-    },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-/// Errors returned when validating already-built model-input payloads.
-pub enum ModelInputPayloadError {
-    /// One record has different input ID and attention-mask lengths.
-    LengthMismatch {
-        id: String,
-        input_ids: usize,
-        attention_mask: usize,
-    },
-    /// Fixed-length payload records must match the policy max length.
-    FixedLengthMismatch {
-        id: String,
-        expected: usize,
-        actual: usize,
-    },
-    /// No-padding payload records cannot exceed the policy max length.
-    NoPaddingLengthExceeded {
-        id: String,
-        max_length: usize,
-        actual: usize,
-    },
-    /// Attention masks must contain only `0` and `1`.
-    NonBinaryAttentionMask { id: String, index: usize, value: u8 },
-    /// A record has no tokens selected by its attention mask.
-    EmptyUnmaskedTokens { id: String },
-}
-
 /// Build model input without rejecting unresolved tokenization warnings or errors.
 pub fn build_model_inputs_unchecked(
     tokenized: &[TokenizedProtein],
@@ -107,18 +66,7 @@ pub fn build_model_inputs_checked(
 
     let mut records = Vec::with_capacity(tokenized.len());
     for record in tokenized {
-        if record.tokens.is_empty() {
-            return Err(ModelInputBuildError::EmptyTokenizedSequence {
-                id: record.id.clone(),
-            });
-        }
-        if !record.warnings.is_empty() || !record.errors.is_empty() {
-            return Err(ModelInputBuildError::InvalidTokenizedSequence {
-                id: record.id.clone(),
-                warning_count: record.warnings.len(),
-                error_count: record.errors.len(),
-            });
-        }
+        validate_tokenized_record_is_model_ready(record)?;
         records.push(model_input_from_tokenized(record, &policy));
     }
 
@@ -139,46 +87,93 @@ pub fn validate_model_input_policy(policy: &ModelInputPolicy) -> Result<(), Mode
 /// Validate an already-built model-input payload received at an integration boundary.
 pub fn validate_model_input_payload(input: &ModelInput) -> Result<(), ModelInputPayloadError> {
     for record in &input.records {
-        if record.input_ids.len() != record.attention_mask.len() {
-            return Err(ModelInputPayloadError::LengthMismatch {
+        validate_model_input_record_payload(record, &input.policy)?;
+    }
+
+    Ok(())
+}
+
+fn validate_tokenized_record_is_model_ready(
+    record: &TokenizedProtein,
+) -> Result<(), ModelInputBuildError> {
+    if record.tokens.is_empty() {
+        return Err(ModelInputBuildError::EmptyTokenizedSequence {
+            id: record.id.clone(),
+        });
+    }
+    if !record.warnings.is_empty() || !record.errors.is_empty() {
+        return Err(ModelInputBuildError::InvalidTokenizedSequence {
+            id: record.id.clone(),
+            warning_count: record.warnings.len(),
+            error_count: record.errors.len(),
+        });
+    }
+
+    Ok(())
+}
+
+fn validate_model_input_record_payload(
+    record: &ModelInputRecord,
+    policy: &ModelInputPolicy,
+) -> Result<(), ModelInputPayloadError> {
+    validate_record_lengths(record, policy)?;
+    validate_attention_mask_values(record)?;
+    validate_attention_mask_selects_tokens(record)?;
+    Ok(())
+}
+
+fn validate_record_lengths(
+    record: &ModelInputRecord,
+    policy: &ModelInputPolicy,
+) -> Result<(), ModelInputPayloadError> {
+    if record.input_ids.len() != record.attention_mask.len() {
+        return Err(ModelInputPayloadError::LengthMismatch {
+            id: record.id.clone(),
+            input_ids: record.input_ids.len(),
+            attention_mask: record.attention_mask.len(),
+        });
+    }
+
+    match &policy.padding {
+        PaddingPolicy::FixedLength if record.input_ids.len() != policy.max_length => {
+            Err(ModelInputPayloadError::FixedLengthMismatch {
                 id: record.id.clone(),
-                input_ids: record.input_ids.len(),
-                attention_mask: record.attention_mask.len(),
+                expected: policy.max_length,
+                actual: record.input_ids.len(),
+            })
+        }
+        PaddingPolicy::NoPadding if record.input_ids.len() > policy.max_length => {
+            Err(ModelInputPayloadError::NoPaddingLengthExceeded {
+                id: record.id.clone(),
+                max_length: policy.max_length,
+                actual: record.input_ids.len(),
+            })
+        }
+        _ => Ok(()),
+    }
+}
+
+fn validate_attention_mask_values(record: &ModelInputRecord) -> Result<(), ModelInputPayloadError> {
+    for (index, value) in record.attention_mask.iter().copied().enumerate() {
+        if value != 0 && value != 1 {
+            return Err(ModelInputPayloadError::NonBinaryAttentionMask {
+                id: record.id.clone(),
+                index,
+                value,
             });
         }
-        match input.policy.padding {
-            PaddingPolicy::FixedLength if record.input_ids.len() != input.policy.max_length => {
-                return Err(ModelInputPayloadError::FixedLengthMismatch {
-                    id: record.id.clone(),
-                    expected: input.policy.max_length,
-                    actual: record.input_ids.len(),
-                });
-            }
-            PaddingPolicy::NoPadding if record.input_ids.len() > input.policy.max_length => {
-                return Err(ModelInputPayloadError::NoPaddingLengthExceeded {
-                    id: record.id.clone(),
-                    max_length: input.policy.max_length,
-                    actual: record.input_ids.len(),
-                });
-            }
-            _ => {}
-        }
+    }
 
-        for (index, value) in record.attention_mask.iter().copied().enumerate() {
-            if value != 0 && value != 1 {
-                return Err(ModelInputPayloadError::NonBinaryAttentionMask {
-                    id: record.id.clone(),
-                    index,
-                    value,
-                });
-            }
-        }
+    Ok(())
+}
 
-        if !record.attention_mask.contains(&1) {
-            return Err(ModelInputPayloadError::EmptyUnmaskedTokens {
-                id: record.id.clone(),
-            });
-        }
+fn validate_attention_mask_selects_tokens(
+    record: &ModelInputRecord,
+) -> Result<(), ModelInputPayloadError> {
+    if !record.attention_mask.contains(&1) {
+        return Err(ModelInputPayloadError::EmptyUnmaskedTokens {
+            id: record.id.clone(),
+        });
     }
 
     Ok(())
@@ -196,7 +191,7 @@ fn model_input_from_tokenized(
         PaddingPolicy::NoPadding => end,
     };
 
-    let (input_ids, attention_mask) = match policy.padding {
+    let (input_ids, attention_mask) = match &policy.padding {
         PaddingPolicy::FixedLength => {
             let mut input_ids = vec![policy.pad_token_id; output_len];
             let mut attention_mask = vec![0; output_len];
@@ -218,84 +213,6 @@ fn model_input_from_tokenized(
         truncated,
     }
 }
-
-impl fmt::Display for ModelInputBuildError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidPolicy { message } => write!(f, "invalid model input policy: {message}"),
-            Self::InvalidInputHash { input_hash } => write!(
-                f,
-                "invalid workflow input hash '{input_hash}': expected fnv1a64:<16 lowercase hex>"
-            ),
-            Self::EmptyTokenizedSequence { id } => write!(
-                f,
-                "sequence '{id}' is empty and cannot be converted into model input"
-            ),
-            Self::InvalidTokenizedSequence {
-                id,
-                warning_count,
-                error_count,
-            } => write!(
-                f,
-                "sequence '{id}' is not model-ready: {warning_count} warnings and {error_count} errors must be resolved before building model input"
-            ),
-        }
-    }
-}
-
-impl std::error::Error for ModelInputBuildError {}
-
-impl ModelInputPayloadError {
-    pub const fn code(&self) -> &'static str {
-        match self {
-            Self::LengthMismatch { .. } => "model_input.length_mismatch",
-            Self::FixedLengthMismatch { .. } => "model_input.fixed_length_mismatch",
-            Self::NoPaddingLengthExceeded { .. } => "model_input.no_padding_length_exceeded",
-            Self::NonBinaryAttentionMask { .. } => "model_input.non_binary_attention_mask",
-            Self::EmptyUnmaskedTokens { .. } => "model_input.empty_attention_mask",
-        }
-    }
-}
-
-impl fmt::Display for ModelInputPayloadError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::LengthMismatch {
-                id,
-                input_ids,
-                attention_mask,
-            } => write!(
-                f,
-                "record '{id}' has {input_ids} input ids but {attention_mask} attention-mask values"
-            ),
-            Self::FixedLengthMismatch {
-                id,
-                expected,
-                actual,
-            } => write!(
-                f,
-                "record '{id}' has {actual} input ids, expected fixed length {expected}"
-            ),
-            Self::NoPaddingLengthExceeded {
-                id,
-                max_length,
-                actual,
-            } => write!(
-                f,
-                "record '{id}' has {actual} input ids, exceeding max_length {max_length}"
-            ),
-            Self::NonBinaryAttentionMask { id, index, value } => write!(
-                f,
-                "record '{id}' attention_mask[{index}] is {value}, expected 0 or 1"
-            ),
-            Self::EmptyUnmaskedTokens { id } => {
-                write!(f, "record '{id}' has no unmasked tokens")
-            }
-        }
-    }
-}
-
-impl std::error::Error for ModelInputPayloadError {}
 
 #[cfg(test)]
 mod tests;
