@@ -104,5 +104,5 @@ fn open_reader(input_path: &str) -> Result<BufReader<File>, String> {
 }
 
 fn usage(reason: &str) -> String {
-    format!("{reason}\nusage: cargo run -p biors-core --example benchmark_fasta -- <parse|validate|tokenize> <input.fasta>")
+    format!("{reason}\nusage: cargo run -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta -- <parse|validate|tokenize> <input.fasta>")
 }

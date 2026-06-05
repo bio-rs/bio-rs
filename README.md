@@ -311,7 +311,7 @@ The check suite runs:
 Reproduce the FASTA benchmark:
 
 ```bash
-cargo build --release -p biors-core --example benchmark_fasta
+cargo build --release -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta
 python3 -m venv .venv-bench
 . .venv-bench/bin/activate
 pip install biopython
@@ -327,12 +327,6 @@ Compare two benchmark artifacts:
 
 ```bash
 python scripts/benchmarks/compare-benchmark-artifacts.py before.json after.json
-```
-
-Run the Rust library example:
-
-```bash
-cargo run -p biors-core --example tokenize
 ```
 
 ## Repository Map

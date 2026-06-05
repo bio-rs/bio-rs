@@ -34,9 +34,19 @@ def benchmark_environment() -> dict[str, str | None]:
 
 
 def ensure_benchmark_harness() -> Path:
-    binary = Path("target") / "release" / "examples" / "benchmark_fasta"
+    binary = Path("target") / "release" / "biors-core-benchmark-fasta"
     subprocess.run(
-        ["cargo", "build", "--release", "-p", "biors-core", "--example", "benchmark_fasta"],
+        [
+            "cargo",
+            "build",
+            "--release",
+            "-p",
+            "biors-core",
+            "--features",
+            "benchmark-tools",
+            "--bin",
+            "biors-core-benchmark-fasta",
+        ],
         check=True,
     )
     return binary

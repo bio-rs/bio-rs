@@ -109,11 +109,11 @@ The benchmark compares the same work on both sides:
 For bio-rs, the script rebuilds and invokes the release benchmark example:
 
 ```bash
-cargo build --release -p biors-core --example benchmark_fasta
-target/release/examples/benchmark_fasta <mode> <input.fasta>
+cargo build --release -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta
+target/release/biors-core-benchmark-fasta <mode> <input.fasta>
 ```
 
-The benchmark example uses `biors-core` buffered reader APIs, not the `biors`
+The benchmark binary uses `biors-core` buffered reader APIs, not the `biors`
 CLI. It excludes CLI startup and success-envelope JSON serialization.
 
 For Biopython, the script performs matched Python loops over `SeqIO.parse(...)`.
@@ -157,7 +157,7 @@ memory-efficiency claim across every FASTA workload.
 ## Reproduce
 
 ```bash
-cargo build --release -p biors-core --example benchmark_fasta
+cargo build --release -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta
 python3 -m venv .venv-bench
 . .venv-bench/bin/activate
 pip install biopython

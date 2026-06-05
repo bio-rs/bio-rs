@@ -15,8 +15,19 @@ serde.workspace = true
 serde_json.workspace = true
 sha2 = "0.10.8"
 
+[features]
+benchmark-tools = []
+
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bin]]
+name = "biors-core-benchmark-fasta"
+path = "bench-tools/benchmark_fasta.rs"
+required-features = ["benchmark-tools"]
+bench = false
+test = false
+doc = false
 
 [[bench]]
 name = "fasta_workloads"
