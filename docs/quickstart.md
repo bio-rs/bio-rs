@@ -50,6 +50,7 @@ surfaces that make bio-rs useful outside a notebook:
 - `doctor` readiness diagnostics for the local toolchain and release fixtures
 - kind-aware validation with stable sequence diagnostics
 - tokenization and model-input JSON with reproducibility hashes
+- reproducible Markdown/shareable JSON reports from CLI output
 - package fixture verification with checksums and observed outputs
 
 ## Validate FASTA
@@ -181,6 +182,20 @@ biors diff expected.json observed.json
 `diff` compares canonical JSON when both files are JSON and raw bytes
 otherwise. It reports SHA-256 hashes, whether the outputs match, and
 first-difference metadata for mismatches.
+
+## Export A Shareable Report
+
+```bash
+biors workflow --max-length 8 examples/protein.fasta > workflow.json
+biors report generate workflow.json \
+  --output workflow-report.md \
+  --shareable-json workflow-report.json
+```
+
+`report generate` turns bio-rs JSON into a deterministic Markdown report and
+`biors.report.v0` JSON export. The report includes provenance, raw input
+SHA-256, canonical JSON SHA-256, and a Markdown SHA-256 so reviewers can trace
+what was summarized without uploading biological data.
 
 ## Validate Batches
 

@@ -15,6 +15,7 @@ pub mod hash;
 pub mod model_input;
 pub mod molecule;
 pub mod package;
+pub mod reports;
 pub mod runtime;
 pub mod sequence;
 pub mod service;

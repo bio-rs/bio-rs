@@ -1,11 +1,12 @@
 use super::{
     Cli, Command, FastaCommand, FormatArg, FormatsCommand, KindArg, MoleculeCommand,
     MoleculeFormatArg, PaddingArg, SeqCommand, ServiceCommand, StructureCommand,
-    StructureFormatArg, TemplateCommand, TokenizerCommand, TokenizerProfileArg,
+    StructureFormatArg, TokenizerCommand, TokenizerProfileArg,
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
-    run_diff, run_package_command, run_pipeline, run_serve, run_workflow, PipelineRunOptions,
+    run_diff, run_package_command, run_pipeline, run_report_command, run_serve,
+    run_template_command, run_workflow, PipelineRunOptions,
 };
 use crate::errors::CliError;
 use crate::input::{open_buffered_input, open_fasta_input, read_tokenizer_config};
@@ -21,7 +22,6 @@ use biors_core::{
     structure::{
         extract_structure_sequences, parse_pdb_record_reader, validate_pdb_reader_with_hash,
     },
-    templates::{find_task_template, task_templates},
     tokenizer::{
         inspect_protein_tokenizer_config, protein_tokenizer_config_for_profile,
         summarize_fasta_records_reader, tokenize_fasta_records_reader_with_config,
@@ -74,6 +74,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
             path,
         }),
         Command::Seq { command } => run_seq_command(command),
+        Command::Report { command } => run_report_command(command),
         Command::Serve(args) => run_serve(args),
         Command::Service { command } => run_service_command(command),
         Command::Structure { command } => run_structure_command(command),
@@ -141,20 +142,6 @@ fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
             None,
             biors_core::service::current_service_interface_document(),
         ),
-    }
-}
-
-fn run_template_command(command: TemplateCommand) -> Result<(), CliError> {
-    match command {
-        TemplateCommand::List => print_success(None, task_templates()),
-        TemplateCommand::Show { id } => match find_task_template(&id) {
-            Some(template) => print_success(None, template),
-            None => Err(CliError::Validation {
-                code: "template.not_found",
-                message: format!("task template '{id}' was not found"),
-                location: Some(id),
-            }),
-        },
     }
 }
 

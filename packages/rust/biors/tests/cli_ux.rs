@@ -48,6 +48,7 @@ fn help_snapshot_lists_commands_and_global_json_flag() {
         "model-input",
         "package",
         "pipeline",
+        "report",
         "seq",
         "structure",
         "tokenizer",

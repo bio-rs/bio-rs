@@ -19,6 +19,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
   - [`model_input`](#module-model_input)
   - [`molecule`](#module-molecule)
   - [`package`](#module-package)
+  - [`reports`](#module-reports)
   - [`runtime`](#module-runtime)
   - [`sequence`](#module-sequence)
   - [`service`](#module-service)
@@ -34,7 +35,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, local task template contracts, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, local task template contracts, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, reproducible report generation, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -111,6 +112,37 @@ Public functions:
   Convert parsed molecule records.
 - `pub fn export_bio_entities(entities: Vec<BioEntity>) -> BioEntityJsonExport`
   Wrap already converted entities into the aggregate JSON export shape.
+
+### Module: `reports`
+
+The `reports` module builds deterministic human-readable reports from bio-rs
+JSON output. It accepts CLI success/error envelopes or raw JSON bytes and
+returns a `biors.report.v0` shareable report with provenance hashes.
+
+Public types:
+
+- **`ShareableReport`** — JSON-ready report with `schema_version`, `title`,
+  `summary`, `status`, `provenance`, deterministic `sections`, and
+  `human_report` Markdown.
+- **`ReportProvenance`** — Generator/version metadata, detected input
+  container/kind, source CLI version/input hash when present, raw input
+  SHA-256, canonical JSON SHA-256, and rendered Markdown SHA-256.
+- **`ReportInputContainer`** — `RawJson`, `CliSuccessEnvelope`, or
+  `CliErrorEnvelope`.
+- **`ReportInputKind`** — `CliError`, `BioEntityExport`,
+  `SequenceWorkflowOutput`, `ValidationReport`, or `GenericJson`.
+- **`ReportStatus`** — `Pass`, `Warning`, `Fail`, or `Unknown`.
+- **`ReportSection`** and **`ReportMetric`** — deterministic
+  machine-readable report sections for downstream renderers.
+- **`ReportBuildError`** — input parsing error with stable
+  `report.invalid_json` code.
+- **`REPORT_SCHEMA_VERSION`** — `biors.report.v0`.
+
+Public functions:
+
+- `pub fn build_shareable_report_from_json_bytes(input: &[u8]) -> Result<ShareableReport, ReportBuildError>`
+  Build a reproducible report from JSON bytes without network access, external
+  metadata lookup, or source payload persistence.
 
 ### Module: `error`
 

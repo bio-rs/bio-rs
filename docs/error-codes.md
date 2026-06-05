@@ -95,6 +95,12 @@ failures.
 - `json.invalid`: JSON input could not be decoded
 - `json.serialization_failed`: CLI output could not be serialized
 
+## Reports
+
+- `report.invalid_json`: report input could not be parsed as JSON
+- `report.output_stdout_ambiguous`: Markdown report output was set to `-`, but stdout is reserved for the CLI JSON envelope
+- `report.shareable_json_stdout_ambiguous`: shareable report JSON output was set to `-`, but stdout is reserved for the CLI JSON envelope
+
 ## Model Input
 
 - `model_input.invalid_sequence`: a tokenized sequence still contains warnings or errors and cannot be emitted as model-ready input safely
@@ -216,6 +222,7 @@ Model-input validation failures keep the shared `model_input.*` codes.
 - `dataset.*`: shared dataset/file input resolution failures
 - `cache.*`: local artifact store inspection or cleaning failures
 - `json.*`: machine-readable input or output failures
+- `report.*`: reproducible report input or output option failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures
 - `runtime.*`: backend execution abstraction failures

@@ -199,6 +199,7 @@ CLI surface.
 ### Model input
 - `model-input` CLI: profile-aware `input_ids`, `attention_mask`, and truncation metadata for protein, DNA, and RNA token profiles
 - `workflow` CLI: profile-aware validation → tokenization → model input with readiness issues and reproducibility provenance
+- `report generate` CLI: deterministic JSON → Markdown/shareable report export with provenance hashes
 - `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
@@ -234,6 +235,7 @@ CLI surface.
 
 ### Utilities
 - `diff`: canonical JSON/raw comparison with SHA-256 hashes
+- `report generate`: reproducible Markdown and shareable JSON reports from bio-rs JSON output
 - `doctor`: core CLI, WASM, Python, package, release, and benchmark readiness
 - `completions`: shell completion generation
 - JSON success/error envelopes for all commands
@@ -246,6 +248,7 @@ CLI surface.
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
 - [Unified conversion layer](docs/conversion.md) — FASTA/FASTQ, structure, and molecule records mapped into `BioEntity` JSON
+- [Reproducible reports](docs/reports.md) — JSON-to-Markdown/shareable report exports with provenance
 - [Task templates](docs/templates.md) — local contracts for classification, embeddings, variants, molecules, structures, and search preprocessing
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
 - [Service interface](docs/service-interface.md) — local HTTP mode, service-host contract, and runtime boundary
@@ -345,7 +348,7 @@ packages/
     biors-wasm/            WASM/JS bindings
 
 schemas/
-  JSON contracts for CLI, package, pipeline, service, tokenizer, and workflow outputs
+  JSON contracts for CLI, package, pipeline, report, service, tokenizer, and workflow outputs
 
 examples/
   protein.fasta

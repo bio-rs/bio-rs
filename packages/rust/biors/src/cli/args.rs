@@ -1,6 +1,7 @@
 use super::molecule_args::MoleculeCommand;
 use super::package_args::PackageCommand;
 use super::profile_args::TokenizerProfileArg;
+use super::report_args::ReportCommand;
 use super::serve_args::ServeArgs;
 use super::service_args::ServiceCommand;
 use super::structure_args::StructureCommand;
@@ -105,6 +106,10 @@ pub enum Command {
     Seq {
         #[command(subcommand)]
         command: SeqCommand,
+    },
+    Report {
+        #[command(subcommand)]
+        command: ReportCommand,
     },
     Serve(ServeArgs),
     Service {

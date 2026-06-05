@@ -5,6 +5,7 @@ use biors_core::{
     model_input::ModelInputBuildError,
     molecule::MoleculeReadError,
     package::{PackageValidationIssueCode, PackageValidationReport},
+    reports::ReportBuildError,
     structure::StructureReadError,
     verification::{PackageVerificationReport, VerificationIssueCode, VerificationStatus},
 };
@@ -18,6 +19,7 @@ pub(crate) enum CliError {
     Format(FormatReadError),
     Structure(StructureReadError),
     Molecule(MoleculeReadError),
+    Report(ReportBuildError),
     ModelInput(ModelInputBuildError),
     Json(serde_json::Error),
     CurrentDir(std::io::Error),
@@ -54,6 +56,7 @@ impl CliError {
             Self::Format(error) => error.code(),
             Self::Structure(error) => error.code(),
             Self::Molecule(error) => error.code(),
+            Self::Report(error) => error.code(),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => {
                 "model_input.invalid_policy"
             }
@@ -81,6 +84,7 @@ impl CliError {
             Self::Format(error) => error.location().map(ErrorLocationValue::Core),
             Self::Structure(error) => error.location().map(ErrorLocationValue::Core),
             Self::Molecule(error) => error.location().map(ErrorLocationValue::Core),
+            Self::Report(_) => None,
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => None,
             Self::ModelInput(ModelInputBuildError::InvalidInputHash { .. }) => None,
             Self::ModelInput(ModelInputBuildError::EmptyTokenizedSequence { id }) => {
@@ -110,6 +114,7 @@ impl CliError {
             | Self::Format(_)
             | Self::Structure(_)
             | Self::Molecule(_)
+            | Self::Report(_)
             | Self::ModelInput(_)
             | Self::Json(_)
             | Self::Validation { .. }
@@ -156,6 +161,7 @@ impl std::fmt::Display for CliError {
             Self::Format(error) => write!(f, "{error}"),
             Self::Structure(error) => write!(f, "{error}"),
             Self::Molecule(error) => write!(f, "{error}"),
+            Self::Report(error) => write!(f, "{error}"),
             Self::ModelInput(error) => write!(f, "{error}"),
             Self::Json(error) => write!(f, "{error}"),
             Self::CurrentDir(error) => write!(f, "failed to determine current directory: {error}"),
@@ -182,6 +188,12 @@ impl From<BioRsError> for CliError {
 impl From<ModelInputBuildError> for CliError {
     fn from(error: ModelInputBuildError) -> Self {
         Self::ModelInput(error)
+    }
+}
+
+impl From<ReportBuildError> for CliError {
+    fn from(error: ReportBuildError) -> Self {
+        Self::Report(error)
     }
 }
 

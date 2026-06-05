@@ -47,6 +47,7 @@ try it quickly.
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors pipeline --config <toml|json> [--dry-run] [--explain-plan]`
 - `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
+- `biors report generate <json|-> [--output <report.md>] [--shareable-json <report.json>]`
 - `biors service contract`
 
 ## Schema Inventory
@@ -84,6 +85,7 @@ metadata, and workflow payloads:
 - `pipeline-config.v0.json`
 - `pipeline-lock.v0.json`
 - `pipeline-output.v0.json`
+- `report-output.v0.json`
 - `sequence-debug-output.v0.json`
 - `sequence-workflow-output.v0.json`
 - `service-interface-output.v0.json`
@@ -137,6 +139,12 @@ and errors.
 `diff` compares expected and observed outputs as canonical JSON when possible
 and raw bytes otherwise. It always emits a report with SHA-256 hashes,
 `matches`, and first-difference metadata for mismatches.
+`report generate` converts bio-rs JSON output into a deterministic shareable
+report with provenance, raw and canonical JSON hashes, rendered Markdown, and a
+Markdown hash. It accepts CLI success/error envelopes and raw JSON. The stdout
+payload uses `report-output.v0.json`; `--output` writes Markdown, and
+`--shareable-json` writes the bare `biors.report.v0` JSON report. The command is
+local-only and does not upload or persist source payloads.
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
 `biors completions <shell>` writes shell completion scripts to stdout.
