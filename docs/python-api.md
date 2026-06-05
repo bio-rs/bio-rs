@@ -31,24 +31,11 @@ Python users can either consume schema-rich JSON from the `biors` CLI or call
 the PyO3 bindings directly.
 
 Use `biors workflow`, `biors pipeline`, or `biors debug` when notebooks,
-pandas, NumPy, PyTorch, or Hugging Face code should own downstream tensor and
-model runtime choices. The JSON boundary stays dependency-light and deterministic.
-
-The in-repo integration scripts cover common adaptation patterns:
-
-- `integrations/python/reference_preprocess.py` reproduces the `protein-20-special`
-  preprocessing fixture without dependencies.
-- `integrations/python/esm_from_biors_json.py` converts model-ready bio-rs JSON into
-  `input_ids` and `attention_mask` lists for ESM-style tensor code.
-- `integrations/python/protbert_from_biors_json.py` converts `biors debug` output
-  into whitespace-separated amino acid strings used by common ProtBERT
-  preprocessing examples.
-- `integrations/python/pandas_numpy_friendly.py` converts model-ready bio-rs JSON
-  into row dictionaries and column arrays for pandas or NumPy.
-
-ESM and ProtBERT each have model-specific tokenizer expectations. The examples
-show safe JSON adaptation patterns, not a claim that bio-rs token IDs are a
-drop-in replacement for every model vocabulary.
+PyTorch, Hugging Face, or other caller-owned code should control downstream
+tensor and model runtime choices. The JSON boundary stays dependency-light and
+deterministic. Model-specific adapters belong in caller projects because ESM,
+ProtBERT, and similar model families each have their own tokenizer and tensor
+contracts.
 
 ## Data Classes
 
@@ -284,7 +271,7 @@ compatibility report as a JSON string.
 
 ## Notebook Pattern
 
-For Jupyter or pandas-heavy work, keep the boundary explicit:
+For notebook work, keep the boundary explicit:
 
 ```python
 rows = [
@@ -300,8 +287,9 @@ rows = [
 ]
 ```
 
-The package does not currently depend on NumPy. Convert `input_ids` and
-`attention_mask` to NumPy arrays in notebook code when needed.
+The package does not depend on notebook or tensor libraries. Convert
+`input_ids` and `attention_mask` to caller-owned tensor or array types in
+notebook code when needed.
 
 ## Related Documents
 

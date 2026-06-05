@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_ROOTS = [Path("scripts"), Path("integrations/python")]
+DEFAULT_ROOTS = [Path("scripts")]
 
 
 def default_files() -> list[Path]:

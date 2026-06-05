@@ -87,7 +87,6 @@ fn repository_layout_uses_current_public_surface_names() {
         "crates",
         "contracts",
         "deploy/service",
-        "integrations/python",
         "testdata/sequences",
         "testdata/model-input-contract",
         "testdata/pipeline",
@@ -227,15 +226,31 @@ fn local_check_scripts_use_rendered_benchmark_docs_gate() {
     let check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read check.sh");
     let check_fast =
         fs::read_to_string(repo.join("scripts/check-fast.sh")).expect("read check-fast.sh");
+    let benchmark_gate = fs::read_to_string(repo.join("scripts/check-benchmark-docs.sh"))
+        .expect("read benchmark docs gate");
 
     for (name, script) in [("check.sh", check), ("check-fast.sh", check_fast)] {
         assert!(
             script.contains("scripts/check-benchmark-docs.sh"),
             "{name} must run the rendered benchmark docs gate"
         );
+    }
+
+    for artifact_check in [
+        "check-cli-benchmark-artifact.py",
+        "check-python-benchmark-artifact.py",
+        "check-wasm-benchmark-artifact.py",
+        "check-backend-benchmark-artifact.py",
+        "check-mcp-benchmark-artifact.py",
+    ] {
         assert!(
-            !script.contains("python3 scripts/check-benchmark-artifact.py"),
-            "{name} must not use the artifact-only benchmark check as its top-level benchmark gate"
+            benchmark_gate.contains(artifact_check),
+            "benchmark docs gate must validate {artifact_check}"
         );
     }
+
+    assert!(
+        !benchmark_gate.contains("fasta_vs_biopython"),
+        "benchmark docs gate must not depend on removed historical FASTA benchmark artifacts"
+    );
 }

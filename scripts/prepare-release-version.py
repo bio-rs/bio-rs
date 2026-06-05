@@ -26,8 +26,6 @@ TEXT_VERSION_FILES = [
     "docs/rust-api.md",
     "docs/service-interface.md",
     "docs/structure.md",
-    "benchmarks/fasta_vs_biopython.md",
-    "benchmarks/fasta_vs_biopython.json",
     "benchmarks/backend_smoke.json",
     "benchmarks/cli_surfaces.json",
     "benchmarks/mcp_server.json",
@@ -36,7 +34,6 @@ TEXT_VERSION_FILES = [
     "crates/biors-python/pyproject.toml",
     "crates/biors-wasm/package.json",
     "deploy/service/Dockerfile",
-    "deploy/service/README.md",
     "testdata/protein-package/docs/CITATION.cff",
 ]
 

@@ -108,9 +108,9 @@ pub(crate) fn build_doctor_report() -> DoctorReport {
         ),
         repo_file_check(
             "benchmark",
-            "benchmark.fasta_artifact",
-            "benchmarks/fasta_vs_biopython.json",
-            "FASTA benchmark artifact is available",
+            "benchmark.cli_artifact",
+            "benchmarks/cli_surfaces.json",
+            "CLI benchmark artifact is available",
         ),
     ];
 

@@ -3,28 +3,18 @@ use std::fs;
 mod common;
 
 #[test]
-fn python_interop_examples_are_present_and_dependency_light() {
+fn python_binding_docs_do_not_require_in_repo_example_scripts() {
     let repo = common::repo_root();
-    let required = [
-        "integrations/python/reference_preprocess.py",
-        "integrations/python/esm_from_biors_json.py",
-        "integrations/python/protbert_from_biors_json.py",
-        "integrations/python/pandas_numpy_friendly.py",
-        "docs/python-api.md",
-    ];
-
-    for path in required {
-        assert!(
-            repo.join(path).exists(),
-            "missing Python interop asset: {path}"
-        );
-    }
+    assert!(
+        !repo.join("integrations/python").exists(),
+        "Python integration examples should not be a renamed examples surface"
+    );
 
     let docs = fs::read_to_string(repo.join("docs/python-api.md")).expect("read Python docs");
-    for expected in ["ESM", "ProtBERT", "pandas", "NumPy", "PyO3"] {
+    for expected in ["caller-owned", "JSON boundary", "PyO3"] {
         assert!(
             docs.contains(expected),
-            "Python interop docs missing {expected}"
+            "Python binding docs missing boundary wording: {expected}"
         );
     }
 

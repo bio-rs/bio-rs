@@ -72,7 +72,6 @@ fn service_template_versions_match_workspace_package_version() {
 
     for path in [
         "deploy/service/Dockerfile",
-        "deploy/service/README.md",
         "docs/service-interface.md",
         "docs/molecule.md",
     ] {
@@ -94,46 +93,12 @@ fn service_template_versions_match_workspace_package_version() {
         fs::read_to_string(repo.join("scripts/prepare-release-version.py")).expect("read prep");
     for path in [
         "deploy/service/Dockerfile",
-        "deploy/service/README.md",
         "docs/service-interface.md",
         "docs/molecule.md",
     ] {
         assert!(
             release_prep.contains(path),
             "release prep script must update {path}"
-        );
-    }
-}
-
-#[test]
-fn stale_benchmark_artifact_is_labeled_historical_in_readme() {
-    let repo = common::repo_root();
-    let workspace_version = workspace_package_version(&repo);
-    let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
-    let benchmark: Value = serde_json::from_str(
-        &fs::read_to_string(repo.join("benchmarks/fasta_vs_biopython.json"))
-            .expect("read benchmark artifact"),
-    )
-    .expect("parse benchmark artifact");
-
-    let benchmark_version = benchmark["environment"]["biors_core"]
-        .as_str()
-        .expect("benchmark biors-core version");
-
-    if benchmark_version != workspace_version {
-        assert!(
-            readme.contains("Historical FASTA benchmark reference"),
-            "stale benchmark artifacts must be visibly labeled historical"
-        );
-        assert!(
-            readme.contains("not current-version performance evidence"),
-            "README must not present stale benchmark numbers as current release evidence"
-        );
-        assert!(
-            !readme.contains(&format!(
-                "The `{workspace_version}` patch keeps those numeric claims pinned"
-            )),
-            "README must not tie stale numeric benchmark claims to the current version"
         );
     }
 }

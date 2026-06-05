@@ -44,7 +44,7 @@ fn doctor_reports_local_readiness_checks() {
     assert!(check_names.contains(&"cargo-deny.toolchain"));
     assert!(check_names.contains(&"benchmark.docs_check"));
     assert!(check_names.contains(&"benchmark.workflow"));
-    assert!(check_names.contains(&"benchmark.fasta_artifact"));
+    assert!(check_names.contains(&"benchmark.cli_artifact"));
 
     let capabilities: Vec<_> = checks
         .iter()

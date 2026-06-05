@@ -102,7 +102,7 @@ when your change touches that surface:
 | Surface | Run when changed | Checks |
 | --- | --- | --- |
 | Rust core, CLI, schemas | `crates/biors-core`, `crates/biors`, `schemas/`, CLI docs | `cargo test -p biors-core`, `cargo test -p biors`, `scripts/check-fast.sh` |
-| Python bindings | `crates/biors-python`, Python API docs, Python integration scripts | `maturin build --manifest-path crates/biors-python/Cargo.toml`, `python3 scripts/test-python-wheel.py <wheel>` |
+| Python bindings | `crates/biors-python`, Python API docs | `maturin build --manifest-path crates/biors-python/Cargo.toml`, `python3 scripts/test-python-wheel.py <wheel>` |
 | WASM/npm bindings | `crates/biors-wasm`, `docs/wasm-api.md`, npm package metadata | `wasm-pack test --node crates/biors-wasm`, `scripts/check-package-artifacts.sh` |
 | MCP service | `crates/biors-mcp-server`, MCP JSON contracts | `cargo test -p biors-mcp-server --all-targets` |
 | Package/release artifacts | `testdata/protein-package`, package schemas, release workflow, install docs | `scripts/check-package-artifacts.sh`, `python3 scripts/check-release-workflow.py` |
@@ -131,35 +131,25 @@ Current contribution priority areas:
 - fixture verification UX and reporting
 - CLI, JSON schema, and package artifact contract coverage
 - reproducible benchmark coverage
-- dependency-light release surfaces and isolated optional integrations
+- dependency-light release surfaces and optional binding boundaries
 
 ## Benchmarks
 
-For the reproducible FASTA benchmark:
+For committed benchmark reports:
 
 ```bash
-python3 -m venv .venv-bench
-. .venv-bench/bin/activate
-pip install biopython
-python scripts/benchmarks/benchmark_fasta_vs_biopython.py
+python3 scripts/benchmarks/benchmark_cli_surfaces.py
 ```
 
-The benchmark script updates both the JSON result artifact and the Markdown
-report. To verify they are synchronized:
+Benchmark scripts update both JSON result artifacts and Markdown reports. To
+verify they are synchronized:
 
 ```bash
 scripts/check-benchmark-docs.sh
 ```
 
-The benchmark script now compares matched workloads for `biors-core` and
-Biopython:
-
-- pure parse
-- parse plus validation
-- parse plus tokenization
-
-It measures core-library throughput only for bio-rs and excludes CLI startup and
-pretty JSON serialization overhead.
+Treat committed benchmark reports as scoped regression guardrails. Do not turn
+them into broad performance claims without fresh workload-specific evidence.
 
 If proposing larger roadmap work, open an issue first to align scope.
 
