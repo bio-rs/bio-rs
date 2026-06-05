@@ -4,25 +4,29 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import importlib
 import json
 import platform
-import statistics
 import sys
-import time
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 
+from benchmark_support import (
+    DNA_ALPHABET,
+    RNA_ALPHABET,
+    UTC,
+    cargo_package_version,
+    command_output,
+    fasta_text,
+    sha256_text,
+    timed_case,
+)
 from render_python_benchmark_report import render_report
 
 SCHEMA_VERSION = "biors.benchmark.python_bindings.v1"
 RESULT_PATH = Path("benchmarks/python_bindings.json")
 REPORT_PATH = Path("benchmarks/python_bindings.md")
 PYTHON_PACKAGE_PATH = Path("packages/rust/biors-python/python")
-ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
-DNA_ALPHABET = "ACGT"
-RNA_ALPHABET = "ACGU"
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,54 +34,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--loops", type=int, default=25)
     parser.add_argument("--pythonpath", type=Path, default=PYTHON_PACKAGE_PATH)
     return parser.parse_args()
-
-
-def sequence(seed: int, length: int, alphabet: str = ALPHABET) -> str:
-    chars = []
-    value = seed
-    for _ in range(length):
-        value = (value * 6364136223846793005 + 1) & ((1 << 64) - 1)
-        chars.append(alphabet[(value >> 32) % len(alphabet)])
-    return "".join(chars)
-
-
-def fasta(records: int, length: int, alphabet: str = ALPHABET) -> str:
-    parts = []
-    for index in range(records):
-        seq = sequence(index, length, alphabet)
-        parts.append(f">seq_{index}\n")
-        parts.extend(f"{seq[offset:offset + 60]}\n" for offset in range(0, len(seq), 60))
-    return "".join(parts)
-
-
-def sha256_text(value: str) -> str:
-    return f"sha256:{hashlib.sha256(value.encode()).hexdigest()}"
-
-
-def sha256_json(value: object) -> str:
-    canonical = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
-    return f"sha256:{hashlib.sha256(canonical).hexdigest()}"
-
-
-def timed_case(name: str, fn, loops: int) -> dict:
-    warmup = fn()
-    seconds = []
-    for _ in range(loops):
-        start = time.perf_counter()
-        fn()
-        seconds.append(time.perf_counter() - start)
-    return {
-        "name": name,
-        "output_hash": sha256_json(warmup),
-        "warmup_summary": warmup,
-        "seconds": seconds,
-        "summary": {
-            "mean_s": statistics.mean(seconds),
-            "median_s": statistics.median(seconds),
-            "min_s": min(seconds),
-            "max_s": max(seconds),
-        },
-    }
 
 
 def load_biors(pythonpath: Path):
@@ -97,38 +53,12 @@ def environment(biors_module) -> dict[str, str | None]:
     }
 
 
-def cargo_package_version(package_name: str) -> str | None:
-    output = command_output(["cargo", "metadata", "--no-deps", "--format-version", "1"])
-    if output is None:
-        return None
-    for package in json.loads(output).get("packages", []):
-        if package.get("name") == package_name:
-            return str(package.get("version"))
-    return None
-
-
-def command_output(command: list[str]) -> str | None:
-    import subprocess
-
-    try:
-        completed = subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return completed.stdout.strip()
-
-
 def main() -> int:
     args = parse_args()
     biors = load_biors(args.pythonpath)
-    input_fasta = fasta(records=512, length=128)
-    dna_fasta = fasta(records=512, length=128, alphabet=DNA_ALPHABET)
-    rna_fasta = fasta(records=512, length=128, alphabet=RNA_ALPHABET)
+    input_fasta = fasta_text(records=512, length=128)
+    dna_fasta = fasta_text(records=512, length=128, alphabet=DNA_ALPHABET)
+    rna_fasta = fasta_text(records=512, length=128, alphabet=RNA_ALPHABET)
     input_hash = sha256_text(input_fasta)
     dna_input_hash = sha256_text(dna_fasta)
     rna_input_hash = sha256_text(rna_fasta)

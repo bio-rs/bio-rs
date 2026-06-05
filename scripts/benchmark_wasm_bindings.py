@@ -4,14 +4,22 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import platform
 import shutil
 import subprocess
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 
+from benchmark_support import (
+    DNA_ALPHABET_BYTES,
+    PROTEIN_ALPHABET_BYTES,
+    RNA_ALPHABET_BYTES,
+    UTC,
+    cargo_package_version,
+    command_output,
+    write_fasta_bytes,
+)
 from render_wasm_benchmark_report import render_report
 
 SCHEMA_VERSION = "biors.benchmark.wasm_bindings.v1"
@@ -19,9 +27,6 @@ RESULT_PATH = Path("benchmarks/wasm_bindings.json")
 REPORT_PATH = Path("benchmarks/wasm_bindings.md")
 WORK_DIR = Path(".benchmark-wasm")
 PKG_DIR = WORK_DIR / "pkg"
-ALPHABET = b"ACDEFGHIKLMNPQRSTVWY"
-DNA_ALPHABET = b"ACGT"
-RNA_ALPHABET = b"ACGU"
 
 
 def parse_args() -> argparse.Namespace:
@@ -29,30 +34,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--loops", type=int, default=7)
     parser.add_argument("--no-build", action="store_true")
     return parser.parse_args()
-
-
-def command_output(command: list[str]) -> str | None:
-    try:
-        completed = subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return completed.stdout.strip()
-
-
-def cargo_package_version(package_name: str) -> str | None:
-    output = command_output(["cargo", "metadata", "--no-deps", "--format-version", "1"])
-    if output is None:
-        return None
-    for package in json.loads(output).get("packages", []):
-        if package.get("name") == package_name:
-            return str(package.get("version"))
-    return None
 
 
 def environment() -> dict[str, str | None]:
@@ -93,45 +74,16 @@ def ensure_wasm_package(no_build: bool) -> Path:
     return PKG_DIR
 
 
-def sequence(seed: int, length: int, alphabet: bytes = ALPHABET) -> bytes:
-    result = bytearray()
-    value = seed
-    for _ in range(length):
-        value = (value * 6364136223846793005 + 1) & ((1 << 64) - 1)
-        result.append(alphabet[(value >> 32) % len(alphabet)])
-    return bytes(result)
-
-
-def write_fasta(
+def write_wasm_fasta(
     path: Path,
     *,
     records: int,
     length: int,
-    alphabet: bytes = ALPHABET,
+    alphabet: bytes,
 ) -> dict[str, int | str]:
-    residues = 0
-    with path.open("wb") as handle:
-        for index in range(records):
-            handle.write(f">seq_{index}\n".encode())
-            seq = sequence(index, length, alphabet)
-            residues += len(seq)
-            handle.write(seq)
-            handle.write(b"\n")
-    return {
-        "path": str(path),
-        "records": records,
-        "total_residues": residues,
-        "file_size_bytes": path.stat().st_size,
-        "sha256": sha256_file(path),
-    }
-
-
-def sha256_file(path: Path) -> str:
-    hasher = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            hasher.update(chunk)
-    return f"sha256:{hasher.hexdigest()}"
+    info = write_fasta_bytes(path, records=records, length=length, alphabet=alphabet)
+    info["path"] = str(path)
+    return info
 
 
 def run_node_benchmark(
@@ -144,8 +96,7 @@ def run_node_benchmark(
     rna_input_info: dict,
     loops: int,
 ) -> list[dict]:
-    script_path = WORK_DIR / "runner.cjs"
-    script_path.write_text(NODE_RUNNER)
+    script_path = Path(__file__).with_name("benchmark_wasm_runner.cjs")
     completed = subprocess.run(
         [
             "node",
@@ -166,106 +117,29 @@ def run_node_benchmark(
     return json.loads(completed.stdout)
 
 
-NODE_RUNNER = r"""
-const crypto = require("crypto");
-const fs = require("fs");
-const wasm = require(process.argv[2]);
-const fasta = fs.readFileSync(process.argv[3]);
-const dnaFasta = fs.readFileSync(process.argv[4]);
-const rnaFasta = fs.readFileSync(process.argv[5]);
-const loops = Number(process.argv[6]);
-const input = JSON.parse(process.argv[7]);
-const dnaInput = JSON.parse(process.argv[8]);
-const rnaInput = JSON.parse(process.argv[9]);
-
-const parsedRecords = wasm.parseFasta(fasta);
-const tokenizedRecords = wasm.tokenize(parsedRecords, "protein-20");
-const parsedDnaRecords = wasm.parseFasta(dnaFasta);
-const parsedRnaRecords = wasm.parseFasta(rnaFasta);
-const workflowConfig = {
-  fastaBytes: Uint8Array.from(fasta),
-  maxLength: 160,
-  padding: "fixed_length",
-  padTokenId: 0,
-};
-const dnaWorkflowConfig = {
-  fastaBytes: Uint8Array.from(dnaFasta),
-  kind: "dna",
-  profile: "dna-iupac",
-  maxLength: 160,
-  padding: "fixed_length",
-  padTokenId: 0,
-};
-const rnaWorkflowConfig = {
-  fastaBytes: Uint8Array.from(rnaFasta),
-  kind: "rna",
-  profile: "rna-iupac",
-  maxLength: 160,
-  padding: "fixed_length",
-  padTokenId: 0,
-};
-
-function hash(value) {
-  return `sha256:${crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex")}`;
-}
-
-function timed(name, fn, workloadInput = input) {
-  fn();
-  const seconds = [];
-  let output;
-  for (let index = 0; index < loops; index += 1) {
-    const start = process.hrtime.bigint();
-    output = fn();
-    seconds.push(Number(process.hrtime.bigint() - start) / 1e9);
-  }
-  seconds.sort((a, b) => a - b);
-  const mean = seconds.reduce((sum, value) => sum + value, 0) / seconds.length;
-  return {
-    name,
-    surface: "wasm_bindings",
-    input: workloadInput,
-    summary: {
-      mean_s: mean,
-      median_s: seconds[Math.floor(seconds.length / 2)],
-      min_s: seconds[0],
-      max_s: seconds[seconds.length - 1],
-      output_hash: hash(output),
-      output_bytes: Buffer.byteLength(JSON.stringify(output)),
-    },
-  };
-}
-
-process.stdout.write(JSON.stringify([
-  timed("wasm_parse_fasta", () => wasm.parseFasta(fasta)),
-  timed("wasm_validate_fasta", () => wasm.validateFasta(fasta, "protein")),
-  timed("wasm_tokenize", () => wasm.tokenize(parsedRecords, "protein-20")),
-  timed("wasm_run_workflow", () => wasm.runWorkflow(workflowConfig)),
-  timed("wasm_tokenize_dna_iupac", () => wasm.tokenize(parsedDnaRecords, "dna-iupac"), dnaInput),
-  timed("wasm_run_workflow_dna_iupac", () => wasm.runWorkflow(dnaWorkflowConfig), dnaInput),
-  timed("wasm_tokenize_rna_iupac", () => wasm.tokenize(parsedRnaRecords, "rna-iupac"), rnaInput),
-  timed("wasm_run_workflow_rna_iupac", () => wasm.runWorkflow(rnaWorkflowConfig), rnaInput),
-]));
-"""
-
-
 def main() -> int:
     args = parse_args()
     pkg_dir = ensure_wasm_package(args.no_build)
     fasta_path = WORK_DIR / "wasm.fasta"
     dna_fasta_path = WORK_DIR / "wasm-dna.fasta"
     rna_fasta_path = WORK_DIR / "wasm-rna.fasta"
-    input_info = write_fasta(fasta_path, records=256, length=128)
-    dna_input_info = write_fasta(
+    input_info = write_wasm_fasta(
+        fasta_path,
+        records=256,
+        length=128,
+        alphabet=PROTEIN_ALPHABET_BYTES,
+    )
+    dna_input_info = write_wasm_fasta(
         dna_fasta_path,
         records=256,
         length=128,
-        alphabet=DNA_ALPHABET,
+        alphabet=DNA_ALPHABET_BYTES,
     )
-    rna_input_info = write_fasta(
+    rna_input_info = write_wasm_fasta(
         rna_fasta_path,
         records=256,
         length=128,
-        alphabet=RNA_ALPHABET,
+        alphabet=RNA_ALPHABET_BYTES,
     )
     workloads = run_node_benchmark(
         pkg_dir,

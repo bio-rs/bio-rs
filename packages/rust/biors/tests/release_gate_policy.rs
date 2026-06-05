@@ -10,8 +10,15 @@ fn final_release_checklist_covers_required_gates() {
     let full_check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read full check");
     let package_artifacts = fs::read_to_string(repo.join("scripts/check-package-artifacts.sh"))
         .expect("read package artifact check");
-    let workflow_check = fs::read_to_string(repo.join("scripts/check-release-workflow.py"))
-        .expect("read release workflow check");
+    let workflow_check = [
+        "scripts/check-release-workflow.py",
+        "scripts/release_workflow_jobs.py",
+        "scripts/release_workflow_text_markers.py",
+    ]
+    .into_iter()
+    .map(|path| fs::read_to_string(repo.join(path)).expect("read release workflow check"))
+    .collect::<Vec<_>>()
+    .join("\n");
     let release_workflow = fs::read_to_string(repo.join(".github/workflows/release.yml"))
         .expect("read release workflow");
     let attributes = fs::read_to_string(repo.join(".gitattributes")).expect("read attributes");
