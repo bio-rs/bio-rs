@@ -10,7 +10,13 @@ fn service_interface_docs_list_request_response_examples() {
 
     for expected in [
         "Request And Response Schemas",
+        "Local HTTP Mode",
+        "biors serve",
+        "GET /health",
+        "GET /openapi.json",
+        "POST /v0/batch/sequence/validate",
         "sequence.validate",
+        "sequence.batch_validate",
         "sequence.inspect",
         "sequence.tokenize",
         "model_input.build",
@@ -19,6 +25,7 @@ fn service_interface_docs_list_request_response_examples() {
         "package.bridge.plan",
         "package.compatibility.compare",
         "fasta-validation-output.v0.json",
+        "service-batch-sequence-validate-output.v0.json",
         "model-input-output.v0.json",
         "package-compatibility-output.v0.json",
     ] {

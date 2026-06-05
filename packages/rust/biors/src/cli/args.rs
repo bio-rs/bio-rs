@@ -1,5 +1,7 @@
 use super::molecule_args::MoleculeCommand;
 use super::package_args::PackageCommand;
+use super::profile_args::TokenizerProfileArg;
+use super::serve_args::ServeArgs;
 use super::service_args::ServiceCommand;
 use super::structure_args::StructureCommand;
 use super::template_args::TemplateCommand;
@@ -7,7 +9,6 @@ use biors_core::{
     formats::BioFormat,
     model_input::PaddingPolicy,
     sequence::{SequenceKind, SequenceKindSelection},
-    tokenizer::ProteinTokenizerProfile,
 };
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
@@ -105,6 +106,7 @@ pub enum Command {
         #[command(subcommand)]
         command: SeqCommand,
     },
+    Serve(ServeArgs),
     Service {
         #[command(subcommand)]
         command: ServiceCommand,
@@ -251,49 +253,6 @@ impl From<PaddingArg> for PaddingPolicy {
         match value {
             PaddingArg::FixedLength => Self::FixedLength,
             PaddingArg::NoPadding => Self::NoPadding,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
-pub enum TokenizerProfileArg {
-    #[default]
-    #[value(name = "protein-20")]
-    Protein20,
-    #[value(name = "protein-20-special")]
-    Protein20Special,
-    #[value(name = "dna-iupac")]
-    DnaIupac,
-    #[value(name = "dna-iupac-special")]
-    DnaIupacSpecial,
-    #[value(name = "rna-iupac")]
-    RnaIupac,
-    #[value(name = "rna-iupac-special")]
-    RnaIupacSpecial,
-}
-
-impl From<TokenizerProfileArg> for ProteinTokenizerProfile {
-    fn from(value: TokenizerProfileArg) -> Self {
-        match value {
-            TokenizerProfileArg::Protein20 => Self::Protein20,
-            TokenizerProfileArg::Protein20Special => Self::Protein20Special,
-            TokenizerProfileArg::DnaIupac => Self::DnaIupac,
-            TokenizerProfileArg::DnaIupacSpecial => Self::DnaIupacSpecial,
-            TokenizerProfileArg::RnaIupac => Self::RnaIupac,
-            TokenizerProfileArg::RnaIupacSpecial => Self::RnaIupacSpecial,
-        }
-    }
-}
-
-impl From<ProteinTokenizerProfile> for TokenizerProfileArg {
-    fn from(value: ProteinTokenizerProfile) -> Self {
-        match value {
-            ProteinTokenizerProfile::Protein20 => Self::Protein20,
-            ProteinTokenizerProfile::Protein20Special => Self::Protein20Special,
-            ProteinTokenizerProfile::DnaIupac => Self::DnaIupac,
-            ProteinTokenizerProfile::DnaIupacSpecial => Self::DnaIupacSpecial,
-            ProteinTokenizerProfile::RnaIupac => Self::RnaIupac,
-            ProteinTokenizerProfile::RnaIupacSpecial => Self::RnaIupacSpecial,
         }
     }
 }

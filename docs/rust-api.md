@@ -584,14 +584,20 @@ The `runtime` module defines backend abstraction contracts and provides a guarde
 
 ### Module: `service`
 
-The `service` module defines a transport-agnostic service interface contract for
-embedding bio-rs in a caller-owned service host. It does not include an HTTP
-server, network listener, authentication, rate limiting, or deployment runtime.
+The `service` module defines the service interface contract, local server
+metadata, health payload, OpenAPI payload, and inline batch sequence validation
+request/response types. `biors-core` still does not bind sockets,
+authenticate users, rate-limit requests, or deploy infrastructure; the built-in
+listener lives in the `biors` CLI crate.
 
 #### Constants
 
 - **`SERVICE_INTERFACE_SCHEMA_VERSION`** — current service contract schema
   version, `biors.service_interface.v0`.
+- **`SERVICE_HEALTH_SCHEMA_VERSION`** — current local service health schema
+  version, `biors.service_health.v0`.
+- **`SERVICE_BATCH_SEQUENCE_VALIDATE_SCHEMA_VERSION`** — current inline batch
+  validation schema version, `biors.service_batch_sequence_validate.v0`.
 
 #### Types
 
@@ -631,6 +637,29 @@ server, network listener, authentication, rate limiting, or deployment runtime.
   - `pub file_access: String`
   - `pub runtime_boundary: String`
 
+- **`ServiceHealthDocument`** — local HTTP health response payload.
+  - `pub schema_version: String`
+  - `pub service_name: String`
+  - `pub service_version: String`
+  - `pub status: String`
+  - `pub network_policy: String`
+  - `pub endpoints: Vec<ServiceEndpointStatus>`
+
+- **`ServiceEndpointStatus`** — method/path/operation tuple exposed by the
+  local service health response.
+
+- **`ServiceBatchSequenceValidateRequest`** — request payload for validating
+  multiple inline FASTA inputs.
+  - `pub kind: ServiceSequenceKindSelection`
+  - `pub inputs: Vec<ServiceBatchSequenceInput>`
+
+- **`ServiceBatchSequenceValidateOutput`** — aggregate response payload for
+  inline batch FASTA validation.
+
+- **`ServiceBatchValidationError`** — structured validation errors for empty
+  inputs, empty IDs, duplicate IDs, empty FASTA text, and FASTA parse/read
+  failures.
+
 #### Functions
 
 - `pub fn current_service_interface_document() -> ServiceInterfaceDocument`
@@ -641,6 +670,18 @@ server, network listener, authentication, rate limiting, or deployment runtime.
 
 - `pub fn service_routes() -> Vec<ServiceRoute>`
   Return the stable v0 operation list for service hosts.
+
+- `pub fn local_service_routes() -> Vec<ServiceRoute>`
+  Return the subset currently served by `biors serve`.
+
+- `pub fn service_health_document(version: impl Into<String>) -> ServiceHealthDocument`
+  Build the local service health payload.
+
+- `pub fn service_openapi_document(version: impl Into<String>, server_url: impl Into<String>) -> serde_json::Value`
+  Build the OpenAPI 3.1 document served by the local HTTP runtime.
+
+- `pub fn validate_service_batch_sequence_request(request: ServiceBatchSequenceValidateRequest) -> Result<ServiceBatchSequenceValidateOutput, ServiceBatchValidationError>`
+  Validate inline FASTA batch payloads with the selected sequence kind policy.
 
 ### Module: `sequence`
 

@@ -18,6 +18,11 @@ mod pipeline;
 mod pipeline_config;
 mod pipeline_lock;
 mod pipeline_output;
+mod profile_args;
+mod serve;
+mod serve_args;
+mod serve_handlers;
+mod serve_http;
 mod service_args;
 mod structure_args;
 mod template_args;
@@ -25,7 +30,7 @@ pub(crate) mod tokenizer_convert;
 mod workflow;
 pub use args::{
     BatchCommand, CacheCommand, Cli, Command, DatasetCommand, FastaCommand, FormatArg,
-    FormatsCommand, KindArg, PaddingArg, SeqCommand, TokenizerCommand, TokenizerProfileArg,
+    FormatsCommand, KindArg, PaddingArg, SeqCommand, TokenizerCommand,
 };
 pub(crate) use batch::run_batch_command;
 pub(crate) use cache::run_cache_command;
@@ -42,6 +47,8 @@ pub use package_args::{
 pub(crate) use package_convert::run_package_convert;
 pub(crate) use package_init::{run_package_convert_project, run_package_init};
 pub(crate) use pipeline::{run_pipeline, PipelineRunOptions};
+pub use profile_args::TokenizerProfileArg;
+pub(crate) use serve::run_serve;
 pub use service_args::ServiceCommand;
 pub use structure_args::{StructureCommand, StructureFormatArg};
 pub use template_args::TemplateCommand;

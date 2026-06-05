@@ -201,6 +201,25 @@ Dataset inspection emits a descriptor (`source`, `version`, `split`), optional
 hash, a local mapping hash, and a dataset-to-sample mapping built from FASTA
 record IDs.
 
+## Start The Local Service
+
+```bash
+biors service contract
+biors serve --host 127.0.0.1 --port 8787
+```
+
+In another terminal:
+
+```bash
+curl -s http://127.0.0.1:8787/health
+curl -s http://127.0.0.1:8787/v0/batch/sequence/validate \
+  -H 'content-type: application/json' \
+  -d '{"kind":"auto","inputs":[{"id":"sample1","fasta_text":">seq1\nACDE\n"}]}'
+```
+
+`biors serve` is local-first. It does not upload biological data, call external
+services, run model inference, or persist request bodies.
+
 ## Run A Pipeline Config
 
 ```bash

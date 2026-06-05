@@ -33,6 +33,7 @@ try it quickly.
 - `biors workflow [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
+- `biors serve [--host <host>] [--port <port>] [--max-body-bytes <bytes>]`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
 - `biors package init <output-dir> --name <name> --model <model.onnx> [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> [--doi <doi>] --model-card-summary <text> --intended-use <text> --limitation <text> [--force]`
@@ -86,7 +87,12 @@ metadata, and workflow payloads:
 - `sequence-debug-output.v0.json`
 - `sequence-workflow-output.v0.json`
 - `service-interface-output.v0.json`
+- `service-batch-sequence-validate-output.v0.json`
+- `service-batch-sequence-validate-request.v0.json`
+- `service-empty-request.v0.json`
+- `service-health-output.v0.json`
 - `service-model-input-request.v0.json`
+- `service-openapi-output.v0.json`
 - `service-package-compatibility-request.v0.json`
 - `service-package-request.v0.json`
 - `service-sequence-inspect-request.v0.json`
@@ -138,10 +144,15 @@ benchmark records can be tied back to the exact released binary.
 capability groups covering core CLI, WASM, Python bindings, package fixtures,
 release tooling, and benchmark tooling. Optional binding/release tools are
 reported as warnings with install hints rather than causing the command to fail.
-`biors service contract` emits the transport-agnostic service interface
-contract. It lists deterministic operations, JSON schema names, file access
-policy, runtime/package boundaries, and offline OpenAPI direction without
-starting a service runtime.
+`biors service contract` emits the service interface contract. It lists
+deterministic operations, JSON schema names, file access policy,
+runtime/package boundaries, and the local CLI server endpoints exposed by
+`biors serve`.
+`biors serve` starts a local-first HTTP JSON server on `127.0.0.1:8787` by
+default. It does not call external services, upload biological data, persist
+requests, run model inference, or open a hosted workspace. The current runtime
+serves `GET /health`, `GET /openapi.json`, and
+`POST /v0/batch/sequence/validate`.
 `batch validate` accepts multiple file paths, directories, and quoted glob
 patterns. Directory inputs recurse into nested folders, include common FASTA
 file extensions, and ignore unrelated files. Empty glob expansion fails with
@@ -335,6 +346,11 @@ byte count, sample count, portable dataset content hash, local mapping hash,
 deterministic `resolved_files`, and sample mapping lists.
 Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
+Local HTTP health payloads use `schemas/service-health-output.v0.json`.
+The served OpenAPI document uses `schemas/service-openapi-output.v0.json`.
+The batch sequence endpoint accepts
+`schemas/service-batch-sequence-validate-request.v0.json` and returns
+`schemas/service-batch-sequence-validate-output.v0.json`.
 Task template payloads use `schemas/task-template-catalog-output.v0.json` for
 `templates list` and `schemas/task-template-output.v0.json` for
 `templates show`.

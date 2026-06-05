@@ -5,7 +5,7 @@ use super::{
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
-    run_diff, run_package_command, run_pipeline, run_workflow, PipelineRunOptions,
+    run_diff, run_package_command, run_pipeline, run_serve, run_workflow, PipelineRunOptions,
 };
 use crate::errors::CliError;
 use crate::input::{open_buffered_input, open_fasta_input, read_tokenizer_config};
@@ -18,7 +18,6 @@ use biors_core::{
         validate_molecule_records, validate_smiles_reader_with_hash,
     },
     sequence::validate_fasta_reader_with_kind_and_hash,
-    service::current_service_interface_document,
     structure::{
         extract_structure_sequences, parse_pdb_record_reader, validate_pdb_reader_with_hash,
     },
@@ -75,6 +74,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
             path,
         }),
         Command::Seq { command } => run_seq_command(command),
+        Command::Serve(args) => run_serve(args),
         Command::Service { command } => run_service_command(command),
         Command::Structure { command } => run_structure_command(command),
         Command::Templates { command } => run_template_command(command),
@@ -137,7 +137,10 @@ fn run_seq_command(command: SeqCommand) -> Result<(), CliError> {
 
 fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
     match command {
-        ServiceCommand::Contract => print_success(None, current_service_interface_document()),
+        ServiceCommand::Contract => print_success(
+            None,
+            biors_core::service::current_service_interface_document(),
+        ),
     }
 }
 

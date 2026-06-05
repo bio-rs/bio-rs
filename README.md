@@ -57,7 +57,7 @@ bio-rs makes that layer explicit:
 - pin provenance, vocabulary hashes, output hashes, package checksums, and
   pipeline lockfiles for repeatable runs
 - expose the same deterministic core through Rust, the CLI, Python, WASM, MCP,
-  and transport-agnostic service schemas
+  and local-first service schemas
 
 The goal is not to replace Python research workflows. The goal is to give those
 workflows a portable contract layer that is easy to inspect, test, cite, and
@@ -90,6 +90,7 @@ biors batch validate --kind auto examples/
 biors tokenizer inspect --profile protein-20-special
 biors package validate examples/protein-package/manifest.json
 biors service contract
+# in another terminal: biors serve --host 127.0.0.1 --port 8787
 biors dataset inspect --source uniprot --version 2026_02 --split train examples/
 ```
 
@@ -218,8 +219,8 @@ CLI surface.
 - Optional Candle backend crate for CPU safetensors linear-probe inference
 - Model artifact metadata and runtime/model compatibility checks in package
   bridge reports
-- Transport-agnostic service interface contract for service hosts, without
-  bundling a server runtime
+- Local-first `biors serve` HTTP runtime plus service interface contracts for
+  service hosts
 - Typed validation issue codes and manifest enums
 
 ### External interfaces
@@ -227,8 +228,9 @@ CLI surface.
 - `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions,
   browser file validation/tokenization helpers, and local-only browser demo
 - `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
-- `service contract`: offline JSON route/schema contract for caller-owned
-  service hosts
+- `service contract`: JSON route/schema contract for caller-owned service hosts
+- `biors serve`: local-first HTTP API for health, OpenAPI, and inline FASTA
+  batch validation
 
 ### Utilities
 - `diff`: canonical JSON/raw comparison with SHA-256 hashes
@@ -246,7 +248,8 @@ CLI surface.
 - [Unified conversion layer](docs/conversion.md) — FASTA/FASTQ, structure, and molecule records mapped into `BioEntity` JSON
 - [Task templates](docs/templates.md) — local contracts for classification, embeddings, variants, molecules, structures, and search preprocessing
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
-- [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
+- [Service interface](docs/service-interface.md) — local HTTP mode, service-host contract, and runtime boundary
+- [Service deployment](docs/service-deployment.md) — REST API and Docker/OCI template
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Biological format support](docs/formats.md) — FASTQ/PDB/SMILES/SDF/MOL2 support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
