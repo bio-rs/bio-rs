@@ -1,5 +1,7 @@
 # Task Templates
 
+Version: 0.52.0
+
 Task templates are local, deterministic contracts for common bio-AI workflow
 families. They describe required inputs, validations, model-ready fields,
 expected outputs, and execution boundaries. They do not run inference, upload
