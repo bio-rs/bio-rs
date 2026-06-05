@@ -69,12 +69,7 @@ pub(crate) fn for_each_normalized_residue(
     mut visit: impl FnMut(NormalizedResidue),
 ) {
     if normalized.is_ascii() {
-        for (index, byte) in normalized.iter().copied().enumerate() {
-            visit(NormalizedResidue::Byte {
-                value: byte,
-                position: index + 1,
-            });
-        }
+        visit_normalized_bytes(normalized, &mut visit);
     } else if let Ok(sequence) = std::str::from_utf8(normalized) {
         for (index, residue) in sequence.chars().enumerate() {
             visit(NormalizedResidue::Char {
@@ -83,12 +78,16 @@ pub(crate) fn for_each_normalized_residue(
             });
         }
     } else {
-        for (index, byte) in normalized.iter().copied().enumerate() {
-            visit(NormalizedResidue::Byte {
-                value: byte,
-                position: index + 1,
-            });
-        }
+        visit_normalized_bytes(normalized, &mut visit);
+    }
+}
+
+fn visit_normalized_bytes(normalized: &[u8], visit: &mut impl FnMut(NormalizedResidue)) {
+    for (index, byte) in normalized.iter().copied().enumerate() {
+        visit(NormalizedResidue::Byte {
+            value: byte,
+            position: index + 1,
+        });
     }
 }
 
