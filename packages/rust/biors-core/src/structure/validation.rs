@@ -230,11 +230,7 @@ fn subsequence_positions(query: &str, target: &str) -> Option<Vec<usize>> {
     let mut target_iter = target.chars().enumerate();
     let mut positions = Vec::new();
     for query_char in query.chars() {
-        let Some((target_index, _)) =
-            target_iter.find(|(_, target_char)| *target_char == query_char)
-        else {
-            return None;
-        };
+        let (target_index, _) = target_iter.find(|(_, target_char)| *target_char == query_char)?;
         positions.push(target_index + 1);
     }
     Some(positions)
