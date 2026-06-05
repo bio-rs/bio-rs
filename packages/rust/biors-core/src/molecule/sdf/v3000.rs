@@ -1,11 +1,13 @@
-use crate::molecule::{MoleculeAtom, MoleculeBond, MoleculeCoordinate, MoleculeProperty};
+use crate::molecule::{MoleculeAtom, MoleculeBond, MoleculeCoordinate};
 
-use super::{parse_one_based_index, parse_sdf_properties, sdf_bond_order, SdfParseError};
+use super::{
+    parse_one_based_index, parse_sdf_properties, sdf_bond_order, SdfGraphParts, SdfParseError,
+};
 
 pub(super) fn parse_v3000(
     lines: &[(usize, String)],
     record_index: usize,
-) -> Result<(Vec<MoleculeAtom>, Vec<MoleculeBond>, Vec<MoleculeProperty>), SdfParseError> {
+) -> Result<SdfGraphParts, SdfParseError> {
     let mut atoms = Vec::new();
     let mut bonds = Vec::new();
     let mut in_atom = false;

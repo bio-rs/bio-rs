@@ -5,8 +5,8 @@ use std::io::BufRead;
 use crate::formats::{BioFormat, FormatMetadata};
 use crate::molecule::graph::disconnected_components;
 use crate::molecule::{
-    AtomGraph, BondGraph, BondOrder, MolecularGraph, MoleculeMetadata, MoleculeProperty,
-    MoleculeReadError, MoleculeRecord, ParsedMoleculeInput,
+    AtomGraph, BondGraph, BondOrder, MolecularGraph, MoleculeAtom, MoleculeBond, MoleculeMetadata,
+    MoleculeProperty, MoleculeReadError, MoleculeRecord, ParsedMoleculeInput,
 };
 use crate::verification::StableInputHasher;
 
@@ -17,6 +17,8 @@ mod v3000;
 pub use error::SdfParseError;
 use v2000::parse_v2000;
 use v3000::parse_v3000;
+
+type SdfGraphParts = (Vec<MoleculeAtom>, Vec<MoleculeBond>, Vec<MoleculeProperty>);
 
 /// Parse SDF text into molecule records.
 pub fn parse_sdf_records(input: &str) -> Result<Vec<MoleculeRecord>, SdfParseError> {
