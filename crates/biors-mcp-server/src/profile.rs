@@ -50,15 +50,17 @@ pub(crate) fn workflow_profile(
         None => default_profile(kind, &report)?,
     };
 
-    if kind != "auto" && profile.sequence_kind() != selection.explicit_kind().unwrap() {
-        return Err(McpError::invalid_params(
-            "workflow kind/profile mismatch",
-            Some(serde_json::json!({
-                "kind": kind,
-                "profile": profile.as_str(),
-                "message": "workflow kind must match tokenizer profile sequence kind"
-            })),
-        ));
+    if let Some(expected_kind) = selection.explicit_kind() {
+        if profile.sequence_kind() != expected_kind {
+            return Err(McpError::invalid_params(
+                "workflow kind/profile mismatch",
+                Some(serde_json::json!({
+                    "kind": kind,
+                    "profile": profile.as_str(),
+                    "message": "workflow kind must match tokenizer profile sequence kind"
+                })),
+            ));
+        }
     }
 
     Ok(profile)

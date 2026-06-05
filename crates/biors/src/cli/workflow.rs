@@ -1,6 +1,6 @@
 use super::{PaddingArg, TokenizerProfileArg};
 use crate::errors::CliError;
-use crate::input::open_fasta_input;
+use crate::input::open_buffered_input;
 use crate::output::print_success;
 use biors_core::{
     fasta::parse_fasta_records_reader,
@@ -66,7 +66,7 @@ pub(crate) fn workflow_output_with_invocation_path(
         padding: padding.into(),
     };
     validate_model_input_policy(&policy)?;
-    let reader = open_fasta_input(&path)?;
+    let reader = open_buffered_input(&path)?;
     let input = parse_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path.clone(), error))?;
     let invocation = workflow_invocation(

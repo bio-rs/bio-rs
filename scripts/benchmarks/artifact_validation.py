@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TypeAlias, cast
+from typing import TypeAlias
 
-JsonScalar: TypeAlias = str | int | float | bool | None
-JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
+JsonValue: TypeAlias = str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
 
 
@@ -14,7 +13,7 @@ def load_json_object(path: Path) -> JsonObject:
     result = json.loads(path.read_text())
     if not isinstance(result, dict):
         raise AssertionError("benchmark artifact must be a JSON object")
-    return cast(JsonObject, result)
+    return result
 
 
 def validate_schema_version(result: JsonObject, expected: str, message: str) -> None:

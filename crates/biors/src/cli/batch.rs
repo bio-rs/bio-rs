@@ -1,6 +1,6 @@
 use super::{BatchCommand, KindArg};
 use crate::errors::CliError;
-use crate::input::{open_fasta_input, resolve_fasta_input_dataset_with_glob_code};
+use crate::input::{open_buffered_input, resolve_fasta_input_dataset_with_glob_code};
 use crate::output::print_success;
 use biors_core::sequence::kind_validation::validate_fasta_reader_summary_with_kind_and_hash;
 use biors_core::sequence::{KindAwareSequenceValidationSummary, SequenceKindCounts};
@@ -59,7 +59,7 @@ fn run_batch_validate(kind: KindArg, inputs: Vec<PathBuf>) -> Result<(), CliErro
 
     for file in dataset.files {
         let path = file.path;
-        let reader = open_fasta_input(&path)?;
+        let reader = open_buffered_input(&path)?;
         let validated = validate_fasta_reader_summary_with_kind_and_hash(reader, kind.into())
             .map_err(|error| CliError::from_fasta_read(path.clone(), error))?;
         output.summary.add_file(&validated.summary);
