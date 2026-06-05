@@ -14,10 +14,10 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bio-rs/bio-rs"
 rust-version = "1.88"
-version = "0.57.1"
+version = "0.57.2"
 
 [workspace.dependencies]
-biors-core = { version = "0.57.1", path = "crates/biors-core" }
+biors-core = { version = "0.57.2", path = "crates/biors-core" }
 candle-core = { version = "0.10.2", default-features = false }
 clap = { version = "4.5.37", features = ["derive"] }
 clap_complete = "4.5.48"

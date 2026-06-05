@@ -16,7 +16,6 @@ VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
 
 TEXT_VERSION_FILES = [
     "Cargo.toml",
-    "Cargo.lock",
     "README.md",
     "CITATION.cff",
     "docs/install.md",
@@ -63,6 +62,7 @@ def main() -> int:
 
     assert_clean_worktree()
     replace_versions(current_version, new_version)
+    refresh_lockfile()
     update_example_manifest(new_version)
     regenerate_pipeline_lock()
 
@@ -105,6 +105,10 @@ def replace_versions(current_version: str, new_version: str) -> None:
     if missing:
         joined = "\n".join(f"- {path}" for path in missing)
         raise SystemExit(f"version string was not found in expected file(s):\n{joined}")
+
+
+def refresh_lockfile() -> None:
+    run(["cargo", "update", "--workspace"])
 
 
 def update_example_manifest(version: str) -> None:

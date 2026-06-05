@@ -80,7 +80,7 @@ reproducible and claims need evidence:
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.57.1
+cargo install biors --version 0.57.2
 biors doctor
 biors seq validate --kind auto testdata/sequences/multi.fasta
 printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
