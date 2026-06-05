@@ -117,6 +117,36 @@ fn validate_package_manifest_rejects_empty_contract_identifiers() {
 }
 
 #[test]
+fn validate_package_manifest_rejects_empty_postprocessing_identifiers() {
+    let mut manifest = minimal_manifest();
+    manifest.postprocessing = vec![PipelineStep {
+        name: "".into(),
+        implementation: " ".into(),
+        contract: "".into(),
+        contract_version: Some(" ".into()),
+        config: None,
+    }];
+
+    let report = validate_package_manifest(&manifest);
+
+    assert!(!report.valid);
+    let fields: Vec<_> = report
+        .structured_issues
+        .iter()
+        .filter(|issue| issue.code == PackageValidationIssueCode::RequiredField)
+        .map(|issue| issue.field.as_str())
+        .collect();
+    for field in [
+        "postprocessing[0].name",
+        "postprocessing[0].implementation",
+        "postprocessing[0].contract",
+        "postprocessing[0].contract_version",
+    ] {
+        assert!(fields.contains(&field), "missing {field}: {fields:?}");
+    }
+}
+
+#[test]
 fn validate_package_manifest_rejects_missing_name() {
     let mut manifest = minimal_manifest();
     manifest.name = "".into();
@@ -214,6 +244,26 @@ fn validate_package_manifest_rejects_duplicate_fixture_names_with_different_outp
         input_hash: None,
         expected_output_hash: None,
     });
+    let report = validate_package_manifest(&manifest);
+
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::DuplicateFixtureName
+            && issue.field == "fixtures[1].name"
+    }));
+}
+
+#[test]
+fn validate_package_manifest_rejects_whitespace_normalized_duplicate_fixture_names() {
+    let mut manifest = minimal_manifest();
+    manifest.fixtures[0].name = " fixture1 ".into();
+    manifest.fixtures.push(PackageFixture {
+        name: "fixture1".into(),
+        input: "input-b.json".into(),
+        expected_output: "expected-b.json".into(),
+        input_hash: None,
+        expected_output_hash: None,
+    });
+
     let report = validate_package_manifest(&manifest);
 
     assert!(report.structured_issues.iter().any(|issue| {

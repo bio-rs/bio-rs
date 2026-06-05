@@ -127,6 +127,37 @@ fn rejects_unexpected_fixture_observations() {
 }
 
 #[test]
+fn rejects_duplicate_unexpected_fixture_observations() {
+    let report = verify_package_outputs(
+        &manifest(),
+        &[
+            FixtureObservation {
+                name: "tiny-protein".to_string(),
+                path: "observed/tiny.output.json".to_string(),
+            },
+            FixtureObservation {
+                name: "stale-output".to_string(),
+                path: "observed/stale.output.json".to_string(),
+            },
+            FixtureObservation {
+                name: "stale-output".to_string(),
+                path: "observed/stale.reordered.json".to_string(),
+            },
+        ],
+        &example_base_dir(),
+    );
+
+    assert_eq!(report.passed, 1);
+    assert_eq!(report.failed, 1);
+    assert_eq!(report.observation_issues.len(), 1);
+    assert_eq!(
+        report.observation_issues[0].code,
+        VerificationIssueCode::DuplicateObservation
+    );
+    assert_eq!(report.observation_issues[0].name, "stale-output");
+}
+
+#[test]
 fn reports_mismatched_fixture_outputs() {
     let report = verify_package_outputs(
         &manifest(),
@@ -221,6 +252,75 @@ fn reports_expected_output_checksum_mismatch_before_observation_compare() {
         .as_deref()
         .expect("issue")
         .contains("expected output hash mismatch"));
+}
+
+#[test]
+fn reports_fixture_input_checksum_mismatch_before_expected_output_read() {
+    let mut manifest = manifest();
+    manifest.fixtures[0].input_hash =
+        Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string());
+
+    let report = verify_package_outputs(
+        &manifest,
+        &[FixtureObservation {
+            name: "tiny-protein".to_string(),
+            path: "observed/tiny.output.json".to_string(),
+        }],
+        &example_base_dir(),
+    );
+
+    assert_eq!(report.passed, 0);
+    assert_eq!(report.failed, 1);
+    assert_eq!(report.results[0].status, VerificationStatus::Failed);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::FixtureInputChecksumMismatch)
+    );
+    assert!(report.results[0]
+        .issue
+        .as_deref()
+        .expect("issue")
+        .contains("fixture input hash mismatch"));
+}
+
+#[test]
+fn reports_invalid_observation_path() {
+    let report = verify_package_outputs(
+        &manifest(),
+        &[FixtureObservation {
+            name: "tiny-protein".to_string(),
+            path: "../outside.json".to_string(),
+        }],
+        &example_base_dir(),
+    );
+
+    assert_eq!(report.passed, 0);
+    assert_eq!(report.failed, 1);
+    assert_eq!(report.results[0].status, VerificationStatus::Missing);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::ObservationPathInvalid)
+    );
+}
+
+#[test]
+fn reports_observed_output_read_failure() {
+    let report = verify_package_outputs(
+        &manifest(),
+        &[FixtureObservation {
+            name: "tiny-protein".to_string(),
+            path: "observed/not-present.json".to_string(),
+        }],
+        &example_base_dir(),
+    );
+
+    assert_eq!(report.passed, 0);
+    assert_eq!(report.failed, 1);
+    assert_eq!(report.results[0].status, VerificationStatus::Missing);
+    assert_eq!(
+        report.results[0].issue_code,
+        Some(VerificationIssueCode::ObservedOutputReadFailed)
+    );
 }
 
 #[test]
