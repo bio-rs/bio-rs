@@ -114,6 +114,7 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "workflow --profile dna-iupac",
         "biors package validate testdata/protein-package/manifest.json",
         "biors service contract",
+        "biors service hosted-boundary",
         "docs/formats.md",
         "docs/structure.md",
         "docs/templates.md",

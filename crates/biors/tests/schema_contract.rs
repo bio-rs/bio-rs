@@ -3,7 +3,7 @@ use std::fs;
 
 use biors_core::conversion::convert_fasta_records;
 use biors_core::sequence::SequenceKindSelection;
-use biors_core::service::current_service_interface_document;
+use biors_core::service::{current_hosted_workflow_boundary, current_service_interface_document};
 use biors_core::templates::{find_task_template, task_templates};
 
 mod common;
@@ -50,6 +50,17 @@ fn service_contract_references_checked_in_schemas() {
             );
         }
     }
+}
+
+#[test]
+fn hosted_boundary_output_matches_checked_in_schema() {
+    let boundary = current_hosted_workflow_boundary();
+    let value = serde_json::to_value(boundary).expect("serialize hosted boundary");
+
+    common::assert_json_value_matches_schema(
+        &value,
+        "schemas/hosted-workflow-boundary-output.v0.json",
+    );
 }
 
 #[test]

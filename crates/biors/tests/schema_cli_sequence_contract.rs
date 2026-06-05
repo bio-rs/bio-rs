@@ -188,6 +188,12 @@ fn cli_outputs_match_tooling_schemas() {
     let service = common::run_biors_paths(&["service", "contract"], &[]).stdout;
     common::assert_payload_matches_schema(&service, "schemas/service-interface-output.v0.json");
 
+    let hosted_boundary = common::run_biors_paths(&["service", "hosted-boundary"], &[]).stdout;
+    common::assert_payload_matches_schema(
+        &hosted_boundary,
+        "schemas/hosted-workflow-boundary-output.v0.json",
+    );
+
     let temp = common::TempDir::new("schema-tooling");
     let hf_config = temp.write(
         "tokenizer_config.json",

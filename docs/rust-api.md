@@ -626,6 +626,8 @@ listener lives in the `biors` CLI crate.
 
 - **`SERVICE_INTERFACE_SCHEMA_VERSION`** — current service contract schema
   version, `biors.service_interface.v0`.
+- **`HOSTED_WORKFLOW_BOUNDARY_SCHEMA_VERSION`** — current hosted workflow
+  boundary schema version, `biors.hosted_workflow_boundary.v0`.
 - **`SERVICE_HEALTH_SCHEMA_VERSION`** — current local service health schema
   version, `biors.service_health.v0`.
 - **`SERVICE_BATCH_SEQUENCE_VALIDATE_SCHEMA_VERSION`** — current inline batch
@@ -669,6 +671,35 @@ listener lives in the `biors` CLI crate.
   - `pub file_access: String`
   - `pub runtime_boundary: String`
 
+- **`HostedWorkflowBoundary`** — local-first open-source core and hosted-layer
+  separation contract.
+  - `pub schema_version: String`
+  - `pub product_name: String`
+  - `pub core_version: String`
+  - `pub status: String`
+  - `pub execution_policy: HostedExecutionPolicy`
+  - `pub open_source_core: HostedResponsibilitySet`
+  - `pub hosted_layer: HostedResponsibilitySet`
+  - `pub workspace_model: Vec<HostedWorkspaceConcept>`
+  - `pub commercial_policy: HostedCommercialPolicy`
+  - `pub web_product_policy: HostedWebProductPolicy`
+  - `pub validation_requirements: Vec<String>`
+
+- **`HostedExecutionPolicy`** — local-first, no-network-by-default execution
+  flags and remote-processing consent requirement.
+
+- **`HostedResponsibilitySet`** — allowed and excluded responsibilities for
+  the open-source core or the separate hosted layer.
+
+- **`HostedWorkspaceConcept`** — user, project, and workflow-run workspace
+  concepts evaluated for a hosted layer but not implemented in `biors-core`.
+
+- **`HostedCommercialPolicy`** — paid hosted service and billing separation
+  policy.
+
+- **`HostedWebProductPolicy`** — product web runtime and landing-page
+  separation policy.
+
 - **`ServiceHealthDocument`** — local HTTP health response payload.
   - `pub schema_version: String`
   - `pub service_name: String`
@@ -699,6 +730,12 @@ listener lives in the `biors` CLI crate.
 
 - `pub fn service_interface_document(version: impl Into<String>) -> ServiceInterfaceDocument`
   Build a service interface document for a provided version string.
+
+- `pub fn current_hosted_workflow_boundary() -> HostedWorkflowBoundary`
+  Build the current hosted workflow boundary document using the crate version.
+
+- `pub fn hosted_workflow_boundary(version: impl Into<String>) -> HostedWorkflowBoundary`
+  Build a hosted workflow boundary document for a provided version string.
 
 - `pub fn service_routes() -> Vec<ServiceRoute>`
   Return the stable v0 operation list for service hosts.

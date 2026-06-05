@@ -14,10 +14,13 @@ and from the CLI:
 
 ```bash
 biors service contract
+biors service hosted-boundary
 ```
 
 The output is a JSON success envelope whose `data` payload matches
-`schemas/service-interface-output.v0.json`.
+`schemas/service-interface-output.v0.json` for the service contract and
+`schemas/hosted-workflow-boundary-output.v0.json` for the hosted boundary
+contract.
 
 ## Local HTTP Mode
 
@@ -66,6 +69,19 @@ This keeps the research contract portable across:
 - agent tool adapters
 - workflow runners
 - containerized local REST templates
+
+## Hosted Boundary
+
+`biors service hosted-boundary` emits a machine-readable policy document for
+teams evaluating hosted bio-rs workflows. The contract keeps the published
+open-source packages local-first and no-network-by-default. User accounts,
+project workspaces, remote object storage, billing, audit logs, product web UI,
+and landing pages are assigned to a separate hosted web or service layer.
+
+Any hosted layer that wraps bio-rs output must record explicit consent before
+remote processing, avoid silent biological data uploads, preserve input/output
+hashes, pin the bio-rs package version and schema identifiers, and provide
+retention, deletion, and export controls for persisted project data.
 
 ## Operations
 

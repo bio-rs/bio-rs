@@ -90,6 +90,7 @@ biors batch validate --kind auto testdata/sequences/
 biors tokenizer inspect --profile protein-20-special
 biors package validate testdata/protein-package/manifest.json
 biors service contract
+biors service hosted-boundary
 # in another terminal: biors serve --host 127.0.0.1 --port 8787
 biors dataset inspect --source uniprot --version 2026_02 --split train testdata/sequences/
 ```
@@ -230,6 +231,8 @@ CLI surface.
   and browser file validation/tokenization helpers
 - `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
 - `service contract`: JSON route/schema contract for caller-owned service hosts
+- `service hosted-boundary`: local-first OSS core and hosted-layer separation
+  policy
 - `biors serve`: local-first HTTP API for health, OpenAPI, and inline FASTA
   batch validation
 
@@ -270,7 +273,7 @@ CLI surface.
 
 These are roadmap directions, not current capabilities:
 
-- hosted web workflows
+- hosted web workflow runtime beyond the `service hosted-boundary` contract
 - pretrained model-specific inference backends
 - package registry or plugin ecosystem
 - general-purpose chemistry tooling
@@ -278,7 +281,7 @@ These are roadmap directions, not current capabilities:
 - tautomer normalization, force-field chemistry, conformer generation, and
   RDKit/Open Babel canonical SMILES equivalence
 - no-code or low-code workflows
-- hosted workflow workspace management
+- hosted workflow workspace management beyond the boundary contract
 
 ## Development
 

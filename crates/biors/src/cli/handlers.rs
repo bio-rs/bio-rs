@@ -142,6 +142,10 @@ fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
             None,
             biors_core::service::current_service_interface_document(),
         ),
+        ServiceCommand::HostedBoundary => print_success(
+            None,
+            biors_core::service::current_hosted_workflow_boundary(),
+        ),
     }
 }
 

@@ -49,6 +49,7 @@ try it quickly.
 - `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 - `biors report generate <json|-> [--output <report.md>] [--shareable-json <report.json>]`
 - `biors service contract`
+- `biors service hosted-boundary`
 
 ## Schema Inventory
 
@@ -66,6 +67,7 @@ metadata, and workflow payloads:
 - `fasta-validation-output.v0.json`
 - `fastq-validation-output.v0.json`
 - `format-capabilities-output.v0.json`
+- `hosted-workflow-boundary-output.v0.json`
 - `inspect-output.v0.json`
 - `model-input-output.v0.json`
 - `molecule-records-output.v0.json`
@@ -156,6 +158,13 @@ reported as warnings with install hints rather than causing the command to fail.
 deterministic operations, JSON schema names, file access policy,
 runtime/package boundaries, and the local CLI server endpoints exposed by
 `biors serve`.
+`biors service hosted-boundary` emits the hosted workflow boundary contract. It
+keeps the open-source core local-first and no-network-by-default, separates
+user/project workspace, billing, remote storage, hosted web/product, and landing
+page responsibilities into an external hosted layer, and records the consent,
+retention, provenance, and version-pinning requirements a hosted caller must
+satisfy. It does not create a hosted workspace, upload data, call a remote
+model, start a web UI, or add a product landing page.
 `biors serve` starts a local-first HTTP JSON server on `127.0.0.1:8787` by
 default. It does not call external services, upload biological data, persist
 requests, run model inference, or open a hosted workspace. The current runtime
@@ -354,6 +363,8 @@ byte count, sample count, portable dataset content hash, local mapping hash,
 deterministic `resolved_files`, and sample mapping lists.
 Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
+Hosted workflow boundary payloads use
+`schemas/hosted-workflow-boundary-output.v0.json`.
 Local HTTP health payloads use `schemas/service-health-output.v0.json`.
 The served OpenAPI document uses `schemas/service-openapi-output.v0.json`.
 The batch sequence endpoint accepts
