@@ -150,10 +150,13 @@ def verify_release_prep() -> None:
             "-p",
             "biors",
             "--test",
-            "cli_diff_pipeline_debug",
+            "cli_pipeline_lock",
             "checked_in_pipeline_lock_matches_current_generator",
         ],
-        ["cargo", "test", "-p", "biors", "--test", "release_readiness_docs"],
+        ["cargo", "test", "-p", "biors", "--test", "release_metadata_versions"],
+        ["cargo", "test", "-p", "biors", "--test", "release_doc_inventory"],
+        ["cargo", "test", "-p", "biors", "--test", "release_contributor_docs"],
+        ["cargo", "test", "-p", "biors", "--test", "release_gate_policy"],
     ]
     for check in checks:
         run(check)
