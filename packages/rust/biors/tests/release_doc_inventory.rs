@@ -12,6 +12,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/cli-contract.md",
         "docs/candle-backend.md",
         "docs/error-codes.md",
+        "docs/formats.md",
         "docs/package-conversion.md",
         "docs/package-format.md",
         "docs/pipeline-config.md",
@@ -37,6 +38,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/cli-contract.md",
         "docs/candle-backend.md",
         "docs/error-codes.md",
+        "docs/formats.md",
         "docs/package-conversion.md",
         "docs/package-format.md",
         "docs/pipeline-config.md",
@@ -100,6 +102,7 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "workflow --profile dna-iupac",
         "biors package validate examples/protein-package/manifest.json",
         "biors service contract",
+        "docs/formats.md",
         "docs/sequence-kind-support.md",
         "docs/cli-contract.md",
     ] {

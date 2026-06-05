@@ -20,8 +20,9 @@ mod pipeline_output;
 pub(crate) mod tokenizer_convert;
 mod workflow;
 pub use args::{
-    BatchCommand, CacheCommand, Cli, Command, DatasetCommand, FastaCommand, KindArg, PaddingArg,
-    SeqCommand, ServiceCommand, TokenizerCommand, TokenizerProfileArg,
+    BatchCommand, CacheCommand, Cli, Command, DatasetCommand, FastaCommand, FormatArg,
+    FormatsCommand, KindArg, PaddingArg, SeqCommand, ServiceCommand, TokenizerCommand,
+    TokenizerProfileArg,
 };
 pub(crate) use batch::run_batch_command;
 pub(crate) use cache::run_cache_command;

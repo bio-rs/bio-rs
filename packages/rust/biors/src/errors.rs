@@ -1,6 +1,7 @@
 use crate::exit_code;
 use biors_core::{
-    error::{BioRsError, ErrorLocation, FastaReadError},
+    error::{BioRsError, Diagnostic, ErrorLocation, FastaReadError},
+    formats::FormatReadError,
     model_input::ModelInputBuildError,
     package::{PackageValidationIssueCode, PackageValidationReport},
     verification::{PackageVerificationReport, VerificationIssueCode, VerificationStatus},
@@ -12,6 +13,7 @@ use std::path::PathBuf;
 #[derive(Debug)]
 pub(crate) enum CliError {
     Core(BioRsError),
+    Format(FormatReadError),
     ModelInput(ModelInputBuildError),
     Json(serde_json::Error),
     CurrentDir(std::io::Error),
@@ -45,6 +47,7 @@ impl CliError {
     pub(crate) const fn code(&self) -> &'static str {
         match self {
             Self::Core(error) => error.code(),
+            Self::Format(error) => error.code(),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => {
                 "model_input.invalid_policy"
             }
@@ -69,6 +72,7 @@ impl CliError {
     pub(crate) fn location(&self) -> Option<ErrorLocationValue> {
         match self {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
+            Self::Format(error) => error.location().map(ErrorLocationValue::Core),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => None,
             Self::ModelInput(ModelInputBuildError::InvalidInputHash { .. }) => None,
             Self::ModelInput(ModelInputBuildError::EmptyTokenizedSequence { id }) => {
@@ -95,6 +99,7 @@ impl CliError {
     pub(crate) const fn exit_code(&self) -> i32 {
         match self {
             Self::Core(_)
+            | Self::Format(_)
             | Self::ModelInput(_)
             | Self::Json(_)
             | Self::Validation { .. }
@@ -111,12 +116,20 @@ impl CliError {
             FastaReadError::Io(source) => Self::Read { path, source },
         }
     }
+
+    pub(crate) fn from_format_read(path: PathBuf, error: FormatReadError) -> Self {
+        match error {
+            FormatReadError::Io(source) => Self::Read { path, source },
+            error => Self::Format(error),
+        }
+    }
 }
 
 impl std::fmt::Display for CliError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Core(error) => write!(f, "{error}"),
+            Self::Format(error) => write!(f, "{error}"),
             Self::ModelInput(error) => write!(f, "{error}"),
             Self::Json(error) => write!(f, "{error}"),
             Self::CurrentDir(error) => write!(f, "failed to determine current directory: {error}"),

@@ -13,6 +13,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 - [Module Reference](#module-reference)
   - [`error`](#module-error)
   - [`fasta`](#module-fasta)
+  - [`formats`](#module-formats)
   - [`hash`](#module-hash)
   - [`model_input`](#module-model_input)
   - [`package`](#module-package)
@@ -128,6 +129,121 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 
 - `pub fn validate_fasta_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedFastaInput, FastaReadError>`
   Validate FASTA from a buffered reader and include a stable raw input hash.
+
+### Module: `formats`
+
+The `formats` module provides shared biological file-format contracts and
+format-specific parsers. In `0.48.0`, FASTQ is the first new executable parser.
+Other common formats are represented in the capability matrix as reviewed
+candidates until their parser contracts are implemented.
+
+#### Types
+
+- **`BioFormat`** — recognized format family.
+  - `Fasta`, `Fastq`, `Gff3`, `Gtf`, `Bed`, `Vcf`, `Genbank`, `UniprotFlat`, `Csv`, `Tsv`
+  - `pub const fn as_str(self) -> &'static str`
+  - `pub const fn display_name(self) -> &'static str`
+
+- **`FormatMetadata`** — shared source location metadata.
+  - `pub record_index: usize`
+  - `pub line_start: usize`
+  - `pub line_end: usize`
+  - `pub const fn new(record_index, line_start, line_end) -> Self`
+
+- **`FormatField`** — shared name/value field.
+  - `pub name: String`
+  - `pub value: String`
+  - `pub fn new(name, value) -> Self`
+
+- **`FormatRecord`** — shared parsed-record projection.
+  - `pub format: BioFormat`
+  - `pub id: String`
+  - `pub metadata: FormatMetadata`
+  - `pub fields: Vec<FormatField>`
+  - `pub fn new(format, id, metadata, fields) -> Self`
+
+- **`FormatSupportStatus`** — `Supported`, `ReviewedCandidate`, or `Future`.
+
+- **`FormatCapability`** — support-matrix row.
+  - `pub format: BioFormat`
+  - `pub status: FormatSupportStatus`
+  - `pub record_contract: String`
+  - `pub validation_requirements: Vec<String>`
+  - `pub notes: Vec<String>`
+
+- **`FastqRecord`** — parsed FASTQ read.
+  - `pub id: String`
+  - `pub description: Option<String>`
+  - `pub sequence: String`
+  - `pub quality: String`
+  - `pub metadata: FormatMetadata`
+  - `pub fn to_format_record(&self) -> FormatRecord`
+
+- **`FastqValidationReport`** — aggregate FASTQ validation report.
+  - `pub format: BioFormat`
+  - `pub sequence_kind: SequenceKind`
+  - `pub records: usize`
+  - `pub valid_records: usize`
+  - `pub warning_count: usize`
+  - `pub error_count: usize`
+  - `pub record_reports: Vec<FastqRecordValidation>`
+
+- **`FastqRecordValidation`** — per-read validation details.
+  - `pub id: String`
+  - `pub description: Option<String>`
+  - `pub sequence_length: usize`
+  - `pub quality_length: usize`
+  - `pub metadata: FormatMetadata`
+  - `pub valid: bool`
+  - `pub warnings: Vec<FastqValidationIssue>`
+  - `pub errors: Vec<FastqValidationIssue>`
+
+- **`FastqValidationIssueCode`** — `AmbiguousSymbol`, `InvalidSymbol`, or `InvalidQualityCharacter`.
+
+- **`FastqValidationIssue`** — per-symbol FASTQ validation issue.
+  - `pub symbol: char`
+  - `pub position: usize`
+  - `pub code: FastqValidationIssueCode`
+  - `pub message: String`
+
+- **`FastqParseError`** — FASTQ parse failures.
+  - `EmptyInput`
+  - `MissingHeader { line, record_index }`
+  - `MissingIdentifier { line, record_index }`
+  - `MissingSeparator { id, line, record_index }`
+  - `MissingSequence { id, line, record_index }`
+  - `SeparatorIdentifierMismatch { id, separator_id, line, record_index }`
+  - `MissingQuality { id, expected, observed, record_index }`
+  - `QualityLengthMismatch { id, expected, observed, line, record_index }`
+  - `pub const fn code(&self) -> &'static str`
+  - `pub const fn location(&self) -> Option<ErrorLocation>`
+
+- **`FormatReadError`** — streaming format reader error.
+  - `FastqParse(FastqParseError)`
+  - `Io(std::io::Error)`
+  - `pub const fn code(&self) -> &'static str`
+
+- **`ParsedFastqInput`** — `pub input_hash: String`, `pub records: Vec<FastqRecord>`
+- **`ValidatedFastqInput`** — `pub input_hash: String`, `pub report: FastqValidationReport`
+
+#### Functions
+
+- `pub fn format_capabilities() -> Vec<FormatCapability>`
+  Return the current format support matrix.
+
+- `pub fn parse_fastq_records(input: &str) -> Result<Vec<FastqRecord>, FastqParseError>`
+  Parse in-memory FASTQ text.
+
+- `pub fn parse_fastq_records_reader<R: BufRead>(reader: R) -> Result<ParsedFastqInput, FormatReadError>`
+  Parse FASTQ from a buffered reader and return parsed records plus a stable
+  raw input hash.
+
+- `pub fn validate_fastq_reader<R: BufRead>(reader: R) -> Result<FastqValidationReport, FormatReadError>`
+  Validate FASTQ from a buffered reader and discard the raw input hash.
+
+- `pub fn validate_fastq_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedFastqInput, FormatReadError>`
+  Validate FASTQ from a buffered reader and return the validation report plus
+  a stable raw input hash.
 
 ### Module: `hash`
 

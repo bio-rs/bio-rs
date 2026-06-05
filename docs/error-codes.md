@@ -10,15 +10,27 @@ validation issues.
 - `fasta.missing_header`: non-empty FASTA input did not start with `>`
 - `fasta.missing_sequence`: a FASTA record header had no sequence body
 
+## FASTQ
+
+- `fastq.empty_input`: input contained no FASTQ records
+- `fastq.missing_header`: a FASTQ record did not start with an `@` header
+- `fastq.missing_identifier`: a FASTQ header did not include a non-empty record identifier
+- `fastq.missing_separator`: a FASTQ record ended before a `+` separator line
+- `fastq.missing_sequence`: a FASTQ record had no sequence body before the separator
+- `fastq.separator_identifier_mismatch`: an optional `+` separator identifier did not match the header identifier
+- `fastq.missing_quality`: a FASTQ record ended before enough quality symbols were read
+- `fastq.quality_length_mismatch`: a FASTQ record quality string length did not match the sequence length
+
 ## Sequence Validation
 
 Sequence validation warnings and errors are reported inside successful FASTA or
-`seq validate` payloads, not as top-level CLI failures. The same values are
-used by Rust `Diagnostic::code()`, CLI JSON payloads, schemas, and WASM TypeScript
-declarations.
+`seq validate` payloads, and inside successful FASTQ validation payloads, not as
+top-level CLI failures. The same values are used by Rust `Diagnostic::code()`,
+CLI JSON payloads, schemas, and WASM TypeScript declarations.
 
 - `ambiguous_symbol`: a supported ambiguous IUPAC symbol was accepted with a warning
 - `invalid_symbol`: a symbol is not supported by the selected Protein, DNA, or RNA policy
+- `invalid_quality_character`: a FASTQ quality symbol is outside printable Phred+33 ASCII
 
 ## JSON
 
@@ -138,6 +150,7 @@ Model-input validation failures keep the shared `model_input.*` codes.
 ## Taxonomy
 
 - `fasta.*`: sequence file envelope and record parsing errors
+- `fastq.*`: FASTQ envelope and record parsing errors
 - sequence issue codes: per-record biological sequence validation diagnostics
 - `batch.*`: batch input expansion failures
 - `dataset.*`: shared dataset/file input resolution failures

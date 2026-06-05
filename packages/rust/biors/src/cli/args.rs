@@ -1,5 +1,6 @@
 use super::package_args::PackageCommand;
 use biors_core::{
+    formats::BioFormat,
     model_input::PaddingPolicy,
     sequence::{SequenceKind, SequenceKindSelection},
     tokenizer::ProteinTokenizerProfile,
@@ -50,6 +51,10 @@ pub enum Command {
     Fasta {
         #[command(subcommand)]
         command: FastaCommand,
+    },
+    Formats {
+        #[command(subcommand)]
+        command: FormatsCommand,
     },
     Inspect {
         path: PathBuf,
@@ -171,6 +176,16 @@ pub enum FastaCommand {
 }
 
 #[derive(Debug, Subcommand)]
+pub enum FormatsCommand {
+    List,
+    Validate {
+        #[arg(long, value_enum)]
+        format: FormatArg,
+        path: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
 pub enum DatasetCommand {
     Inspect {
         #[arg(long, default_value = "local")]
@@ -193,6 +208,19 @@ pub enum SeqCommand {
         kind: KindArg,
         path: PathBuf,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum FormatArg {
+    Fastq,
+}
+
+impl From<FormatArg> for BioFormat {
+    fn from(value: FormatArg) -> Self {
+        match value {
+            FormatArg::Fastq => BioFormat::Fastq,
+        }
+    }
 }
 
 #[derive(Debug, Subcommand)]

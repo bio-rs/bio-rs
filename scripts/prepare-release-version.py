@@ -21,6 +21,7 @@ TEXT_VERSION_FILES = [
     "CITATION.cff",
     "docs/install.md",
     "docs/quickstart.md",
+    "docs/formats.md",
     "docs/rust-api.md",
     "benchmarks/fasta_vs_biopython.md",
     "benchmarks/fasta_vs_biopython.json",

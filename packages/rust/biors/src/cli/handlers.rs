@@ -1,15 +1,16 @@
 use super::{
-    Cli, Command, FastaCommand, KindArg, PaddingArg, SeqCommand, ServiceCommand, TokenizerCommand,
-    TokenizerProfileArg,
+    Cli, Command, FastaCommand, FormatArg, FormatsCommand, KindArg, PaddingArg, SeqCommand,
+    ServiceCommand, TokenizerCommand, TokenizerProfileArg,
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
     run_diff, run_package_command, run_pipeline, run_workflow, PipelineRunOptions,
 };
 use crate::errors::CliError;
-use crate::input::{open_fasta_input, read_tokenizer_config};
+use crate::input::{open_buffered_input, open_fasta_input, read_tokenizer_config};
 use crate::output::print_success;
 use biors_core::{
+    formats::{format_capabilities, validate_fastq_reader_with_hash},
     model_input::{build_model_inputs_checked, ModelInputPolicy},
     sequence::validate_fasta_reader_with_kind_and_hash,
     service::current_service_interface_document,
@@ -32,6 +33,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
         Command::Diff { expected, observed } => run_diff(expected, observed),
         Command::Doctor => run_doctor(),
         Command::Fasta { command } => run_fasta_command(command),
+        Command::Formats { command } => run_formats_command(command),
         Command::Inspect { path } => run_inspect(path),
         Command::ModelInput {
             profile,
@@ -94,6 +96,24 @@ fn run_doctor() -> Result<(), CliError> {
 fn run_fasta_command(command: FastaCommand) -> Result<(), CliError> {
     match command {
         FastaCommand::Validate { kind, path } => run_sequence_validation(path, kind),
+    }
+}
+
+fn run_formats_command(command: FormatsCommand) -> Result<(), CliError> {
+    match command {
+        FormatsCommand::List => print_success(None, format_capabilities()),
+        FormatsCommand::Validate { format, path } => run_format_validation(format, path),
+    }
+}
+
+fn run_format_validation(format: FormatArg, path: PathBuf) -> Result<(), CliError> {
+    match format {
+        FormatArg::Fastq => {
+            let reader = open_buffered_input(&path)?;
+            let output = validate_fastq_reader_with_hash(reader)
+                .map_err(|error| CliError::from_format_read(path, error))?;
+            print_success(Some(output.input_hash), output.report)
+        }
     }
 }
 

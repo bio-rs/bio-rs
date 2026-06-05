@@ -82,6 +82,7 @@ reproducible and claims need evidence:
 cargo install biors --version 0.47.16
 biors doctor
 biors seq validate --kind auto examples/multi.fasta
+printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
 printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
 biors batch validate --kind auto examples/
 biors tokenizer inspect --profile protein-20-special
@@ -154,6 +155,9 @@ CLI surface.
 
 ### Sequence handling
 - FASTA parsing and normalization with buffered reader APIs
+- FASTQ parsing and validation with shared format metadata, sequence/quality
+  length checks, Phred+33 quality character validation, and DNA IUPAC sequence
+  diagnostics
 - Protein/DNA/RNA validation with per-record kind detection (`--kind auto`)
 - Line and record-index diagnostics with residue warning/error reporting
 
@@ -217,6 +221,7 @@ CLI surface.
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
+- [Biological format support](docs/formats.md) — FASTQ support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/table formats
 - [Error code registry](docs/error-codes.md)
 - [Rust API](docs/rust-api.md)
 - [Python API](docs/python-api.md)

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/format-capabilities-output.v0.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["format", "status", "record_contract", "validation_requirements", "notes"],
+    "additionalProperties": false,
+    "properties": {
+      "format": {
+        "enum": [
+          "fasta",
+          "fastq",
+          "gff3",
+          "gtf",
+          "bed",
+          "vcf",
+          "genbank",
+          "uniprot-flat",
+          "csv",
+          "tsv"
+        ]
+      },
+      "status": {
+        "enum": ["supported", "reviewed_candidate", "future"]
+      },
+      "record_contract": {
+        "type": "string",
+        "minLength": 1
+      },
+      "validation_requirements": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 }
+      },
+      "notes": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -15,6 +15,8 @@ try it quickly.
 - `biors debug --max-length <usize> <path|->`
 - `biors diff <expected> <observed>`
 - `biors doctor`
+- `biors formats list`
+- `biors formats validate --format fastq <path|->`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors tokenize [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>] <path|->`
@@ -53,6 +55,8 @@ metadata, and workflow payloads:
 - `dataset-inspect-output.v0.json`
 - `doctor-output.v0.json`
 - `fasta-validation-output.v0.json`
+- `fastq-validation-output.v0.json`
+- `format-capabilities-output.v0.json`
 - `inspect-output.v0.json`
 - `model-input-output.v0.json`
 - `output-diff.v0.json`
@@ -173,6 +177,16 @@ records include `auto_detection.selected_kind`,
 spot short or alphabet-overlapping sequences and rerun with an explicit kind.
 `seq validate` uses the same output contract but defaults to `--kind auto` for
 mixed biological sequence batches.
+`formats list` emits the format support matrix. `supported` formats expose
+executable parser/validation contracts in the current release, while
+`reviewed_candidate` formats expose requirements only and must not be treated
+as parsed or validated by bio-rs yet.
+`formats validate --format fastq` validates FASTQ headers, `+` separators,
+optional separator identifier parity, non-empty sequence bodies, DNA IUPAC
+sequence symbols, quality length parity, and printable Phred+33 quality
+characters. The output uses `fastq-validation-output.v0.json` and includes
+per-record line ranges, sequence length, quality length, warnings, and errors
+without repeating raw read payloads.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.
