@@ -1,6 +1,6 @@
 # Biological Format Support
 
-Version: 0.47.16
+Version: 0.48.0
 
 This document records the `0.48.0` format-expansion contract. bio-rs keeps
 format support local-first: parsing and validation run on local input, emit
