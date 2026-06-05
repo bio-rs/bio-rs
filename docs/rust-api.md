@@ -20,6 +20,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
   - [`runtime`](#module-runtime)
   - [`sequence`](#module-sequence)
   - [`service`](#module-service)
+  - [`structure`](#module-structure)
   - [`tokenizer`](#module-tokenizer)
   - [`verification`](#module-verification)
   - [`versioning`](#module-versioning)
@@ -30,7 +31,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB format parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -133,14 +134,14 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 ### Module: `formats`
 
 The `formats` module provides shared biological file-format contracts and
-format-specific parsers. In `0.48.0`, FASTQ is the first new executable parser.
-Other common formats are represented in the capability matrix as reviewed
+format-specific parser support. FASTQ and PDB are executable parser families;
+other common formats are represented in the capability matrix as reviewed
 candidates until their parser contracts are implemented.
 
 #### Types
 
 - **`BioFormat`** — recognized format family.
-  - `Fasta`, `Fastq`, `Gff3`, `Gtf`, `Bed`, `Vcf`, `Genbank`, `UniprotFlat`, `Csv`, `Tsv`
+  - `Fasta`, `Fastq`, `Gff3`, `Gtf`, `Bed`, `Vcf`, `Genbank`, `UniprotFlat`, `Pdb`, `Mmcif`, `Csv`, `Tsv`
   - `pub const fn as_str(self) -> &'static str`
   - `pub const fn display_name(self) -> &'static str`
 
@@ -703,6 +704,74 @@ The `sequence` module handles biological sequence types, normalization, alphabet
 
 - `pub fn validate_fasta_reader_summary_with_kind_and_hash<R: BufRead>(reader: R, selection: SequenceKindSelection) -> Result<ValidatedKindAwareFastaSummaryInput, FastaReadError>`
   Reader-based summary without per-record payloads.
+
+### Module: `structure`
+
+The `structure` module provides macromolecular structure records, PDB parsing,
+structure validation, chain extraction, sequence extraction, and
+protein-sequence-to-structure mapping.
+
+#### Types
+
+- **`StructureRecord`** — Parsed structure with `format`, optional `id`,
+  `metadata`, and `chains`.
+- **`StructureMetadata`** — Source and aggregate counts: title, line count,
+  model count, ATOM count, HETATM count, SEQRES chain count, and missing
+  residue count.
+- **`Chain`** — Chain identifier, coordinate-bearing residues,
+  coordinate-derived protein sequence, optional SEQRES sequence, and
+  missing-residue annotations.
+- **`Residue3D`** — Residue name, sequence number, optional insertion code,
+  HETATM marker, optional one-letter protein code, and atoms.
+- **`Atom`** — Atom serial, name, alternate location, element, coordinate,
+  occupancy, and temperature factor.
+- **`Coordinate`** — Cartesian `x`, `y`, and `z` values in Angstroms.
+- **`MissingResidue`** — `REMARK 465` residue name, chain ID, sequence number,
+  and optional insertion code.
+- **`StructureValidationReport`** — Aggregate validation result with chain
+  reports, warning count, error count, and structured issue lists.
+- **`StructureChainReport`** — Per-chain residue/atom counts, sequence lengths,
+  missing-residue count, and `ProteinStructureMapping`.
+- **`StructureSequenceOutput`** / **`StructureSequenceChain`** — Sequence
+  extraction payload for PDB structure commands and Rust callers.
+- **`ProteinStructureMapping`** — Mapping status, message, and one-based
+  coordinate-to-SEQRES positions.
+- **`ProteinStructureMappingStatus`** — `Exact`, `CoordinateSubsequence`,
+  `MissingSeqres`, or `Mismatch`.
+- **`StructureValidationIssueCode`** — `NoCoordinateChains`,
+  `InvalidCoordinate`, `InvalidOccupancy`, `SuspiciousOccupancy`,
+  `MissingElement`, `MissingResidue`, `UnknownResidue`, or `SequenceMismatch`.
+- **`PdbParseError`** — `EmptyInput`, `MissingAtomField`, or
+  `InvalidAtomField`, with stable `pdb.*` codes.
+- **`StructureReadError`** — streaming PDB reader error:
+  `PdbParse(PdbParseError)` or `Io(std::io::Error)`.
+- **`ParsedStructureInput`** — `pub input_hash: String`,
+  `pub record: StructureRecord`.
+- **`ValidatedStructureInput`** — `pub input_hash: String`,
+  `pub report: StructureValidationReport`.
+
+#### Functions
+
+- `pub fn parse_pdb_record(input: &str) -> Result<StructureRecord, PdbParseError>`
+  Parse in-memory PDB text.
+
+- `pub fn parse_pdb_record_reader<R: BufRead>(reader: R) -> Result<ParsedStructureInput, StructureReadError>`
+  Parse PDB from a buffered reader and return a stable raw input hash.
+
+- `pub fn validate_pdb_reader<R: BufRead>(reader: R) -> Result<StructureValidationReport, StructureReadError>`
+  Validate PDB from a buffered reader and discard the raw input hash.
+
+- `pub fn validate_pdb_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedStructureInput, StructureReadError>`
+  Validate PDB from a buffered reader and include the stable raw input hash.
+
+- `pub fn validate_structure_record(record: &StructureRecord) -> StructureValidationReport`
+  Validate an already parsed structure record.
+
+- `pub fn summarize_structure_record(record: &StructureRecord) -> StructureValidationReport`
+  Alias for structure validation summaries.
+
+- `pub fn extract_structure_sequences(record: &StructureRecord) -> StructureSequenceOutput`
+  Extract per-chain coordinate and SEQRES sequences plus mapping metadata.
 
 ### Module: `tokenizer`
 

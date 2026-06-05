@@ -16,6 +16,7 @@ pub mod package;
 pub mod runtime;
 pub mod sequence;
 pub mod service;
+pub mod structure;
 pub mod tokenizer;
 pub mod verification;
 pub mod versioning;
@@ -26,6 +27,9 @@ pub use fasta::{parse_fasta_records, parse_fasta_records_reader, validate_fasta_
 pub use formats::{parse_fastq_records, parse_fastq_records_reader, validate_fastq_reader};
 pub use model_input::ModelInput;
 pub use sequence::{BiologicalSequence, FastaSequence, ProteinSequence, SequenceKind};
+pub use structure::{
+    parse_pdb_record, parse_pdb_record_reader, validate_pdb_reader, StructureRecord,
+};
 pub use tokenizer::{
     tokenize_fasta_records_reader, tokenize_protein, ProteinTokenizer, ProteinTokenizerConfig,
     TokenizedSequence, TokenizerConfig, TokenizerProfile,

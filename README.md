@@ -7,9 +7,9 @@
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 bio-rs is a local, reproducible input layer for bio-AI tools. It takes raw
-biological sequences, tokenizer profiles, package manifests, model artifacts,
-and fixture outputs, then turns them into checked contracts that can run in
-CLIs, CI, Python notebooks, browsers, and agent tools.
+biological sequences, structure files, tokenizer profiles, package manifests,
+model artifacts, and fixture outputs, then turns them into checked contracts
+that can run in CLIs, CI, Python notebooks, browsers, and agent tools.
 
 ```txt
 raw sequence data + package metadata
@@ -161,6 +161,17 @@ CLI surface.
 - Protein/DNA/RNA validation with per-record kind detection (`--kind auto`)
 - Line and record-index diagnostics with residue warning/error reporting
 
+### Structure handling
+- PDB fixed-column ATOM/HETATM parsing with `StructureRecord`, `Chain`,
+  `Residue3D`, `Atom`, and `Coordinate` contracts
+- Chain extraction, `REMARK 465` missing-residue preservation, coordinate
+  validation, occupancy checks, and missing element warnings
+- Coordinate-derived protein sequence extraction and SEQRES mapping through
+  `biors structure validate --format pdb` and
+  `biors structure sequence --format pdb`
+- mmCIF is reviewed as the next structure parser candidate but is not exposed
+  as executable parser support yet
+
 ### Tokenization
 - `protein-20` tokenization with stable IDs
 - `protein-20-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
@@ -221,7 +232,8 @@ CLI surface.
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
-- [Biological format support](docs/formats.md) — FASTQ support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/table formats
+- [Biological format support](docs/formats.md) — FASTQ/PDB support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
+- [Structure support](docs/structure.md) — PDB validation, chain extraction, sequence mapping, and mmCIF candidate requirements
 - [Error code registry](docs/error-codes.md)
 - [Rust API](docs/rust-api.md)
 - [Python API](docs/python-api.md)
@@ -238,7 +250,7 @@ These are roadmap directions, not current capabilities:
 - pretrained model-specific inference backends
 - package registry or plugin ecosystem
 - general-purpose chemistry tooling
-- structure tooling
+- mmCIF structure parsing beyond reviewed candidate requirements
 - no-code or low-code workflows
 
 ## Development

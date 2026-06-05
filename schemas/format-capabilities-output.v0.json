@@ -17,6 +17,8 @@
           "vcf",
           "genbank",
           "uniprot-flat",
+          "pdb",
+          "mmcif",
           "csv",
           "tsv"
         ]

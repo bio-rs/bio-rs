@@ -49,6 +49,7 @@ fn help_snapshot_lists_commands_and_global_json_flag() {
         "package",
         "pipeline",
         "seq",
+        "structure",
         "tokenizer",
         "tokenize",
     ] {

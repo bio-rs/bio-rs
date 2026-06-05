@@ -1,6 +1,6 @@
 use super::{
     Cli, Command, FastaCommand, FormatArg, FormatsCommand, KindArg, PaddingArg, SeqCommand,
-    ServiceCommand, TokenizerCommand, TokenizerProfileArg,
+    ServiceCommand, StructureCommand, StructureFormatArg, TokenizerCommand, TokenizerProfileArg,
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
@@ -14,6 +14,9 @@ use biors_core::{
     model_input::{build_model_inputs_checked, ModelInputPolicy},
     sequence::validate_fasta_reader_with_kind_and_hash,
     service::current_service_interface_document,
+    structure::{
+        extract_structure_sequences, parse_pdb_record_reader, validate_pdb_reader_with_hash,
+    },
     tokenizer::{
         inspect_protein_tokenizer_config, protein_tokenizer_config_for_profile,
         summarize_fasta_records_reader, tokenize_fasta_records_reader_with_config,
@@ -66,6 +69,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
         }),
         Command::Seq { command } => run_seq_command(command),
         Command::Service { command } => run_service_command(command),
+        Command::Structure { command } => run_structure_command(command),
         Command::Tokenize {
             profile,
             config,
@@ -126,6 +130,36 @@ fn run_seq_command(command: SeqCommand) -> Result<(), CliError> {
 fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
     match command {
         ServiceCommand::Contract => print_success(None, current_service_interface_document()),
+    }
+}
+
+fn run_structure_command(command: StructureCommand) -> Result<(), CliError> {
+    match command {
+        StructureCommand::Validate { format, path } => run_structure_validation(format, path),
+        StructureCommand::Sequence { format, path } => run_structure_sequence(format, path),
+    }
+}
+
+fn run_structure_validation(format: StructureFormatArg, path: PathBuf) -> Result<(), CliError> {
+    match format {
+        StructureFormatArg::Pdb => {
+            let reader = open_buffered_input(&path)?;
+            let output = validate_pdb_reader_with_hash(reader)
+                .map_err(|error| CliError::from_structure_read(path, error))?;
+            print_success(Some(output.input_hash), output.report)
+        }
+    }
+}
+
+fn run_structure_sequence(format: StructureFormatArg, path: PathBuf) -> Result<(), CliError> {
+    match format {
+        StructureFormatArg::Pdb => {
+            let reader = open_buffered_input(&path)?;
+            let output = parse_pdb_record_reader(reader)
+                .map_err(|error| CliError::from_structure_read(path, error))?;
+            let sequences = extract_structure_sequences(&output.record);
+            print_success(Some(output.input_hash), sequences)
+        }
     }
 }
 

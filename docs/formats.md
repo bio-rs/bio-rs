@@ -24,6 +24,8 @@ biors formats list
 | VCF | Reviewed candidate | Variant-row/header requirements documented; parser not exposed yet |
 | GenBank | Reviewed candidate | Flat-file record and feature-table requirements documented; parser not exposed yet |
 | UniProt flat file | Reviewed candidate | Accession, feature, taxonomy, and sequence requirements documented; parser not exposed yet |
+| PDB | Supported | `StructureRecord`, PDB chain extraction, coordinate validation, missing-residue preservation, and sequence mapping |
+| mmCIF | Reviewed candidate | `_atom_site` and sequence-category requirements documented; parser not exposed yet |
 | CSV biological table | Reviewed candidate | Header/row validation requirements documented; parser not exposed yet |
 | TSV biological table | Reviewed candidate | Header/row validation requirements documented; parser not exposed yet |
 
@@ -140,6 +142,29 @@ Before UniProt flat file support becomes `supported`, the parser must validate:
 - sequence length parity with `SQ` metadata
 - primary and secondary accession preservation
 - feature table coordinate ranges
+
+### PDB
+
+PDB support is executable through `biors structure validate --format pdb` and
+`biors structure sequence --format pdb`. The parser uses fixed-column
+ATOM/HETATM records, records chains/residues/atoms, preserves `REMARK 465`
+missing residues, validates coordinates and occupancy values, extracts
+coordinate-derived protein sequences, and maps them against SEQRES when
+present. See [Structure support](structure.md) for the detailed contract.
+
+### mmCIF
+
+Before mmCIF becomes `supported`, the parser must validate:
+
+- `_atom_site` loops for atom identifiers, residue identifiers, chain
+  identifiers, Cartesian coordinates, occupancy, temperature factor, and
+  element symbol
+- label/auth chain identifier normalization
+- sequence categories and coordinate categories into the shared
+  `StructureRecord`
+- missing-residue categories into `MissingResidue`
+- coordinate validation parity with PDB
+- protein sequence and structure mapping parity with PDB
 
 ### CSV and TSV Biological Tables
 

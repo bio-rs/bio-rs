@@ -1,4 +1,5 @@
 use super::package_args::PackageCommand;
+use super::structure_args::StructureCommand;
 use biors_core::{
     formats::BioFormat,
     model_input::PaddingPolicy,
@@ -100,6 +101,10 @@ pub enum Command {
     Service {
         #[command(subcommand)]
         command: ServiceCommand,
+    },
+    Structure {
+        #[command(subcommand)]
+        command: StructureCommand,
     },
     Tokenize {
         #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]

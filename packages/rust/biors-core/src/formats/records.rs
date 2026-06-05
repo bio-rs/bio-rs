@@ -20,6 +20,10 @@ pub enum BioFormat {
     Genbank,
     /// UniProt flat file records.
     UniprotFlat,
+    /// Protein Data Bank coordinate files.
+    Pdb,
+    /// PDBx/mmCIF coordinate files.
+    Mmcif,
     /// Comma-separated biological tables.
     Csv,
     /// Tab-separated biological tables.
@@ -38,6 +42,8 @@ impl BioFormat {
             Self::Vcf => "vcf",
             Self::Genbank => "genbank",
             Self::UniprotFlat => "uniprot-flat",
+            Self::Pdb => "pdb",
+            Self::Mmcif => "mmcif",
             Self::Csv => "csv",
             Self::Tsv => "tsv",
         }
@@ -54,6 +60,8 @@ impl BioFormat {
             Self::Vcf => "VCF",
             Self::Genbank => "GenBank",
             Self::UniprotFlat => "UniProt flat file",
+            Self::Pdb => "PDB",
+            Self::Mmcif => "mmCIF",
             Self::Csv => "CSV biological table",
             Self::Tsv => "TSV biological table",
         }

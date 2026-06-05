@@ -23,6 +23,7 @@ TEXT_VERSION_FILES = [
     "docs/quickstart.md",
     "docs/formats.md",
     "docs/rust-api.md",
+    "docs/structure.md",
     "benchmarks/fasta_vs_biopython.md",
     "benchmarks/fasta_vs_biopython.json",
     "benchmarks/backend_smoke.json",

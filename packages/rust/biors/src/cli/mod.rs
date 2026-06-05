@@ -17,6 +17,7 @@ mod pipeline;
 mod pipeline_config;
 mod pipeline_lock;
 mod pipeline_output;
+mod structure_args;
 pub(crate) mod tokenizer_convert;
 mod workflow;
 pub use args::{
@@ -38,4 +39,5 @@ pub use package_args::{
 pub(crate) use package_convert::run_package_convert;
 pub(crate) use package_init::{run_package_convert_project, run_package_init};
 pub(crate) use pipeline::{run_pipeline, PipelineRunOptions};
+pub use structure_args::{StructureCommand, StructureFormatArg};
 pub(crate) use workflow::run_workflow;

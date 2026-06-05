@@ -20,6 +20,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/rust-api.md",
         "docs/sequence-kind-support.md",
         "docs/service-interface.md",
+        "docs/structure.md",
         "docs/versioning.md",
         "docs/wasm-api.md",
     ];
@@ -46,6 +47,7 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
         "docs/rust-api.md",
         "docs/sequence-kind-support.md",
         "docs/service-interface.md",
+        "docs/structure.md",
         "docs/versioning.md",
         "docs/wasm-api.md",
         "CITATION.cff",
@@ -103,6 +105,7 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "biors package validate examples/protein-package/manifest.json",
         "biors service contract",
         "docs/formats.md",
+        "docs/structure.md",
         "docs/sequence-kind-support.md",
         "docs/cli-contract.md",
     ] {

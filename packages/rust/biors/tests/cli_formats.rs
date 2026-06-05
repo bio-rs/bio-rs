@@ -25,6 +25,12 @@ fn formats_list_outputs_support_matrix() {
     assert!(rows
         .iter()
         .any(|row| { row["format"] == "vcf" && row["status"] == "reviewed_candidate" }));
+    assert!(rows
+        .iter()
+        .any(|row| { row["format"] == "pdb" && row["status"] == "supported" }));
+    assert!(rows
+        .iter()
+        .any(|row| { row["format"] == "mmcif" && row["status"] == "reviewed_candidate" }));
 }
 
 #[test]

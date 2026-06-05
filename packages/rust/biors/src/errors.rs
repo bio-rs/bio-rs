@@ -4,6 +4,7 @@ use biors_core::{
     formats::FormatReadError,
     model_input::ModelInputBuildError,
     package::{PackageValidationIssueCode, PackageValidationReport},
+    structure::StructureReadError,
     verification::{PackageVerificationReport, VerificationIssueCode, VerificationStatus},
 };
 use serde::Serialize;
@@ -14,6 +15,7 @@ use std::path::PathBuf;
 pub(crate) enum CliError {
     Core(BioRsError),
     Format(FormatReadError),
+    Structure(StructureReadError),
     ModelInput(ModelInputBuildError),
     Json(serde_json::Error),
     CurrentDir(std::io::Error),
@@ -48,6 +50,7 @@ impl CliError {
         match self {
             Self::Core(error) => error.code(),
             Self::Format(error) => error.code(),
+            Self::Structure(error) => error.code(),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => {
                 "model_input.invalid_policy"
             }
@@ -73,6 +76,7 @@ impl CliError {
         match self {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
             Self::Format(error) => error.location().map(ErrorLocationValue::Core),
+            Self::Structure(error) => error.location().map(ErrorLocationValue::Core),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => None,
             Self::ModelInput(ModelInputBuildError::InvalidInputHash { .. }) => None,
             Self::ModelInput(ModelInputBuildError::EmptyTokenizedSequence { id }) => {
@@ -100,6 +104,7 @@ impl CliError {
         match self {
             Self::Core(_)
             | Self::Format(_)
+            | Self::Structure(_)
             | Self::ModelInput(_)
             | Self::Json(_)
             | Self::Validation { .. }
@@ -123,6 +128,13 @@ impl CliError {
             error => Self::Format(error),
         }
     }
+
+    pub(crate) fn from_structure_read(path: PathBuf, error: StructureReadError) -> Self {
+        match error {
+            StructureReadError::Io(source) => Self::Read { path, source },
+            error => Self::Structure(error),
+        }
+    }
 }
 
 impl std::fmt::Display for CliError {
@@ -130,6 +142,7 @@ impl std::fmt::Display for CliError {
         match self {
             Self::Core(error) => write!(f, "{error}"),
             Self::Format(error) => write!(f, "{error}"),
+            Self::Structure(error) => write!(f, "{error}"),
             Self::ModelInput(error) => write!(f, "{error}"),
             Self::Json(error) => write!(f, "{error}"),
             Self::CurrentDir(error) => write!(f, "failed to determine current directory: {error}"),

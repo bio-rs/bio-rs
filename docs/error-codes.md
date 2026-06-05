@@ -21,6 +21,12 @@ validation issues.
 - `fastq.missing_quality`: a FASTQ record ended before enough quality symbols were read
 - `fastq.quality_length_mismatch`: a FASTQ record quality string length did not match the sequence length
 
+## PDB
+
+- `pdb.empty_input`: input contained no PDB lines
+- `pdb.missing_atom_field`: a required fixed-column ATOM/HETATM field was blank or unavailable
+- `pdb.invalid_atom_field`: a fixed-column ATOM/HETATM field could not be parsed as the required numeric or text value
+
 ## Sequence Validation
 
 Sequence validation warnings and errors are reported inside successful FASTA or
@@ -31,6 +37,20 @@ CLI JSON payloads, schemas, and WASM TypeScript declarations.
 - `ambiguous_symbol`: a supported ambiguous IUPAC symbol was accepted with a warning
 - `invalid_symbol`: a symbol is not supported by the selected Protein, DNA, or RNA policy
 - `invalid_quality_character`: a FASTQ quality symbol is outside printable Phred+33 ASCII
+
+## Structure Validation
+
+Structure validation warnings and errors are reported inside successful
+`structure validate --format pdb` payloads, not as top-level CLI failures.
+
+- `no_coordinate_chains`: the structure contains no coordinate-bearing chains
+- `invalid_coordinate`: a coordinate value is not finite
+- `invalid_occupancy`: an atom occupancy value is structurally impossible, such as a negative value
+- `suspicious_occupancy`: an atom occupancy value is unusual but not fatal, such as a value greater than `1.0`
+- `missing_element`: an atom record omitted the element symbol
+- `missing_residue`: a residue is annotated as missing from coordinates
+- `unknown_residue`: a coordinate residue could not be mapped to a standard protein one-letter code
+- `sequence_mismatch`: coordinate-derived protein sequence could not be mapped to SEQRES
 
 ## JSON
 
@@ -151,7 +171,9 @@ Model-input validation failures keep the shared `model_input.*` codes.
 
 - `fasta.*`: sequence file envelope and record parsing errors
 - `fastq.*`: FASTQ envelope and record parsing errors
+- `pdb.*`: PDB coordinate record parsing errors
 - sequence issue codes: per-record biological sequence validation diagnostics
+- structure issue codes: per-chain and per-atom structure validation diagnostics
 - `batch.*`: batch input expansion failures
 - `dataset.*`: shared dataset/file input resolution failures
 - `cache.*`: local artifact store inspection or cleaning failures

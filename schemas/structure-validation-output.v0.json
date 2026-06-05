@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/structure-validation-output.v0.json",
+  "type": "object",
+  "required": [
+    "format",
+    "valid",
+    "chains",
+    "residues",
+    "atoms",
+    "hetero_atoms",
+    "missing_residues",
+    "warning_count",
+    "error_count",
+    "chain_reports",
+    "warnings",
+    "errors"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "pdb" },
+    "valid": { "type": "boolean" },
+    "chains": { "type": "integer", "minimum": 0 },
+    "residues": { "type": "integer", "minimum": 0 },
+    "atoms": { "type": "integer", "minimum": 0 },
+    "hetero_atoms": { "type": "integer", "minimum": 0 },
+    "missing_residues": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "chain_reports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/chain_report" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/structure_issue" }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/structure_issue" }
+    }
+  },
+  "$defs": {
+    "chain_report": {
+      "type": "object",
+      "required": [
+        "chain_id",
+        "residues",
+        "atoms",
+        "coordinate_sequence_length",
+        "seqres_sequence_length",
+        "missing_residues",
+        "sequence_mapping"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "chain_id": { "type": "string", "minLength": 1 },
+        "residues": { "type": "integer", "minimum": 0 },
+        "atoms": { "type": "integer", "minimum": 0 },
+        "coordinate_sequence_length": { "type": "integer", "minimum": 0 },
+        "seqres_sequence_length": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "missing_residues": { "type": "integer", "minimum": 0 },
+        "sequence_mapping": { "$ref": "#/$defs/sequence_mapping" }
+      }
+    },
+    "sequence_mapping": {
+      "type": "object",
+      "required": ["status", "message", "coordinate_to_seqres_positions"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "exact",
+            "coordinate_subsequence",
+            "missing_seqres",
+            "mismatch"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "coordinate_to_seqres_positions": {
+          "type": "array",
+          "items": {
+            "type": ["integer", "null"],
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "structure_issue": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "no_coordinate_chains",
+            "invalid_coordinate",
+            "invalid_occupancy",
+            "suspicious_occupancy",
+            "missing_element",
+            "missing_residue",
+            "unknown_residue",
+            "sequence_mismatch"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "chain_id": { "type": "string", "minLength": 1 },
+        "residue_number": { "type": "integer" },
+        "atom_serial": { "type": "integer" }
+      }
+    }
+  }
+}

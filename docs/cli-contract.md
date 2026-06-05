@@ -17,6 +17,8 @@ try it quickly.
 - `biors doctor`
 - `biors formats list`
 - `biors formats validate --format fastq <path|->`
+- `biors structure validate --format pdb <path|->`
+- `biors structure sequence --format pdb <path|->`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors tokenize [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>] <path|->`
@@ -83,6 +85,8 @@ metadata, and workflow payloads:
 - `service-sequence-inspect-request.v0.json`
 - `service-sequence-tokenize-request.v0.json`
 - `service-sequence-validate-request.v0.json`
+- `structure-sequence-output.v0.json`
+- `structure-validation-output.v0.json`
 - `tokenize-output.v0.json`
 - `tokenizer-conversion-output.v0.json`
 - `tokenizer-inspect-output.v0.json`
@@ -187,6 +191,15 @@ sequence symbols, quality length parity, and printable Phred+33 quality
 characters. The output uses `fastq-validation-output.v0.json` and includes
 per-record line ranges, sequence length, quality length, warnings, and errors
 without repeating raw read payloads.
+`structure validate --format pdb` validates fixed-column PDB ATOM/HETATM
+records, extracts chains and residues, preserves `REMARK 465` missing residues,
+checks finite coordinates and occupancy ranges, and maps coordinate-derived
+protein sequence against SEQRES when present. The output uses
+`structure-validation-output.v0.json`.
+`structure sequence --format pdb` emits per-chain coordinate-derived protein
+sequence, optional SEQRES sequence, missing-residue annotations, and one-based
+coordinate-to-SEQRES mapping positions. The output uses
+`structure-sequence-output.v0.json`.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.
@@ -225,8 +238,10 @@ All successful command output is written to stdout as pretty JSON:
 }
 ```
 
-`input_hash` is present for FASTA-backed commands. Package commands omit it
-unless they directly hash a user input contract in a later release.
+`input_hash` is present for commands that stream and hash biological input,
+including FASTA-backed commands, FASTQ validation, and PDB structure commands.
+Package commands omit it unless they directly hash a user input contract in a
+later release.
 
 The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Package manifest checksums and fixture hashes use `sha256:`.
 
