@@ -21,6 +21,7 @@ TEXT_VERSION_FILES = [
     "CITATION.cff",
     "docs/install.md",
     "docs/quickstart.md",
+    "docs/conversion.md",
     "docs/formats.md",
     "docs/rust-api.md",
     "docs/structure.md",

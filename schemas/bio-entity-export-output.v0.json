@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/bio-entity-export-output.v0.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "records",
+    "valid_records",
+    "model_ready_records",
+    "warning_count",
+    "error_count",
+    "entities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "biors.conversion.v0" },
+    "records": { "type": "integer", "minimum": 0 },
+    "valid_records": { "type": "integer", "minimum": 0 },
+    "model_ready_records": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/bio_entity" }
+    }
+  },
+  "$defs": {
+    "bio_entity": {
+      "type": "object",
+      "required": ["id", "entity_type", "source", "record", "validation"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "entity_type": { "enum": ["sequence", "structure", "molecule"] },
+        "source": { "$ref": "#/$defs/conversion_source" },
+        "record": { "$ref": "#/$defs/conversion_record" },
+        "validation": { "$ref": "#/$defs/conversion_validation" }
+      }
+    },
+    "conversion_source": {
+      "type": "object",
+      "required": ["format"],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "enum": [
+            "fasta",
+            "fastq",
+            "pdb",
+            "mmcif",
+            "smiles",
+            "sdf",
+            "mol2"
+          ]
+        },
+        "metadata": { "$ref": "#/$defs/format_metadata" }
+      }
+    },
+    "format_metadata": {
+      "type": "object",
+      "required": ["record_index", "line_start", "line_end"],
+      "additionalProperties": false,
+      "properties": {
+        "record_index": { "type": "integer", "minimum": 0 },
+        "line_start": { "type": "integer", "minimum": 1 },
+        "line_end": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "conversion_record": {
+      "type": "object",
+      "required": ["type", "data"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["sequence", "structure", "molecule"] },
+        "data": { "type": "object" }
+      }
+    },
+    "conversion_validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "model_ready",
+        "warning_count",
+        "error_count",
+        "warnings",
+        "errors"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "model_ready": { "type": "boolean" },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/conversion_issue" }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/conversion_issue" }
+        }
+      }
+    },
+    "conversion_issue": {
+      "type": "object",
+      "required": ["severity", "code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "severity": { "enum": ["warning", "error"] },
+        "code": {
+          "enum": [
+            "sequence_ambiguous_symbol",
+            "sequence_invalid_symbol",
+            "empty_sequence",
+            "fastq_quality_length_mismatch",
+            "structure_validation_warning",
+            "structure_validation_error",
+            "molecule_validation_warning",
+            "molecule_validation_error"
+          ]
+        },
+        "source_code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 },
+        "position": { "type": "integer", "minimum": 0 },
+        "chain_id": { "type": "string", "minLength": 1 },
+        "residue_number": { "type": "integer" },
+        "atom_serial": { "type": "integer" },
+        "atom_index": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

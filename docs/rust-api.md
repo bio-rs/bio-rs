@@ -12,6 +12,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 - [Feature Flags](#feature-flags)
 - [Module Reference](#module-reference)
   - [`error`](#module-error)
+  - [`conversion`](#module-conversion)
   - [`fasta`](#module-fasta)
   - [`formats`](#module-formats)
   - [`hash`](#module-hash)
@@ -32,7 +33,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -65,6 +66,50 @@ All public types implement `Debug`, `Clone`, `PartialEq`, and `Eq` where appropr
 `biors-core` currently has no Cargo feature flags. All public APIs are always available, and there is no feature-gated `no_std` mode.
 
 ## Module Reference
+
+### Module: `conversion`
+
+The `conversion` module maps parsed biological records into the shared
+`BioEntity` JSON export contract. It is deterministic and local-only; it does
+not call models, upload data, or claim inference/search behavior.
+
+Public types:
+
+- **`BioEntityJsonExport`** — JSON-ready export with `schema_version`,
+  aggregate record counts, warning/error counts, and converted entities.
+- **`BioEntity`** — One converted biological entity with stable `id`,
+  `entity_type`, `source`, `record`, and `validation`.
+- **`BioEntityType`** — `Sequence`, `Structure`, or `Molecule`.
+- **`ConversionRecord`** — Tagged record enum wrapping
+  `ConvertedSequenceRecord`, `ConvertedStructureRecord`, or
+  `ConvertedMoleculeRecord`.
+- **`ConversionSource`** — Source `BioFormat` and optional
+  `FormatMetadata`.
+- **`ConversionValidation`** — Per-entity validity, model-readiness,
+  warnings, and errors.
+- **`ConversionIssue`**, **`ConversionIssueCode`**, and
+  **`ConversionIssueSeverity`** — Stable conversion issue contract.
+- **`CONVERSION_SCHEMA_VERSION`** — `biors.conversion.v0`.
+
+Public functions:
+
+- `pub fn convert_fasta_records(records: &[ProteinSequence], kind_selection: SequenceKindSelection) -> BioEntityJsonExport`
+  Convert parsed FASTA records into sequence entities.
+- `pub fn fasta_record_to_bio_entity(record: &ProteinSequence, kind_selection: SequenceKindSelection) -> BioEntity`
+  Convert one FASTA record.
+- `pub fn convert_fastq_records(records: &[FastqRecord]) -> BioEntityJsonExport`
+  Convert parsed FASTQ records into DNA sequence entities with quality strings.
+- `pub fn fastq_record_to_bio_entity(record: &FastqRecord) -> BioEntity`
+  Convert one FASTQ record.
+- `pub fn structure_record_to_bio_entity(record: &StructureRecord) -> BioEntity`
+  Convert a parsed structure record and attach extracted chain sequences.
+- `pub fn molecule_record_to_bio_entity(record: &MoleculeRecord) -> BioEntity`
+  Convert one parsed molecule record with `FormatRecord` projection and
+  deterministic molecule features.
+- `pub fn convert_molecule_records(records: &[MoleculeRecord]) -> BioEntityJsonExport`
+  Convert parsed molecule records.
+- `pub fn export_bio_entities(entities: Vec<BioEntity>) -> BioEntityJsonExport`
+  Wrap already converted entities into the aggregate JSON export shape.
 
 ### Module: `error`
 

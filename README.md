@@ -242,6 +242,7 @@ CLI surface.
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
+- [Unified conversion layer](docs/conversion.md) — FASTA/FASTQ, structure, and molecule records mapped into `BioEntity` JSON
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface

@@ -6,6 +6,7 @@
 //! FASTA input. Non-ASCII sequence lines fall back to UTF-8 validation so public
 //! Unicode behavior remains explicit and test-covered.
 
+pub mod conversion;
 pub mod error;
 pub mod fasta;
 mod fasta_scan;

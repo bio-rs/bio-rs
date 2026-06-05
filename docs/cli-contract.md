@@ -53,6 +53,7 @@ for CLI output, package manifests, pipeline configs, service requests, tokenizer
 metadata, and workflow payloads:
 
 - `batch-validation-output.v0.json`
+- `bio-entity-export-output.v0.json`
 - `cache-output.v0.json`
 - `cli-error.v0.json`
 - `cli-success.v0.json`
