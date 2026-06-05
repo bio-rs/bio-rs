@@ -1,6 +1,6 @@
 # Unified Conversion Layer
 
-Version: 0.50.0
+Version: 0.51.0
 
 The conversion layer maps parsed biological records into one JSON-ready
 `BioEntity` contract. It is local-only and deterministic: it does not call
