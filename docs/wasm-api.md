@@ -1,9 +1,10 @@
 # WASM API
 
 `biors-wasm` exposes a browser-safe and Node.js-safe subset of
-`biors-core` as a WebAssembly module. It supports FASTA parsing, sequence
-validation, profile-aware protein/DNA/RNA tokenization, model-input
-construction, and the standard preprocessing workflow.
+`biors-core` as a WebAssembly module. It supports FASTA parsing,
+FASTA/FASTQ/PDB/SMILES browser validation helpers, profile-aware
+protein/DNA/RNA tokenization, model-input construction, and the standard
+preprocessing workflow.
 
 > **Status:** The `biors-wasm` crate is implemented in this repository. Tag
 > releases build, test, and publish the npm package through npm trusted
@@ -21,6 +22,21 @@ No hosted service or external runtime is required.
 Release builds use empty default features so browser-only debug helpers do not
 ship unless explicitly requested. Enable `console_error_panic_hook` only for
 local debugging builds that need browser panic stack traces.
+
+## Local Browser Policy
+
+The browser helper API is local-first and privacy-first:
+
+- no network access
+- no `fetch` calls
+- no external model calls
+- no input uploads
+- no persistence beyond objects returned to the caller
+
+Inputs are caller-owned `Uint8Array` values. The MVP accepts single in-memory
+files up to 64 MiB and emits a memory-pressure warning at 16 MiB. Streaming and
+chunked parsing are intentionally not claimed yet; browser callers should reject
+or slice larger files before calling into WASM.
 
 ## Module Loading
 
@@ -41,6 +57,72 @@ through the generated package glue. Node.js and custom test runners must support
 ES module WASM imports for direct package loading.
 
 ## API Reference
+
+### `browserExecutionPolicy(): BrowserExecutionPolicy`
+
+Returns the local execution policy enforced by the browser helpers.
+
+```javascript
+const policy = browserExecutionPolicy();
+console.log(policy.network_access); // "none"
+```
+
+The policy reports supported validation formats (`fasta`, `fastq`, `pdb`,
+`smiles`), tokenization formats (`fasta`), byte limits, and the streaming
+boundary.
+
+### `inspectBrowserFile(input: BrowserFileInput): BrowserFileInspection`
+
+Checks file metadata and size before validation or tokenization.
+
+```javascript
+const bytes = new Uint8Array(await file.arrayBuffer());
+const inspection = inspectBrowserFile({
+  name: file.name,
+  bytes,
+});
+```
+
+`format` can be supplied explicitly or inferred from common file extensions:
+`.fasta`, `.fa`, `.faa`, `.fna`, `.fastq`, `.fq`, `.pdb`, `.smi`, and
+`.smiles`.
+
+### `validateBrowserFile(input: BrowserFileInput): BrowserValidationOutput`
+
+Validates one browser-provided file without network access.
+
+```javascript
+const output = validateBrowserFile({
+  name: "reads.fastq",
+  format: "fastq",
+  bytes,
+});
+console.log(output.file.input_hash, output.report);
+```
+
+Validation supports:
+
+- FASTA with `kind: "auto" | "protein" | "dna" | "rna"`
+- FASTQ using the core FASTQ validator
+- PDB using the core PDB structure validator
+- SMILES using the core SMILES molecule validator
+
+### `tokenizeBrowserFile(input: BrowserFileInput): BrowserTokenizationOutput`
+
+Parses and tokenizes browser-provided FASTA bytes.
+
+```javascript
+const output = tokenizeBrowserFile({
+  name: "protein.fasta",
+  format: "fasta",
+  bytes,
+  profile: "protein-20",
+});
+console.log(output.tokenization.records[0].tokens);
+```
+
+Tokenization currently supports FASTA only. Use `buildModelInputWithPolicy` on
+`output.tokenization.records` to construct padded model input.
 
 ### `parseFasta(bytes: Uint8Array): FastaRecord[]`
 

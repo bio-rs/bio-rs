@@ -224,7 +224,8 @@ CLI surface.
 
 ### External interfaces
 - `biors-python`: PyO3 bindings for Python integration and notebook workflows
-- `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions
+- `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions,
+  browser file validation/tokenization helpers, and local-only browser demo
 - `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
 - `service contract`: offline JSON route/schema contract for caller-owned
   service hosts

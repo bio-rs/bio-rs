@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 
+mod browser;
 mod fasta;
 mod model_input;
 mod profile;
@@ -7,6 +8,7 @@ mod tokenize;
 mod types;
 mod workflow;
 
+pub use browser::*;
 pub use fasta::*;
 pub use model_input::*;
 pub use tokenize::*;

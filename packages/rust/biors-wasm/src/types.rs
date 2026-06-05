@@ -162,3 +162,73 @@ export interface WorkflowOutput {
     };
 }
 "#;
+
+#[wasm_bindgen(typescript_custom_section)]
+const TS_BROWSER_TOOLING: &'static str = r#"
+export type BrowserBioFormat = "fasta" | "fastq" | "pdb" | "smiles";
+
+export interface BrowserFileInput {
+    bytes: Uint8Array;
+    name?: string;
+    format?: BrowserBioFormat;
+    kind?: "auto" | "protein" | "dna" | "rna";
+    profile?: "protein-20" | "protein-20-special" | "dna-iupac" | "dna-iupac-special" | "rna-iupac" | "rna-iupac-special";
+}
+
+export interface BrowserExecutionPolicy {
+    schema_version: "biors.browser_tooling.v0";
+    execution_mode: "wasm_local";
+    network_access: "none";
+    uploads_input_data: false;
+    external_model_calls: false;
+    persistence: "caller_controlled";
+    max_input_bytes: number;
+    warning_input_bytes: number;
+    streaming: {
+        supported: false;
+        behavior: string;
+        caller_guidance: string;
+    };
+    supported_validation_formats: BrowserBioFormat[];
+    supported_tokenization_formats: "fasta"[];
+}
+
+export interface BrowserFileDescriptor {
+    name?: string;
+    format: BrowserBioFormat;
+    size_bytes: number;
+    content_sha256: string;
+    input_hash?: string;
+}
+
+export interface BrowserFileWarning {
+    code: string;
+    message: string;
+}
+
+export interface BrowserFileInspection {
+    schema_version: "biors.browser_tooling.v0";
+    file: BrowserFileDescriptor;
+    accepted: boolean;
+    warnings: BrowserFileWarning[];
+}
+
+export interface BrowserValidationOutput {
+    schema_version: "biors.browser_tooling.v0";
+    file: BrowserFileDescriptor;
+    report: unknown;
+    warnings: BrowserFileWarning[];
+}
+
+export interface BrowserTokenizationOutput {
+    schema_version: "biors.browser_tooling.v0";
+    file: BrowserFileDescriptor;
+    tokenization: TokenizeOutput;
+    model_input_policy_hint: {
+        max_length_required: boolean;
+        supported_padding: Array<"fixed_length" | "no_padding">;
+        note: string;
+    };
+    warnings: BrowserFileWarning[];
+}
+"#;

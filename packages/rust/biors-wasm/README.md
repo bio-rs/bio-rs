@@ -6,9 +6,13 @@ WebAssembly/JavaScript bindings for [bio-rs](https://github.com/bio-rs/bio-rs) c
 
 ```javascript
 import {
+  browserExecutionPolicy,
+  inspectBrowserFile,
+  validateBrowserFile,
   parseFasta,
   validateFasta,
   tokenize,
+  tokenizeBrowserFile,
   buildModelInputWithPolicy,
   runWorkflow,
 } from "@bio-rs/biors-wasm";
@@ -33,7 +37,23 @@ const dnaWorkflow = runWorkflow({
   profile: "dna-iupac",
   maxLength: 8,
 });
+
+const policy = browserExecutionPolicy();
+const fileInput = {
+  name: "protein.fasta",
+  format: "fasta",
+  bytes,
+  kind: "protein",
+  profile: "protein-20",
+};
+const inspected = inspectBrowserFile(fileInput);
+const browserValidation = validateBrowserFile(fileInput);
+const browserTokens = tokenizeBrowserFile(fileInput);
 ```
+
+The browser helpers are local-first by contract: they accept caller-owned
+`Uint8Array` input, enforce the documented size policy, do not call `fetch`, do
+not upload input data, and do not persist records.
 
 ## Development
 
