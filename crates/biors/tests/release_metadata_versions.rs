@@ -73,7 +73,6 @@ fn service_template_versions_match_workspace_package_version() {
     for path in [
         "deploy/service/Dockerfile",
         "deploy/service/README.md",
-        "docs/service-deployment.md",
         "docs/service-interface.md",
         "docs/molecule.md",
     ] {
@@ -96,7 +95,6 @@ fn service_template_versions_match_workspace_package_version() {
     for path in [
         "deploy/service/Dockerfile",
         "deploy/service/README.md",
-        "docs/service-deployment.md",
         "docs/service-interface.md",
         "docs/molecule.md",
     ] {

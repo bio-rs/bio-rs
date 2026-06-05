@@ -51,6 +51,42 @@ curl -s http://127.0.0.1:8787/v0/batch/sequence/validate \
   -d '{"kind":"auto","inputs":[{"id":"sample1","fasta_text":">seq1\nACDE\n"}]}'
 ```
 
+The batch endpoint rejects empty input lists, empty IDs, duplicate IDs, empty
+FASTA text, malformed JSON, oversized request bodies, and FASTA parsing errors
+with structured JSON error codes.
+
+## REST And Deployment Template
+
+The built-in local REST surface is intentionally minimal:
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/health` | Version, endpoint inventory, and local execution policy |
+| `GET` | `/openapi.json` | OpenAPI 3.1 document for served endpoints |
+| `POST` | `/v0/batch/sequence/validate` | Inline FASTA batch validation |
+
+The checked-in Docker/OCI template is in `deploy/service/Dockerfile`:
+
+```bash
+docker build -f deploy/service/Dockerfile \
+  --build-arg BIORS_VERSION=0.57.1 \
+  -t biors-service:0.57.1 .
+
+docker run --rm -p 8787:8787 biors-service:0.57.1
+```
+
+The container binds `0.0.0.0:8787` inside the container so Docker can publish
+the port. The host mapping should stay local unless an operator deliberately
+places authentication, TLS, request limits, and logging policy in front of it.
+
+`biors serve` gives researchers a reproducible validation/tokenization-adjacent
+REST surface, not a full production platform. Operators own authentication,
+authorization, TLS termination, request and body-size policy beyond
+`--max-body-bytes`, audit logging, ingress controls, scaling, service
+supervision, and shutdown handling. Keep biological input data in local or
+institution-controlled environments unless a separate data-governance review
+explicitly approves wider exposure.
+
 ## Boundary
 
 `biors-core` owns the operation list, schema names, deterministic validation

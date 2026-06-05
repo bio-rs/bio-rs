@@ -247,15 +247,11 @@ CLI surface.
 
 - [Quickstart](docs/quickstart.md) — install and first commands
 - [Installation and distribution](docs/install.md) — cargo, binaries, completions
-- [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
-- [Package format](docs/package-format.md) — manifest layout and research metadata
-- [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
-- [Unified conversion layer](docs/conversion.md) — FASTA/FASTQ, structure, and molecule records mapped into `BioEntity` JSON
-- [Reproducible reports](docs/reports.md) — JSON-to-Markdown/shareable report exports with provenance
-- [Task templates](docs/templates.md) — local contracts for classification, embeddings, variants, molecules, structures, and search preprocessing
+- [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, report generation, task templates, and exit codes
+- [Package format and conversion](docs/package-format.md) — manifest layout, research metadata, and HF/Python project conversion
+- [Rust API](docs/rust-api.md) — core modules including conversion, reports, and task templates
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
-- [Service interface](docs/service-interface.md) — local HTTP mode, service-host contract, and runtime boundary
-- [Service deployment](docs/service-deployment.md) — REST API and Docker/OCI template
+- [Service interface and deployment](docs/service-interface.md) — local HTTP mode, REST/OpenAPI contract, Docker/OCI template, and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Biological format support](docs/formats.md) — FASTQ/PDB/SMILES/SDF/MOL2 support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats

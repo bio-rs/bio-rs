@@ -207,7 +207,7 @@ intended-use, and limitations.
 `biors package convert-project` cover the Python/Hugging Face project path.
 They write package layout, tokenizer config, pipeline config, docs, fixture
 references, and checksums while leaving optional `model.metadata` for the
-package author to fill in. See [Package Conversion](package-conversion.md).
+package author to fill in.
 
 `biors package compatibility <left-manifest> <right-manifest>` reports the
 schema transition from left to right, whether a migration is required, and
@@ -217,6 +217,76 @@ whether both manifests describe the same package name.
 context with a canonical manifest content diff. JSON manifests are compared as
 parsed JSON values, so formatting-only changes do not produce content
 mismatches.
+
+## Package Authoring And Conversion
+
+Package conversion builds portable bio-rs package structure and records
+checksums. It does not infer optional model artifact metadata such as model
+name, version, architecture, task, source, or description. Package authors can
+add `model.metadata` after conversion when they want inspect and bridge reports
+to carry that context.
+
+Convert a Hugging Face tokenizer config into a bio-rs tokenizer config:
+
+```bash
+biors tokenizer convert-hf ./tokenizer_config.json \
+  --output ./protein-package/tokenizers/protein-20-special.json
+```
+
+The command maps supported special-token metadata to the closest built-in
+bio-rs protein tokenizer config and emits preview package fragments,
+conversion assumptions, warnings, and the SHA-256 of the converted config. It
+does not read Hugging Face vocab files, token IDs, normalizer rules, or
+pre-tokenizer rules. Treat the fragments as scaffolding until fixture parity
+proves the converted bio-rs tokens match the source tokenizer for
+representative protein inputs.
+
+Initialize a package from explicit assets:
+
+```bash
+biors package init ./protein-package \
+  --name protein-package \
+  --model ./model.onnx \
+  --tokenizer-config ./tokenizer_config.json \
+  --fixture-input ./fixtures/tiny.fasta \
+  --fixture-output ./fixtures/tiny.output.json \
+  --license CC0-1.0 \
+  --citation "Your package citation" \
+  --model-card-summary "Short model-card summary." \
+  --intended-use "Local preprocessing parity checks" \
+  --limitation "Review before scientific inference"
+```
+
+`package init` creates `manifest.json`, copies model and fixture artifacts,
+writes a bio-rs tokenizer config, writes a starter pipeline config matching the
+selected tokenizer profile's sequence kind, writes starter docs under
+`docs/`, and records byte-for-byte SHA-256 checksums for manifest-referenced
+files. Use `package convert --citation-file` for a validated `CITATION.cff`;
+`package init` writes free-form starter citation text.
+
+Convert a Python project:
+
+```bash
+biors package convert-project ./python-project \
+  --output ./protein-package \
+  --name protein-package \
+  --fixture-input ./fixtures/tiny.fasta \
+  --fixture-output ./fixtures/tiny.output.json \
+  --license CC0-1.0 \
+  --citation "Your package citation" \
+  --model-card-summary "Short model-card summary." \
+  --intended-use "Local preprocessing parity checks" \
+  --limitation "Review before scientific inference"
+```
+
+`package convert-project` scans the project directory for one `.onnx` model
+artifact and an optional `tokenizer_config.json`. Generated/cache directories
+such as `.venv`, `.git`, `.cache`, `__pycache__`, notebook checkpoints,
+`target`, `build`, and `dist` are skipped by default. Pass
+`--include-generated` only when the intended model or tokenizer config really
+lives in one of those directories. If multiple ONNX or `tokenizer_config.json`
+candidates are found, the command returns their sorted paths and requires
+`--model` or `--tokenizer-config`.
 
 ## Fixture Verification Mismatches
 
