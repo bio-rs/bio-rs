@@ -3,6 +3,7 @@ set -eu
 
 BIN="${BIORS_BIN:-biors}"
 DATASET="${BIORS_DEMO_DATASET:-testdata/sequences/launch-demo.fasta}"
+OUT_DIR="${BIORS_DEMO_OUT_DIR:-target/biors-demo}"
 
 if [ "${1:-}" = "--cargo" ]; then
   BIN="cargo run -p biors --"
@@ -21,7 +22,13 @@ echo "==> tokenize launch FASTA"
 $BIN tokenize "$DATASET"
 
 echo "==> model-ready records"
-$BIN model-input --max-length 32 "$DATASET"
+mkdir -p "$OUT_DIR"
+$BIN model-input --max-length 32 "$DATASET" | tee "$OUT_DIR/model-input.json"
+
+echo "==> reproducible report export"
+$BIN report generate "$OUT_DIR/model-input.json" \
+  --output "$OUT_DIR/model-input-report.md" \
+  --shareable-json "$OUT_DIR/model-input-report.json"
 
 echo "==> verify portable package fixture"
 $BIN package verify \

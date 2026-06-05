@@ -66,6 +66,48 @@ fn example_package_metadata_versions_match_workspace_package_version() {
 }
 
 #[test]
+fn service_template_versions_match_workspace_package_version() {
+    let repo = common::repo_root();
+    let workspace_version = workspace_package_version(&repo);
+
+    for path in [
+        "deploy/service/Dockerfile",
+        "deploy/service/README.md",
+        "docs/service-deployment.md",
+        "docs/service-interface.md",
+        "docs/molecule.md",
+    ] {
+        let contents =
+            fs::read_to_string(repo.join(path)).unwrap_or_else(|_| panic!("read {path}"));
+        assert!(
+            contents.contains(&workspace_version),
+            "{path} must mention current workspace version {workspace_version}"
+        );
+        for stale in ["0.54.0", "0.50.0"] {
+            assert!(
+                !contents.contains(stale),
+                "{path} still contains stale version {stale}"
+            );
+        }
+    }
+
+    let release_prep =
+        fs::read_to_string(repo.join("scripts/prepare-release-version.py")).expect("read prep");
+    for path in [
+        "deploy/service/Dockerfile",
+        "deploy/service/README.md",
+        "docs/service-deployment.md",
+        "docs/service-interface.md",
+        "docs/molecule.md",
+    ] {
+        assert!(
+            release_prep.contains(path),
+            "release prep script must update {path}"
+        );
+    }
+}
+
+#[test]
 fn stale_benchmark_artifact_is_labeled_historical_in_readme() {
     let repo = common::repo_root();
     let workspace_version = workspace_package_version(&repo);

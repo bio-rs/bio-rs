@@ -26,6 +26,15 @@ printf '\n$ %s model-input --max-length 32 %s\n' "$BIN" "$DATASET"
 $BIN model-input --max-length 32 "$DATASET" >"$OUT_DIR/model-input.json"
 cat "$OUT_DIR/model-input.json"
 
+printf '\n$ %s report generate %s --output %s --shareable-json %s\n' \
+  "$BIN" \
+  "$OUT_DIR/model-input.json" \
+  "$OUT_DIR/model-input-report.md" \
+  "$OUT_DIR/model-input-report.json"
+$BIN report generate "$OUT_DIR/model-input.json" \
+  --output "$OUT_DIR/model-input-report.md" \
+  --shareable-json "$OUT_DIR/model-input-report.json"
+
 printf '\n$ %s package verify testdata/protein-package/manifest.json testdata/protein-package/observations.json\n' "$BIN"
 $BIN package verify \
   testdata/protein-package/manifest.json \

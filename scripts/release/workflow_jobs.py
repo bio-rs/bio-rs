@@ -12,6 +12,7 @@ def assert_release_jobs(workflow: dict[str, Any]) -> None:
     expected_jobs = {
         "release-readiness",
         "pre-tag-registry-check",
+        "package-artifact-checks",
         "publish-crates",
         "build-python-wheels",
         "publish-python",
@@ -24,6 +25,7 @@ def assert_release_jobs(workflow: dict[str, Any]) -> None:
         raise SystemExit(f"release workflow is missing jobs: {', '.join(sorted(missing))}")
 
     assert_readiness_jobs(jobs)
+    assert_package_artifact_jobs(jobs)
     assert_publish_jobs(jobs)
     assert_binary_and_release_jobs(jobs)
 
@@ -59,11 +61,33 @@ def assert_readiness_jobs(jobs: dict[str, Any]) -> None:
     )
 
 
+def assert_package_artifact_jobs(jobs: dict[str, Any]) -> None:
+    assert_job(
+        jobs,
+        "package-artifact-checks",
+        needs=["release-readiness", "pre-tag-registry-check"],
+        permissions={"contents": "read"},
+        tag_only=True,
+        steps=[
+            StepCheck(uses=RUST_TOOLCHAIN_ACTION, with_values={"targets": "wasm32-unknown-unknown"}),
+            StepCheck(uses="actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"),
+            StepCheck(
+                name="Set up Node.js",
+                uses="actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e",
+                with_values={"node-version": "${{ env.BIORS_RELEASE_NODE_VERSION }}"},
+            ),
+            StepCheck(name="Install maturin", run_contains=['"maturin==${{ env.BIORS_RELEASE_MATURIN_VERSION }}"']),
+            StepCheck(name="Install wasm-pack", run_contains=["github.com/rustwasm/wasm-pack/releases/download", "BIORS_RELEASE_WASM_PACK_SHA256", "sha256sum -c -"]),
+            StepCheck(name="Run package artifact checks", run_contains=["scripts/check-package-artifacts.sh"]),
+        ],
+    )
+
+
 def assert_publish_jobs(jobs: dict[str, Any]) -> None:
     assert_job(
         jobs,
         "publish-crates",
-        needs=["release-readiness", "pre-tag-registry-check"],
+        needs=["release-readiness", "pre-tag-registry-check", "package-artifact-checks"],
         permissions={"contents": "read"},
         tag_only=True,
         steps=[
@@ -83,7 +107,7 @@ def assert_publish_jobs(jobs: dict[str, Any]) -> None:
     assert_job(
         jobs,
         "build-python-wheels",
-        needs=["release-readiness", "pre-tag-registry-check"],
+        needs=["release-readiness", "pre-tag-registry-check", "package-artifact-checks"],
         permissions=None,
         tag_only=True,
         matrix={"os": ["ubuntu-latest", "macos-latest", "windows-latest"]},
@@ -102,7 +126,7 @@ def assert_publish_jobs(jobs: dict[str, Any]) -> None:
     assert_job(
         jobs,
         "publish-python",
-        needs=["release-readiness", "pre-tag-registry-check", "build-python-wheels"],
+        needs=["release-readiness", "pre-tag-registry-check", "package-artifact-checks", "build-python-wheels"],
         permissions={"contents": "read", "id-token": "write"},
         tag_only=True,
         env={"PYPI_API_TOKEN": "${{ secrets.PYPI_API_TOKEN }}"},
@@ -115,7 +139,7 @@ def assert_publish_jobs(jobs: dict[str, Any]) -> None:
     assert_job(
         jobs,
         "publish-wasm-npm",
-        needs=["release-readiness", "pre-tag-registry-check"],
+        needs=["release-readiness", "pre-tag-registry-check", "package-artifact-checks"],
         permissions={"contents": "read", "id-token": "write"},
         tag_only=True,
         steps=[
@@ -134,7 +158,7 @@ def assert_binary_and_release_jobs(jobs: dict[str, Any]) -> None:
     assert_job(
         jobs,
         "build-release-binaries",
-        needs=["release-readiness", "pre-tag-registry-check"],
+        needs=["release-readiness", "pre-tag-registry-check", "package-artifact-checks"],
         permissions={"contents": "read", "id-token": "write", "attestations": "write"},
         tag_only=True,
         matrix={

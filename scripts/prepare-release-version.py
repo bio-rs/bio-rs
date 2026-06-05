@@ -23,7 +23,10 @@ TEXT_VERSION_FILES = [
     "docs/quickstart.md",
     "docs/conversion.md",
     "docs/formats.md",
+    "docs/molecule.md",
     "docs/rust-api.md",
+    "docs/service-deployment.md",
+    "docs/service-interface.md",
     "docs/structure.md",
     "docs/templates.md",
     "benchmarks/fasta_vs_biopython.md",
@@ -35,6 +38,8 @@ TEXT_VERSION_FILES = [
     "benchmarks/wasm_bindings.json",
     "crates/biors-python/pyproject.toml",
     "crates/biors-wasm/package.json",
+    "deploy/service/Dockerfile",
+    "deploy/service/README.md",
     "testdata/protein-package/docs/CITATION.cff",
 ]
 

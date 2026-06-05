@@ -58,14 +58,14 @@ Build:
 
 ```bash
 docker build -f deploy/service/Dockerfile \
-  --build-arg BIORS_VERSION=0.54.0 \
-  -t biors-service:0.54.0 .
+  --build-arg BIORS_VERSION=0.57.0 \
+  -t biors-service:0.57.0 .
 ```
 
 Run on a local workstation:
 
 ```bash
-docker run --rm -p 8787:8787 biors-service:0.54.0
+docker run --rm -p 8787:8787 biors-service:0.57.0
 ```
 
 The container binds `0.0.0.0:8787` inside the container so Docker can publish

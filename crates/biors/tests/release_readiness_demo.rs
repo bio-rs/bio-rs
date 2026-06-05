@@ -25,8 +25,10 @@ fn launch_demo_assets_cover_first_impression_workflow() {
 
     assert!(launch_script.contains("seq validate"));
     assert!(launch_script.contains("model-input"));
+    assert!(launch_script.contains("report generate"));
     assert!(recorded_demo_script.contains("--version"));
     assert!(recorded_demo_script.contains("testdata/sequences/launch-demo.fasta"));
+    assert!(recorded_demo_script.contains("report generate"));
     for expected in [
         "## Environment",
         "## Matched results",

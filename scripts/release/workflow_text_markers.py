@@ -54,6 +54,7 @@ def assert_secondary_text_markers(
         "scripts/check-registry-versions.py",
         "cargo install --locked cargo-deny",
         "scripts/check-security-audit.sh",
+        "scripts/check-package-artifacts.sh",
         "--generate-notes",
     ]
     for text in required_text:

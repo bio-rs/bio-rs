@@ -106,7 +106,7 @@ researcher workflow.
 
 ## Crate Split Review
 
-`biors-pipeline` remains deferred as of the current Phase 7 release line.
+No separate `biors-pipeline` crate is published in the current release line.
 
 Rationale:
 
