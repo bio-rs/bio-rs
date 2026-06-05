@@ -3,21 +3,30 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
+from artifact_validation import (
+    load_json_object,
+    require_top_level_fields,
+    validate_criterion_estimate,
+    validate_schema_version,
+)
 from benchmark_release_status import validate_release_status
 
 RESULT_PATH = Path("benchmarks/backend_smoke.json")
 
 
 def main() -> int:
-    result = json.loads(RESULT_PATH.read_text())
-    if result.get("schema_version") != "biors.benchmark.backend_smoke.v1":
-        raise AssertionError("backend smoke benchmark artifact must use schema v1")
-    for field in ["generated_at_utc", "methodology", "environment", "workloads"]:
-        if field not in result:
-            raise AssertionError(f"missing top-level field: {field}")
+    result = load_json_object(RESULT_PATH)
+    validate_schema_version(
+        result,
+        "biors.benchmark.backend_smoke.v1",
+        "backend smoke benchmark artifact must use schema v1",
+    )
+    require_top_level_fields(
+        result,
+        ["generated_at_utc", "methodology", "environment", "workloads"],
+    )
     validate_release_status(
         result,
         environment_key="biors_backend_candle",
@@ -32,20 +41,12 @@ def main() -> int:
     if not isinstance(estimates, dict):
         raise AssertionError("backend smoke workload must include Criterion estimates")
     for estimate in ["mean", "median", "slope"]:
-        validate_estimate(estimates.get(estimate), estimate)
+        validate_criterion_estimate(
+            estimates.get(estimate),
+            estimate,
+            require_confidence_interval_fields=True,
+        )
     return 0
-
-
-def validate_estimate(estimate: object, name: str) -> None:
-    if not isinstance(estimate, dict):
-        raise AssertionError(f"{name} estimate must be an object")
-    for field in ["point_estimate", "confidence_interval", "standard_error"]:
-        if field not in estimate:
-            raise AssertionError(f"{name} estimate missing {field}")
-    interval = estimate["confidence_interval"]
-    for field in ["confidence_level", "lower_bound", "upper_bound"]:
-        if field not in interval:
-            raise AssertionError(f"{name} confidence interval missing {field}")
 
 
 if __name__ == "__main__":
