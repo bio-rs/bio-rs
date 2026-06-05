@@ -1,42 +1,39 @@
 use std::fs;
+use std::path::Path;
 
 mod common;
 
 #[test]
 fn final_release_checklist_covers_required_gates() {
     let repo = common::repo_root();
-    let script =
-        fs::read_to_string(repo.join("scripts/check-final-release.sh")).expect("read final script");
-    let full_check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read full check");
-    let package_artifacts = fs::read_to_string(repo.join("scripts/check-package-artifacts.sh"))
-        .expect("read package artifact check");
+    let script = read_repo_file(&repo, "scripts/check-final-release.sh");
+    let full_check = read_repo_file(&repo, "scripts/check.sh");
+    let package_artifacts = read_repo_file(&repo, "scripts/check-package-artifacts.sh");
     let workflow_check = [
         "scripts/check-release-workflow.py",
         "scripts/release/workflow_jobs.py",
         "scripts/release/workflow_text_markers.py",
     ]
     .into_iter()
-    .map(|path| fs::read_to_string(repo.join(path)).expect("read release workflow check"))
+    .map(|path| read_repo_file(&repo, path))
     .collect::<Vec<_>>()
     .join("\n");
-    let release_workflow = fs::read_to_string(repo.join(".github/workflows/release.yml"))
-        .expect("read release workflow");
-    let attributes = fs::read_to_string(repo.join(".gitattributes")).expect("read attributes");
+    let release_workflow = read_repo_file(&repo, ".github/workflows/release.yml");
+    let attributes = read_repo_file(&repo, ".gitattributes");
 
-    for expected in [
-        "scripts/check.sh",
-        "scripts/check-security-audit.sh",
-        "cargo build --locked --release -p biors",
-        "BIORS_BIN=target/release/biors sh scripts/launch-demo.sh",
-        "scripts/check-install-smoke.sh",
-        "scripts/check-package-artifacts.sh",
-        "python3 scripts/check-release-workflow.py",
-    ] {
-        assert!(
-            script.contains(expected),
-            "final release script missing {expected}"
-        );
-    }
+    assert_contains_all(
+        &script,
+        &[
+            "scripts/check.sh",
+            "scripts/check-security-audit.sh",
+            "cargo build --locked --release -p biors",
+            "BIORS_BIN=target/release/biors sh scripts/launch-demo.sh",
+            "scripts/check-install-smoke.sh",
+            "scripts/check-package-artifacts.sh",
+            "python3 scripts/check-release-workflow.py",
+        ],
+        "final release script missing",
+    );
     assert!(
         full_check.contains("scripts/check-benchmark-docs.sh"),
         "full release check missing scripts/check-benchmark-docs.sh"
@@ -51,27 +48,25 @@ fn final_release_checklist_covers_required_gates() {
         "final release gate must transitively run the dependency policy check"
     );
 
-    for expected in ["id-token: write", "npm publish", "--provenance"] {
-        assert!(
-            release_workflow.contains(expected),
-            "release workflow missing trusted publishing invariant {expected}"
-        );
-    }
+    assert_contains_all(
+        &release_workflow,
+        &["id-token: write", "npm publish", "--provenance"],
+        "release workflow missing trusted publishing invariant",
+    );
 
-    for expected in [
-        "--provenance",
-        "npm publish",
-        "scripts/check-release-artifact-contents.py",
-        "scripts/check-registry-versions.py",
-        "scripts/print-release-tool-versions.sh",
-        "NPM_TOKEN",
-        "NODE_AUTH_TOKEN",
-    ] {
-        assert!(
-            workflow_check.contains(expected),
-            "release workflow check missing trusted publishing invariant {expected}"
-        );
-    }
+    assert_contains_all(
+        &workflow_check,
+        &[
+            "--provenance",
+            "npm publish",
+            "scripts/check-release-artifact-contents.py",
+            "scripts/check-registry-versions.py",
+            "scripts/print-release-tool-versions.sh",
+            "NPM_TOKEN",
+            "NODE_AUTH_TOKEN",
+        ],
+        "release workflow check missing trusted publishing invariant",
+    );
 
     assert!(
         attributes.contains("testdata/protein-package/** text eol=lf"),
@@ -109,56 +104,53 @@ fn repository_layout_uses_current_public_surface_names() {
 #[test]
 fn security_policy_covers_promoted_public_surfaces() {
     let repo = common::repo_root();
-    let security = fs::read_to_string(repo.join("SECURITY.md")).expect("read security policy");
+    let security = read_repo_file(&repo, "SECURITY.md");
 
-    for expected in [
-        "biors-core",
-        "biors-backend-candle",
-        "biors-mcp-server",
-        "biors-python",
-        "biors-wasm",
-        "package conversion",
-        "cache cleanup",
-        "MCP tool inputs",
-        "WASM/npm package APIs",
-        "external-process backend contracts",
-        "Candle model artifact loading",
-        "local filesystem safety",
-        "should not upload biological data",
-    ] {
-        assert!(
-            security.contains(expected),
-            "SECURITY.md missing promoted security surface detail: {expected}"
-        );
-    }
+    assert_contains_all(
+        &security,
+        &[
+            "biors-core",
+            "biors-backend-candle",
+            "biors-mcp-server",
+            "biors-python",
+            "biors-wasm",
+            "package conversion",
+            "cache cleanup",
+            "MCP tool inputs",
+            "WASM/npm package APIs",
+            "external-process backend contracts",
+            "Candle model artifact loading",
+            "local filesystem safety",
+            "should not upload biological data",
+        ],
+        "SECURITY.md missing promoted security surface detail:",
+    );
 }
 
 #[test]
 fn benchmark_workflow_runs_smoke_and_scheduled_criterion_suite() {
     let repo = common::repo_root();
-    let workflow = fs::read_to_string(repo.join(".github/workflows/benchmarks.yml"))
-        .expect("read benchmark workflow");
+    let workflow = read_repo_file(&repo, ".github/workflows/benchmarks.yml");
 
-    for expected in [
-        "pull_request:",
-        "workflow_dispatch:",
-        "schedule:",
-        "permissions:",
-        "contents: read",
-        "scripts/check-benchmark-docs.sh",
-        "cargo test --workspace --benches --all-features",
-        "if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'",
-        "cargo bench -p biors-core --bench fasta_workloads",
-        "cargo bench -p biors-core --bench package_validation",
-        "cargo bench -p biors-core --bench workflow_workloads",
-        "cargo bench -p biors-backend-candle --bench candle_linear_probe",
-        "cargo bench -p biors-mcp-server --bench mcp_request_overhead",
-    ] {
-        assert!(
-            workflow.contains(expected),
-            "benchmark workflow missing {expected}"
-        );
-    }
+    assert_contains_all(
+        &workflow,
+        &[
+            "pull_request:",
+            "workflow_dispatch:",
+            "schedule:",
+            "permissions:",
+            "contents: read",
+            "scripts/check-benchmark-docs.sh",
+            "cargo test --workspace --benches --all-features",
+            "if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'",
+            "cargo bench -p biors-core --bench fasta_workloads",
+            "cargo bench -p biors-core --bench package_validation",
+            "cargo bench -p biors-core --bench workflow_workloads",
+            "cargo bench -p biors-backend-candle --bench candle_linear_probe",
+            "cargo bench -p biors-mcp-server --bench mcp_request_overhead",
+        ],
+        "benchmark workflow missing",
+    );
 }
 
 #[test]
@@ -223,11 +215,9 @@ fn published_rust_crates_include_discovery_metadata() {
 #[test]
 fn local_check_scripts_use_rendered_benchmark_docs_gate() {
     let repo = common::repo_root();
-    let check = fs::read_to_string(repo.join("scripts/check.sh")).expect("read check.sh");
-    let check_fast =
-        fs::read_to_string(repo.join("scripts/check-fast.sh")).expect("read check-fast.sh");
-    let benchmark_gate = fs::read_to_string(repo.join("scripts/check-benchmark-docs.sh"))
-        .expect("read benchmark docs gate");
+    let check = read_repo_file(&repo, "scripts/check.sh");
+    let check_fast = read_repo_file(&repo, "scripts/check-fast.sh");
+    let benchmark_gate = read_repo_file(&repo, "scripts/check-benchmark-docs.sh");
 
     for (name, script) in [("check.sh", check), ("check-fast.sh", check_fast)] {
         assert!(
@@ -253,4 +243,14 @@ fn local_check_scripts_use_rendered_benchmark_docs_gate() {
         !benchmark_gate.contains("fasta_vs_biopython"),
         "benchmark docs gate must not depend on removed historical FASTA benchmark artifacts"
     );
+}
+
+fn read_repo_file(repo: &Path, path: &str) -> String {
+    fs::read_to_string(repo.join(path)).unwrap_or_else(|_| panic!("read {path}"))
+}
+
+fn assert_contains_all(haystack: &str, expected: &[&str], failure_prefix: &str) {
+    for expected in expected {
+        assert!(haystack.contains(expected), "{failure_prefix} {expected}");
+    }
 }
