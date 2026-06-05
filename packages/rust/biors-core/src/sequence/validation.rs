@@ -239,9 +239,13 @@ mod tests {
         assert!(!result.valid);
         assert!(result.warnings.is_empty());
         assert_eq!(result.sequence, "ACΩ");
-        assert_eq!(result.errors.len(), 1);
-        assert_eq!(result.errors[0].residue, 'Ω');
-        assert_eq!(result.errors[0].position, 3);
+        assert_eq!(
+            result.errors,
+            vec![ResidueIssue {
+                residue: 'Ω',
+                position: 3,
+            }]
+        );
     }
 
     #[test]
@@ -253,9 +257,14 @@ mod tests {
         let result = validate_protein_sequence(&protein);
 
         assert!(!result.valid);
+        assert!(result.warnings.is_empty());
         assert_eq!(result.sequence, "A�C");
-        assert_eq!(result.errors.len(), 1);
-        assert_eq!(result.errors[0].residue, 'ÿ');
-        assert_eq!(result.errors[0].position, 2);
+        assert_eq!(
+            result.errors,
+            vec![ResidueIssue {
+                residue: 'ÿ',
+                position: 2,
+            }]
+        );
     }
 }
