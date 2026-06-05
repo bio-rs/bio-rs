@@ -21,6 +21,8 @@ try it quickly.
 - `biors molecule inspect --format smiles|sdf|mol2 <path|->`
 - `biors structure validate --format pdb <path|->`
 - `biors structure sequence --format pdb <path|->`
+- `biors templates list`
+- `biors templates show <template-id>`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors tokenize [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>] <path|->`
@@ -92,6 +94,8 @@ metadata, and workflow payloads:
 - `service-sequence-validate-request.v0.json`
 - `structure-sequence-output.v0.json`
 - `structure-validation-output.v0.json`
+- `task-template-catalog-output.v0.json`
+- `task-template-output.v0.json`
 - `tokenize-output.v0.json`
 - `tokenizer-conversion-output.v0.json`
 - `tokenizer-inspect-output.v0.json`
@@ -215,6 +219,15 @@ protein sequence against SEQRES when present. The output uses
 sequence, optional SEQRES sequence, missing-residue annotations, and one-based
 coordinate-to-SEQRES mapping positions. The output uses
 `structure-sequence-output.v0.json`.
+`templates list` emits stable local task template contracts for protein
+classification, protein embeddings, variant effects, molecule properties,
+structure validation, and sequence similarity preprocessing. The output uses
+`task-template-catalog-output.v0.json`.
+`templates show <template-id>` emits one template using
+`task-template-output.v0.json`. Templates describe inputs, validations,
+model-ready fields, expected outputs, and local execution assumptions; they do
+not call models, rank search results, upload input data, or open network
+connections.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.
@@ -322,6 +335,9 @@ byte count, sample count, portable dataset content hash, local mapping hash,
 deterministic `resolved_files`, and sample mapping lists.
 Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
+Task template payloads use `schemas/task-template-catalog-output.v0.json` for
+`templates list` and `schemas/task-template-output.v0.json` for
+`templates show`.
 
 Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
 Tokenizer config files reject unknown top-level fields so preprocessing

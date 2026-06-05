@@ -23,6 +23,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
   - [`sequence`](#module-sequence)
   - [`service`](#module-service)
   - [`structure`](#module-structure)
+  - [`templates`](#module-templates)
   - [`tokenizer`](#module-tokenizer)
   - [`verification`](#module-verification)
   - [`versioning`](#module-versioning)
@@ -33,7 +34,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, local task template contracts, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -897,6 +898,52 @@ descriptors, and hashed fingerprints.
 
 - `pub fn derive_molecule_features(record: &MoleculeRecord) -> MoleculeDerivedFeatures`
   Compute deterministic graph keys, descriptors, and hashed fingerprints.
+
+### Module: `templates`
+
+The `templates` module exposes local task contracts for common bio-AI workflow
+families. Templates are metadata only: they describe required inputs,
+validations, model-ready fields, output expectations, and execution
+assumptions without running inference, uploading data, or opening network
+connections.
+
+#### Types
+
+- **`TaskTemplate`** — Full template contract with `schema_version`, `id`,
+  kind, title, summary, supported inputs, validations, model fields, output
+  expectations, and execution assumptions.
+- **`TaskTemplateKind`** — `ProteinClassification`,
+  `ProteinEmbeddingGeneration`, `VariantEffectPrediction`,
+  `MoleculePropertyPrediction`, `StructureValidation`, or
+  `SequenceSimilarityPreprocess`.
+- **`TemplateEntity`** — `ProteinSequence`, `ProteinVariant`, `Molecule`,
+  `ProteinStructure`, or `SequenceSet`.
+- **`TemplateInputFormat`** — Input format plus core reader support marker.
+- **`CoreReaderSupport`** — `Executable` for checked-in parsers/validators or
+  `ContractOnly` for normalized field contracts without an executable reader.
+- **`TemplateInput`** — Required entity, accepted formats, and normalized field
+  names.
+- **`TemplateValidation`** — Stable validation id and description.
+- **`TemplateModelField`** — Model-ready field name, description, and required
+  flag.
+- **`TemplateOutputExpectation`** — Output field name, description, and
+  required flag.
+- **`TemplateExecutionAssumptions`** — Local execution boundary. Current
+  templates set `network_access` to `none`, `external_model_calls` to `false`,
+  and `uploads_input_data` to `false`.
+
+#### Constants
+
+- **`TASK_TEMPLATE_SCHEMA_VERSION`** — `biors.task_template.v0`.
+
+#### Functions
+
+- `pub fn task_templates() -> &'static [TaskTemplate]`
+  Return the stable built-in template catalog.
+- `pub fn task_template_ids() -> &'static [&'static str]`
+  Return stable template ids in display order.
+- `pub fn find_task_template(id: &str) -> Option<&'static TaskTemplate>`
+  Look up one built-in template by id.
 
 ### Module: `tokenizer`
 

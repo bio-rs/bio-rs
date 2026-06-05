@@ -1,7 +1,7 @@
 use super::{
     Cli, Command, FastaCommand, FormatArg, FormatsCommand, KindArg, MoleculeCommand,
     MoleculeFormatArg, PaddingArg, SeqCommand, ServiceCommand, StructureCommand,
-    StructureFormatArg, TokenizerCommand, TokenizerProfileArg,
+    StructureFormatArg, TemplateCommand, TokenizerCommand, TokenizerProfileArg,
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
@@ -22,6 +22,7 @@ use biors_core::{
     structure::{
         extract_structure_sequences, parse_pdb_record_reader, validate_pdb_reader_with_hash,
     },
+    templates::{find_task_template, task_templates},
     tokenizer::{
         inspect_protein_tokenizer_config, protein_tokenizer_config_for_profile,
         summarize_fasta_records_reader, tokenize_fasta_records_reader_with_config,
@@ -76,6 +77,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
         Command::Seq { command } => run_seq_command(command),
         Command::Service { command } => run_service_command(command),
         Command::Structure { command } => run_structure_command(command),
+        Command::Templates { command } => run_template_command(command),
         Command::Tokenize {
             profile,
             config,
@@ -136,6 +138,20 @@ fn run_seq_command(command: SeqCommand) -> Result<(), CliError> {
 fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
     match command {
         ServiceCommand::Contract => print_success(None, current_service_interface_document()),
+    }
+}
+
+fn run_template_command(command: TemplateCommand) -> Result<(), CliError> {
+    match command {
+        TemplateCommand::List => print_success(None, task_templates()),
+        TemplateCommand::Show { id } => match find_task_template(&id) {
+            Some(template) => print_success(None, template),
+            None => Err(CliError::Validation {
+                code: "template.not_found",
+                message: format!("task template '{id}' was not found"),
+                location: Some(id),
+            }),
+        },
     }
 }
 

@@ -25,6 +25,7 @@ TEXT_VERSION_FILES = [
     "docs/formats.md",
     "docs/rust-api.md",
     "docs/structure.md",
+    "docs/templates.md",
     "benchmarks/fasta_vs_biopython.md",
     "benchmarks/fasta_vs_biopython.json",
     "benchmarks/backend_smoke.json",

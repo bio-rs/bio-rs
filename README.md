@@ -243,6 +243,7 @@ CLI surface.
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
 - [Unified conversion layer](docs/conversion.md) — FASTA/FASTQ, structure, and molecule records mapped into `BioEntity` JSON
+- [Task templates](docs/templates.md) — local contracts for classification, embeddings, variants, molecules, structures, and search preprocessing
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
@@ -270,6 +271,7 @@ These are roadmap directions, not current capabilities:
 - tautomer normalization, force-field chemistry, conformer generation, and
   RDKit/Open Babel canonical SMILES equivalence
 - no-code or low-code workflows
+- hosted workflow workspace management
 
 ## Development
 

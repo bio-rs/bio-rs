@@ -1,6 +1,8 @@
 use super::molecule_args::MoleculeCommand;
 use super::package_args::PackageCommand;
+use super::service_args::ServiceCommand;
 use super::structure_args::StructureCommand;
+use super::template_args::TemplateCommand;
 use biors_core::{
     formats::BioFormat,
     model_input::PaddingPolicy,
@@ -110,6 +112,10 @@ pub enum Command {
     Structure {
         #[command(subcommand)]
         command: StructureCommand,
+    },
+    Templates {
+        #[command(subcommand)]
+        command: TemplateCommand,
     },
     Tokenize {
         #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
@@ -231,11 +237,6 @@ impl From<FormatArg> for BioFormat {
             FormatArg::Fastq => BioFormat::Fastq,
         }
     }
-}
-
-#[derive(Debug, Subcommand)]
-pub enum ServiceCommand {
-    Contract,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
