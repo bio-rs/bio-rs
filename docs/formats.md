@@ -1,8 +1,8 @@
 # Biological Format Support
 
-Version: 0.48.0
+Version: 0.49.0
 
-This document records the `0.48.0` format-expansion contract. bio-rs keeps
+This document records the `0.49.0` format-expansion contract. bio-rs keeps
 format support local-first: parsing and validation run on local input, emit
 machine-readable diagnostics, and do not upload biological data.
 
@@ -181,7 +181,7 @@ TSV can land before CSV if the CSV quoted-field contract is still under review.
 
 ## `crates/biors-formats` Decision
 
-`0.48.0` does not introduce a separate `biors-formats` crate. The supported
+`0.49.0` does not introduce a separate `biors-formats` crate. The supported
 FASTQ parser and shared format contracts live in `biors-core::formats` because:
 
 - the release has one supported new format family, so a new crate would add
