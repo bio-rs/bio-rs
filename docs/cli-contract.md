@@ -1,6 +1,9 @@
 # CLI and JSON Contract
 
-This document records the current pre-1.0 CLI and JSON contract surface.
+This document records the current pre-1.0 CLI and JSON contract surface. It is
+the detailed home for command behavior, schema names, and machine-readable
+payload boundaries; the README stays focused on what bio-rs is for and how to
+try it quickly.
 
 ## Commands
 
@@ -36,6 +39,49 @@ This document records the current pre-1.0 CLI and JSON contract surface.
 - `biors pipeline --config <toml|json> [--dry-run] [--explain-plan]`
 - `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 - `biors service contract`
+
+## Schema Inventory
+
+The checked-in `schemas/` directory is the machine-readable contract inventory
+for CLI output, package manifests, pipeline configs, service requests, tokenizer
+metadata, and workflow payloads:
+
+- `batch-validation-output.v0.json`
+- `cache-output.v0.json`
+- `cli-error.v0.json`
+- `cli-success.v0.json`
+- `dataset-inspect-output.v0.json`
+- `doctor-output.v0.json`
+- `fasta-validation-output.v0.json`
+- `inspect-output.v0.json`
+- `model-input-output.v0.json`
+- `output-diff.v0.json`
+- `package-bridge-output.v0.json`
+- `package-compatibility-output.v0.json`
+- `package-conversion-output.v0.json`
+- `package-diff-output.v0.json`
+- `package-inspect-output.v0.json`
+- `package-manifest.v0.json`
+- `package-manifest.v1.json`
+- `package-migration-output.v0.json`
+- `package-skeleton-output.v0.json`
+- `package-validation-report.v0.json`
+- `package-verify-output.v0.json`
+- `pipeline-config.v0.json`
+- `pipeline-lock.v0.json`
+- `pipeline-output.v0.json`
+- `sequence-debug-output.v0.json`
+- `sequence-workflow-output.v0.json`
+- `service-interface-output.v0.json`
+- `service-model-input-request.v0.json`
+- `service-package-compatibility-request.v0.json`
+- `service-package-request.v0.json`
+- `service-sequence-inspect-request.v0.json`
+- `service-sequence-tokenize-request.v0.json`
+- `service-sequence-validate-request.v0.json`
+- `tokenize-output.v0.json`
+- `tokenizer-conversion-output.v0.json`
+- `tokenizer-inspect-output.v0.json`
 
 `model-input` tokenizes FASTA records with the selected tokenizer profile and
 emits deterministic model-ready `input_ids` plus `attention_mask` records.

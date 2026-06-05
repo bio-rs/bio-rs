@@ -75,9 +75,46 @@ fn release_readiness_documentation_surfaces_are_present_and_linked() {
 }
 
 #[test]
-fn readme_schema_inventory_lists_all_schema_files() {
+fn readme_presents_full_bio_ai_contract_surface() {
     let repo = common::repo_root();
     let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
+
+    assert!(
+        !readme.contains("FASTA -> validated sequence -> token IDs -> model-ready JSON"),
+        "README must not reduce bio-rs to the old single FASTA pipeline"
+    );
+    assert!(
+        !readme.contains("## Workspace"),
+        "README should use contributor-facing repository language instead of Workspace"
+    );
+
+    for expected in [
+        "raw sequence data + package metadata",
+        "pipeline locks",
+        "package manifests",
+        "model artifacts",
+        "Rust, CLI, Python, WASM, MCP, and service hosts",
+        "Made For Sharing",
+        "Repository Map",
+        "biors seq validate --kind auto examples/multi.fasta",
+        "workflow --profile dna-iupac",
+        "biors package validate examples/protein-package/manifest.json",
+        "biors service contract",
+        "docs/sequence-kind-support.md",
+        "docs/cli-contract.md",
+    ] {
+        assert!(
+            readme.contains(expected),
+            "README is missing broad bio-AI contract positioning: {expected}"
+        );
+    }
+}
+
+#[test]
+fn cli_contract_schema_inventory_lists_all_schema_files() {
+    let repo = common::repo_root();
+    let cli_contract =
+        fs::read_to_string(repo.join("docs/cli-contract.md")).expect("read CLI contract");
     let schemas_dir = repo.join("schemas");
 
     for entry in fs::read_dir(&schemas_dir).expect("read schemas directory") {
@@ -92,8 +129,8 @@ fn readme_schema_inventory_lists_all_schema_files() {
             .and_then(|name| name.to_str())
             .expect("schema file name");
         assert!(
-            readme.contains(file_name),
-            "README schema inventory is missing schemas/{file_name}"
+            cli_contract.contains(file_name),
+            "CLI contract schema inventory is missing schemas/{file_name}"
         );
     }
 }

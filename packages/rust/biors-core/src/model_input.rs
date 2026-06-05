@@ -6,7 +6,7 @@ mod errors;
 pub use errors::{ModelInputBuildError, ModelInputPayloadError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// Policy for converting tokenized proteins into model-ready arrays.
+/// Policy for converting tokenized sequence records into model-ready arrays.
 pub struct ModelInputPolicy {
     /// Maximum token length per record.
     pub max_length: usize,
@@ -33,7 +33,7 @@ pub struct ModelInput {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-/// Model-ready representation of one tokenized protein.
+/// Model-ready representation of one tokenized sequence record.
 pub struct ModelInputRecord {
     pub id: String,
     /// Token IDs after truncation and optional padding.

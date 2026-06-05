@@ -16,8 +16,13 @@ assignees: ""
 
 - Data type: protein / DNA / RNA / other
 - Current tool: Biopython / custom script / Nextflow / notebook / other
-- Pain point: install / speed / reproducibility / validation / packaging / other
+- Pain point: validation / tokenization / model input / packaging / reproducibility / browser or agent integration / other
 - Where could bio-rs fit in the workflow?
+- Would a small FASTA, package manifest, JSON schema, or fixture output make
+  the example reproducible?
 
 
 ## Useful input/output examples
+
+Share the smallest non-sensitive input and the output shape you want. Synthetic
+or public reference data is best for examples that others can reuse.

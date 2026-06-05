@@ -19,7 +19,8 @@
 - [ ] MCP changes: ran MCP integration tests or documented why the surface is unchanged
 - [ ] Package artifact changes: checked wheel/sdist, npm package, or binary archive contents as applicable
 - [ ] Schema parity reviewed for every changed JSON-emitting CLI, Python, WASM, MCP, package, or service surface
-- [ ] Docs/README/final release checklist updated (if needed)
+- [ ] Docs/README/quickstart/final release checklist updated (if needed)
+- [ ] README first-screen positioning still reflects the full bio-AI contract surface, not only one FASTA path
 - [ ] Benchmarks updated or explicitly scoped as non-claims (if performance-sensitive behavior changed)
 - [ ] Benchmark harness smoke is covered by `.github/workflows/benchmarks.yml` or was run locally with `cargo test --workspace --benches --all-features`
 

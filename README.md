@@ -6,13 +6,24 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/cli-contract.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs turns biological FASTA into validated and tokenized inputs for bio-AI workflows, with protein, DNA, and RNA model-ready workflows.
+bio-rs is a local, reproducible input layer for bio-AI tools. It takes raw
+biological sequences, tokenizer profiles, package manifests, model artifacts,
+and fixture outputs, then turns them into checked contracts that can run in
+CLIs, CI, Python notebooks, browsers, and agent tools.
 
 ```txt
-FASTA -> validated sequence -> token IDs -> model-ready JSON
+raw sequence data + package metadata
+  -> validation diagnostics + provenance
+  -> tokenizer IDs, model-input tensors, pipeline locks, package checks
+  -> JSON contracts for Rust, CLI, Python, WASM, MCP, and service hosts
 ```
 
-DNA and RNA FASTA validation, tokenization, model-input generation, workflow generation, Python/WASM/MCP bindings, package artifact validation, and benchmark regression guards are supported through explicit nucleotide profiles. Package generation and Python/Hugging Face conversion remain protein-first; see the [sequence-kind support matrix](docs/sequence-kind-support.md) before making broad full-support claims.
+Protein, DNA, and RNA validation, tokenization, model-input generation, workflow
+generation, Python/WASM/MCP bindings, package artifact validation, and benchmark
+regression guards are supported through explicit sequence-kind profiles. Package
+generation and Python/Hugging Face conversion remain protein-first; see the
+[sequence-kind support matrix](docs/sequence-kind-support.md) before making
+broad full-support claims.
 
 > Status: pre-1.0 CLI and JSON contract stabilization.
 
@@ -28,34 +39,54 @@ service.
 
 ## Why bio-rs?
 
-Most bio-AI models are born in Python, but the tooling around them often needs to run somewhere else:
+Bio research code often starts as a notebook and then has to survive handoff:
+to a CLI, a CI job, a browser demo, an agent, a package fixture, or a service
+owned by someone else. The brittle part is usually not the model. It is the
+input contract around the model: what was parsed, how residues were normalized,
+which symbols were warnings, which tokenizer IDs were emitted, whether the
+model input is actually safe to run, and which artifacts were used.
 
-- local CLIs
-- CI pipelines
-- servers
-- browsers
-- agents
+bio-rs makes that layer explicit:
 
-bio-rs focuses on the boring but important layer before inference:
+- validate protein, DNA, and RNA with stable diagnostics instead of hidden
+  string cleanup
+- preserve token positions with known profile IDs instead of shortening inputs
+  silently
+- emit model-input JSON only when unresolved residues have been handled
+- pin provenance, vocabulary hashes, output hashes, package checksums, and
+  pipeline lockfiles for repeatable runs
+- expose the same deterministic core through Rust, the CLI, Python, WASM, MCP,
+  and transport-agnostic service schemas
 
-- parse biological sequence input
-- validate it with structured diagnostics
-- tokenize it into stable IDs
-- emit machine-readable JSON contracts
-- keep preprocessing reproducible outside notebooks
+The goal is not to replace Python research workflows. The goal is to give those
+workflows a portable contract layer that is easy to inspect, test, cite, and
+share.
 
-The goal is not to replace Python research workflows.
+## Made For Sharing
 
-The goal is to make the input layer around bio-AI models faster, more portable, and easier to trust.
+The project is built for open-source bio-AI work where examples need to be
+reproducible and claims need evidence:
+
+- Researchers can share a small FASTA, command, and JSON contract instead of a
+  screenshot from a notebook.
+- Model/package authors can ship fixture outputs, checksums, citations, model
+  cards, and runtime bridge plans next to their artifacts.
+- Tool builders can embed the same preprocessing behavior in CLIs, web demos,
+  local agents, and internal services without reimplementing the parser.
+- Maintainers can point every public claim at schemas, tests, package artifact
+  checks, and benchmark regression guards.
 
 ## Quickstart
 
 ```bash
 cargo install biors --version 0.47.15
-biors tokenize examples/protein.fasta
-biors workflow --max-length 8 examples/protein.fasta
+biors doctor
+biors seq validate --kind auto examples/multi.fasta
+printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
 biors batch validate --kind auto examples/
 biors tokenizer inspect --profile protein-20-special
+biors package validate examples/protein-package/manifest.json
+biors service contract
 biors dataset inspect --source uniprot --version 2026_02 --split train examples/
 ```
 
@@ -116,9 +147,10 @@ bio-rs is faster than Biopython across every FASTA workload or researcher input
 shape. Until the artifact is refreshed for `0.47.15`, the numeric table above
 remains a historical reference.
 
-## What works today
+## What Works Today
 
-`biors-core` provides the Rust engine and data contracts. `biors` provides the CLI surface.
+`biors-core` provides the Rust engine and data contracts. `biors` provides the
+CLI surface.
 
 ### Sequence handling
 - FASTA parsing and normalization with buffered reader APIs
@@ -256,7 +288,10 @@ Run the Rust library example:
 cargo run -p biors-core --example tokenize
 ```
 
-## Workspace
+## Repository Map
+
+Most users only need the `biors` CLI or one binding package. This map is for
+contributors and integrators who need to understand where public surfaces live.
 
 ```txt
 packages/
@@ -269,42 +304,7 @@ packages/
     biors-wasm/            WASM/JS bindings
 
 schemas/
-  batch-validation-output.v0.json
-  cache-output.v0.json
-  cli-error.v0.json
-  cli-success.v0.json
-  dataset-inspect-output.v0.json
-  doctor-output.v0.json
-  fasta-validation-output.v0.json
-  inspect-output.v0.json
-  model-input-output.v0.json
-  output-diff.v0.json
-  pipeline-config.v0.json
-  pipeline-lock.v0.json
-  pipeline-output.v0.json
-  sequence-workflow-output.v0.json
-  sequence-debug-output.v0.json
-  service-interface-output.v0.json
-  service-model-input-request.v0.json
-  service-package-compatibility-request.v0.json
-  service-package-request.v0.json
-  service-sequence-inspect-request.v0.json
-  service-sequence-tokenize-request.v0.json
-  service-sequence-validate-request.v0.json
-  package-bridge-output.v0.json
-  package-compatibility-output.v0.json
-  package-conversion-output.v0.json
-  package-diff-output.v0.json
-  package-inspect-output.v0.json
-  package-manifest.v0.json
-  package-manifest.v1.json
-  package-migration-output.v0.json
-  package-skeleton-output.v0.json
-  package-validation-report.v0.json
-  package-verify-output.v0.json
-  tokenizer-conversion-output.v0.json
-  tokenizer-inspect-output.v0.json
-  tokenize-output.v0.json
+  JSON contracts for CLI, package, pipeline, service, tokenizer, and workflow outputs
 
 examples/
   protein.fasta
@@ -335,6 +335,10 @@ examples/
     protein.json
     pipeline.lock
 ```
+
+The full schema inventory and command-to-schema mapping live in
+[docs/cli-contract.md](docs/cli-contract.md). Release tests keep that contract
+inventory aligned with the files under [schemas](schemas).
 
 ## Protein-20 alphabet
 

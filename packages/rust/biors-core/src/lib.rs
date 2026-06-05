@@ -1,5 +1,6 @@
-//! Core Rust APIs for bio-rs biological sequence validation, protein tokenization, model input
-//! construction, package manifests, and package fixture verification.
+//! Core Rust APIs for bio-rs biological sequence validation, profile-aware
+//! tokenization, model-input construction, package manifests, service
+//! contracts, runtime planning, and package fixture verification.
 //!
 //! FASTA reader paths prefer an ASCII byte-level scanner for common biological
 //! FASTA input. Non-ASCII sequence lines fall back to UTF-8 validation so public

@@ -22,7 +22,7 @@ const SEQUENCE_WORKFLOW_NAME: &str = "sequence_model_input.v0";
 const NORMALIZATION_POLICY: &str = "strip_ascii_whitespace_uppercase";
 const READINESS_ISSUE_CODE: &str = "sequence.not_model_ready";
 
-/// End-to-end protein sequence preparation output for model-input workflows.
+/// End-to-end sequence preparation output for model-input workflows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SequenceWorkflowOutput {
     pub workflow: String,
@@ -73,7 +73,7 @@ pub struct SequenceWorkflowReadinessIssue {
     pub message: String,
 }
 
-/// Build the stable protein validation -> tokenization -> model-input workflow.
+/// Build the stable legacy protein validation -> tokenization -> model-input workflow.
 pub fn prepare_protein_model_input_workflow(
     input_hash: String,
     records: &[ProteinSequence],
@@ -90,7 +90,7 @@ pub fn prepare_protein_model_input_workflow(
     )
 }
 
-/// Build the stable workflow and capture a command/API invocation in provenance.
+/// Build the stable legacy protein workflow and capture a command/API invocation in provenance.
 pub fn prepare_protein_model_input_workflow_with_invocation(
     input_hash: String,
     records: &[ProteinSequence],

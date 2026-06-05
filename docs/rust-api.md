@@ -29,7 +29,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, validation, tokenization, model input construction, package manifest management, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -112,7 +112,10 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 #### Functions
 
 - `pub fn parse_fasta_records(input: &str) -> Result<Vec<ProteinSequence>, BioRsError>`
-  Parse FASTA text into normalized protein sequence records.
+  Parse FASTA text into normalized sequence records. The return type keeps the
+  legacy `ProteinSequence` name for compatibility; new examples can use the
+  `BiologicalSequence` or `FastaSequence` aliases when the code is not
+  protein-specific.
 
 - `pub fn parse_fasta_records_reader<R: BufRead>(reader: R) -> Result<ParsedFastaInput, FastaReadError>`
   Parse FASTA records from a buffered reader without preloading the full input.
@@ -481,7 +484,8 @@ The `sequence` module handles biological sequence types, normalization, alphabet
 
 #### Types
 
-- **`ProteinSequence`** — Named protein sequence.
+- **`ProteinSequence`** — Named sequence record using the legacy public type
+  name retained for compatibility.
   - `pub id: String`
   - `pub sequence: Vec<u8>` — normalized, whitespace removed, ASCII uppercased
   - `pub fn new_normalized(id: impl Into<String>, sequence: impl AsRef<str>) -> Self`
@@ -504,7 +508,7 @@ The `sequence` module handles biological sequence types, normalization, alphabet
   - `pub residue: char`
   - `pub position: usize` — one-based
 
-- **`ValidatedSequence`** — Validation result for one protein sequence.
+- **`ValidatedSequence`** — Validation result for one legacy protein-default sequence path.
   - `pub id: String`, `pub sequence: String`, `pub alphabet: String`, `pub valid: bool`, `pub warnings: Vec<ResidueIssue>`, `pub errors: Vec<ResidueIssue>`
 
 - **`SequenceValidationReport`** — Aggregate report for protein batches.

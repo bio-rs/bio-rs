@@ -44,9 +44,13 @@ transcript script:
 sh scripts/record-cli-demo.sh --cargo
 ```
 
-The demo uses `examples/launch-demo.fasta`, then shows local diagnostics,
-kind-aware validation, tokenization, model-input JSON, and package fixture
-verification.
+The demo uses `examples/launch-demo.fasta`, then shows the public contract
+surfaces that make bio-rs useful outside a notebook:
+
+- `doctor` readiness diagnostics for the local toolchain and release fixtures
+- kind-aware validation with stable sequence diagnostics
+- tokenization and model-input JSON with reproducibility hashes
+- package fixture verification with checksums and observed outputs
 
 ## Validate FASTA
 
@@ -97,8 +101,8 @@ biors tokenize examples/protein.fasta
 biors tokenize \
   --config examples/model-input-contract/protein-20-special.config.json \
   examples/model-input-contract/protein.fasta
-biors tokenize --profile dna-iupac dna.fasta
-biors tokenize --profile rna-iupac-special rna.fasta
+printf '>dna\nACGT\n' | biors tokenize --profile dna-iupac -
+printf '>rna\nACGUN\n' | biors tokenize --profile rna-iupac-special -
 ```
 
 `tokenize` emits stable token IDs for explicit protein, DNA, and RNA profiles.
@@ -127,7 +131,7 @@ before copying the preview fragments into a package. The command keeps
 
 ```bash
 biors model-input --max-length 8 examples/protein.fasta
-biors model-input --profile dna-iupac --max-length 128 dna.fasta
+printf '>dna\nACGT\n' | biors model-input --profile dna-iupac --max-length 128 -
 ```
 
 `model-input` emits `input_ids`, `attention_mask`, and truncation metadata. It
@@ -138,7 +142,7 @@ for explicit protein, DNA, or RNA tokenizer profiles.
 
 ```bash
 biors workflow --max-length 8 examples/protein.fasta
-biors workflow --profile rna-iupac --max-length 128 rna.fasta
+printf '>rna\nACGU\n' | biors workflow --profile rna-iupac --max-length 128 -
 ```
 
 `workflow` runs the FASTA preparation path end to end: validation,
