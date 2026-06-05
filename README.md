@@ -41,7 +41,7 @@ service.
 ## Why bio-rs?
 
 Bio research code often starts as a notebook and then has to survive handoff:
-to a CLI, a CI job, a browser demo, an agent, a package fixture, or a service
+to a CLI, a CI job, a browser integration, an agent, a package fixture, or a service
 owned by someone else. The brittle part is usually not the model. It is the
 input contract around the model: what was parsed, how residues were normalized,
 which symbols were warnings, which tokenizer IDs were emitted, whether the
@@ -226,8 +226,8 @@ CLI surface.
 
 ### External interfaces
 - `biors-python`: PyO3 bindings for Python integration and notebook workflows
-- `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions,
-  browser file validation/tokenization helpers, and local-only browser demo
+- `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions
+  and browser file validation/tokenization helpers
 - `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
 - `service contract`: JSON route/schema contract for caller-owned service hosts
 - `biors serve`: local-first HTTP API for health, OpenAPI, and inline FASTA

@@ -1,7 +1,10 @@
 use serde_json::Value;
 use std::fs;
 
+use biors_core::conversion::convert_fasta_records;
+use biors_core::sequence::SequenceKindSelection;
 use biors_core::service::current_service_interface_document;
+use biors_core::templates::{find_task_template, task_templates};
 
 mod common;
 
@@ -94,6 +97,30 @@ fn invalid_payload_examples_are_rejected_by_schemas() {
     common::assert_payload_rejected_by_schema(
         &out_of_range_token,
         "schemas/tokenize-output.v0.json",
+    );
+}
+
+#[test]
+fn conversion_and_template_outputs_match_contract_schemas() {
+    let records = biors_core::parse_fasta_records(">seq1\nACDE\n").expect("parse FASTA");
+    let export = convert_fasta_records(&records, SequenceKindSelection::Auto);
+    let export_value = serde_json::to_value(export).expect("serialize conversion export");
+    common::assert_json_value_matches_schema(
+        &export_value,
+        "schemas/bio-entity-export-output.v0.json",
+    );
+
+    let catalog = serde_json::to_value(task_templates()).expect("serialize template catalog");
+    common::assert_json_value_matches_schema(
+        &catalog,
+        "schemas/task-template-catalog-output.v0.json",
+    );
+
+    let template = find_task_template("molecule-property-prediction-v0").expect("template exists");
+    let template_value = serde_json::to_value(template).expect("serialize template");
+    common::assert_json_value_matches_schema(
+        &template_value,
+        "schemas/task-template-output.v0.json",
     );
 }
 

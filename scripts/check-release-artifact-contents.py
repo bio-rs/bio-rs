@@ -106,7 +106,17 @@ def smoke_test_wasm_package(package_dir: Path) -> None:
         )
         script = """
 const mod = await import("@bio-rs/biors-wasm");
-const required = ["parseFasta", "validateFasta", "tokenize", "buildModelInputWithPolicy", "runWorkflow"];
+const required = [
+  "browserExecutionPolicy",
+  "inspectBrowserFile",
+  "validateBrowserFile",
+  "tokenizeBrowserFile",
+  "parseFasta",
+  "validateFasta",
+  "tokenize",
+  "buildModelInputWithPolicy",
+  "runWorkflow",
+];
 for (const name of required) {
   if (typeof mod[name] !== "function") {
     throw new Error(`${name} is not a function`);
@@ -119,6 +129,23 @@ const bytes = new TextEncoder().encode(">seq1\\nACDE\\n");
 const records = mod.parseFasta(bytes);
 if (records.length !== 1 || records[0].id !== "seq1") {
   throw new Error("parseFasta smoke check failed");
+}
+const browserInput = { name: "protein.fasta", bytes, kind: "protein", profile: "protein-20" };
+const policy = mod.browserExecutionPolicy();
+if (policy.network_access !== "none" || policy.uploads_input_data !== false) {
+  throw new Error("browser execution policy is not local-only");
+}
+const inspection = mod.inspectBrowserFile(browserInput);
+if (inspection.file.format !== "fasta") {
+  throw new Error("inspectBrowserFile smoke check failed");
+}
+const validation = mod.validateBrowserFile(browserInput);
+if (validation.report.error_count !== 0) {
+  throw new Error("validateBrowserFile smoke check failed");
+}
+const tokenization = mod.tokenizeBrowserFile(browserInput);
+if (tokenization.tokenization.ids[0] !== "seq1") {
+  throw new Error("tokenizeBrowserFile smoke check failed");
 }
 """
         subprocess.run(
