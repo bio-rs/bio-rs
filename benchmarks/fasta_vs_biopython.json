@@ -1177,7 +1177,7 @@
   ],
   "release_status": {
     "status": "historical",
-    "current_workspace_version": "0.49.0",
+    "current_workspace_version": "0.50.0",
     "stale_reason": "FASTA throughput numbers were recorded on biors-core 0.20.0 and retained only as a historical baseline until the benchmark is rerun for the current release candidate.",
     "claim_policy": "not current-version performance evidence; do not use these numeric FASTA results for current release claims until the artifact is regenerated"
   }
