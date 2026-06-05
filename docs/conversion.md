@@ -1,6 +1,6 @@
 # Unified Conversion Layer
 
-Version: 0.54.0
+Version: 0.55.0
 
 The conversion layer maps parsed biological records into one JSON-ready
 `BioEntity` contract. It is local-only and deterministic: it does not call
@@ -18,7 +18,7 @@ Supported conversions:
   `FormatRecord` projection and deterministic derived features
 
 `StructureRecord` is format-aware, so mmCIF records can use this conversion
-contract once a mmCIF parser produces the same structure type. In 0.54.0, the
+contract once a mmCIF parser produces the same structure type. In 0.55.0, the
 checked-in executable structure parser remains PDB.
 
 ## JSON Export
