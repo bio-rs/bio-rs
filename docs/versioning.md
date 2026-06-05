@@ -30,6 +30,7 @@ Current schema contracts:
 |---|---|---|---|
 | Package manifest | `biors.package.v1` | `biors.package.v0`, `biors.package.v1` | `package_manifest_policy()` |
 | Pipeline config | `biors.pipeline.v0` | `biors.pipeline.v0` | `pipeline_config_policy()` |
+| Shareable report | `biors.report.v0` | `biors.report.v0` | documented JSON schema |
 
 Schema policies are exposed from `biors_core::versioning` so downstream tools
 can inspect support status instead of scraping docs.
@@ -73,6 +74,12 @@ Pipeline configs use `schema_version: "biors.pipeline.v0"` starting with the
 config contract. Pipeline config readers must parse the schema tag before
 normalization or validation. Unknown schema versions must be rejected with a
 stable validation error.
+
+Shareable reports use `schema_version: "biors.report.v0"`. The report schema is
+an output contract for deterministic JSON-to-human-readable report exports. New
+optional provenance fields or sections may be added in minor releases when old
+readers can ignore them. Required field changes, enum removals, or changed
+status semantics require a new report schema version.
 
 Migrations are schema-tagged and explicit:
 

@@ -9,9 +9,9 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from release_workflow_job_assertions import require_mapping
-from release_workflow_jobs import assert_release_jobs
-from release_workflow_text_markers import (
+from release.workflow_job_assertions import require_mapping
+from release.workflow_jobs import assert_release_jobs
+from release.workflow_text_markers import (
     assert_release_tool_scripts_use_pins,
     assert_secondary_text_markers,
     read_release_tool_versions,

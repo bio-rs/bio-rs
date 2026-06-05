@@ -1,6 +1,6 @@
 # biors-core Rust API Reference
 
-Version: 0.47.16
+Version: 0.57.1
 
 This document is the comprehensive public API reference for `biors-core`, the Rust engine behind bio-rs. It covers every public module, type, trait, and function exposed by the crate.
 
@@ -12,13 +12,19 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 - [Feature Flags](#feature-flags)
 - [Module Reference](#module-reference)
   - [`error`](#module-error)
+  - [`conversion`](#module-conversion)
   - [`fasta`](#module-fasta)
+  - [`formats`](#module-formats)
   - [`hash`](#module-hash)
   - [`model_input`](#module-model_input)
+  - [`molecule`](#module-molecule)
   - [`package`](#module-package)
+  - [`reports`](#module-reports)
   - [`runtime`](#module-runtime)
   - [`sequence`](#module-sequence)
   - [`service`](#module-service)
+  - [`structure`](#module-structure)
+  - [`templates`](#module-templates)
   - [`tokenizer`](#module-tokenizer)
   - [`verification`](#module-verification)
   - [`versioning`](#module-versioning)
@@ -29,7 +35,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, local task template contracts, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, reproducible report generation, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -39,7 +45,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-biors-core = "0.47.16"
+biors-core = "0.57.1"
 ```
 
 The crate depends on:
@@ -62,6 +68,81 @@ All public types implement `Debug`, `Clone`, `PartialEq`, and `Eq` where appropr
 `biors-core` currently has no Cargo feature flags. All public APIs are always available, and there is no feature-gated `no_std` mode.
 
 ## Module Reference
+
+### Module: `conversion`
+
+The `conversion` module maps parsed biological records into the shared
+`BioEntity` JSON export contract. It is deterministic and local-only; it does
+not call models, upload data, or claim inference/search behavior.
+
+Public types:
+
+- **`BioEntityJsonExport`** — JSON-ready export with `schema_version`,
+  aggregate record counts, warning/error counts, and converted entities.
+- **`BioEntity`** — One converted biological entity with stable `id`,
+  `entity_type`, `source`, `record`, and `validation`.
+- **`BioEntityType`** — `Sequence`, `Structure`, or `Molecule`.
+- **`ConversionRecord`** — Tagged record enum wrapping
+  `ConvertedSequenceRecord`, `ConvertedStructureRecord`, or
+  `ConvertedMoleculeRecord`.
+- **`ConversionSource`** — Source `BioFormat` and optional
+  `FormatMetadata`.
+- **`ConversionValidation`** — Per-entity validity, model-readiness,
+  warnings, and errors.
+- **`ConversionIssue`**, **`ConversionIssueCode`**, and
+  **`ConversionIssueSeverity`** — Stable conversion issue contract.
+- **`CONVERSION_SCHEMA_VERSION`** — `biors.conversion.v0`.
+
+Public functions:
+
+- `pub fn convert_fasta_records(records: &[ProteinSequence], kind_selection: SequenceKindSelection) -> BioEntityJsonExport`
+  Convert parsed FASTA records into sequence entities.
+- `pub fn fasta_record_to_bio_entity(record: &ProteinSequence, kind_selection: SequenceKindSelection) -> BioEntity`
+  Convert one FASTA record.
+- `pub fn convert_fastq_records(records: &[FastqRecord]) -> BioEntityJsonExport`
+  Convert parsed FASTQ records into DNA sequence entities with quality strings.
+- `pub fn fastq_record_to_bio_entity(record: &FastqRecord) -> BioEntity`
+  Convert one FASTQ record.
+- `pub fn structure_record_to_bio_entity(record: &StructureRecord) -> BioEntity`
+  Convert a parsed structure record and attach extracted chain sequences.
+- `pub fn molecule_record_to_bio_entity(record: &MoleculeRecord) -> BioEntity`
+  Convert one parsed molecule record with `FormatRecord` projection and
+  deterministic molecule features.
+- `pub fn convert_molecule_records(records: &[MoleculeRecord]) -> BioEntityJsonExport`
+  Convert parsed molecule records.
+- `pub fn export_bio_entities(entities: Vec<BioEntity>) -> BioEntityJsonExport`
+  Wrap already converted entities into the aggregate JSON export shape.
+
+### Module: `reports`
+
+The `reports` module builds deterministic human-readable reports from bio-rs
+JSON output. It accepts CLI success/error envelopes or raw JSON bytes and
+returns a `biors.report.v0` shareable report with provenance hashes.
+
+Public types:
+
+- **`ShareableReport`** — JSON-ready report with `schema_version`, `title`,
+  `summary`, `status`, `provenance`, deterministic `sections`, and
+  `human_report` Markdown.
+- **`ReportProvenance`** — Generator/version metadata, detected input
+  container/kind, source CLI version/input hash when present, raw input
+  SHA-256, canonical JSON SHA-256, and rendered Markdown SHA-256.
+- **`ReportInputContainer`** — `RawJson`, `CliSuccessEnvelope`, or
+  `CliErrorEnvelope`.
+- **`ReportInputKind`** — `CliError`, `BioEntityExport`,
+  `SequenceWorkflowOutput`, `ValidationReport`, or `GenericJson`.
+- **`ReportStatus`** — `Pass`, `Warning`, `Fail`, or `Unknown`.
+- **`ReportSection`** and **`ReportMetric`** — deterministic
+  machine-readable report sections for downstream renderers.
+- **`ReportBuildError`** — input parsing error with stable
+  `report.invalid_json` code.
+- **`REPORT_SCHEMA_VERSION`** — `biors.report.v0`.
+
+Public functions:
+
+- `pub fn build_shareable_report_from_json_bytes(input: &[u8]) -> Result<ShareableReport, ReportBuildError>`
+  Build a reproducible report from JSON bytes without network access, external
+  metadata lookup, or source payload persistence.
 
 ### Module: `error`
 
@@ -128,6 +209,121 @@ The `fasta` module provides FASTA parsing and validation APIs. It works with bot
 
 - `pub fn validate_fasta_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedFastaInput, FastaReadError>`
   Validate FASTA from a buffered reader and include a stable raw input hash.
+
+### Module: `formats`
+
+The `formats` module provides shared biological file-format contracts and
+format-specific parser support. FASTQ and PDB are executable parser families;
+other common formats are represented in the capability matrix as reviewed
+candidates until their parser contracts are implemented.
+
+#### Types
+
+- **`BioFormat`** — recognized format family.
+  - `Fasta`, `Fastq`, `Gff3`, `Gtf`, `Bed`, `Vcf`, `Genbank`, `UniprotFlat`, `Pdb`, `Mmcif`, `Csv`, `Tsv`
+  - `pub const fn as_str(self) -> &'static str`
+  - `pub const fn display_name(self) -> &'static str`
+
+- **`FormatMetadata`** — shared source location metadata.
+  - `pub record_index: usize`
+  - `pub line_start: usize`
+  - `pub line_end: usize`
+  - `pub const fn new(record_index, line_start, line_end) -> Self`
+
+- **`FormatField`** — shared name/value field.
+  - `pub name: String`
+  - `pub value: String`
+  - `pub fn new(name, value) -> Self`
+
+- **`FormatRecord`** — shared parsed-record projection.
+  - `pub format: BioFormat`
+  - `pub id: String`
+  - `pub metadata: FormatMetadata`
+  - `pub fields: Vec<FormatField>`
+  - `pub fn new(format, id, metadata, fields) -> Self`
+
+- **`FormatSupportStatus`** — `Supported`, `ReviewedCandidate`, or `Future`.
+
+- **`FormatCapability`** — support-matrix row.
+  - `pub format: BioFormat`
+  - `pub status: FormatSupportStatus`
+  - `pub record_contract: String`
+  - `pub validation_requirements: Vec<String>`
+  - `pub notes: Vec<String>`
+
+- **`FastqRecord`** — parsed FASTQ read.
+  - `pub id: String`
+  - `pub description: Option<String>`
+  - `pub sequence: String`
+  - `pub quality: String`
+  - `pub metadata: FormatMetadata`
+  - `pub fn to_format_record(&self) -> FormatRecord`
+
+- **`FastqValidationReport`** — aggregate FASTQ validation report.
+  - `pub format: BioFormat`
+  - `pub sequence_kind: SequenceKind`
+  - `pub records: usize`
+  - `pub valid_records: usize`
+  - `pub warning_count: usize`
+  - `pub error_count: usize`
+  - `pub record_reports: Vec<FastqRecordValidation>`
+
+- **`FastqRecordValidation`** — per-read validation details.
+  - `pub id: String`
+  - `pub description: Option<String>`
+  - `pub sequence_length: usize`
+  - `pub quality_length: usize`
+  - `pub metadata: FormatMetadata`
+  - `pub valid: bool`
+  - `pub warnings: Vec<FastqValidationIssue>`
+  - `pub errors: Vec<FastqValidationIssue>`
+
+- **`FastqValidationIssueCode`** — `AmbiguousSymbol`, `InvalidSymbol`, or `InvalidQualityCharacter`.
+
+- **`FastqValidationIssue`** — per-symbol FASTQ validation issue.
+  - `pub symbol: char`
+  - `pub position: usize`
+  - `pub code: FastqValidationIssueCode`
+  - `pub message: String`
+
+- **`FastqParseError`** — FASTQ parse failures.
+  - `EmptyInput`
+  - `MissingHeader { line, record_index }`
+  - `MissingIdentifier { line, record_index }`
+  - `MissingSeparator { id, line, record_index }`
+  - `MissingSequence { id, line, record_index }`
+  - `SeparatorIdentifierMismatch { id, separator_id, line, record_index }`
+  - `MissingQuality { id, expected, observed, record_index }`
+  - `QualityLengthMismatch { id, expected, observed, line, record_index }`
+  - `pub const fn code(&self) -> &'static str`
+  - `pub const fn location(&self) -> Option<ErrorLocation>`
+
+- **`FormatReadError`** — streaming format reader error.
+  - `FastqParse(FastqParseError)`
+  - `Io(std::io::Error)`
+  - `pub const fn code(&self) -> &'static str`
+
+- **`ParsedFastqInput`** — `pub input_hash: String`, `pub records: Vec<FastqRecord>`
+- **`ValidatedFastqInput`** — `pub input_hash: String`, `pub report: FastqValidationReport`
+
+#### Functions
+
+- `pub fn format_capabilities() -> Vec<FormatCapability>`
+  Return the current format support matrix.
+
+- `pub fn parse_fastq_records(input: &str) -> Result<Vec<FastqRecord>, FastqParseError>`
+  Parse in-memory FASTQ text.
+
+- `pub fn parse_fastq_records_reader<R: BufRead>(reader: R) -> Result<ParsedFastqInput, FormatReadError>`
+  Parse FASTQ from a buffered reader and return parsed records plus a stable
+  raw input hash.
+
+- `pub fn validate_fastq_reader<R: BufRead>(reader: R) -> Result<FastqValidationReport, FormatReadError>`
+  Validate FASTQ from a buffered reader and discard the raw input hash.
+
+- `pub fn validate_fastq_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedFastqInput, FormatReadError>`
+  Validate FASTQ from a buffered reader and return the validation report plus
+  a stable raw input hash.
 
 ### Module: `hash`
 
@@ -420,14 +616,22 @@ The `runtime` module defines backend abstraction contracts and provides a guarde
 
 ### Module: `service`
 
-The `service` module defines a transport-agnostic service interface contract for
-embedding bio-rs in a caller-owned service host. It does not include an HTTP
-server, network listener, authentication, rate limiting, or deployment runtime.
+The `service` module defines the service interface contract, local server
+metadata, health payload, OpenAPI payload, and inline batch sequence validation
+request/response types. `biors-core` still does not bind sockets,
+authenticate users, rate-limit requests, or deploy infrastructure; the built-in
+listener lives in the `biors` CLI crate.
 
 #### Constants
 
 - **`SERVICE_INTERFACE_SCHEMA_VERSION`** — current service contract schema
   version, `biors.service_interface.v0`.
+- **`HOSTED_WORKFLOW_BOUNDARY_SCHEMA_VERSION`** — current hosted workflow
+  boundary schema version, `biors.hosted_workflow_boundary.v0`.
+- **`SERVICE_HEALTH_SCHEMA_VERSION`** — current local service health schema
+  version, `biors.service_health.v0`.
+- **`SERVICE_BATCH_SEQUENCE_VALIDATE_SCHEMA_VERSION`** — current inline batch
+  validation schema version, `biors.service_batch_sequence_validate.v0`.
 
 #### Types
 
@@ -467,6 +671,58 @@ server, network listener, authentication, rate limiting, or deployment runtime.
   - `pub file_access: String`
   - `pub runtime_boundary: String`
 
+- **`HostedWorkflowBoundary`** — local-first open-source core and hosted-layer
+  separation contract.
+  - `pub schema_version: String`
+  - `pub product_name: String`
+  - `pub core_version: String`
+  - `pub status: String`
+  - `pub execution_policy: HostedExecutionPolicy`
+  - `pub open_source_core: HostedResponsibilitySet`
+  - `pub hosted_layer: HostedResponsibilitySet`
+  - `pub workspace_model: Vec<HostedWorkspaceConcept>`
+  - `pub commercial_policy: HostedCommercialPolicy`
+  - `pub web_product_policy: HostedWebProductPolicy`
+  - `pub validation_requirements: Vec<String>`
+
+- **`HostedExecutionPolicy`** — local-first, no-network-by-default execution
+  flags and remote-processing consent requirement.
+
+- **`HostedResponsibilitySet`** — allowed and excluded responsibilities for
+  the open-source core or the separate hosted layer.
+
+- **`HostedWorkspaceConcept`** — user, project, and workflow-run workspace
+  concepts evaluated for a hosted layer but not implemented in `biors-core`.
+
+- **`HostedCommercialPolicy`** — paid hosted service and billing separation
+  policy.
+
+- **`HostedWebProductPolicy`** — product web runtime and landing-page
+  separation policy.
+
+- **`ServiceHealthDocument`** — local HTTP health response payload.
+  - `pub schema_version: String`
+  - `pub service_name: String`
+  - `pub service_version: String`
+  - `pub status: String`
+  - `pub network_policy: String`
+  - `pub endpoints: Vec<ServiceEndpointStatus>`
+
+- **`ServiceEndpointStatus`** — method/path/operation tuple exposed by the
+  local service health response.
+
+- **`ServiceBatchSequenceValidateRequest`** — request payload for validating
+  multiple inline FASTA inputs.
+  - `pub kind: ServiceSequenceKindSelection`
+  - `pub inputs: Vec<ServiceBatchSequenceInput>`
+
+- **`ServiceBatchSequenceValidateOutput`** — aggregate response payload for
+  inline batch FASTA validation.
+
+- **`ServiceBatchValidationError`** — structured validation errors for empty
+  inputs, empty IDs, duplicate IDs, empty FASTA text, and FASTA parse/read
+  failures.
+
 #### Functions
 
 - `pub fn current_service_interface_document() -> ServiceInterfaceDocument`
@@ -475,8 +731,26 @@ server, network listener, authentication, rate limiting, or deployment runtime.
 - `pub fn service_interface_document(version: impl Into<String>) -> ServiceInterfaceDocument`
   Build a service interface document for a provided version string.
 
+- `pub fn current_hosted_workflow_boundary() -> HostedWorkflowBoundary`
+  Build the current hosted workflow boundary document using the crate version.
+
+- `pub fn hosted_workflow_boundary(version: impl Into<String>) -> HostedWorkflowBoundary`
+  Build a hosted workflow boundary document for a provided version string.
+
 - `pub fn service_routes() -> Vec<ServiceRoute>`
   Return the stable v0 operation list for service hosts.
+
+- `pub fn local_service_routes() -> Vec<ServiceRoute>`
+  Return the subset currently served by `biors serve`.
+
+- `pub fn service_health_document(version: impl Into<String>) -> ServiceHealthDocument`
+  Build the local service health payload.
+
+- `pub fn service_openapi_document(version: impl Into<String>, server_url: impl Into<String>) -> serde_json::Value`
+  Build the OpenAPI 3.1 document served by the local HTTP runtime.
+
+- `pub fn validate_service_batch_sequence_request(request: ServiceBatchSequenceValidateRequest) -> Result<ServiceBatchSequenceValidateOutput, ServiceBatchValidationError>`
+  Validate inline FASTA batch payloads with the selected sequence kind policy.
 
 ### Module: `sequence`
 
@@ -587,6 +861,199 @@ The `sequence` module handles biological sequence types, normalization, alphabet
 
 - `pub fn validate_fasta_reader_summary_with_kind_and_hash<R: BufRead>(reader: R, selection: SequenceKindSelection) -> Result<ValidatedKindAwareFastaSummaryInput, FastaReadError>`
   Reader-based summary without per-record payloads.
+
+### Module: `structure`
+
+The `structure` module provides macromolecular structure records, PDB parsing,
+structure validation, chain extraction, sequence extraction, and
+protein-sequence-to-structure mapping.
+
+#### Types
+
+- **`StructureRecord`** — Parsed structure with `format`, optional `id`,
+  `metadata`, and `chains`.
+- **`StructureMetadata`** — Source and aggregate counts: title, line count,
+  model count, ATOM count, HETATM count, SEQRES chain count, and missing
+  residue count.
+- **`Chain`** — Chain identifier, coordinate-bearing residues,
+  coordinate-derived protein sequence, optional SEQRES sequence, and
+  missing-residue annotations.
+- **`Residue3D`** — Residue name, sequence number, optional insertion code,
+  HETATM marker, optional one-letter protein code, and atoms.
+- **`Atom`** — Atom serial, name, alternate location, element, coordinate,
+  occupancy, and temperature factor.
+- **`Coordinate`** — Cartesian `x`, `y`, and `z` values in Angstroms.
+- **`MissingResidue`** — `REMARK 465` residue name, chain ID, sequence number,
+  and optional insertion code.
+- **`StructureValidationReport`** — Aggregate validation result with chain
+  reports, warning count, error count, and structured issue lists.
+- **`StructureChainReport`** — Per-chain residue/atom counts, sequence lengths,
+  missing-residue count, and `ProteinStructureMapping`.
+- **`StructureSequenceOutput`** / **`StructureSequenceChain`** — Sequence
+  extraction payload for PDB structure commands and Rust callers.
+- **`ProteinStructureMapping`** — Mapping status, message, and one-based
+  coordinate-to-SEQRES positions.
+- **`ProteinStructureMappingStatus`** — `Exact`, `CoordinateSubsequence`,
+  `MissingSeqres`, or `Mismatch`.
+- **`StructureValidationIssueCode`** — `NoCoordinateChains`,
+  `InvalidCoordinate`, `InvalidOccupancy`, `SuspiciousOccupancy`,
+  `MissingElement`, `MissingResidue`, `UnknownResidue`, or `SequenceMismatch`.
+- **`PdbParseError`** — `EmptyInput`, `MissingAtomField`, or
+  `InvalidAtomField`, with stable `pdb.*` codes.
+- **`StructureReadError`** — streaming PDB reader error:
+  `PdbParse(PdbParseError)` or `Io(std::io::Error)`.
+- **`ParsedStructureInput`** — `pub input_hash: String`,
+  `pub record: StructureRecord`.
+- **`ValidatedStructureInput`** — `pub input_hash: String`,
+  `pub report: StructureValidationReport`.
+
+#### Functions
+
+- `pub fn parse_pdb_record(input: &str) -> Result<StructureRecord, PdbParseError>`
+  Parse in-memory PDB text.
+
+- `pub fn parse_pdb_record_reader<R: BufRead>(reader: R) -> Result<ParsedStructureInput, StructureReadError>`
+  Parse PDB from a buffered reader and return a stable raw input hash.
+
+- `pub fn validate_pdb_reader<R: BufRead>(reader: R) -> Result<StructureValidationReport, StructureReadError>`
+  Validate PDB from a buffered reader and discard the raw input hash.
+
+- `pub fn validate_pdb_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedStructureInput, StructureReadError>`
+  Validate PDB from a buffered reader and include the stable raw input hash.
+
+- `pub fn validate_structure_record(record: &StructureRecord) -> StructureValidationReport`
+  Validate an already parsed structure record.
+
+- `pub fn summarize_structure_record(record: &StructureRecord) -> StructureValidationReport`
+  Alias for structure validation summaries.
+
+- `pub fn extract_structure_sequences(record: &StructureRecord) -> StructureSequenceOutput`
+  Extract per-chain coordinate and SEQRES sequences plus mapping metadata.
+
+### Module: `molecule`
+
+The `molecule` module provides molecular records, SMILES/SDF/MOL2 parsing,
+graph validation, conservative valence checks, deterministic graph keys,
+descriptors, and hashed fingerprints.
+
+#### Types
+
+- **`MoleculeRecord`** — Parsed molecule with `format`, optional `id`, source
+  label, `MoleculeMetadata`, `MolecularGraph`, and preserved source
+  `MoleculeProperty` values.
+- **`MoleculeMetadata`** — Source line metadata plus atom count, bond count,
+  branch count, ring-closure count, disconnected component count, and aromatic
+  atom count.
+- **`MolecularGraph`** — Split `AtomGraph` and `BondGraph`.
+- **`MoleculeAtom`** — Atom index, element, source token/name, aromatic and
+  bracket flags, isotope, explicit hydrogens, charge, chirality, atom class,
+  optional coordinate, atom type, partial charge, and substructure metadata.
+- **`MoleculeBond`** — Bond index, source/target atom indices, `BondOrder`,
+  ring-closure marker, and optional stereochemistry marker.
+- **`MoleculeCoordinate`** — Optional molecule-space `x`, `y`, `z`
+  coordinate.
+- **`MoleculeProperty`** — Name/value property preserved from SDF and MOL2
+  sources.
+- **`MoleculeValidationReport`** — Aggregate molecule validation result.
+- **`MoleculeValidationRecord`** — Per-record validation result with derived
+  features and structured issue lists.
+- **`MoleculeDerivedFeatures`** — `canonical_graph_key`, formula, exact mass,
+  heavy/hetero atom counts, ring bond count, rotatable bond count, donor and
+  acceptor counts, formal charge, and fingerprint.
+- **`MoleculeFingerprint`** — deterministic `biors-ecfp-lite-v0` fingerprint
+  with bit count and set bit positions.
+- **`MoleculeValidationIssueCode`** — `AromaticityNotVerified`,
+  `ValenceExceeded`, or `UnknownValenceModel`.
+- **`SmilesParseError`**, **`SdfParseError`**, and **`Mol2ParseError`** —
+  format-specific parse errors with stable `smiles.*`, `sdf.*`, and `mol2.*`
+  codes.
+- **`MoleculeReadError`** — streaming molecule reader error wrapping
+  SMILES/SDF/MOL2 parse failures or I/O failures.
+- **`ParsedMoleculeInput`** — `pub input_hash: String`,
+  `pub records: Vec<MoleculeRecord>`.
+- **`ValidatedMoleculeInput`** — `pub input_hash: String`,
+  `pub report: MoleculeValidationReport`.
+
+#### Functions
+
+- `pub fn parse_smiles_records(input: &str) -> Result<Vec<MoleculeRecord>, SmilesParseError>`
+  Parse line-oriented SMILES records.
+
+- `pub fn parse_smiles_records_reader<R: BufRead>(reader: R) -> Result<ParsedMoleculeInput, MoleculeReadError>`
+  Parse SMILES records from a buffered reader and return a stable raw input hash.
+
+- `pub fn parse_sdf_records(input: &str) -> Result<Vec<MoleculeRecord>, SdfParseError>`
+  Parse SDF/MOLfile records.
+
+- `pub fn parse_sdf_records_reader<R: BufRead>(reader: R) -> Result<ParsedMoleculeInput, MoleculeReadError>`
+  Parse SDF records from a buffered reader and return a stable raw input hash.
+
+- `pub fn parse_mol2_records(input: &str) -> Result<Vec<MoleculeRecord>, Mol2ParseError>`
+  Parse Tripos MOL2 records.
+
+- `pub fn parse_mol2_records_reader<R: BufRead>(reader: R) -> Result<ParsedMoleculeInput, MoleculeReadError>`
+  Parse MOL2 records from a buffered reader and return a stable raw input hash.
+
+- `pub fn validate_smiles_reader<R: BufRead>(reader: R) -> Result<MoleculeValidationReport, MoleculeReadError>`
+  Parse and validate SMILES records.
+
+- `pub fn validate_smiles_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedMoleculeInput, MoleculeReadError>`
+  Validate SMILES records and include the raw input hash.
+
+- `pub fn validate_molecule_records(records: &[MoleculeRecord]) -> MoleculeValidationReport`
+  Validate already parsed molecule records from SMILES, SDF, or MOL2.
+
+- `pub fn summarize_molecule_records(records: &[MoleculeRecord]) -> MoleculeValidationReport`
+  Alias for molecule validation summaries.
+
+- `pub fn derive_molecule_features(record: &MoleculeRecord) -> MoleculeDerivedFeatures`
+  Compute deterministic graph keys, descriptors, and hashed fingerprints.
+
+### Module: `templates`
+
+The `templates` module exposes local task contracts for common bio-AI workflow
+families. Templates are metadata only: they describe required inputs,
+validations, model-ready fields, output expectations, and execution
+assumptions without running inference, uploading data, or opening network
+connections.
+
+#### Types
+
+- **`TaskTemplate`** — Full template contract with `schema_version`, `id`,
+  kind, title, summary, supported inputs, validations, model fields, output
+  expectations, and execution assumptions.
+- **`TaskTemplateKind`** — `ProteinClassification`,
+  `ProteinEmbeddingGeneration`, `VariantEffectPrediction`,
+  `MoleculePropertyPrediction`, `StructureValidation`, or
+  `SequenceSimilarityPreprocess`.
+- **`TemplateEntity`** — `ProteinSequence`, `ProteinVariant`, `Molecule`,
+  `ProteinStructure`, or `SequenceSet`.
+- **`TemplateInputFormat`** — Input format plus core reader support marker.
+- **`CoreReaderSupport`** — `Executable` for checked-in parsers/validators or
+  `ContractOnly` for normalized field contracts without an executable reader.
+- **`TemplateInput`** — Required entity, accepted formats, and normalized field
+  names.
+- **`TemplateValidation`** — Stable validation id and description.
+- **`TemplateModelField`** — Model-ready field name, description, and required
+  flag.
+- **`TemplateOutputExpectation`** — Output field name, description, and
+  required flag.
+- **`TemplateExecutionAssumptions`** — Local execution boundary. Current
+  templates set `network_access` to `none`, `external_model_calls` to `false`,
+  and `uploads_input_data` to `false`.
+
+#### Constants
+
+- **`TASK_TEMPLATE_SCHEMA_VERSION`** — `biors.task_template.v0`.
+
+#### Functions
+
+- `pub fn task_templates() -> &'static [TaskTemplate]`
+  Return the stable built-in template catalog.
+- `pub fn task_template_ids() -> &'static [&'static str]`
+  Return stable template ids in display order.
+- `pub fn find_task_template(id: &str) -> Option<&'static TaskTemplate>`
+  Look up one built-in template by id.
 
 ### Module: `tokenizer`
 
@@ -1009,4 +1476,4 @@ distributions alongside the Rust crates.
 
 ---
 
-This document reflects the public API of `biors-core` as of version 0.47.16. If you find a discrepancy between this reference and the source, the source is the authority.
+This document reflects the public API of `biors-core` as of version 0.57.1. If you find a discrepancy between this reference and the source, the source is the authority.

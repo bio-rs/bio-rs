@@ -1,0 +1,32 @@
+{
+  "name": "@bio-rs/biors-wasm",
+  "version": "0.57.1",
+  "description": "WebAssembly bindings for bio-rs biological sequence processing",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bio-rs/bio-rs.git",
+    "directory": "crates/biors-wasm"
+  },
+  "files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "biors_wasm_bg.js",
+    "biors_wasm_bg.wasm",
+    "biors_wasm_bg.wasm.d.ts",
+    "biors_wasm.js",
+    "biors_wasm.d.ts",
+    "index.d.ts",
+    "README.md"
+  ],
+  "module": "biors_wasm.js",
+  "types": "index.d.ts",
+  "sideEffects": false,
+  "keywords": [
+    "bioinformatics",
+    "protein",
+    "tokenizer",
+    "wasm",
+    "rust"
+  ]
+}

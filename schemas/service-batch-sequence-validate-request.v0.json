@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-batch-sequence-validate-request.v0.json",
+  "title": "bio-rs service batch sequence validation request",
+  "type": "object",
+  "required": ["inputs"],
+  "properties": {
+    "kind": { "enum": ["auto", "protein", "dna", "rna"], "default": "auto" },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "fasta_text"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$"
+          },
+          "fasta_text": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

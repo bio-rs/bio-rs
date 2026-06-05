@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-openapi-output.v0.json",
+  "title": "bio-rs service OpenAPI document",
+  "type": "object",
+  "required": ["openapi", "info", "servers", "paths"],
+  "properties": {
+    "openapi": { "const": "3.1.0" },
+    "info": {
+      "type": "object",
+      "required": ["title", "version", "description"],
+      "properties": {
+        "title": { "const": "bio-rs local service API" },
+        "version": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "servers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "pattern": "^http://(127\\.0\\.0\\.1|0\\.0\\.0\\.0|localhost):[0-9]+$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "paths": {
+      "type": "object",
+      "required": ["/health", "/openapi.json", "/v0/batch/sequence/validate"]
+    },
+    "components": {
+      "type": "object",
+      "properties": {
+        "schemas": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

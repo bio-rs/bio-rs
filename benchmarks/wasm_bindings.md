@@ -40,6 +40,6 @@ and records timed in-process Node.js runs plus output hashes.
 ## Reproduce
 
 ```bash
-python3 scripts/benchmark_wasm_bindings.py
+python3 scripts/benchmarks/benchmark_wasm_bindings.py
 cat benchmarks/wasm_bindings.json
 ```

@@ -10,20 +10,96 @@ validation issues.
 - `fasta.missing_header`: non-empty FASTA input did not start with `>`
 - `fasta.missing_sequence`: a FASTA record header had no sequence body
 
+## FASTQ
+
+- `fastq.empty_input`: input contained no FASTQ records
+- `fastq.missing_header`: a FASTQ record did not start with an `@` header
+- `fastq.missing_identifier`: a FASTQ header did not include a non-empty record identifier
+- `fastq.missing_separator`: a FASTQ record ended before a `+` separator line
+- `fastq.missing_sequence`: a FASTQ record had no sequence body before the separator
+- `fastq.separator_identifier_mismatch`: an optional `+` separator identifier did not match the header identifier
+- `fastq.missing_quality`: a FASTQ record ended before enough quality symbols were read
+- `fastq.quality_length_mismatch`: a FASTQ record quality string length did not match the sequence length
+
+## PDB
+
+- `pdb.empty_input`: input contained no PDB lines
+- `pdb.missing_atom_field`: a required fixed-column ATOM/HETATM field was blank or unavailable
+- `pdb.invalid_atom_field`: a fixed-column ATOM/HETATM field could not be parsed as the required numeric or text value
+
+## Molecule Parsing
+
+- `smiles.empty_input`: input contained no SMILES records
+- `smiles.missing_smiles`: a SMILES record line did not contain a SMILES token
+- `smiles.missing_atom`: a SMILES atom token was expected
+- `smiles.unexpected_character`: a SMILES token contained an unsupported character
+- `smiles.dangling_bond`: a SMILES bond marker had no following atom or ring closure
+- `smiles.invalid_branch`: a SMILES branch opened before any atom was available
+- `smiles.unclosed_branch`: a SMILES branch was opened but never closed
+- `smiles.unmatched_branch`: a SMILES branch close had no corresponding open branch
+- `smiles.unclosed_ring`: a SMILES ring closure was opened but never closed
+- `smiles.invalid_ring_closure`: a SMILES ring closure appeared before any atom
+- `smiles.invalid_bracket_atom`: a SMILES bracket atom could not be parsed
+- `sdf.empty_input`: input contained no SDF records
+- `sdf.missing_counts_line`: an SDF record is missing a counts line
+- `sdf.invalid_counts_line`: an SDF counts line could not be parsed
+- `sdf.invalid_atom_line`: an SDF atom line could not be parsed
+- `sdf.invalid_bond_line`: an SDF bond line could not be parsed
+- `sdf.unsupported_bond_type`: an SDF bond type is not supported by the graph contract
+- `sdf.invalid_v3000_line`: an SDF V3000 atom or bond line could not be parsed
+- `mol2.empty_input`: input contained no MOL2 records
+- `mol2.missing_molecule_section`: a MOL2 record is missing `@<TRIPOS>MOLECULE`
+- `mol2.missing_molecule_name`: a MOL2 record is missing a molecule name
+- `mol2.missing_counts_line`: a MOL2 record is missing or mismatches its counts line
+- `mol2.invalid_atom_line`: a MOL2 atom line could not be parsed
+- `mol2.invalid_bond_line`: a MOL2 bond line could not be parsed
+- `mol2.unsupported_bond_type`: a MOL2 bond type is not supported by the graph contract
+
 ## Sequence Validation
 
 Sequence validation warnings and errors are reported inside successful FASTA or
-`seq validate` payloads, not as top-level CLI failures. The same values are
-used by Rust `Diagnostic::code()`, CLI JSON payloads, schemas, and WASM TypeScript
-declarations.
+`seq validate` payloads, and inside successful FASTQ validation payloads, not as
+top-level CLI failures. The same values are used by Rust `Diagnostic::code()`,
+CLI JSON payloads, schemas, and WASM TypeScript declarations.
 
 - `ambiguous_symbol`: a supported ambiguous IUPAC symbol was accepted with a warning
 - `invalid_symbol`: a symbol is not supported by the selected Protein, DNA, or RNA policy
+- `invalid_quality_character`: a FASTQ quality symbol is outside printable Phred+33 ASCII
+
+## Structure Validation
+
+Structure validation warnings and errors are reported inside successful
+`structure validate --format pdb` payloads, not as top-level CLI failures.
+
+- `no_coordinate_chains`: the structure contains no coordinate-bearing chains
+- `invalid_coordinate`: a coordinate value is not finite
+- `invalid_occupancy`: an atom occupancy value is structurally impossible, such as a negative value
+- `suspicious_occupancy`: an atom occupancy value is unusual but not fatal, such as a value greater than `1.0`
+- `missing_element`: an atom record omitted the element symbol
+- `missing_residue`: a residue is annotated as missing from coordinates
+- `unknown_residue`: a coordinate residue could not be mapped to a standard protein one-letter code
+- `sequence_mismatch`: coordinate-derived protein sequence could not be mapped to SEQRES
+
+## Molecule Validation
+
+Molecule validation warnings and errors are reported inside successful
+`molecule validate --format smiles|sdf|mol2` payloads, not as top-level CLI
+failures.
+
+- `aromaticity_not_verified`: aromatic source notation was preserved but not independently perceived from first principles
+- `valence_exceeded`: a parsed atom exceeds the conservative valence model used by bio-rs
+- `unknown_valence_model`: a parsed atom has no configured conservative valence model
 
 ## JSON
 
 - `json.invalid`: JSON input could not be decoded
 - `json.serialization_failed`: CLI output could not be serialized
+
+## Reports
+
+- `report.invalid_json`: report input could not be parsed as JSON
+- `report.output_stdout_ambiguous`: Markdown report output was set to `-`, but stdout is reserved for the CLI JSON envelope
+- `report.shareable_json_stdout_ambiguous`: shareable report JSON output was set to `-`, but stdout is reserved for the CLI JSON envelope
 
 ## Model Input
 
@@ -138,11 +214,15 @@ Model-input validation failures keep the shared `model_input.*` codes.
 ## Taxonomy
 
 - `fasta.*`: sequence file envelope and record parsing errors
+- `fastq.*`: FASTQ envelope and record parsing errors
+- `pdb.*`: PDB coordinate record parsing errors
 - sequence issue codes: per-record biological sequence validation diagnostics
+- structure issue codes: per-chain and per-atom structure validation diagnostics
 - `batch.*`: batch input expansion failures
 - `dataset.*`: shared dataset/file input resolution failures
 - `cache.*`: local artifact store inspection or cleaning failures
 - `json.*`: machine-readable input or output failures
+- `report.*`: reproducible report input or output option failures
 - `io.*`: local filesystem or stdin failures
 - `package.*`: portable package contract, runtime, or fixture failures
 - `runtime.*`: backend execution abstraction failures

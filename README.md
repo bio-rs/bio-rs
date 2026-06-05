@@ -7,9 +7,10 @@
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 bio-rs is a local, reproducible input layer for bio-AI tools. It takes raw
-biological sequences, tokenizer profiles, package manifests, model artifacts,
-and fixture outputs, then turns them into checked contracts that can run in
-CLIs, CI, Python notebooks, browsers, and agent tools.
+biological sequences, structure files, molecule files, tokenizer profiles,
+package manifests, model artifacts, and fixture outputs, then turns them into
+checked contracts
+that can run in CLIs, CI, Python notebooks, browsers, and agent tools.
 
 ```txt
 raw sequence data + package metadata
@@ -40,7 +41,7 @@ service.
 ## Why bio-rs?
 
 Bio research code often starts as a notebook and then has to survive handoff:
-to a CLI, a CI job, a browser demo, an agent, a package fixture, or a service
+to a CLI, a CI job, a browser integration, an agent, a package fixture, or a service
 owned by someone else. The brittle part is usually not the model. It is the
 input contract around the model: what was parsed, how residues were normalized,
 which symbols were warnings, which tokenizer IDs were emitted, whether the
@@ -56,7 +57,7 @@ bio-rs makes that layer explicit:
 - pin provenance, vocabulary hashes, output hashes, package checksums, and
   pipeline lockfiles for repeatable runs
 - expose the same deterministic core through Rust, the CLI, Python, WASM, MCP,
-  and transport-agnostic service schemas
+  and local-first service schemas
 
 The goal is not to replace Python research workflows. The goal is to give those
 workflows a portable contract layer that is easy to inspect, test, cite, and
@@ -71,7 +72,7 @@ reproducible and claims need evidence:
   screenshot from a notebook.
 - Model/package authors can ship fixture outputs, checksums, citations, model
   cards, and runtime bridge plans next to their artifacts.
-- Tool builders can embed the same preprocessing behavior in CLIs, web demos,
+- Tool builders can embed the same preprocessing behavior in CLIs,
   local agents, and internal services without reimplementing the parser.
 - Maintainers can point every public claim at schemas, tests, package artifact
   checks, and benchmark regression guards.
@@ -79,25 +80,29 @@ reproducible and claims need evidence:
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.47.16
+cargo install biors --version 0.57.1
 biors doctor
-biors seq validate --kind auto examples/multi.fasta
+biors seq validate --kind auto testdata/sequences/multi.fasta
+printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
+printf 'CC(=O)O acetate\n' | biors molecule validate --format smiles -
 printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
-biors batch validate --kind auto examples/
+biors batch validate --kind auto testdata/sequences/
 biors tokenizer inspect --profile protein-20-special
-biors package validate examples/protein-package/manifest.json
+biors package validate testdata/protein-package/manifest.json
 biors service contract
-biors dataset inspect --source uniprot --version 2026_02 --split train examples/
+biors service hosted-boundary
+# in another terminal: biors serve --host 127.0.0.1 --port 8787
+biors dataset inspect --source uniprot --version 2026_02 --split train testdata/sequences/
 ```
 
-Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
+Full commands, validation flows, and install options: [docs/quickstart.md](docs/quickstart.md)
 
 ## Proof
 
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
 
 Current release posture: no current-version numeric throughput claim is made for
-`0.47.16`. The committed benchmark artifact is historical performance evidence
+`0.57.1`. The committed benchmark artifact is historical performance evidence
 from `biors-core v0.20.0`; rerun and commit a fresh artifact before using these
 numbers as evidence for a later release.
 
@@ -139,12 +144,12 @@ Benchmark details:
   - human proteome parse + tokenization: `189.0M residues/s`, `216.1 MB/s`
   - 100MB+ FASTA parse + tokenization: `209.7M residues/s`, `239.8 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
-- Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
+- Benchmark script: [scripts/benchmarks/benchmark_fasta_vs_biopython.py](scripts/benchmarks/benchmark_fasta_vs_biopython.py)
 
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
 bio-rs is faster than Biopython across every FASTA workload or researcher input
-shape. Until the artifact is refreshed for `0.47.16`, the numeric table above
+shape. Until the artifact is refreshed for `0.57.1`, the numeric table above
 remains a historical reference.
 
 ## What Works Today
@@ -154,8 +159,34 @@ CLI surface.
 
 ### Sequence handling
 - FASTA parsing and normalization with buffered reader APIs
+- FASTQ parsing and validation with shared format metadata, sequence/quality
+  length checks, Phred+33 quality character validation, and DNA IUPAC sequence
+  diagnostics
 - Protein/DNA/RNA validation with per-record kind detection (`--kind auto`)
 - Line and record-index diagnostics with residue warning/error reporting
+
+### Structure handling
+- PDB fixed-column ATOM/HETATM parsing with `StructureRecord`, `Chain`,
+  `Residue3D`, `Atom`, and `Coordinate` contracts
+- Chain extraction, `REMARK 465` missing-residue preservation, coordinate
+  validation, occupancy checks, and missing element warnings
+- Coordinate-derived protein sequence extraction and SEQRES mapping through
+  `biors structure validate --format pdb` and
+  `biors structure sequence --format pdb`
+- mmCIF is reviewed as the next structure parser candidate but is not exposed
+  as executable parser support yet
+
+### Molecule handling
+- SMILES parsing with branch, ring-closure, bracket atom, bond-order, and
+  disconnected component validation
+- SDF V2000/basic V3000 parsing with coordinates and data-item preservation
+- MOL2 parsing with atom types, partial charges, and substructure metadata
+- `MoleculeRecord`, `AtomGraph`, `BondGraph`, and `MoleculeMetadata` contracts
+- Conservative valence validation, deterministic canonical graph keys, formula
+  and mass descriptors, simple drug-discovery descriptors, and
+  `biors-ecfp-lite-v0` hashed fingerprints
+- CLI support through `biors molecule validate --format smiles|sdf|mol2` and
+  `biors molecule inspect --format smiles|sdf|mol2`
 
 ### Tokenization
 - `protein-20` tokenization with stable IDs
@@ -169,6 +200,7 @@ CLI surface.
 ### Model input
 - `model-input` CLI: profile-aware `input_ids`, `attention_mask`, and truncation metadata for protein, DNA, and RNA token profiles
 - `workflow` CLI: profile-aware validation → tokenization → model input with readiness issues and reproducibility provenance
+- `report generate` CLI: deterministic JSON → Markdown/shareable report export with provenance hashes
 - `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/JSON) workflows with lockfile generation
 - `debug` CLI: step-by-step per-record inspection with compact residue markers
 - Checked and unchecked model-input builders with safety checks for unresolved residues
@@ -189,19 +221,24 @@ CLI surface.
 - Optional Candle backend crate for CPU safetensors linear-probe inference
 - Model artifact metadata and runtime/model compatibility checks in package
   bridge reports
-- Transport-agnostic service interface contract for service hosts, without
-  bundling a server runtime
+- Local-first `biors serve` HTTP runtime plus service interface contracts for
+  service hosts
 - Typed validation issue codes and manifest enums
 
 ### External interfaces
 - `biors-python`: PyO3 bindings for Python integration and notebook workflows
 - `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions
+  and browser file validation/tokenization helpers
 - `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
-- `service contract`: offline JSON route/schema contract for caller-owned
-  service hosts
+- `service contract`: JSON route/schema contract for caller-owned service hosts
+- `service hosted-boundary`: local-first OSS core and hosted-layer separation
+  policy
+- `biors serve`: local-first HTTP API for health, OpenAPI, and inline FASTA
+  batch validation
 
 ### Utilities
 - `diff`: canonical JSON/raw comparison with SHA-256 hashes
+- `report generate`: reproducible Markdown and shareable JSON reports from bio-rs JSON output
 - `doctor`: core CLI, WASM, Python, package, release, and benchmark readiness
 - `completions`: shell completion generation
 - JSON success/error envelopes for all commands
@@ -213,10 +250,17 @@ CLI surface.
 - [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, exit codes
 - [Package format](docs/package-format.md) — manifest layout and research metadata
 - [Package conversion](docs/package-conversion.md) — HF/Python project conversion path
+- [Unified conversion layer](docs/conversion.md) — FASTA/FASTQ, structure, and molecule records mapped into `BioEntity` JSON
+- [Reproducible reports](docs/reports.md) — JSON-to-Markdown/shareable report exports with provenance
+- [Task templates](docs/templates.md) — local contracts for classification, embeddings, variants, molecules, structures, and search preprocessing
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
-- [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
+- [Service interface](docs/service-interface.md) — local HTTP mode, service-host contract, and runtime boundary
+- [Service deployment](docs/service-deployment.md) — REST API and Docker/OCI template
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
+- [Biological format support](docs/formats.md) — FASTQ/PDB/SMILES/SDF/MOL2 support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
+- [Structure support](docs/structure.md) — PDB validation, chain extraction, sequence mapping, and mmCIF candidate requirements
+- [Molecule support](docs/molecule.md) — SMILES/SDF/MOL2 parsing, graph validation, descriptors, and fingerprints
 - [Error code registry](docs/error-codes.md)
 - [Rust API](docs/rust-api.md)
 - [Python API](docs/python-api.md)
@@ -229,12 +273,15 @@ CLI surface.
 
 These are roadmap directions, not current capabilities:
 
-- hosted web workflows
+- hosted web workflow runtime beyond the `service hosted-boundary` contract
 - pretrained model-specific inference backends
 - package registry or plugin ecosystem
 - general-purpose chemistry tooling
-- structure tooling
+- mmCIF structure parsing beyond reviewed candidate requirements
+- tautomer normalization, force-field chemistry, conformer generation, and
+  RDKit/Open Babel canonical SMILES equivalence
 - no-code or low-code workflows
+- hosted workflow workspace management beyond the boundary contract
 
 ## Development
 
@@ -264,11 +311,11 @@ The check suite runs:
 Reproduce the FASTA benchmark:
 
 ```bash
-cargo build --release -p biors-core --example benchmark_fasta
+cargo build --release -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta
 python3 -m venv .venv-bench
 . .venv-bench/bin/activate
 pip install biopython
-python scripts/benchmark_fasta_vs_biopython.py
+python scripts/benchmarks/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
 
@@ -279,13 +326,7 @@ that the Markdown report still matches the JSON artifact.
 Compare two benchmark artifacts:
 
 ```bash
-python scripts/compare-benchmark-artifacts.py before.json after.json
-```
-
-Run the Rust library example:
-
-```bash
-cargo run -p biors-core --example tokenize
+python scripts/benchmarks/compare-benchmark-artifacts.py before.json after.json
 ```
 
 ## Repository Map
@@ -294,31 +335,29 @@ Most users only need the `biors` CLI or one binding package. This map is for
 contributors and integrators who need to understand where public surfaces live.
 
 ```txt
-packages/
-  rust/
-    biors/                 CLI
-    biors-backend-candle/  Optional Candle runtime backend
-    biors-core/            Core engine + contracts
-    biors-mcp-server/      Local MCP server
-    biors-python/          PyO3 bindings
-    biors-wasm/            WASM/JS bindings
+crates/
+  biors/                 CLI
+  biors-backend-candle/  Optional Candle runtime backend
+  biors-core/            Core engine + contracts
+  biors-mcp-server/      Local MCP server
+  biors-python/          PyO3 bindings
+  biors-wasm/            WASM/JS bindings
+
+contracts/
+  Machine-readable support matrices that are enforced by docs/tests
 
 schemas/
-  JSON contracts for CLI, package, pipeline, service, tokenizer, and workflow outputs
+  JSON contracts for CLI, package, pipeline, report, service, tokenizer, and workflow outputs
 
-examples/
-  protein.fasta
-  multi.fasta
+testdata/
+  sequences/
+    protein.fasta
+    multi.fasta
   model-input-contract/
     protein.fasta
     protein-20-special.config.json
     protein-20-special.expected.json
     reference-python-parity.json
-  python/
-    esm_from_biors_json.py
-    pandas_numpy_friendly.py
-    protbert_from_biors_json.py
-    reference_preprocess.py
   protein-package/
     models/
     docs/
@@ -334,6 +373,18 @@ examples/
     protein.yaml
     protein.json
     pipeline.lock
+
+integrations/
+  python/
+    esm_from_biors_json.py
+    pandas_numpy_friendly.py
+    protbert_from_biors_json.py
+    reference_preprocess.py
+
+deploy/
+  service/
+    Dockerfile
+    README.md
 ```
 
 The full schema inventory and command-to-schema mapping live in

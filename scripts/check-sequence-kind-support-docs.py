@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 DOC_PATH = Path("docs/sequence-kind-support.md")
-FIXTURE_PATH = Path("fixtures/support/sequence-kind-support.json")
+FIXTURE_PATH = Path("contracts/sequence-kind-support.json")
 
 
 def main() -> int:

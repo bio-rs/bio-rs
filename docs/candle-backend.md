@@ -35,7 +35,7 @@ Records with no unmasked tokens fail with a stable runtime execution error.
 
 ## Runtime Contract
 
-The backend uses the Phase 7 runtime interfaces from `biors-core::runtime`:
+The backend uses the runtime interfaces from `biors-core::runtime`:
 
 - input format: `biors.model-input.v0+json`
 - output format: `biors.candle.linear-probe.v0+json`
@@ -90,7 +90,7 @@ review before publishing the backend crate.
 
 `biors-core` does not depend on Candle. The `biors` CLI does not link this
 backend by default and no backend-enabled binary artifact is produced in
-the current Phase 7 release line.
+the current release line.
 
 Rationale:
 
@@ -105,12 +105,12 @@ Rationale:
 Existing package manifests still describe `onnx-webgpu` as a planning target.
 The Candle crate does not reinterpret those manifests and does not add a browser
 runtime bridge. Backend compatibility mapping between Candle, ONNX, WebGPU, and
-future service runtimes belongs in the compatibility matrix phase.
+additional service runtimes belongs in the compatibility matrix.
 
 ## Compatibility Matrix
 
-In `0.42.0`, the package bridge compatibility matrix includes Candle CPU as an
-implemented pair:
+The package bridge compatibility matrix includes Candle CPU as an implemented
+pair:
 
 - `safetensors` + `candle` + `local-cpu` -> `candle-cpu`
 

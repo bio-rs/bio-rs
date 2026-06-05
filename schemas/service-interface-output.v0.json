@@ -17,8 +17,8 @@
     "schema_version": { "const": "biors.service_interface.v0" },
     "service_name": { "const": "bio-rs" },
     "service_version": { "type": "string", "minLength": 1 },
-    "server_runtime": { "const": "not_included" },
-    "transport_model": { "const": "transport_agnostic_json_contract" },
+    "server_runtime": { "const": "cli_local_http_server" },
+    "transport_model": { "const": "local_first_http_json" },
     "runtime_separation": {
       "type": "object",
       "required": [
@@ -48,7 +48,7 @@
       "type": "object",
       "required": ["status", "title", "version", "schema_base_uri", "notes"],
       "properties": {
-        "status": { "const": "offline_contract" },
+        "status": { "const": "served_by_cli_runtime" },
         "title": { "const": "bio-rs service interface" },
         "version": { "type": "string", "minLength": 1 },
         "schema_base_uri": {
@@ -83,19 +83,19 @@
         "properties": {
           "operation_id": { "type": "string", "minLength": 1 },
           "domain": {
-            "enum": ["sequence", "tokenizer", "model_input", "package", "runtime"]
+            "enum": ["service", "sequence", "tokenizer", "model_input", "package", "runtime"]
           },
-          "method": { "const": "POST" },
-          "path": { "type": "string", "pattern": "^/v0/" },
+          "method": { "enum": ["GET", "POST"] },
+          "path": { "type": "string", "pattern": "^(/v0/|/health$|/openapi\\.json$)" },
           "request_schema": { "type": "string", "pattern": "\\.v0\\.json$" },
           "response_schema": { "type": "string", "pattern": "\\.v0\\.json$" },
           "deterministic": { "const": true },
           "idempotent": { "const": true },
           "file_access": {
-            "enum": ["read_only_input", "package_read_only"]
+            "enum": ["no_file_access", "read_only_input", "package_read_only"]
           },
           "runtime_boundary": {
-            "enum": ["core_deterministic", "package_contract", "runtime_planning_only"]
+            "enum": ["cli_local_server", "core_deterministic", "package_contract", "runtime_planning_only"]
           }
         },
         "additionalProperties": false

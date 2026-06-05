@@ -8,13 +8,13 @@ steps; see [Package Format](package-format.md).
 
 Supported formats:
 
-- TOML: `examples/pipeline/protein.toml`
-- JSON: `examples/pipeline/protein.json`
+- TOML: `testdata/pipeline/protein.toml`
+- JSON: `testdata/pipeline/protein.json`
 
 ## Run
 
 ```bash
-biors pipeline --config examples/pipeline/protein.toml
+biors pipeline --config testdata/pipeline/protein.toml
 ```
 
 `--config` cannot be combined with legacy `--max-length` or a positional input
@@ -23,7 +23,7 @@ path. Config-relative input paths are resolved from the config file directory.
 ## Dry Run
 
 ```bash
-biors pipeline --config examples/pipeline/protein.toml --dry-run
+biors pipeline --config testdata/pipeline/protein.toml --dry-run
 ```
 
 Dry-run validates the config and emits the planned stages without reading the
@@ -33,7 +33,7 @@ not an executed, model-ready result.
 ## Explain Plan
 
 ```bash
-biors pipeline --config examples/pipeline/protein.json --explain-plan
+biors pipeline --config testdata/pipeline/protein.json --explain-plan
 ```
 
 `--explain-plan` includes the static execution plan together with the normal
@@ -43,9 +43,9 @@ workflow result.
 
 ```bash
 biors pipeline \
-  --config examples/protein-package/pipelines/protein.toml \
-  --package examples/protein-package/manifest.json \
-  --write-lock examples/pipeline/pipeline.lock
+  --config testdata/protein-package/pipelines/protein.toml \
+  --package testdata/protein-package/manifest.json \
+  --write-lock testdata/pipeline/pipeline.lock
 ```
 
 `--write-lock` requires an executed config pipeline, so it cannot be combined
@@ -106,7 +106,7 @@ researcher workflow.
 
 ## Crate Split Review
 
-`biors-pipeline` remains deferred as of the current Phase 7 release line.
+No separate `biors-pipeline` crate is published in the current release line.
 
 Rationale:
 

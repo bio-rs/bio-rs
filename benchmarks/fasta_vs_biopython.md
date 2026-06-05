@@ -22,7 +22,7 @@ new numeric claims for later releases.
 - Biopython: `1.87`
 - Git commit: `a4aee2c2af1d0e23c72f73ef5f6dd48b48cf8252`
 - Benchmark schema: `biors.benchmark.fasta_vs_biopython.v1`
-- Release status: historical baseline retained for `0.47.16`
+- Release status: historical baseline retained for `0.57.1`
 - Claim policy: not current-version performance evidence; do not use these numeric FASTA results for current release claims until the artifact is regenerated
 
 ## Datasets
@@ -82,7 +82,7 @@ new numeric claims for later releases.
 | Feature | Status | Claim scope | Evidence |
 | --- | --- | --- | --- |
 | `core_fasta_parse_validate_tokenize` | `numeric_public_claim` | Matched FASTA parse, validation, and tokenization workloads recorded in this artifact. | `benchmarks.fasta_vs_biopython.v1 datasets[].benchmarks` |
-| `core_fixed_length_model_input` | `criterion_regression_guard` | Criterion guard only; no committed public numeric artifact yet. | `packages/rust/biors-core/benches/fasta_workloads.rs` |
+| `core_fixed_length_model_input` | `criterion_regression_guard` | Criterion guard only; no committed public numeric artifact yet. | `crates/biors-core/benches/fasta_workloads.rs` |
 | `cli_workflow` | `numeric_regression_guard` | Committed CLI regression guard timing only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_workflow_fixed_length` |
 | `cli_dataset_inspect` | `numeric_regression_guard` | Committed CLI regression guard timing only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_dataset_inspect_many_file` |
 | `python_bindings` | `numeric_regression_guard` | Committed Python binding regression guard timing only; no public throughput claim. | `benchmarks/python_bindings.json` |
@@ -109,11 +109,11 @@ The benchmark compares the same work on both sides:
 For bio-rs, the script rebuilds and invokes the release benchmark example:
 
 ```bash
-cargo build --release -p biors-core --example benchmark_fasta
-target/release/examples/benchmark_fasta <mode> <input.fasta>
+cargo build --release -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta
+target/release/biors-core-benchmark-fasta <mode> <input.fasta>
 ```
 
-The benchmark example uses `biors-core` buffered reader APIs, not the `biors`
+The benchmark binary uses `biors-core` buffered reader APIs, not the `biors`
 CLI. It excludes CLI startup and success-envelope JSON serialization.
 
 For Biopython, the script performs matched Python loops over `SeqIO.parse(...)`.
@@ -157,11 +157,11 @@ memory-efficiency claim across every FASTA workload.
 ## Reproduce
 
 ```bash
-cargo build --release -p biors-core --example benchmark_fasta
+cargo build --release -p biors-core --features benchmark-tools --bin biors-core-benchmark-fasta
 python3 -m venv .venv-bench
 . .venv-bench/bin/activate
 pip install biopython
-python scripts/benchmark_fasta_vs_biopython.py
+python scripts/benchmarks/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
 

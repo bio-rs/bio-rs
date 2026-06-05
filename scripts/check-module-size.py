@@ -11,7 +11,7 @@ MAX_RUST_MODULE_LINES = 320
 def rust_package_src_roots() -> list[Path]:
     return sorted(
         path
-        for path in Path("packages/rust").glob("*/src")
+        for path in Path("crates").glob("*/src")
         if path.is_dir()
     )
 

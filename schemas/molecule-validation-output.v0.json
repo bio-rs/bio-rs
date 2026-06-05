@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/molecule-validation-output.v0.json",
+  "type": "object",
+  "required": [
+    "format",
+    "valid",
+    "records",
+    "valid_records",
+    "atom_count",
+    "bond_count",
+    "warning_count",
+    "error_count",
+    "record_reports"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "enum": ["smiles", "sdf", "mol2"] },
+    "valid": { "type": "boolean" },
+    "records": { "type": "integer", "minimum": 0 },
+    "valid_records": { "type": "integer", "minimum": 0 },
+    "atom_count": { "type": "integer", "minimum": 0 },
+    "bond_count": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "record_reports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/molecule_validation_record" }
+    }
+  },
+  "$defs": {
+    "molecule_metadata": {
+      "type": "object",
+      "required": [
+        "source",
+        "atom_count",
+        "bond_count",
+        "branch_count",
+        "ring_closure_count",
+        "disconnected_component_count",
+        "aromatic_atom_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "$ref": "#/$defs/format_metadata" },
+        "atom_count": { "type": "integer", "minimum": 0 },
+        "bond_count": { "type": "integer", "minimum": 0 },
+        "branch_count": { "type": "integer", "minimum": 0 },
+        "ring_closure_count": { "type": "integer", "minimum": 0 },
+        "disconnected_component_count": { "type": "integer", "minimum": 0 },
+        "aromatic_atom_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "format_metadata": {
+      "type": "object",
+      "required": ["record_index", "line_start", "line_end"],
+      "additionalProperties": false,
+      "properties": {
+        "record_index": { "type": "integer", "minimum": 0 },
+        "line_start": { "type": "integer", "minimum": 1 },
+        "line_end": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "molecule_validation_record": {
+      "type": "object",
+      "required": [
+        "source",
+        "metadata",
+        "valid",
+        "atoms",
+        "bonds",
+        "derived",
+        "warnings",
+        "errors"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/molecule_metadata" },
+        "valid": { "type": "boolean" },
+        "atoms": { "type": "integer", "minimum": 0 },
+        "bonds": { "type": "integer", "minimum": 0 },
+        "derived": { "$ref": "#/$defs/derived_features" },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/molecule_issue" }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/molecule_issue" }
+        }
+      }
+    },
+    "molecule_issue": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "aromaticity_not_verified",
+            "valence_exceeded",
+            "unknown_valence_model"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "atom_index": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "derived_features": {
+      "type": "object",
+      "required": [
+        "canonical_graph_key",
+        "formula",
+        "exact_mass",
+        "heavy_atom_count",
+        "hetero_atom_count",
+        "ring_bond_count",
+        "rotatable_bond_count",
+        "hydrogen_bond_donor_count",
+        "hydrogen_bond_acceptor_count",
+        "formal_charge",
+        "fingerprint"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "canonical_graph_key": { "type": "string", "minLength": 1 },
+        "formula": { "type": "string" },
+        "exact_mass": { "type": "number", "minimum": 0 },
+        "heavy_atom_count": { "type": "integer", "minimum": 0 },
+        "hetero_atom_count": { "type": "integer", "minimum": 0 },
+        "ring_bond_count": { "type": "integer", "minimum": 0 },
+        "rotatable_bond_count": { "type": "integer", "minimum": 0 },
+        "hydrogen_bond_donor_count": { "type": "integer", "minimum": 0 },
+        "hydrogen_bond_acceptor_count": { "type": "integer", "minimum": 0 },
+        "formal_charge": { "type": "integer" },
+        "fingerprint": { "$ref": "#/$defs/fingerprint" }
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "required": ["algorithm", "bits", "set_bits"],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": { "const": "biors-ecfp-lite-v0" },
+        "bits": { "type": "integer", "minimum": 1 },
+        "set_bits": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+[package]
+name = "biors-backend-candle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Optional Candle backend adapter for bio-rs runtime execution contracts."
+readme = "../../README.md"
+keywords = ["bioinformatics", "candle", "inference", "ai"]
+categories = ["science"]
+
+[dependencies]
+biors-core.workspace = true
+candle-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "candle_linear_probe"
+harness = false

@@ -4,7 +4,7 @@ This matrix is the public capability boundary for sequence-kind support. A
 surface is listed as supported only when the implementation, tests, schemas or
 typed declarations, docs, and benchmark/non-claim boundaries are aligned.
 The surface/status cells are checked against
-`fixtures/support/sequence-kind-support.json` by
+`contracts/sequence-kind-support.json` by
 `scripts/check-sequence-kind-support-docs.py`.
 
 | Surface | Protein | DNA | RNA | Notes |

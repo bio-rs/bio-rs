@@ -34,23 +34,23 @@ FORBIDDEN_CORE_OR_CLI_DEPS = {
     "wasm-bindgen",
 }
 EXPECTED_INTEGRATION_DEPS = {
-    "packages/rust/biors-backend-candle/Cargo.toml": {"candle-core"},
-    "packages/rust/biors-mcp-server/Cargo.toml": {"rmcp", "tokio"},
-    "packages/rust/biors-python/Cargo.toml": {"pyo3"},
-    "packages/rust/biors-wasm/Cargo.toml": {"js-sys", "wasm-bindgen"},
+    "crates/biors-backend-candle/Cargo.toml": {"candle-core"},
+    "crates/biors-mcp-server/Cargo.toml": {"rmcp", "tokio"},
+    "crates/biors-python/Cargo.toml": {"pyo3"},
+    "crates/biors-wasm/Cargo.toml": {"js-sys", "wasm-bindgen"},
 }
 CANDLE_EXPECTED_HEAVY_TRANSITIVES = {"rayon", "tokenizers", "zip"}
 CANDLE_ALLOWED_DUPLICATE_ROOTS = {"hashbrown", "itertools", "thiserror", "thiserror-impl"}
 
 
 def main() -> int:
-    core = dependencies("packages/rust/biors-core/Cargo.toml")
+    core = dependencies("crates/biors-core/Cargo.toml")
     if core != CORE_DEPS:
         raise AssertionError(
             f"biors-core normal dependencies must stay {sorted(CORE_DEPS)}, found {sorted(core)}"
         )
 
-    for manifest in ["packages/rust/biors-core/Cargo.toml", "packages/rust/biors/Cargo.toml"]:
+    for manifest in ["crates/biors-core/Cargo.toml", "crates/biors/Cargo.toml"]:
         direct = dependencies(manifest)
         forbidden = sorted(direct & FORBIDDEN_CORE_OR_CLI_DEPS)
         if forbidden:

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/fastq-validation-output.v0.json",
+  "type": "object",
+  "required": [
+    "format",
+    "sequence_kind",
+    "records",
+    "valid_records",
+    "warning_count",
+    "error_count",
+    "record_reports"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "fastq" },
+    "sequence_kind": { "const": "dna" },
+    "records": { "type": "integer", "minimum": 0 },
+    "valid_records": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "record_reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "sequence_length",
+          "quality_length",
+          "metadata",
+          "valid",
+          "warnings",
+          "errors"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "sequence_length": { "type": "integer", "minimum": 0 },
+          "quality_length": { "type": "integer", "minimum": 0 },
+          "metadata": { "$ref": "#/$defs/format_metadata" },
+          "valid": { "type": "boolean" },
+          "warnings": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/fastq_issue" }
+          },
+          "errors": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/fastq_issue" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "format_metadata": {
+      "type": "object",
+      "required": ["record_index", "line_start", "line_end"],
+      "additionalProperties": false,
+      "properties": {
+        "record_index": { "type": "integer", "minimum": 0 },
+        "line_start": { "type": "integer", "minimum": 1 },
+        "line_end": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "fastq_issue": {
+      "type": "object",
+      "required": ["symbol", "position", "code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "symbol": { "type": "string", "minLength": 1 },
+        "position": { "type": "integer", "minimum": 1 },
+        "code": {
+          "enum": [
+            "ambiguous_symbol",
+            "invalid_symbol",
+            "invalid_quality_character"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

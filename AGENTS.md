@@ -18,13 +18,16 @@ Before changing behavior, inspect the relevant code and existing repo docs:
 - `CONTRIBUTING.md`
 - `docs/`
 - `schemas/`
-- `examples/`
+- `contracts/`
+- `testdata/`
+- `integrations/`
+- `deploy/`
 - `.github/`
 - `scripts/check.sh`
 
 Do not duplicate detailed contracts here.
 
-Keep implementation, tests, fixtures, schemas, docs, and examples aligned.
+Keep implementation, tests, test data, schemas, contracts, docs, and integration templates aligned.
 
 Do not claim roadmap items as current features.
 

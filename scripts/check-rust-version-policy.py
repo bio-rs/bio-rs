@@ -29,7 +29,7 @@ def main() -> int:
     if channel != TOOLCHAIN:
         errors.append(f"rust-toolchain channel must be {TOOLCHAIN}, found {channel!r}")
 
-    for manifest in sorted(Path("packages/rust").glob("*/Cargo.toml")):
+    for manifest in sorted(Path("crates").glob("*/Cargo.toml")):
         package = tomllib.loads(manifest.read_text(encoding="utf-8"))["package"]
         if package.get("rust-version", {}).get("workspace") is not True:
             errors.append(f"{manifest} must inherit rust-version.workspace = true")

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/service-empty-request.v0.json",
+  "title": "bio-rs service empty request",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}

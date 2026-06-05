@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/bio-entity-export-output.v0.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "records",
+    "valid_records",
+    "model_ready_records",
+    "warning_count",
+    "error_count",
+    "entities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "biors.conversion.v0" },
+    "records": { "type": "integer", "minimum": 0 },
+    "valid_records": { "type": "integer", "minimum": 0 },
+    "model_ready_records": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/bio_entity" }
+    }
+  },
+  "$defs": {
+    "bio_entity": {
+      "type": "object",
+      "required": ["id", "entity_type", "source", "record", "validation"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "entity_type": { "enum": ["sequence", "structure", "molecule"] },
+        "source": { "$ref": "#/$defs/conversion_source" },
+        "record": { "$ref": "#/$defs/conversion_record" },
+        "validation": { "$ref": "#/$defs/conversion_validation" }
+      }
+    },
+    "conversion_source": {
+      "type": "object",
+      "required": ["format"],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "enum": [
+            "fasta",
+            "fastq",
+            "pdb",
+            "mmcif",
+            "smiles",
+            "sdf",
+            "mol2"
+          ]
+        },
+        "metadata": { "$ref": "#/$defs/format_metadata" }
+      }
+    },
+    "format_metadata": {
+      "type": "object",
+      "required": ["record_index", "line_start", "line_end"],
+      "additionalProperties": false,
+      "properties": {
+        "record_index": { "type": "integer", "minimum": 0 },
+        "line_start": { "type": "integer", "minimum": 1 },
+        "line_end": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "conversion_record": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "data"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "sequence" },
+            "data": { "$ref": "#/$defs/converted_sequence_record" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "data"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "structure" },
+            "data": { "$ref": "#/$defs/converted_structure_record" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "data"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "molecule" },
+            "data": { "$ref": "#/$defs/converted_molecule_record" }
+          }
+        }
+      ]
+    },
+    "converted_sequence_record": {
+      "type": "object",
+      "required": ["sequence"],
+      "additionalProperties": false,
+      "properties": {
+        "sequence": { "$ref": "#/$defs/sequence_record" },
+        "description": { "type": "string" },
+        "quality": { "type": "string" },
+        "auto_detection": { "$ref": "#/$defs/sequence_kind_detection" }
+      }
+    },
+    "sequence_record": {
+      "type": "object",
+      "required": ["id", "sequence", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "sequence": { "type": "string" },
+        "kind": { "enum": ["protein", "dna", "rna"] }
+      }
+    },
+    "sequence_kind_detection": {
+      "type": "object",
+      "required": ["selected_kind", "candidate_kinds", "ambiguous"],
+      "additionalProperties": false,
+      "properties": {
+        "selected_kind": { "enum": ["protein", "dna", "rna"] },
+        "candidate_kinds": {
+          "type": "array",
+          "items": { "enum": ["protein", "dna", "rna"] },
+          "minItems": 1
+        },
+        "ambiguous": { "type": "boolean" }
+      }
+    },
+    "converted_structure_record": {
+      "type": "object",
+      "required": ["record", "sequences"],
+      "additionalProperties": false,
+      "properties": {
+        "record": { "$ref": "#/$defs/structure_record" },
+        "sequences": { "$ref": "#/$defs/structure_sequence_output" }
+      }
+    },
+    "structure_record": {
+      "type": "object",
+      "required": ["format", "metadata", "chains"],
+      "additionalProperties": true,
+      "properties": {
+        "format": { "enum": ["pdb", "mmcif"] },
+        "id": { "type": "string", "minLength": 1 },
+        "metadata": { "type": "object" },
+        "chains": { "type": "array" }
+      }
+    },
+    "structure_sequence_output": {
+      "type": "object",
+      "required": ["format", "chains"],
+      "additionalProperties": true,
+      "properties": {
+        "format": { "enum": ["pdb", "mmcif"] },
+        "chains": { "type": "array" }
+      }
+    },
+    "converted_molecule_record": {
+      "type": "object",
+      "required": ["record", "format_record", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "record": { "$ref": "#/$defs/molecule_record" },
+        "format_record": { "$ref": "#/$defs/format_record" },
+        "derived": { "$ref": "#/$defs/molecule_derived_features" }
+      }
+    },
+    "molecule_record": {
+      "type": "object",
+      "required": ["format", "source", "metadata", "graph", "properties"],
+      "additionalProperties": true,
+      "properties": {
+        "format": { "enum": ["smiles", "sdf", "mol2"] },
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string" },
+        "metadata": { "type": "object" },
+        "graph": { "type": "object" },
+        "properties": { "type": "array" }
+      }
+    },
+    "format_record": {
+      "type": "object",
+      "required": ["format", "id", "metadata", "fields"],
+      "additionalProperties": false,
+      "properties": {
+        "format": { "enum": ["fasta", "fastq", "gff", "gtf", "bed", "vcf", "genbank", "uniprot", "csv", "tsv", "pdb", "mmcif", "smiles", "sdf", "mol2"] },
+        "id": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/format_metadata" },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/format_field" }
+        }
+      }
+    },
+    "format_field": {
+      "type": "object",
+      "required": ["name", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "value": { "type": "string" }
+      }
+    },
+    "molecule_derived_features": {
+      "type": "object",
+      "required": [
+        "canonical_graph_key",
+        "formula",
+        "exact_mass",
+        "heavy_atom_count",
+        "hetero_atom_count",
+        "ring_bond_count",
+        "rotatable_bond_count",
+        "hydrogen_bond_donor_count",
+        "hydrogen_bond_acceptor_count",
+        "formal_charge",
+        "fingerprint"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "canonical_graph_key": { "type": "string" },
+        "formula": { "type": "string" },
+        "exact_mass": { "type": "number" },
+        "heavy_atom_count": { "type": "integer", "minimum": 0 },
+        "hetero_atom_count": { "type": "integer", "minimum": 0 },
+        "ring_bond_count": { "type": "integer", "minimum": 0 },
+        "rotatable_bond_count": { "type": "integer", "minimum": 0 },
+        "hydrogen_bond_donor_count": { "type": "integer", "minimum": 0 },
+        "hydrogen_bond_acceptor_count": { "type": "integer", "minimum": 0 },
+        "formal_charge": { "type": "integer" },
+        "fingerprint": { "type": "object" }
+      }
+    },
+    "conversion_validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "model_ready",
+        "warning_count",
+        "error_count",
+        "warnings",
+        "errors"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "model_ready": { "type": "boolean" },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/conversion_issue" }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/conversion_issue" }
+        }
+      }
+    },
+    "conversion_issue": {
+      "type": "object",
+      "required": ["severity", "code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "severity": { "enum": ["warning", "error"] },
+        "code": {
+          "enum": [
+            "sequence_ambiguous_symbol",
+            "sequence_invalid_symbol",
+            "empty_sequence",
+            "fastq_quality_length_mismatch",
+            "fastq_invalid_quality_character",
+            "structure_validation_warning",
+            "structure_validation_error",
+            "molecule_validation_warning",
+            "molecule_validation_error"
+          ]
+        },
+        "source_code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 },
+        "position": { "type": "integer", "minimum": 0 },
+        "chain_id": { "type": "string", "minLength": 1 },
+        "residue_number": { "type": "integer" },
+        "atom_serial": { "type": "integer" },
+        "atom_index": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

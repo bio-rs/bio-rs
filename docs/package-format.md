@@ -228,8 +228,8 @@ The example package includes a deliberate mismatch observation file:
 
 ```bash
 biors package verify \
-  examples/protein-package/manifest.json \
-  --observations examples/protein-package/observations.mismatch.json \
+  testdata/protein-package/manifest.json \
+  --observations testdata/protein-package/observations.mismatch.json \
   --json
 ```
 
@@ -275,7 +275,7 @@ Rationale:
 - A separate crate would add public release coordination before there are
   independent downstream manifest consumers.
 - The implementation is already isolated under
-  `packages/rust/biors-core/src/package/`, so extracting it later can be done
+  `crates/biors-core/src/package/`, so extracting it later can be done
   without changing package JSON.
 
 Revisit the split when another Rust crate needs manifest parsing without the

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/structure-sequence-output.v0.json",
+  "type": "object",
+  "required": ["format", "chains"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "pdb" },
+    "chains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "chain_id",
+          "coordinate_sequence",
+          "coordinate_residues",
+          "seqres_residues",
+          "missing_residues",
+          "mapping"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "string", "minLength": 1 },
+          "coordinate_sequence": {
+            "type": "string",
+            "pattern": "^[A-Z]*$"
+          },
+          "seqres_sequence": {
+            "type": "string",
+            "pattern": "^[A-Z]*$"
+          },
+          "coordinate_residues": { "type": "integer", "minimum": 0 },
+          "seqres_residues": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          },
+          "missing_residues": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/missing_residue" }
+          },
+          "mapping": { "$ref": "#/$defs/sequence_mapping" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "missing_residue": {
+      "type": "object",
+      "required": ["name", "chain_id", "sequence_number"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{1,3}$"
+        },
+        "chain_id": { "type": "string", "minLength": 1 },
+        "sequence_number": { "type": "integer" },
+        "insertion_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1
+        }
+      }
+    },
+    "sequence_mapping": {
+      "type": "object",
+      "required": ["status", "message", "coordinate_to_seqres_positions"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "exact",
+            "coordinate_subsequence",
+            "missing_seqres",
+            "mismatch"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "coordinate_to_seqres_positions": {
+          "type": "array",
+          "items": {
+            "type": ["integer", "null"],
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

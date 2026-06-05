@@ -1096,7 +1096,7 @@
       "status": "criterion_regression_guard",
       "claim_scope": "Criterion guard only; no committed public numeric artifact yet.",
       "evidence": [
-        "packages/rust/biors-core/benches/fasta_workloads.rs"
+        "crates/biors-core/benches/fasta_workloads.rs"
       ]
     },
     {
@@ -1177,7 +1177,7 @@
   ],
   "release_status": {
     "status": "historical",
-    "current_workspace_version": "0.47.16",
+    "current_workspace_version": "0.57.1",
     "stale_reason": "FASTA throughput numbers were recorded on biors-core 0.20.0 and retained only as a historical baseline until the benchmark is rerun for the current release candidate.",
     "claim_policy": "not current-version performance evidence; do not use these numeric FASTA results for current release claims until the artifact is regenerated"
   }

@@ -5,7 +5,7 @@ bio-rs supports three install paths for the pre-1.0 line.
 ## Cargo Install
 
 ```bash
-cargo install biors --version 0.47.16
+cargo install biors --version 0.57.1
 biors --version
 biors doctor
 ```
@@ -19,8 +19,8 @@ Tagged releases build versioned binary archives for:
 - `x86_64-unknown-linux-gnu`
 - `aarch64-apple-darwin`
 
-Other platforms should use `cargo install` unless a future release explicitly
-adds a binary archive for that target.
+Other platforms should use `cargo install` unless the tagged release explicitly
+lists a binary archive for that target.
 
 Archive names follow:
 

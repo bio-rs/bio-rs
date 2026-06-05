@@ -17,7 +17,7 @@ def main() -> int:
     parser.add_argument(
         "--tests-dir",
         type=Path,
-        default=Path("packages/rust/biors-python/tests"),
+        default=Path("crates/biors-python/tests"),
     )
     args = parser.parse_args()
 

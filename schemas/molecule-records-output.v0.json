@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/molecule-records-output.v0.json",
+  "type": "array",
+  "items": { "$ref": "#/$defs/molecule_record" },
+  "$defs": {
+    "molecule_record": {
+      "type": "object",
+      "required": ["format", "source", "metadata", "graph", "properties"],
+      "additionalProperties": false,
+      "properties": {
+        "format": { "enum": ["smiles", "sdf", "mol2"] },
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/molecule_metadata" },
+        "graph": {
+          "type": "object",
+          "required": ["atoms", "bonds"],
+          "additionalProperties": false,
+          "properties": {
+            "atoms": {
+              "type": "object",
+              "required": ["atoms"],
+              "additionalProperties": false,
+              "properties": {
+                "atoms": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/molecule_atom" }
+                }
+              }
+            },
+            "bonds": {
+              "type": "object",
+              "required": ["bonds"],
+              "additionalProperties": false,
+              "properties": {
+                "bonds": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/molecule_bond" }
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/molecule_property" }
+        }
+      }
+    },
+    "molecule_metadata": {
+      "type": "object",
+      "required": [
+        "source",
+        "atom_count",
+        "bond_count",
+        "branch_count",
+        "ring_closure_count",
+        "disconnected_component_count",
+        "aromatic_atom_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "$ref": "#/$defs/format_metadata" },
+        "atom_count": { "type": "integer", "minimum": 0 },
+        "bond_count": { "type": "integer", "minimum": 0 },
+        "branch_count": { "type": "integer", "minimum": 0 },
+        "ring_closure_count": { "type": "integer", "minimum": 0 },
+        "disconnected_component_count": { "type": "integer", "minimum": 0 },
+        "aromatic_atom_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "format_metadata": {
+      "type": "object",
+      "required": ["record_index", "line_start", "line_end"],
+      "additionalProperties": false,
+      "properties": {
+        "record_index": { "type": "integer", "minimum": 0 },
+        "line_start": { "type": "integer", "minimum": 1 },
+        "line_end": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "molecule_atom": {
+      "type": "object",
+      "required": [
+        "index",
+        "element",
+        "token",
+        "aromatic",
+        "bracketed",
+        "explicit_hydrogens",
+        "charge"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "element": { "type": "string", "minLength": 1 },
+        "token": { "type": "string", "minLength": 1 },
+        "aromatic": { "type": "boolean" },
+        "bracketed": { "type": "boolean" },
+        "isotope": { "type": "integer", "minimum": 1 },
+        "explicit_hydrogens": { "type": "integer", "minimum": 0 },
+        "charge": { "type": "integer" },
+        "chirality": { "type": "string", "minLength": 1 },
+        "atom_class": { "type": "integer", "minimum": 0 }
+        ,
+        "coordinate": { "$ref": "#/$defs/molecule_coordinate" },
+        "atom_type": { "type": "string", "minLength": 1 },
+        "partial_charge": { "type": "number" },
+        "substructure_id": { "type": "integer" },
+        "substructure_name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "molecule_coordinate": {
+      "type": "object",
+      "required": ["x", "y", "z"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "molecule_property": {
+      "type": "object",
+      "required": ["name", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "value": { "type": "string" }
+      }
+    },
+    "molecule_bond": {
+      "type": "object",
+      "required": [
+        "index",
+        "source_atom",
+        "target_atom",
+        "order",
+        "ring_closure"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "source_atom": { "type": "integer", "minimum": 0 },
+        "target_atom": { "type": "integer", "minimum": 0 },
+        "order": {
+          "enum": ["single", "double", "triple", "quadruple", "aromatic"]
+        },
+        "ring_closure": { "type": "boolean" },
+        "stereochemistry": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

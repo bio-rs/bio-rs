@@ -15,6 +15,14 @@ try it quickly.
 - `biors debug --max-length <usize> <path|->`
 - `biors diff <expected> <observed>`
 - `biors doctor`
+- `biors formats list`
+- `biors formats validate --format fastq <path|->`
+- `biors molecule validate --format smiles|sdf|mol2 <path|->`
+- `biors molecule inspect --format smiles|sdf|mol2 <path|->`
+- `biors structure validate --format pdb <path|->`
+- `biors structure sequence --format pdb <path|->`
+- `biors templates list`
+- `biors templates show <template-id>`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors tokenize [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>] <path|->`
@@ -25,6 +33,7 @@ try it quickly.
 - `biors workflow [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors fasta validate [--kind protein|dna|rna|auto] <path|->`
 - `biors seq validate [--kind auto|protein|dna|rna] <path|->`
+- `biors serve [--host <host>] [--port <port>] [--max-body-bytes <bytes>]`
 - `biors package inspect <manifest>`
 - `biors package validate <manifest|->`
 - `biors package init <output-dir> --name <name> --model <model.onnx> [--tokenizer-config <json>] --fixture-input <fasta> --fixture-output <json> --license <expr> --citation <text> [--doi <doi>] --model-card-summary <text> --intended-use <text> --limitation <text> [--force]`
@@ -38,7 +47,9 @@ try it quickly.
 - `biors pipeline --max-length <usize> [--pad-token-id <u8>] [--padding fixed-length|no-padding] <path|->`
 - `biors pipeline --config <toml|json> [--dry-run] [--explain-plan]`
 - `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
+- `biors report generate <json|-> [--output <report.md>] [--shareable-json <report.json>]`
 - `biors service contract`
+- `biors service hosted-boundary`
 
 ## Schema Inventory
 
@@ -47,14 +58,21 @@ for CLI output, package manifests, pipeline configs, service requests, tokenizer
 metadata, and workflow payloads:
 
 - `batch-validation-output.v0.json`
+- `bio-entity-export-output.v0.json`
+- `browser-tooling-output.v0.json`
 - `cache-output.v0.json`
 - `cli-error.v0.json`
 - `cli-success.v0.json`
 - `dataset-inspect-output.v0.json`
 - `doctor-output.v0.json`
 - `fasta-validation-output.v0.json`
+- `fastq-validation-output.v0.json`
+- `format-capabilities-output.v0.json`
+- `hosted-workflow-boundary-output.v0.json`
 - `inspect-output.v0.json`
 - `model-input-output.v0.json`
+- `molecule-records-output.v0.json`
+- `molecule-validation-output.v0.json`
 - `output-diff.v0.json`
 - `package-bridge-output.v0.json`
 - `package-compatibility-output.v0.json`
@@ -70,15 +88,25 @@ metadata, and workflow payloads:
 - `pipeline-config.v0.json`
 - `pipeline-lock.v0.json`
 - `pipeline-output.v0.json`
+- `report-output.v0.json`
 - `sequence-debug-output.v0.json`
 - `sequence-workflow-output.v0.json`
 - `service-interface-output.v0.json`
+- `service-batch-sequence-validate-output.v0.json`
+- `service-batch-sequence-validate-request.v0.json`
+- `service-empty-request.v0.json`
+- `service-health-output.v0.json`
 - `service-model-input-request.v0.json`
+- `service-openapi-output.v0.json`
 - `service-package-compatibility-request.v0.json`
 - `service-package-request.v0.json`
 - `service-sequence-inspect-request.v0.json`
 - `service-sequence-tokenize-request.v0.json`
 - `service-sequence-validate-request.v0.json`
+- `structure-sequence-output.v0.json`
+- `structure-validation-output.v0.json`
+- `task-template-catalog-output.v0.json`
+- `task-template-output.v0.json`
 - `tokenize-output.v0.json`
 - `tokenizer-conversion-output.v0.json`
 - `tokenizer-inspect-output.v0.json`
@@ -114,6 +142,12 @@ and errors.
 `diff` compares expected and observed outputs as canonical JSON when possible
 and raw bytes otherwise. It always emits a report with SHA-256 hashes,
 `matches`, and first-difference metadata for mismatches.
+`report generate` converts bio-rs JSON output into a deterministic shareable
+report with provenance, raw and canonical JSON hashes, rendered Markdown, and a
+Markdown hash. It accepts CLI success/error envelopes and raw JSON. The stdout
+payload uses `report-output.v0.json`; `--output` writes Markdown, and
+`--shareable-json` writes the bare `biors.report.v0` JSON report. The command is
+local-only and does not upload or persist source payloads.
 `biors --version` prints the installed CLI package version so workflow logs and
 benchmark records can be tied back to the exact released binary.
 `biors completions <shell>` writes shell completion scripts to stdout.
@@ -121,10 +155,22 @@ benchmark records can be tied back to the exact released binary.
 capability groups covering core CLI, WASM, Python bindings, package fixtures,
 release tooling, and benchmark tooling. Optional binding/release tools are
 reported as warnings with install hints rather than causing the command to fail.
-`biors service contract` emits the transport-agnostic service interface
-contract. It lists deterministic operations, JSON schema names, file access
-policy, runtime/package boundaries, and offline OpenAPI direction without
-starting a service runtime.
+`biors service contract` emits the service interface contract. It lists
+deterministic operations, JSON schema names, file access policy,
+runtime/package boundaries, and the local CLI server endpoints exposed by
+`biors serve`.
+`biors service hosted-boundary` emits the hosted workflow boundary contract. It
+keeps the open-source core local-first and no-network-by-default, separates
+user/project workspace, billing, remote storage, hosted web/product, and landing
+page responsibilities into an external hosted layer, and records the consent,
+retention, provenance, and version-pinning requirements a hosted caller must
+satisfy. It does not create a hosted workspace, upload data, call a remote
+model, start a web UI, or add a product landing page.
+`biors serve` starts a local-first HTTP JSON server on `127.0.0.1:8787` by
+default. It does not call external services, upload biological data, persist
+requests, run model inference, or open a hosted workspace. The current runtime
+serves `GET /health`, `GET /openapi.json`, and
+`POST /v0/batch/sequence/validate`.
 `batch validate` accepts multiple file paths, directories, and quoted glob
 patterns. Directory inputs recurse into nested folders, include common FASTA
 file extensions, and ignore unrelated files. Empty glob expansion fails with
@@ -173,6 +219,44 @@ records include `auto_detection.selected_kind`,
 spot short or alphabet-overlapping sequences and rerun with an explicit kind.
 `seq validate` uses the same output contract but defaults to `--kind auto` for
 mixed biological sequence batches.
+`formats list` emits the format support matrix. `supported` formats expose
+executable parser/validation contracts in the current release, while
+`reviewed_candidate` formats expose requirements only and must not be treated
+as parsed or validated by bio-rs yet.
+`formats validate --format fastq` validates FASTQ headers, `+` separators,
+optional separator identifier parity, non-empty sequence bodies, DNA IUPAC
+sequence symbols, quality length parity, and printable Phred+33 quality
+characters. The output uses `fastq-validation-output.v0.json` and includes
+per-record line ranges, sequence length, quality length, warnings, and errors
+without repeating raw read payloads.
+`molecule validate --format smiles|sdf|mol2` parses molecule records into a
+shared graph contract, validates source syntax, checks conservative valence for
+common organic and bioactive atoms, emits deterministic canonical graph keys,
+formula/mass descriptors, simple molecular descriptors, and
+`biors-ecfp-lite-v0` hashed fingerprints. The output uses
+`molecule-validation-output.v0.json`.
+`molecule inspect --format smiles|sdf|mol2` emits parsed `MoleculeRecord`
+values with `AtomGraph`, `BondGraph`, source metadata, coordinates when present,
+SDF data items, MOL2 atom types, partial charges, and substructure metadata.
+The output uses `molecule-records-output.v0.json`.
+`structure validate --format pdb` validates fixed-column PDB ATOM/HETATM
+records, extracts chains and residues, preserves `REMARK 465` missing residues,
+checks finite coordinates and occupancy ranges, and maps coordinate-derived
+protein sequence against SEQRES when present. The output uses
+`structure-validation-output.v0.json`.
+`structure sequence --format pdb` emits per-chain coordinate-derived protein
+sequence, optional SEQRES sequence, missing-residue annotations, and one-based
+coordinate-to-SEQRES mapping positions. The output uses
+`structure-sequence-output.v0.json`.
+`templates list` emits stable local task template contracts for protein
+classification, protein embeddings, variant effects, molecule properties,
+structure validation, and sequence similarity preprocessing. The output uses
+`task-template-catalog-output.v0.json`.
+`templates show <template-id>` emits one template using
+`task-template-output.v0.json`. Templates describe inputs, validations,
+model-ready fields, expected outputs, and local execution assumptions; they do
+not call models, rank search results, upload input data, or open network
+connections.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.
@@ -211,8 +295,11 @@ All successful command output is written to stdout as pretty JSON:
 }
 ```
 
-`input_hash` is present for FASTA-backed commands. Package commands omit it
-unless they directly hash a user input contract in a later release.
+`input_hash` is present for commands that stream and hash biological input,
+including FASTA-backed commands, FASTQ validation, molecule commands, and PDB
+structure commands.
+Package commands omit it unless they directly hash a user input contract in a
+later release.
 
 The `input_hash` field remains `fnv1a64:` for FASTA-backed compatibility. Package manifest checksums and fixture hashes use `sha256:`.
 
@@ -277,6 +364,18 @@ byte count, sample count, portable dataset content hash, local mapping hash,
 deterministic `resolved_files`, and sample mapping lists.
 Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
+Hosted workflow boundary payloads use
+`schemas/hosted-workflow-boundary-output.v0.json`.
+WASM browser helper payloads use
+`schemas/browser-tooling-output.v0.json`.
+Local HTTP health payloads use `schemas/service-health-output.v0.json`.
+The served OpenAPI document uses `schemas/service-openapi-output.v0.json`.
+The batch sequence endpoint accepts
+`schemas/service-batch-sequence-validate-request.v0.json` and returns
+`schemas/service-batch-sequence-validate-output.v0.json`.
+Task template payloads use `schemas/task-template-catalog-output.v0.json` for
+`templates list` and `schemas/task-template-output.v0.json` for
+`templates show`.
 
 Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
 Tokenizer config files reject unknown top-level fields so preprocessing
