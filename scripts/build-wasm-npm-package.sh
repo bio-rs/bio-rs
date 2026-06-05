@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CRATE_DIR="$ROOT_DIR/packages/rust/biors-wasm"
+CRATE_DIR="$ROOT_DIR/crates/biors-wasm"
 PKG_DIR="$CRATE_DIR/pkg"
 TEMP_LICENSE_APACHE=0
 TEMP_LICENSE_MIT=0

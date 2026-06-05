@@ -1,11 +1,11 @@
 [workspace]
 members = [
-    "packages/rust/biors",
-    "packages/rust/biors-backend-candle",
-    "packages/rust/biors-core",
-    "packages/rust/biors-mcp-server",
-    "packages/rust/biors-python",
-    "packages/rust/biors-wasm",
+    "crates/biors",
+    "crates/biors-backend-candle",
+    "crates/biors-core",
+    "crates/biors-mcp-server",
+    "crates/biors-python",
+    "crates/biors-wasm",
 ]
 resolver = "2"
 
@@ -17,7 +17,7 @@ rust-version = "1.88"
 version = "0.56.0"
 
 [workspace.dependencies]
-biors-core = { version = "0.56.0", path = "packages/rust/biors-core" }
+biors-core = { version = "0.56.0", path = "crates/biors-core" }
 candle-core = { version = "0.10.2", default-features = false }
 clap = { version = "4.5.37", features = ["derive"] }
 clap_complete = "4.5.48"

@@ -101,11 +101,11 @@ when your change touches that surface:
 
 | Surface | Run when changed | Checks |
 | --- | --- | --- |
-| Rust core, CLI, schemas | `packages/rust/biors-core`, `packages/rust/biors`, `schemas/`, CLI docs | `cargo test -p biors-core`, `cargo test -p biors`, `scripts/check-fast.sh` |
-| Python bindings | `packages/rust/biors-python`, Python API docs, Python examples | `maturin build --manifest-path packages/rust/biors-python/Cargo.toml`, `python3 scripts/test-python-wheel.py <wheel>` |
-| WASM/npm bindings | `packages/rust/biors-wasm`, `docs/wasm-api.md`, npm package metadata | `wasm-pack test --node packages/rust/biors-wasm`, `scripts/check-package-artifacts.sh` |
-| MCP service | `packages/rust/biors-mcp-server`, MCP JSON contracts | `cargo test -p biors-mcp-server --all-targets` |
-| Package/release artifacts | `examples/protein-package`, package schemas, release workflow, install docs | `scripts/check-package-artifacts.sh`, `python3 scripts/check-release-workflow.py` |
+| Rust core, CLI, schemas | `crates/biors-core`, `crates/biors`, `schemas/`, CLI docs | `cargo test -p biors-core`, `cargo test -p biors`, `scripts/check-fast.sh` |
+| Python bindings | `crates/biors-python`, Python API docs, Python integration scripts | `maturin build --manifest-path crates/biors-python/Cargo.toml`, `python3 scripts/test-python-wheel.py <wheel>` |
+| WASM/npm bindings | `crates/biors-wasm`, `docs/wasm-api.md`, npm package metadata | `wasm-pack test --node crates/biors-wasm`, `scripts/check-package-artifacts.sh` |
+| MCP service | `crates/biors-mcp-server`, MCP JSON contracts | `cargo test -p biors-mcp-server --all-targets` |
+| Package/release artifacts | `testdata/protein-package`, package schemas, release workflow, install docs | `scripts/check-package-artifacts.sh`, `python3 scripts/check-release-workflow.py` |
 | Benchmarks | `benches/`, `benchmarks/`, performance docs or claims | `cargo bench -p biors-core --bench fasta_workloads`, `scripts/check-benchmark-docs.sh` |
 | Dependencies/security | `Cargo.toml`, `Cargo.lock`, dependency policy, release gates | `python3 scripts/check-dependency-policy.py`, `scripts/check-security-audit.sh` |
 

@@ -10,8 +10,8 @@ trap cleanup EXIT INT TERM
 install_root="$tmp_dir/install"
 cargo install \
   --locked \
-  --path packages/rust/biors \
+  --path crates/biors \
   --root "$install_root"
 
 "$install_root/bin/biors" --version
-"$install_root/bin/biors" tokenize examples/protein.fasta >/dev/null
+"$install_root/bin/biors" tokenize testdata/sequences/protein.fasta >/dev/null

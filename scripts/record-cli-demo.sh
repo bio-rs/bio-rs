@@ -2,7 +2,7 @@
 set -eu
 
 BIN="${BIORS_BIN:-biors}"
-DATASET="${BIORS_DEMO_DATASET:-examples/launch-demo.fasta}"
+DATASET="${BIORS_DEMO_DATASET:-testdata/sequences/launch-demo.fasta}"
 OUT_DIR="${BIORS_DEMO_OUT_DIR:-target/biors-demo}"
 
 if [ "${1:-}" = "--cargo" ]; then
@@ -26,10 +26,10 @@ printf '\n$ %s model-input --max-length 32 %s\n' "$BIN" "$DATASET"
 $BIN model-input --max-length 32 "$DATASET" >"$OUT_DIR/model-input.json"
 cat "$OUT_DIR/model-input.json"
 
-printf '\n$ %s package verify examples/protein-package/manifest.json examples/protein-package/observations.json\n' "$BIN"
+printf '\n$ %s package verify testdata/protein-package/manifest.json testdata/protein-package/observations.json\n' "$BIN"
 $BIN package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json \
+  testdata/protein-package/manifest.json \
+  testdata/protein-package/observations.json \
   >"$OUT_DIR/package-verify.json"
 cat "$OUT_DIR/package-verify.json"
 

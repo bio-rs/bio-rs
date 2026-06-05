@@ -33,9 +33,9 @@ TEXT_VERSION_FILES = [
     "benchmarks/mcp_server.json",
     "benchmarks/python_bindings.json",
     "benchmarks/wasm_bindings.json",
-    "packages/rust/biors-python/pyproject.toml",
-    "packages/rust/biors-wasm/package.json",
-    "examples/protein-package/docs/CITATION.cff",
+    "crates/biors-python/pyproject.toml",
+    "crates/biors-wasm/package.json",
+    "testdata/protein-package/docs/CITATION.cff",
 ]
 
 
@@ -109,8 +109,8 @@ def replace_versions(current_version: str, new_version: str) -> None:
 
 
 def update_example_manifest(version: str) -> None:
-    manifest_path = REPO / "examples/protein-package/manifest.json"
-    citation_path = REPO / "examples/protein-package/docs/CITATION.cff"
+    manifest_path = REPO / "testdata/protein-package/manifest.json"
+    citation_path = REPO / "testdata/protein-package/docs/CITATION.cff"
     checksum = hashlib.sha256(citation_path.read_bytes()).hexdigest()
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -135,11 +135,11 @@ def regenerate_pipeline_lock() -> None:
             "--",
             "pipeline",
             "--config",
-            "examples/protein-package/pipelines/protein.toml",
+            "testdata/protein-package/pipelines/protein.toml",
             "--package",
-            "examples/protein-package/manifest.json",
+            "testdata/protein-package/manifest.json",
             "--write-lock",
-            "examples/pipeline/pipeline.lock",
+            "testdata/pipeline/pipeline.lock",
         ]
     )
 

@@ -177,10 +177,10 @@ jobs:
       - name: Install maturin
         run: python -m pip install --upgrade "maturin==${{ env.BIORS_RELEASE_MATURIN_VERSION }}"
       - name: Build wheel
-        run: maturin build --release --manifest-path packages/rust/biors-python/Cargo.toml --out dist --compatibility pypi
+        run: maturin build --release --manifest-path crates/biors-python/Cargo.toml --out dist --compatibility pypi
       - name: Build source distribution
         if: runner.os == 'Linux'
-        run: maturin sdist --manifest-path packages/rust/biors-python/Cargo.toml --out dist
+        run: maturin sdist --manifest-path crates/biors-python/Cargo.toml --out dist
       - name: Check Python distribution license files
         run: python scripts/check-release-artifact-contents.py python-dist dist
       - name: Check Python source distribution license files
@@ -252,13 +252,13 @@ jobs:
           tar -xzf wasm-pack.tar.gz
           echo "$PWD/${archive}" >> "$GITHUB_PATH"
       - name: Test WASM package
-        run: wasm-pack test --node packages/rust/biors-wasm
+        run: wasm-pack test --node crates/biors-wasm
       - name: Build npm package
         run: scripts/build-wasm-npm-package.sh
       - name: Check npm package artifact contents
-        run: python scripts/check-release-artifact-contents.py wasm-package packages/rust/biors-wasm/pkg
+        run: python scripts/check-release-artifact-contents.py wasm-package crates/biors-wasm/pkg
       - name: Publish npm package with trusted publishing
-        run: npm publish packages/rust/biors-wasm/pkg --access public --provenance
+        run: npm publish crates/biors-wasm/pkg --access public --provenance
 
   build-release-binaries:
     name: Build Release Binary (${{ matrix.target }})

@@ -52,12 +52,12 @@ FASTA parsing errors with structured JSON error codes.
 
 ## Docker/OCI Template
 
-The checked-in template is in `examples/service/Dockerfile`.
+The checked-in template is in `deploy/service/Dockerfile`.
 
 Build:
 
 ```bash
-docker build -f examples/service/Dockerfile \
+docker build -f deploy/service/Dockerfile \
   --build-arg BIORS_VERSION=0.54.0 \
   -t biors-service:0.54.0 .
 ```

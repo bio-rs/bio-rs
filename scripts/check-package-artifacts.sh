@@ -22,13 +22,13 @@ if [ "$maturin_version" != "$BIORS_RELEASE_MATURIN_VERSION" ]; then
 fi
 rm -rf "$python_dist"
 mkdir -p "$python_dist"
-maturin build --release --manifest-path packages/rust/biors-python/Cargo.toml --out "$python_dist" --compatibility pypi
-maturin sdist --manifest-path packages/rust/biors-python/Cargo.toml --out "$python_dist"
+maturin build --release --manifest-path crates/biors-python/Cargo.toml --out "$python_dist" --compatibility pypi
+maturin sdist --manifest-path crates/biors-python/Cargo.toml --out "$python_dist"
 python3 scripts/check-release-artifact-contents.py python-dist "$python_dist" --require-sdist
 python3 scripts/test-python-wheel.py --dist-dir "$python_dist"
 
 echo "==> WASM tests and npm artifact"
-wasm-pack test --node packages/rust/biors-wasm
+wasm-pack test --node crates/biors-wasm
 scripts/build-wasm-npm-package.sh
 
 echo "==> crate package artifacts"

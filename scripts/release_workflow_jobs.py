@@ -122,10 +122,10 @@ def assert_publish_jobs(jobs: dict[str, Any]) -> None:
             StepCheck(uses=RUST_TOOLCHAIN_ACTION, with_values={"targets": "wasm32-unknown-unknown"}),
             StepCheck(name="Set up Node.js", uses="actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e", with_values={"node-version": "${{ env.BIORS_RELEASE_NODE_VERSION }}"}),
             StepCheck(name="Install wasm-pack", run_contains=["github.com/rustwasm/wasm-pack/releases/download", "wasm-pack-v${{ env.BIORS_RELEASE_WASM_PACK_VERSION }}-x86_64-unknown-linux-musl", "BIORS_RELEASE_WASM_PACK_SHA256", "sha256sum -c -"]),
-            StepCheck(name="Test WASM package", run_contains=["wasm-pack test --node packages/rust/biors-wasm"]),
+            StepCheck(name="Test WASM package", run_contains=["wasm-pack test --node crates/biors-wasm"]),
             StepCheck(name="Build npm package", run_contains=["scripts/build-wasm-npm-package.sh"]),
-            StepCheck(name="Check npm package artifact contents", run_contains=["scripts/check-release-artifact-contents.py wasm-package packages/rust/biors-wasm/pkg"]),
-            StepCheck(name="Publish npm package with trusted publishing", run_contains=["npm publish packages/rust/biors-wasm/pkg --access public --provenance"]),
+            StepCheck(name="Check npm package artifact contents", run_contains=["scripts/check-release-artifact-contents.py wasm-package crates/biors-wasm/pkg"]),
+            StepCheck(name="Publish npm package with trusted publishing", run_contains=["npm publish crates/biors-wasm/pkg --access public --provenance"]),
         ],
     )
 

@@ -413,7 +413,7 @@
       "surface": "package_validation",
       "input": {
         "kind": "package_manifest",
-        "path": "examples/protein-package/manifest.json",
+        "path": "testdata/protein-package/manifest.json",
         "file_size_bytes": 3540,
         "sha256": "sha256:085e61f0684033fb736a55ca6eca825245f6f6d4d145d85b1bd8aa9649212aab"
       },
@@ -422,7 +422,7 @@
           "target/release/biors",
           "package",
           "validate",
-          "examples/protein-package/manifest.json"
+          "testdata/protein-package/manifest.json"
         ],
         "output_hash": "sha256:9dd1472bd02423f94656d552ec8b1c1de121199019552fcfcd71c02354b2988e",
         "seconds": [
@@ -444,7 +444,7 @@
       "surface": "package_bridge",
       "input": {
         "kind": "package_manifest",
-        "path": "examples/protein-package/manifest.json",
+        "path": "testdata/protein-package/manifest.json",
         "file_size_bytes": 3540,
         "sha256": "sha256:085e61f0684033fb736a55ca6eca825245f6f6d4d145d85b1bd8aa9649212aab"
       },
@@ -453,7 +453,7 @@
           "target/release/biors",
           "package",
           "bridge",
-          "examples/protein-package/manifest.json"
+          "testdata/protein-package/manifest.json"
         ],
         "output_hash": "sha256:b2fdde44ae412377a170db8cb824442b78db3250667b1dd78f292d451bb6c39d",
         "seconds": [

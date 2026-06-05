@@ -58,7 +58,7 @@ def ensure_wasm_package(no_build: bool) -> Path:
             [
                 "wasm-pack",
                 "build",
-                "packages/rust/biors-wasm",
+                "crates/biors-wasm",
                 "--target",
                 "nodejs",
                 "--out-dir",

@@ -72,7 +72,7 @@ reproducible and claims need evidence:
   screenshot from a notebook.
 - Model/package authors can ship fixture outputs, checksums, citations, model
   cards, and runtime bridge plans next to their artifacts.
-- Tool builders can embed the same preprocessing behavior in CLIs, web demos,
+- Tool builders can embed the same preprocessing behavior in CLIs,
   local agents, and internal services without reimplementing the parser.
 - Maintainers can point every public claim at schemas, tests, package artifact
   checks, and benchmark regression guards.
@@ -82,19 +82,19 @@ reproducible and claims need evidence:
 ```bash
 cargo install biors --version 0.56.0
 biors doctor
-biors seq validate --kind auto examples/multi.fasta
+biors seq validate --kind auto testdata/sequences/multi.fasta
 printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
 printf 'CC(=O)O acetate\n' | biors molecule validate --format smiles -
 printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
-biors batch validate --kind auto examples/
+biors batch validate --kind auto testdata/sequences/
 biors tokenizer inspect --profile protein-20-special
-biors package validate examples/protein-package/manifest.json
+biors package validate testdata/protein-package/manifest.json
 biors service contract
 # in another terminal: biors serve --host 127.0.0.1 --port 8787
-biors dataset inspect --source uniprot --version 2026_02 --split train examples/
+biors dataset inspect --source uniprot --version 2026_02 --split train testdata/sequences/
 ```
 
-Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.md)
+Full commands, validation flows, and install options: [docs/quickstart.md](docs/quickstart.md)
 
 ## Proof
 
@@ -338,31 +338,29 @@ Most users only need the `biors` CLI or one binding package. This map is for
 contributors and integrators who need to understand where public surfaces live.
 
 ```txt
-packages/
-  rust/
-    biors/                 CLI
-    biors-backend-candle/  Optional Candle runtime backend
-    biors-core/            Core engine + contracts
-    biors-mcp-server/      Local MCP server
-    biors-python/          PyO3 bindings
-    biors-wasm/            WASM/JS bindings
+crates/
+  biors/                 CLI
+  biors-backend-candle/  Optional Candle runtime backend
+  biors-core/            Core engine + contracts
+  biors-mcp-server/      Local MCP server
+  biors-python/          PyO3 bindings
+  biors-wasm/            WASM/JS bindings
+
+contracts/
+  Machine-readable support matrices that are enforced by docs/tests
 
 schemas/
   JSON contracts for CLI, package, pipeline, report, service, tokenizer, and workflow outputs
 
-examples/
-  protein.fasta
-  multi.fasta
+testdata/
+  sequences/
+    protein.fasta
+    multi.fasta
   model-input-contract/
     protein.fasta
     protein-20-special.config.json
     protein-20-special.expected.json
     reference-python-parity.json
-  python/
-    esm_from_biors_json.py
-    pandas_numpy_friendly.py
-    protbert_from_biors_json.py
-    reference_preprocess.py
   protein-package/
     models/
     docs/
@@ -378,6 +376,18 @@ examples/
     protein.yaml
     protein.json
     pipeline.lock
+
+integrations/
+  python/
+    esm_from_biors_json.py
+    pandas_numpy_friendly.py
+    protbert_from_biors_json.py
+    reference_preprocess.py
+
+deploy/
+  service/
+    Dockerfile
+    README.md
 ```
 
 The full schema inventory and command-to-schema mapping live in

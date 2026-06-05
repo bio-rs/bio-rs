@@ -16,8 +16,8 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 CRATES = ("biors-core", "biors-mcp-server", "biors-backend-candle", "biors")
-PYPROJECT = REPO / "packages/rust/biors-python/pyproject.toml"
-NPM_PACKAGE = REPO / "packages/rust/biors-wasm/package.json"
+PYPROJECT = REPO / "crates/biors-python/pyproject.toml"
+NPM_PACKAGE = REPO / "crates/biors-wasm/package.json"
 TIMEOUT_SECONDS = 20
 
 

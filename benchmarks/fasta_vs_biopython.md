@@ -82,7 +82,7 @@ new numeric claims for later releases.
 | Feature | Status | Claim scope | Evidence |
 | --- | --- | --- | --- |
 | `core_fasta_parse_validate_tokenize` | `numeric_public_claim` | Matched FASTA parse, validation, and tokenization workloads recorded in this artifact. | `benchmarks.fasta_vs_biopython.v1 datasets[].benchmarks` |
-| `core_fixed_length_model_input` | `criterion_regression_guard` | Criterion guard only; no committed public numeric artifact yet. | `packages/rust/biors-core/benches/fasta_workloads.rs` |
+| `core_fixed_length_model_input` | `criterion_regression_guard` | Criterion guard only; no committed public numeric artifact yet. | `crates/biors-core/benches/fasta_workloads.rs` |
 | `cli_workflow` | `numeric_regression_guard` | Committed CLI regression guard timing only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_workflow_fixed_length` |
 | `cli_dataset_inspect` | `numeric_regression_guard` | Committed CLI regression guard timing only; no public throughput claim. | `benchmarks/cli_surfaces.json workload cli_dataset_inspect_many_file` |
 | `python_bindings` | `numeric_regression_guard` | Committed Python binding regression guard timing only; no public throughput claim. | `benchmarks/python_bindings.json` |

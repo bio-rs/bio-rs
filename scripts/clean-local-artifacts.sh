@@ -25,8 +25,8 @@ find . \( -path ./.git -o -path ./target \) -prune -o -name '*.pyc' -type f -del
 rm -rf \
   .benchmark-wasm \
   .venv \
-  packages/rust/biors-python/python/biors/biors.abi3.so \
-  packages/rust/biors-wasm/pkg
+  crates/biors-python/python/biors/biors.abi3.so \
+  crates/biors-wasm/pkg
 
 if [ "$remove_target" = true ]; then
   rm -rf target

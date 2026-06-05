@@ -33,10 +33,10 @@ DEFAULT_FILES = [
     "scripts/render_cli_benchmark_report.py",
     "scripts/render_python_benchmark_report.py",
     "scripts/check-python-syntax.py",
-    "examples/python/esm_from_biors_json.py",
-    "examples/python/pandas_numpy_friendly.py",
-    "examples/python/protbert_from_biors_json.py",
-    "examples/python/reference_preprocess.py",
+    "integrations/python/esm_from_biors_json.py",
+    "integrations/python/pandas_numpy_friendly.py",
+    "integrations/python/protbert_from_biors_json.py",
+    "integrations/python/reference_preprocess.py",
 ]
 
 

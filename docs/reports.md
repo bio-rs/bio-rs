@@ -8,7 +8,7 @@ payload must remain traceable.
 ## Generate A Report
 
 ```bash
-biors workflow --max-length 8 examples/protein.fasta > workflow.json
+biors workflow --max-length 8 testdata/sequences/protein.fasta > workflow.json
 biors report generate workflow.json \
   --output workflow-report.md \
   --shareable-json workflow-report.json
@@ -22,7 +22,7 @@ the bare shareable report JSON without the CLI envelope.
 `-` is accepted for input so commands can be chained:
 
 ```bash
-biors seq validate --kind auto examples/multi.fasta \
+biors seq validate --kind auto testdata/sequences/multi.fasta \
   | biors report generate - --output validation-report.md
 ```
 

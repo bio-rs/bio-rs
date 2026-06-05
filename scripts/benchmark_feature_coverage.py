@@ -11,7 +11,7 @@ FEATURE_COVERAGE = [
         "feature": "core_fixed_length_model_input",
         "status": "criterion_regression_guard",
         "claim_scope": "Criterion guard only; no committed public numeric artifact yet.",
-        "evidence": ["packages/rust/biors-core/benches/fasta_workloads.rs"],
+        "evidence": ["crates/biors-core/benches/fasta_workloads.rs"],
     },
     {
         "feature": "cli_workflow",

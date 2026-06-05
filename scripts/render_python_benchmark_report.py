@@ -66,7 +66,7 @@ def render_report(result: dict) -> str:
             "## Reproduce",
             "",
             "```bash",
-            "PYTHONPATH=packages/rust/biors-python/python python3 scripts/benchmark_python_bindings.py",
+            "PYTHONPATH=crates/biors-python/python python3 scripts/benchmark_python_bindings.py",
             "cat benchmarks/python_bindings.json",
             "```",
             "",

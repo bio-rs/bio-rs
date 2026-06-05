@@ -1,6 +1,6 @@
 /target/
 /.benchmark-wasm/
-packages/rust/biors-wasm/pkg/
+/crates/biors-wasm/pkg/
 .venv/
 .venv-bench/
 .pytest_cache/

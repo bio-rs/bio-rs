@@ -1,6 +1,6 @@
 # Quickstart
 
-This guide uses the repository examples so each command is reproducible from a
+This guide uses the repository test data so each command is reproducible from a
 fresh checkout.
 
 ## Install
@@ -15,7 +15,7 @@ When working inside a source checkout, replace `biors` with
 `cargo run -p biors --`.
 
 `biors doctor` reports local platform, Rust/Cargo availability, optional WASM
-target readiness, and whether the committed demo/package fixtures are present.
+target readiness, and whether the committed CLI transcript data and package fixtures are present.
 
 Generate shell completions from the installed binary:
 
@@ -44,7 +44,7 @@ transcript script:
 sh scripts/record-cli-demo.sh --cargo
 ```
 
-The demo uses `examples/launch-demo.fasta`, then shows the public contract
+The demo uses `testdata/sequences/launch-demo.fasta`, then shows the public contract
 surfaces that make bio-rs useful outside a notebook:
 
 - `doctor` readiness diagnostics for the local toolchain and release fixtures
@@ -56,7 +56,7 @@ surfaces that make bio-rs useful outside a notebook:
 ## Validate FASTA
 
 ```bash
-biors fasta validate examples/protein.fasta
+biors fasta validate testdata/sequences/protein.fasta
 ```
 
 Use this for protein-first FASTA validation. It defaults to the `protein-20`
@@ -66,7 +66,7 @@ want a specific policy.
 ## Validate Biological Sequences
 
 ```bash
-biors seq validate examples/protein.fasta
+biors seq validate testdata/sequences/protein.fasta
 ```
 
 Use this for mixed biological FASTA. It defaults to `--kind auto`, assigns
@@ -98,10 +98,10 @@ sh scripts/record-cli-demo.sh
 ## Tokenize FASTA
 
 ```bash
-biors tokenize examples/protein.fasta
+biors tokenize testdata/sequences/protein.fasta
 biors tokenize \
-  --config examples/model-input-contract/protein-20-special.config.json \
-  examples/model-input-contract/protein.fasta
+  --config testdata/model-input-contract/protein-20-special.config.json \
+  testdata/model-input-contract/protein.fasta
 printf '>dna\nACGT\n' | biors tokenize --profile dna-iupac -
 printf '>rna\nACGUN\n' | biors tokenize --profile rna-iupac-special -
 ```
@@ -131,7 +131,7 @@ before copying the preview fragments into a package. The command keeps
 ## Build Model Input
 
 ```bash
-biors model-input --max-length 8 examples/protein.fasta
+biors model-input --max-length 8 testdata/sequences/protein.fasta
 printf '>dna\nACGT\n' | biors model-input --profile dna-iupac --max-length 128 -
 ```
 
@@ -142,7 +142,7 @@ for explicit protein, DNA, or RNA tokenizer profiles.
 ## Run The Stable Workflow
 
 ```bash
-biors workflow --max-length 8 examples/protein.fasta
+biors workflow --max-length 8 testdata/sequences/protein.fasta
 printf '>rna\nACGU\n' | biors workflow --profile rna-iupac --max-length 128 -
 ```
 
@@ -157,7 +157,7 @@ SHA-256, and output-content SHA-256 for repeatable runs.
 ## Compose A CLI Pipeline
 
 ```bash
-biors pipeline --max-length 8 examples/protein.fasta
+biors pipeline --max-length 8 testdata/sequences/protein.fasta
 ```
 
 `pipeline` uses the same no-config preprocessing defaults as `workflow`, but
@@ -167,7 +167,7 @@ chain command output into downstream jobs.
 ## Inspect A Problem Sequence
 
 ```bash
-biors debug --max-length 8 examples/protein.fasta
+biors debug --max-length 8 testdata/sequences/protein.fasta
 ```
 
 `debug` shows each normalized residue, emitted token ID, model-input record
@@ -186,7 +186,7 @@ first-difference metadata for mismatches.
 ## Export A Shareable Report
 
 ```bash
-biors workflow --max-length 8 examples/protein.fasta > workflow.json
+biors workflow --max-length 8 testdata/sequences/protein.fasta > workflow.json
 biors report generate workflow.json \
   --output workflow-report.md \
   --shareable-json workflow-report.json
@@ -200,9 +200,9 @@ what was summarized without uploading biological data.
 ## Validate Batches
 
 ```bash
-biors dataset inspect --source local --version unversioned --split examples examples/
-biors batch validate --kind auto examples/
-biors batch validate --kind auto "examples/*.fasta"
+biors dataset inspect --source local --version unversioned --split testdata testdata/sequences/
+biors batch validate --kind auto testdata/sequences/
+biors batch validate --kind auto "testdata/sequences/*.fasta"
 ```
 
 `dataset inspect` and `batch validate` accept multiple files, recursive
@@ -238,12 +238,12 @@ services, run model inference, or persist request bodies.
 ## Run A Pipeline Config
 
 ```bash
-biors pipeline --config examples/pipeline/protein.toml --explain-plan
-biors pipeline --config examples/pipeline/protein.json --dry-run
+biors pipeline --config testdata/pipeline/protein.toml --explain-plan
+biors pipeline --config testdata/pipeline/protein.json --dry-run
 biors pipeline \
-  --config examples/protein-package/pipelines/protein.toml \
-  --package examples/protein-package/manifest.json \
-  --write-lock examples/pipeline/pipeline.lock
+  --config testdata/protein-package/pipelines/protein.toml \
+  --package testdata/protein-package/manifest.json \
+  --write-lock testdata/pipeline/pipeline.lock
 ```
 
 Pipeline configs support TOML and JSON. The static workflow runs parse,
@@ -255,10 +255,10 @@ backend pins when package context is supplied. See
 ## Verify Package Fixtures
 
 ```bash
-biors package validate examples/protein-package/manifest.json
+biors package validate testdata/protein-package/manifest.json
 biors package verify \
-  examples/protein-package/manifest.json \
-  examples/protein-package/observations.json
+  testdata/protein-package/manifest.json \
+  testdata/protein-package/observations.json
 ```
 
 Package commands validate portable manifest assets, v1 layout and research
@@ -272,8 +272,8 @@ layout and manifest rules.
 biors package convert-project ./python-project \
   --output ./protein-package \
   --name protein-package \
-  --fixture-input examples/protein-package/fixtures/tiny.fasta \
-  --fixture-output examples/protein-package/fixtures/tiny.output.json \
+  --fixture-input testdata/protein-package/fixtures/tiny.fasta \
+  --fixture-output testdata/protein-package/fixtures/tiny.output.json \
   --license CC0-1.0 \
   --citation "Your package citation" \
   --model-card-summary "What this package is intended to do." \

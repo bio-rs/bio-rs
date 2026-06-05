@@ -85,7 +85,7 @@ def write_many_file_dataset(root: Path, *, files: int, records_per_file: int, le
 def main() -> int:
     args = parse_args()
     binary = ensure_binary(args.bin, args.no_build)
-    package_manifest = Path("examples/protein-package/manifest.json")
+    package_manifest = Path("testdata/protein-package/manifest.json")
 
     if WORK_DIR.exists():
         shutil.rmtree(WORK_DIR)

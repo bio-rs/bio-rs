@@ -26,7 +26,7 @@ from render_python_benchmark_report import render_report
 SCHEMA_VERSION = "biors.benchmark.python_bindings.v1"
 RESULT_PATH = Path("benchmarks/python_bindings.json")
 REPORT_PATH = Path("benchmarks/python_bindings.md")
-PYTHON_PACKAGE_PATH = Path("packages/rust/biors-python/python")
+PYTHON_PACKAGE_PATH = Path("crates/biors-python/python")
 
 
 def parse_args() -> argparse.Namespace:

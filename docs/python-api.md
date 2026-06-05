@@ -20,7 +20,7 @@ Requirements:
 For local development:
 
 ```bash
-cd packages/rust/biors-python
+cd crates/biors-python
 maturin develop
 pytest
 ```
@@ -34,16 +34,16 @@ Use `biors workflow`, `biors pipeline`, or `biors debug` when notebooks,
 pandas, NumPy, PyTorch, or Hugging Face code should own downstream tensor and
 model runtime choices. The JSON boundary stays dependency-light and deterministic.
 
-The in-repo examples cover common adaptation patterns:
+The in-repo integration scripts cover common adaptation patterns:
 
-- `examples/python/reference_preprocess.py` reproduces the `protein-20-special`
+- `integrations/python/reference_preprocess.py` reproduces the `protein-20-special`
   preprocessing fixture without dependencies.
-- `examples/python/esm_from_biors_json.py` converts model-ready bio-rs JSON into
+- `integrations/python/esm_from_biors_json.py` converts model-ready bio-rs JSON into
   `input_ids` and `attention_mask` lists for ESM-style tensor code.
-- `examples/python/protbert_from_biors_json.py` converts `biors debug` output
+- `integrations/python/protbert_from_biors_json.py` converts `biors debug` output
   into whitespace-separated amino acid strings used by common ProtBERT
   preprocessing examples.
-- `examples/python/pandas_numpy_friendly.py` converts model-ready bio-rs JSON
+- `integrations/python/pandas_numpy_friendly.py` converts model-ready bio-rs JSON
   into row dictionaries and column arrays for pandas or NumPy.
 
 ESM and ProtBERT each have model-specific tokenizer expectations. The examples

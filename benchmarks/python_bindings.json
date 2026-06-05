@@ -23,7 +23,7 @@
     "processor": "arm",
     "python": "3.14.4",
     "biors_python": "0.47.8",
-    "biors_module": "packages/rust/biors-python/python/biors/__init__.py",
+    "biors_module": "crates/biors-python/python/biors/__init__.py",
     "git_commit": "58a7ce2e3fecd5335f2b606f4647bcd903a8d675"
   },
   "release_status": {

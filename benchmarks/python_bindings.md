@@ -9,7 +9,7 @@ deterministic synthetic FASTA input. It is not a public throughput claim.
 - OS: macOS-26.3.1-arm64-arm-64bit-Mach-O
 - Machine: `arm64`
 - Python: `3.14.4`
-- Module: `packages/rust/biors-python/python/biors/__init__.py`
+- Module: `crates/biors-python/python/biors/__init__.py`
 - Git commit: `58a7ce2e3fecd5335f2b606f4647bcd903a8d675`
 - Benchmark schema: `biors.benchmark.python_bindings.v1`
 
@@ -39,6 +39,6 @@ deterministic synthetic FASTA input. It is not a public throughput claim.
 ## Reproduce
 
 ```bash
-PYTHONPATH=packages/rust/biors-python/python python3 scripts/benchmark_python_bindings.py
+PYTHONPATH=crates/biors-python/python python3 scripts/benchmark_python_bindings.py
 cat benchmarks/python_bindings.json
 ```
