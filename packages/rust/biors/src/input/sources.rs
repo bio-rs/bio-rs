@@ -104,7 +104,7 @@ fn expand_glob(pattern: &Path, invalid_glob_code: &'static str) -> Result<Vec<Pa
             location: Some(pattern.display().to_string()),
         })?;
 
-    let pattern = WildcardPattern::new(file_pattern);
+    let file_pattern = file_pattern.chars().collect::<Vec<_>>();
     let mut files = Vec::new();
     for entry in fs::read_dir(parent).map_err(|source| CliError::Read {
         path: parent.to_path_buf(),
@@ -124,7 +124,7 @@ fn expand_glob(pattern: &Path, invalid_glob_code: &'static str) -> Result<Vec<Pa
             path: entry_path.clone(),
             source,
         })?;
-        if file_type.is_file() && pattern.matches(file_name) {
+        if file_type.is_file() && wildcard_matches(&file_pattern, file_name) {
             files.push(entry_path);
         }
     }
@@ -151,46 +151,28 @@ fn is_fasta_path(path: &Path) -> bool {
     )
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct WildcardPattern {
-    chars: Vec<char>,
-}
+fn wildcard_matches(pattern: &[char], text: &str) -> bool {
+    let text: Vec<char> = text.chars().collect();
+    let mut prev = vec![false; text.len() + 1];
+    let mut curr = vec![false; text.len() + 1];
 
-impl WildcardPattern {
-    fn new(pattern: &str) -> Self {
-        Self {
-            chars: pattern.chars().collect(),
-        }
-    }
+    prev[0] = true;
 
-    fn matches(&self, text: &str) -> bool {
-        let text: Vec<char> = text.chars().collect();
-        let mut prev = vec![false; text.len() + 1];
-        let mut curr = vec![false; text.len() + 1];
+    for pattern_index in 1..=pattern.len() {
+        curr[0] = prev[0] && pattern[pattern_index - 1] == '*';
 
-        prev[0] = true;
-
-        for pattern_index in 1..=self.chars.len() {
-            curr[0] = prev[0] && self.chars[pattern_index - 1] == '*';
-
-            for text_index in 1..=text.len() {
-                curr[text_index] = match self.chars[pattern_index - 1] {
-                    '*' => prev[text_index] || curr[text_index - 1],
-                    '?' => prev[text_index - 1],
-                    literal => literal == text[text_index - 1] && prev[text_index - 1],
-                };
-            }
-
-            std::mem::swap(&mut prev, &mut curr);
+        for text_index in 1..=text.len() {
+            curr[text_index] = match pattern[pattern_index - 1] {
+                '*' => prev[text_index] || curr[text_index - 1],
+                '?' => prev[text_index - 1],
+                literal => literal == text[text_index - 1] && prev[text_index - 1],
+            };
         }
 
-        prev[text.len()]
+        std::mem::swap(&mut prev, &mut curr);
     }
-}
 
-#[cfg(test)]
-fn wildcard_matches(pattern: &str, text: &str) -> bool {
-    WildcardPattern::new(pattern).matches(text)
+    prev[text.len()]
 }
 
 #[cfg(test)]
@@ -199,9 +181,12 @@ mod tests {
 
     #[test]
     fn wildcard_matcher_supports_star_and_question_mark() {
-        assert!(wildcard_matches("*.fasta", "a.fasta"));
-        assert!(wildcard_matches("sample?.fa", "sample1.fa"));
-        assert!(!wildcard_matches("*.fasta", "notes.txt"));
+        let fasta_pattern = "*.fasta".chars().collect::<Vec<_>>();
+        let sample_pattern = "sample?.fa".chars().collect::<Vec<_>>();
+
+        assert!(wildcard_matches(&fasta_pattern, "a.fasta"));
+        assert!(wildcard_matches(&sample_pattern, "sample1.fa"));
+        assert!(!wildcard_matches(&fasta_pattern, "notes.txt"));
     }
 
     #[test]
