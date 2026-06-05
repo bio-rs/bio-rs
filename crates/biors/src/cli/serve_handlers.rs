@@ -101,4 +101,25 @@ mod tests {
         let body: Value = serde_json::from_slice(&response.body).expect("error JSON");
         assert_eq!(body["error"]["code"], "service.batch.empty_input_id");
     }
+
+    #[test]
+    fn batch_sequence_validate_rejects_unknown_fields_and_invalid_ids() {
+        let unknown_field = HttpRequest::post(
+            "/v0/batch/sequence/validate",
+            br#"{"inputs":[{"id":"seq1","fasta_text":">seq1\nACDE\n","extra":true}]}"#.to_vec(),
+        );
+        let response = handle_service_request(unknown_field, "0.57.0", "http://127.0.0.1:8787");
+        assert_eq!(response.status, 400);
+        let body: Value = serde_json::from_slice(&response.body).expect("error JSON");
+        assert_eq!(body["error"]["code"], "service.invalid_json");
+
+        let invalid_id = HttpRequest::post(
+            "/v0/batch/sequence/validate",
+            br#"{"inputs":[{"id":"sample 1","fasta_text":">seq1\nACDE\n"}]}"#.to_vec(),
+        );
+        let response = handle_service_request(invalid_id, "0.57.0", "http://127.0.0.1:8787");
+        assert_eq!(response.status, 422);
+        let body: Value = serde_json::from_slice(&response.body).expect("error JSON");
+        assert_eq!(body["error"]["code"], "service.batch.invalid_input_id");
+    }
 }

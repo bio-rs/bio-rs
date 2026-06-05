@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bio-rs.dev/schemas/browser-tooling-output.v0.json",
+  "title": "bio-rs WASM browser tooling output",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/executionPolicy" },
+    { "$ref": "#/$defs/fileInspection" },
+    { "$ref": "#/$defs/validationOutput" },
+    { "$ref": "#/$defs/tokenizationOutput" }
+  ],
+  "$defs": {
+    "executionPolicy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "execution_mode",
+        "network_access",
+        "uploads_input_data",
+        "external_model_calls",
+        "persistence",
+        "max_input_bytes",
+        "warning_input_bytes",
+        "streaming",
+        "supported_validation_formats",
+        "supported_tokenization_formats"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "const": "biors.browser_tooling.v0" },
+        "execution_mode": { "const": "wasm_local" },
+        "network_access": { "const": "none" },
+        "uploads_input_data": { "const": false },
+        "external_model_calls": { "const": false },
+        "persistence": { "const": "caller_controlled" },
+        "max_input_bytes": { "type": "integer", "minimum": 1 },
+        "warning_input_bytes": { "type": "integer", "minimum": 1 },
+        "streaming": { "$ref": "#/$defs/streamingPolicy" },
+        "supported_validation_formats": {
+          "type": "array",
+          "items": { "enum": ["fasta", "fastq", "pdb", "smiles"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "supported_tokenization_formats": {
+          "type": "array",
+          "items": { "const": "fasta" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "streamingPolicy": {
+      "type": "object",
+      "required": ["supported", "behavior", "caller_guidance"],
+      "additionalProperties": false,
+      "properties": {
+        "supported": { "const": false },
+        "behavior": { "type": "string", "minLength": 1 },
+        "caller_guidance": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fileInspection": {
+      "type": "object",
+      "required": ["schema_version", "file", "accepted", "warnings"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "const": "biors.browser_tooling.v0" },
+        "file": { "$ref": "#/$defs/fileDescriptor" },
+        "accepted": { "type": "boolean" },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/fileWarning" }
+        }
+      }
+    },
+    "validationOutput": {
+      "type": "object",
+      "required": ["schema_version", "file", "report", "warnings"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "const": "biors.browser_tooling.v0" },
+        "file": { "$ref": "#/$defs/fileDescriptorWithInputHash" },
+        "report": { "type": "object" },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/fileWarning" }
+        }
+      }
+    },
+    "tokenizationOutput": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "file",
+        "tokenization",
+        "model_input_policy_hint",
+        "warnings"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "const": "biors.browser_tooling.v0" },
+        "file": { "$ref": "#/$defs/fileDescriptorWithInputHash" },
+        "tokenization": { "$ref": "#/$defs/tokenizeRecords" },
+        "model_input_policy_hint": { "$ref": "#/$defs/modelInputPolicyHint" },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/fileWarning" }
+        }
+      }
+    },
+    "fileDescriptor": {
+      "type": "object",
+      "required": ["format", "size_bytes", "content_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "format": { "enum": ["fasta", "fastq", "pdb", "smiles"] },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "content_sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" }
+      }
+    },
+    "fileDescriptorWithInputHash": {
+      "allOf": [
+        { "$ref": "#/$defs/fileDescriptor" },
+        {
+          "type": "object",
+          "required": ["input_hash"],
+          "properties": {
+            "input_hash": { "type": "string", "pattern": "^fnv1a64:[0-9a-f]{16}$" }
+          }
+        }
+      ]
+    },
+    "fileWarning": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    },
+    "tokenizeRecords": {
+      "type": "object",
+      "required": ["inputIds", "attentionMask", "ids", "records"],
+      "additionalProperties": false,
+      "properties": {
+        "inputIds": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+          }
+        },
+        "attentionMask": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tokenizedRecord" }
+        }
+      }
+    },
+    "tokenizedRecord": {
+      "type": "object",
+      "required": ["id", "alphabet", "valid", "tokens", "length", "warnings", "errors"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "alphabet": { "type": "string", "minLength": 1 },
+        "valid": { "type": "boolean" },
+        "tokens": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+        },
+        "length": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "array" },
+        "errors": { "type": "array" }
+      }
+    },
+    "modelInputPolicyHint": {
+      "type": "object",
+      "required": ["max_length_required", "supported_padding", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "max_length_required": { "const": true },
+        "supported_padding": {
+          "type": "array",
+          "items": { "enum": ["fixed_length", "no_padding"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 use crate::package_validation::{PackageValidateFieldsParams, PackageValidateParams};
 use biors_core::{
     error::BioRsError,
-    model_input::{ModelInputPolicy, PaddingPolicy},
+    model_input::{ModelInputBuildError, ModelInputPolicy, PaddingPolicy},
     tokenizer::ProteinTokenizerProfile,
     verification::stable_input_hash,
     workflow::SequenceWorkflowInvocation,
@@ -102,6 +102,15 @@ fn fasta_invalid_params(error: BioRsError) -> McpError {
     )
 }
 
+fn model_input_invalid_params(error: ModelInputBuildError) -> McpError {
+    McpError::invalid_params(
+        error.to_string(),
+        Some(serde_json::json!({
+            "code": "model_input.invalid_policy_or_record"
+        })),
+    )
+}
+
 fn workflow_invocation(
     params: &WorkflowParams,
     profile: ProteinTokenizerProfile,
@@ -197,7 +206,7 @@ impl BiorsMcpServer {
             config,
             workflow_invocation(&params, profile),
         )
-        .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+        .map_err(model_input_invalid_params)?;
 
         json_response(&output)
     }

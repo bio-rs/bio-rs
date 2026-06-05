@@ -3,7 +3,9 @@ use std::fs;
 
 use biors_core::conversion::convert_fasta_records;
 use biors_core::sequence::SequenceKindSelection;
-use biors_core::service::{current_hosted_workflow_boundary, current_service_interface_document};
+use biors_core::service::{
+    current_hosted_workflow_boundary, current_service_interface_document, service_openapi_document,
+};
 use biors_core::templates::{find_task_template, task_templates};
 
 mod common;
@@ -64,6 +66,17 @@ fn hosted_boundary_output_matches_checked_in_schema() {
 }
 
 #[test]
+fn service_openapi_output_accepts_local_and_container_bind_urls() {
+    for server_url in ["http://127.0.0.1:8787", "http://0.0.0.0:8787"] {
+        let openapi = service_openapi_document("0.57.0", server_url);
+        common::assert_json_value_matches_schema(
+            &openapi,
+            "schemas/service-openapi-output.v0.json",
+        );
+    }
+}
+
+#[test]
 fn invalid_payload_examples_are_rejected_by_schemas() {
     let zero_model_input = serde_json::json!({
         "policy": {
@@ -108,6 +121,110 @@ fn invalid_payload_examples_are_rejected_by_schemas() {
     common::assert_payload_rejected_by_schema(
         &out_of_range_token,
         "schemas/tokenize-output.v0.json",
+    );
+
+    let missing_conversion_payload = serde_json::json!({
+        "schema_version": "biors.conversion.v0",
+        "records": 1,
+        "valid_records": 1,
+        "model_ready_records": 1,
+        "warning_count": 0,
+        "error_count": 0,
+        "entities": [{
+            "id": "seq1",
+            "entity_type": "sequence",
+            "source": { "format": "fasta" },
+            "record": {
+                "type": "sequence",
+                "data": {}
+            },
+            "validation": {
+                "valid": true,
+                "model_ready": true,
+                "warning_count": 0,
+                "error_count": 0,
+                "warnings": [],
+                "errors": []
+            }
+        }]
+    });
+    common::assert_payload_rejected_by_schema(
+        &missing_conversion_payload,
+        "schemas/bio-entity-export-output.v0.json",
+    );
+
+    let incomplete_browser_tooling = serde_json::json!({
+        "schema_version": "biors.browser_tooling.v0",
+        "file": {
+            "format": "fasta",
+            "size_bytes": 11,
+            "content_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "warnings": []
+    });
+    common::assert_payload_rejected_by_schema(
+        &incomplete_browser_tooling,
+        "schemas/browser-tooling-output.v0.json",
+    );
+}
+
+#[test]
+fn browser_tooling_examples_match_checked_in_schema() {
+    let browser_policy = serde_json::json!({
+        "schema_version": "biors.browser_tooling.v0",
+        "execution_mode": "wasm_local",
+        "network_access": "none",
+        "uploads_input_data": false,
+        "external_model_calls": false,
+        "persistence": "caller_controlled",
+        "max_input_bytes": 67108864,
+        "warning_input_bytes": 16777216,
+        "streaming": {
+            "supported": false,
+            "behavior": "single Uint8Array input is validated before parsing",
+            "caller_guidance": "slice or reject larger files before passing them to WASM"
+        },
+        "supported_validation_formats": ["fasta", "fastq", "pdb", "smiles"],
+        "supported_tokenization_formats": ["fasta"]
+    });
+    common::assert_json_value_matches_schema(
+        &browser_policy,
+        "schemas/browser-tooling-output.v0.json",
+    );
+
+    let browser_tokenization = serde_json::json!({
+        "schema_version": "biors.browser_tooling.v0",
+        "file": {
+            "name": "protein.fasta",
+            "format": "fasta",
+            "size_bytes": 11,
+            "content_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "input_hash": "fnv1a64:08a331cb13c7bd72"
+        },
+        "tokenization": {
+            "inputIds": [[0, 1, 2, 3]],
+            "attentionMask": [[1, 1, 1, 1]],
+            "ids": ["seq1"],
+            "records": [{
+                "id": "seq1",
+                "alphabet": "protein-20",
+                "valid": true,
+                "tokens": [0, 1, 2, 3],
+                "length": 4,
+                "warnings": [],
+                "errors": []
+            }]
+        },
+        "model_input_policy_hint": {
+            "max_length_required": true,
+            "supported_padding": ["fixed_length", "no_padding"],
+            "note": "pass tokenization.records to buildModelInputWithPolicy"
+        },
+        "warnings": []
+    });
+    common::assert_json_value_matches_schema(
+        &browser_tokenization,
+        "schemas/browser-tooling-output.v0.json",
     );
 }
 

@@ -38,6 +38,8 @@ files up to 64 MiB and emits a memory-pressure warning at 16 MiB. Streaming and
 chunked parsing are intentionally not claimed yet; browser callers should reject
 or slice larger files before calling into WASM.
 
+Browser helper outputs use `schemas/browser-tooling-output.v0.json`.
+
 ## Module Loading
 
 Import the named exports from the package entrypoint. The bundler-target

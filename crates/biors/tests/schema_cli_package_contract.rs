@@ -117,6 +117,52 @@ fn package_manifest_schemas_reject_empty_fixture_names_and_shapes() {
 }
 
 #[test]
+fn package_manifest_schemas_reject_absolute_and_traversal_paths() {
+    let mut v1_absolute: Value = serde_json::from_str(
+        &fs::read_to_string(common::repo_root().join("testdata/protein-package/manifest.json"))
+            .expect("read package manifest"),
+    )
+    .expect("manifest JSON");
+    v1_absolute["model"]["path"] = Value::String("/tmp/model.onnx".into());
+    v1_absolute["metadata"]["model_card"]["path"] = Value::String("docs/../model-card.md".into());
+    common::assert_payload_rejected_by_schema(&v1_absolute, "schemas/package-manifest.v1.json");
+
+    let mut v1_traversal: Value = serde_json::from_str(
+        &fs::read_to_string(common::repo_root().join("testdata/protein-package/manifest.json"))
+            .expect("read package manifest"),
+    )
+    .expect("manifest JSON");
+    v1_traversal["fixtures"][0]["input"] = Value::String("../outside.fasta".into());
+    v1_traversal["preprocessing"][0]["config"]["path"] =
+        Value::String("pipelines/../../outside.toml".into());
+    common::assert_payload_rejected_by_schema(&v1_traversal, "schemas/package-manifest.v1.json");
+
+    let mut v0_manifest: Value = serde_json::from_str(
+        &fs::read_to_string(common::repo_root().join("testdata/protein-package/manifest.json"))
+            .expect("read package manifest"),
+    )
+    .expect("manifest JSON");
+    v0_manifest["schema_version"] = Value::String("biors.package.v0".into());
+    v0_manifest["model"]["path"] = Value::String("..\\outside.onnx".into());
+    if let Some(object) = v0_manifest.as_object_mut() {
+        object.remove("package_layout");
+        object.remove("metadata");
+        if let Some(runtime) = object.get_mut("runtime").and_then(Value::as_object_mut) {
+            runtime.remove("version");
+        }
+        if let Some(step) = object
+            .get_mut("preprocessing")
+            .and_then(Value::as_array_mut)
+            .and_then(|steps| steps.first_mut())
+            .and_then(Value::as_object_mut)
+        {
+            step.remove("config");
+        }
+    }
+    common::assert_payload_rejected_by_schema(&v0_manifest, "schemas/package-manifest.v0.json");
+}
+
+#[test]
 fn cli_outputs_match_package_schemas() {
     let manifest = common::repo_root().join("testdata/protein-package/manifest.json");
     let observations = common::repo_root().join("testdata/protein-package/observations.json");

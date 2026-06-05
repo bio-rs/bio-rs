@@ -32,7 +32,7 @@
       "required": ["format", "path"],
       "properties": {
         "format": { "enum": ["onnx", "safetensors"] },
-        "path": { "type": "string", "minLength": 1 },
+        "path": { "$ref": "#/$defs/packageRelativePath" },
         "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "metadata": { "$ref": "#/$defs/modelArtifactMetadata" }
       },
@@ -56,7 +56,7 @@
       "required": ["name", "path"],
       "properties": {
         "name": { "type": "string", "minLength": 1 },
-        "path": { "type": "string", "minLength": 1 },
+        "path": { "$ref": "#/$defs/packageRelativePath" },
         "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "contract_version": { "type": "string", "minLength": 1 }
       },
@@ -91,12 +91,19 @@
       "required": ["name", "input", "expected_output"],
       "properties": {
         "name": { "type": "string", "minLength": 1 },
-        "input": { "type": "string", "minLength": 1 },
-        "expected_output": { "type": "string", "minLength": 1 },
+        "input": { "$ref": "#/$defs/packageRelativePath" },
+        "expected_output": { "$ref": "#/$defs/packageRelativePath" },
         "input_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "expected_output_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
       "additionalProperties": false
+    },
+    "packageRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "^/|^[A-Za-z]:|(^|/)\\.\\.(/|$)|(^|/)\\.(/|$)|//|\\\\"
+      }
     }
   }
 }

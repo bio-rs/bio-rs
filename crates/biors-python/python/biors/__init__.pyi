@@ -103,7 +103,7 @@ def validate_fasta_input(fasta_text: str) -> SequenceValidationReport: ...
 
 def validate_fasta_input_with_kind(
     fasta_text: str,
-    kind: str = "protein",
+    kind: str,
 ) -> SequenceValidationReport: ...
 
 

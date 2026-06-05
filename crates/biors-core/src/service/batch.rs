@@ -9,6 +9,7 @@ pub const SERVICE_BATCH_SEQUENCE_VALIDATE_SCHEMA_VERSION: &str =
     "biors.service_batch_sequence_validate.v0";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ServiceBatchSequenceValidateRequest {
     #[serde(default)]
     pub kind: ServiceSequenceKindSelection,
@@ -16,6 +17,7 @@ pub struct ServiceBatchSequenceValidateRequest {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ServiceBatchSequenceInput {
     pub id: String,
     pub fasta_text: String,
@@ -64,6 +66,7 @@ pub struct ServiceBatchSequenceItemReport {
 pub enum ServiceBatchValidationError {
     EmptyInputs,
     EmptyInputId { index: usize },
+    InvalidInputId { id: String },
     DuplicateInputId { id: String },
     EmptyFastaText { id: String },
     FastaRead { id: String, source: FastaReadError },
@@ -86,10 +89,13 @@ pub fn validate_service_batch_sequence_request(
     let selection = SequenceKindSelection::from(request.kind);
 
     for (index, input) in request.inputs.into_iter().enumerate() {
-        let id = input.id.trim().to_string();
-        if id.is_empty() {
+        if input.id.trim().is_empty() {
             return Err(ServiceBatchValidationError::EmptyInputId { index });
         }
+        if !is_service_batch_input_id(&input.id) {
+            return Err(ServiceBatchValidationError::InvalidInputId { id: input.id });
+        }
+        let id = input.id;
         if !seen.insert(id.clone()) {
             return Err(ServiceBatchValidationError::DuplicateInputId { id });
         }
@@ -114,6 +120,11 @@ pub fn validate_service_batch_sequence_request(
     }
 
     Ok(output)
+}
+
+fn is_service_batch_input_id(id: &str) -> bool {
+    id.chars()
+        .all(|symbol| symbol.is_ascii_alphanumeric() || matches!(symbol, '.' | '_' | ':' | '-'))
 }
 
 impl From<ServiceSequenceKindSelection> for SequenceKindSelection {
@@ -163,6 +174,7 @@ impl ServiceBatchValidationError {
         match self {
             Self::EmptyInputs => "service.batch.no_inputs",
             Self::EmptyInputId { .. } => "service.batch.empty_input_id",
+            Self::InvalidInputId { .. } => "service.batch.invalid_input_id",
             Self::DuplicateInputId { .. } => "service.batch.duplicate_input_id",
             Self::EmptyFastaText { .. } => "service.batch.empty_fasta_text",
             Self::FastaRead { .. } => "service.batch.invalid_fasta",
@@ -173,6 +185,7 @@ impl ServiceBatchValidationError {
         match self {
             Self::EmptyInputs => None,
             Self::EmptyInputId { index } => Some(format!("inputs[{index}].id")),
+            Self::InvalidInputId { id } => Some(id.clone()),
             Self::DuplicateInputId { id }
             | Self::EmptyFastaText { id }
             | Self::FastaRead { id, .. } => Some(id.clone()),
@@ -186,6 +199,9 @@ impl std::fmt::Display for ServiceBatchValidationError {
             Self::EmptyInputs => write!(f, "batch validation requires at least one input"),
             Self::EmptyInputId { index } => {
                 write!(f, "batch input at index {index} has an empty id")
+            }
+            Self::InvalidInputId { id } => {
+                write!(f, "batch input id '{id}' must match ^[A-Za-z0-9._:-]+$")
             }
             Self::DuplicateInputId { id } => write!(f, "batch input id '{id}' is duplicated"),
             Self::EmptyFastaText { id } => write!(f, "batch input '{id}' has empty FASTA text"),

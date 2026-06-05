@@ -59,6 +59,7 @@ metadata, and workflow payloads:
 
 - `batch-validation-output.v0.json`
 - `bio-entity-export-output.v0.json`
+- `browser-tooling-output.v0.json`
 - `cache-output.v0.json`
 - `cli-error.v0.json`
 - `cli-success.v0.json`
@@ -365,6 +366,8 @@ Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
 Hosted workflow boundary payloads use
 `schemas/hosted-workflow-boundary-output.v0.json`.
+WASM browser helper payloads use
+`schemas/browser-tooling-output.v0.json`.
 Local HTTP health payloads use `schemas/service-health-output.v0.json`.
 The served OpenAPI document uses `schemas/service-openapi-output.v0.json`.
 The batch sequence endpoint accepts

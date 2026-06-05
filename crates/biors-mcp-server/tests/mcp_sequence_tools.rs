@@ -161,6 +161,20 @@ async fn test_workflow_tool_rejects_empty_sequence_records() {
 }
 
 #[tokio::test]
+async fn test_workflow_tool_classifies_invalid_model_policy_as_invalid_params() {
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "fasta_text".to_string(),
+        serde_json::Value::String(">seq1\nACDE\n".to_string()),
+    );
+    args.insert("max_length".to_string(), serde_json::json!(0));
+
+    let error = call_tool_error_debug("workflow", args).await;
+    assert!(error.contains("ErrorCode(-32602)"), "{error}");
+    assert!(error.contains("max_length must be greater than zero"));
+}
+
+#[tokio::test]
 async fn test_sequence_tools_classify_invalid_fasta_as_invalid_params() {
     for tool_name in ["tokenize", "validate", "workflow"] {
         let mut args = serde_json::Map::new();
