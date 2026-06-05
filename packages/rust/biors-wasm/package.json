@@ -1,6 +1,6 @@
 {
   "name": "@bio-rs/biors-wasm",
-  "version": "0.55.0",
+  "version": "0.56.0",
   "description": "WebAssembly bindings for bio-rs biological sequence processing",
   "license": "MIT OR Apache-2.0",
   "repository": {

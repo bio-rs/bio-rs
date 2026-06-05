@@ -80,7 +80,7 @@ reproducible and claims need evidence:
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.55.0
+cargo install biors --version 0.56.0
 biors doctor
 biors seq validate --kind auto examples/multi.fasta
 printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
@@ -101,7 +101,7 @@ Full commands, demos, and install options: [docs/quickstart.md](docs/quickstart.
 bio-rs keeps performance claims tied to reproducible in-repo benchmarks.
 
 Current release posture: no current-version numeric throughput claim is made for
-`0.55.0`. The committed benchmark artifact is historical performance evidence
+`0.56.0`. The committed benchmark artifact is historical performance evidence
 from `biors-core v0.20.0`; rerun and commit a fresh artifact before using these
 numbers as evidence for a later release.
 
@@ -148,7 +148,7 @@ Benchmark details:
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
 bio-rs is faster than Biopython across every FASTA workload or researcher input
-shape. Until the artifact is refreshed for `0.55.0`, the numeric table above
+shape. Until the artifact is refreshed for `0.56.0`, the numeric table above
 remains a historical reference.
 
 ## What Works Today
