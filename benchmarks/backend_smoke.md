@@ -30,6 +30,6 @@ The script runs the existing Criterion bench and exports the generated
 ## Reproduce
 
 ```bash
-python3 scripts/benchmark_backend_smoke.py
+python3 scripts/benchmarks/benchmark_backend_smoke.py
 cat benchmarks/backend_smoke.json
 ```

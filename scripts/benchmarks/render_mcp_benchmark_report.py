@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the committed backend smoke benchmark report from JSON results."""
+"""Render the committed MCP request benchmark report from JSON results."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-RESULT_PATH = Path("benchmarks/backend_smoke.json")
+RESULT_PATH = Path("benchmarks/mcp_server.json")
 
 
 def main() -> int:
@@ -19,11 +19,13 @@ def main() -> int:
 def render_report(result: dict) -> str:
     env = result["environment"]
     generated_at = datetime.fromisoformat(result["generated_at_utc"])
+    workload = result["workloads"][0]
+    estimates = workload["criterion_estimates"]
     lines = [
-        "# Backend smoke benchmark",
+        "# MCP server benchmark",
         "",
-        "This benchmark is a release regression guard for the optional Candle CPU",
-        "backend smoke path. It is not a broad model-serving throughput claim.",
+        "This benchmark is a release regression guard for MCP request overhead over",
+        "an in-process duplex transport. It is not a network throughput claim.",
         "",
         "## Environment",
         "",
@@ -32,7 +34,7 @@ def render_report(result: dict) -> str:
         f"- Machine: `{env['machine']}`",
         f"- Rust: `{env['rustc']}`",
         f"- Cargo: `{env['cargo']}`",
-        f"- biors-backend-candle: `v{env['biors_backend_candle']}`",
+        f"- biors-mcp-server: `v{env['biors_mcp_server']}`",
         f"- Git commit: `{env['git_commit']}`",
         f"- Benchmark schema: `{result['schema_version']}`",
         "",
@@ -47,30 +49,22 @@ def render_report(result: dict) -> str:
         "",
         "| Workload | Surface | Mean | Median | Slope | 95% CI mean |",
         "| --- | --- | ---: | ---: | ---: | ---: |",
+        "| "
+        f"`{workload['name']}` | "
+        f"`{workload['surface']}` | "
+        f"{ns_to_us(estimates['mean']['point_estimate']):.2f} us | "
+        f"{ns_to_us(estimates['median']['point_estimate']):.2f} us | "
+        f"{ns_to_us(estimates['slope']['point_estimate']):.2f} us | "
+        f"{ci_us(estimates['mean']['confidence_interval'])} |",
+        "",
+        "## Reproduce",
+        "",
+        "```bash",
+        "python3 scripts/benchmarks/benchmark_mcp_server.py",
+        "cat benchmarks/mcp_server.json",
+        "```",
+        "",
     ]
-    for workload in result["workloads"]:
-        estimates = workload["criterion_estimates"]
-        lines.append(
-            "| "
-            f"`{workload['name']}` | "
-            f"`{workload['surface']}` | "
-            f"{ns_to_us(estimates['mean']['point_estimate']):.2f} us | "
-            f"{ns_to_us(estimates['median']['point_estimate']):.2f} us | "
-            f"{ns_to_us(estimates['slope']['point_estimate']):.2f} us | "
-            f"{ci_us(estimates['mean']['confidence_interval'])} |"
-        )
-    lines.extend(
-        [
-            "",
-            "## Reproduce",
-            "",
-            "```bash",
-            "python3 scripts/benchmark_backend_smoke.py",
-            "cat benchmarks/backend_smoke.json",
-            "```",
-            "",
-        ]
-    )
     return "\n".join(lines)
 
 

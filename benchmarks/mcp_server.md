@@ -30,6 +30,6 @@ The script runs the existing Criterion bench and exports the generated
 ## Reproduce
 
 ```bash
-python3 scripts/benchmark_mcp_server.py
+python3 scripts/benchmarks/benchmark_mcp_server.py
 cat benchmarks/mcp_server.json
 ```

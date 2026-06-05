@@ -137,7 +137,7 @@ fn compare_benchmark_artifacts_allow_missing_reports_added_and_removed_coverage(
 }
 
 fn run_compare(args: &[&str]) -> std::process::Output {
-    let script = common::repo_root().join("scripts/compare-benchmark-artifacts.py");
+    let script = common::repo_root().join("scripts/benchmarks/compare-benchmark-artifacts.py");
     assert!(fs::metadata(&script)
         .expect("benchmark compare script")
         .is_file());

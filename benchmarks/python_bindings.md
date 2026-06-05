@@ -39,6 +39,6 @@ deterministic synthetic FASTA input. It is not a public throughput claim.
 ## Reproduce
 
 ```bash
-PYTHONPATH=crates/biors-python/python python3 scripts/benchmark_python_bindings.py
+PYTHONPATH=crates/biors-python/python python3 scripts/benchmarks/benchmark_python_bindings.py
 cat benchmarks/python_bindings.json
 ```

@@ -12,8 +12,8 @@ fn final_release_checklist_covers_required_gates() {
         .expect("read package artifact check");
     let workflow_check = [
         "scripts/check-release-workflow.py",
-        "scripts/release_workflow_jobs.py",
-        "scripts/release_workflow_text_markers.py",
+        "scripts/release/workflow_jobs.py",
+        "scripts/release/workflow_text_markers.py",
     ]
     .into_iter()
     .map(|path| fs::read_to_string(repo.join(path)).expect("read release workflow check"))

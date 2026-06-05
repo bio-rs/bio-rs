@@ -72,7 +72,7 @@ def render_report(result: dict) -> str:
             "## Reproduce",
             "",
             "```bash",
-            "python3 scripts/benchmark_cli_surfaces.py",
+            "python3 scripts/benchmarks/benchmark_cli_surfaces.py",
             "cat benchmarks/cli_surfaces.json",
             "```",
             "",

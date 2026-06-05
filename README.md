@@ -143,7 +143,7 @@ Benchmark details:
   - human proteome parse + tokenization: `189.0M residues/s`, `216.1 MB/s`
   - 100MB+ FASTA parse + tokenization: `209.7M residues/s`, `239.8 MB/s`
 - Benchmark doc: [benchmarks/fasta_vs_biopython.md](benchmarks/fasta_vs_biopython.md)
-- Benchmark script: [scripts/benchmark_fasta_vs_biopython.py](scripts/benchmark_fasta_vs_biopython.py)
+- Benchmark script: [scripts/benchmarks/benchmark_fasta_vs_biopython.py](scripts/benchmarks/benchmark_fasta_vs_biopython.py)
 
 This benchmark measures `biors-core` directly and excludes CLI startup and JSON
 serialization overhead. It is still workload-specific, not a broad claim that
@@ -312,7 +312,7 @@ cargo build --release -p biors-core --example benchmark_fasta
 python3 -m venv .venv-bench
 . .venv-bench/bin/activate
 pip install biopython
-python scripts/benchmark_fasta_vs_biopython.py
+python scripts/benchmarks/benchmark_fasta_vs_biopython.py
 cat benchmarks/fasta_vs_biopython.json
 ```
 
@@ -323,7 +323,7 @@ that the Markdown report still matches the JSON artifact.
 Compare two benchmark artifacts:
 
 ```bash
-python scripts/compare-benchmark-artifacts.py before.json after.json
+python scripts/benchmarks/compare-benchmark-artifacts.py before.json after.json
 ```
 
 Run the Rust library example:

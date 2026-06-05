@@ -141,7 +141,7 @@ For the reproducible FASTA benchmark:
 python3 -m venv .venv-bench
 . .venv-bench/bin/activate
 pip install biopython
-python scripts/benchmark_fasta_vs_biopython.py
+python scripts/benchmarks/benchmark_fasta_vs_biopython.py
 ```
 
 The benchmark script updates both the JSON result artifact and the Markdown

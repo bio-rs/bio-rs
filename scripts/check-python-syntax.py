@@ -1,49 +1,24 @@
 #!/usr/bin/env python3
 """Check Python source syntax without writing __pycache__ artifacts."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 
-DEFAULT_FILES = [
-    "scripts/benchmark_fasta_vs_biopython.py",
-    "scripts/benchmark_feature_coverage.py",
-    "scripts/benchmark_release_status.py",
-    "scripts/benchmark_cli_surfaces.py",
-    "scripts/benchmark_python_bindings.py",
-    "scripts/compare-benchmark-artifacts.py",
-    "scripts/check-benchmark-artifact.py",
-    "scripts/check-cli-benchmark-artifact.py",
-    "scripts/check-python-benchmark-artifact.py",
-    "scripts/check-wasm-benchmark-artifact.py",
-    "scripts/check-backend-benchmark-artifact.py",
-    "scripts/check-mcp-benchmark-artifact.py",
-    "scripts/check-registry-versions.py",
-    "scripts/check-dependency-policy.py",
-    "scripts/check-github-actions-pinning.py",
-    "scripts/check-module-size.py",
-    "scripts/check-release-artifact-contents.py",
-    "scripts/check-release-workflow.py",
-    "scripts/check-rust-version-policy.py",
-    "scripts/check-sequence-kind-support-docs.py",
-    "scripts/test-python-wheel.py",
-    "scripts/write-release-checksums.py",
-    "scripts/benchmark_large_file_streaming.py",
-    "scripts/render_benchmark_report.py",
-    "scripts/render_cli_benchmark_report.py",
-    "scripts/render_python_benchmark_report.py",
-    "scripts/check-python-syntax.py",
-    "integrations/python/esm_from_biors_json.py",
-    "integrations/python/pandas_numpy_friendly.py",
-    "integrations/python/protbert_from_biors_json.py",
-    "integrations/python/reference_preprocess.py",
-]
+DEFAULT_ROOTS = [Path("scripts"), Path("integrations/python")]
+
+
+def default_files() -> list[Path]:
+    files: list[Path] = []
+    for root in DEFAULT_ROOTS:
+        files.extend(path for path in root.rglob("*.py") if path.is_file())
+    return sorted(files)
 
 
 def main() -> int:
     failed = False
-    for file_name in sys.argv[1:] or DEFAULT_FILES:
-        path = Path(file_name)
+    files = [Path(file_name) for file_name in sys.argv[1:]] if sys.argv[1:] else default_files()
+    for path in files:
         try:
             compile(path.read_text(encoding="utf-8"), str(path), "exec")
         except SyntaxError as error:

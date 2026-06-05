@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from release_workflow_job_assertions import StepCheck, assert_job, require_mapping
+from release.workflow_job_assertions import StepCheck, assert_job, require_mapping
 
 RUST_TOOLCHAIN_ACTION = "dtolnay/rust-toolchain@98e1b82157cd469e843cb7f524c1313b4ad9492c"
 
