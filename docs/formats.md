@@ -218,7 +218,8 @@ FASTQ parser, molecule parsers, and shared format contracts live in
 
 - the molecule contracts share validation and derived-feature code with the
   core conversion work planned for entity mapping
-- `FormatRecord` is needed by later core conversion work in `0.57.0`
+- `FormatRecord` is shared by the current conversion and format-capability
+  contracts
 - keeping the API in `biors-core` lets Rust, CLI, Python, WASM, MCP, and service
   surfaces converge on one contract first
 

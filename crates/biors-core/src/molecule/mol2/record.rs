@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::formats::{BioFormat, FormatMetadata};
 use crate::molecule::graph::disconnected_components;
 use crate::molecule::{
@@ -53,6 +55,7 @@ pub(super) fn parse_mol2_record(
         })?;
 
     let mut atoms = Vec::new();
+    let mut atom_id_to_index = HashMap::new();
     let mut bonds = Vec::new();
     let mut properties = Vec::new();
     let mut section = "";
@@ -70,16 +73,22 @@ pub(super) fn parse_mol2_record(
             continue;
         }
         match section {
-            "@<TRIPOS>ATOM" => atoms.push(parse_atom_line(
-                trimmed,
-                *line_number,
-                atoms.len(),
-                record_index,
-            )?),
+            "@<TRIPOS>ATOM" => {
+                let (source_id, atom) =
+                    parse_atom_line(trimmed, *line_number, atoms.len(), record_index)?;
+                if atom_id_to_index.insert(source_id, atom.index).is_some() {
+                    return Err(Mol2ParseError::InvalidAtomLine {
+                        line: *line_number,
+                        record_index,
+                    });
+                }
+                atoms.push(atom);
+            }
             "@<TRIPOS>BOND" => bonds.push(parse_bond_line(
                 trimmed,
                 *line_number,
                 bonds.len(),
+                &atom_id_to_index,
                 record_index,
             )?),
             "@<TRIPOS>MOLECULE" => {}
@@ -119,7 +128,7 @@ fn parse_atom_line(
     line_number: usize,
     index: usize,
     record_index: usize,
-) -> Result<MoleculeAtom, Mol2ParseError> {
+) -> Result<(usize, MoleculeAtom), Mol2ParseError> {
     let fields = line.split_whitespace().collect::<Vec<_>>();
     if fields.len() < 6 {
         return Err(Mol2ParseError::InvalidAtomLine {
@@ -127,52 +136,91 @@ fn parse_atom_line(
             record_index,
         });
     }
-    let x = fields[2]
+    let source_id = fields[0]
+        .parse::<usize>()
+        .map_err(|_| Mol2ParseError::InvalidAtomLine {
+            line: line_number,
+            record_index,
+        })?;
+    if source_id == 0 {
+        return Err(Mol2ParseError::InvalidAtomLine {
+            line: line_number,
+            record_index,
+        });
+    }
+    let x: f64 = fields[2]
         .parse()
         .map_err(|_| Mol2ParseError::InvalidAtomLine {
             line: line_number,
             record_index,
         })?;
-    let y = fields[3]
+    let y: f64 = fields[3]
         .parse()
         .map_err(|_| Mol2ParseError::InvalidAtomLine {
             line: line_number,
             record_index,
         })?;
-    let z = fields[4]
+    let z: f64 = fields[4]
         .parse()
         .map_err(|_| Mol2ParseError::InvalidAtomLine {
             line: line_number,
             record_index,
         })?;
+    if !x.is_finite() || !y.is_finite() || !z.is_finite() {
+        return Err(Mol2ParseError::InvalidAtomLine {
+            line: line_number,
+            record_index,
+        });
+    }
     let atom_type = fields[5].to_string();
     let element = element_from_mol2_type(&atom_type);
     let substructure_id = fields.get(6).and_then(|value| value.parse().ok());
     let substructure_name = fields.get(7).map(|value| (*value).to_string());
-    let partial_charge = fields.get(8).and_then(|value| value.parse().ok());
-    Ok(MoleculeAtom {
-        index,
-        element,
-        token: fields[1].to_string(),
-        aromatic: atom_type.to_ascii_lowercase().contains(".ar"),
-        bracketed: false,
-        isotope: None,
-        explicit_hydrogens: 0,
-        charge: 0,
-        chirality: None,
-        atom_class: None,
-        coordinate: Some(MoleculeCoordinate { x, y, z }),
-        atom_type: Some(atom_type),
-        partial_charge,
-        substructure_id,
-        substructure_name,
-    })
+    let partial_charge = match fields.get(8) {
+        Some(value) => {
+            let charge = value
+                .parse::<f64>()
+                .map_err(|_| Mol2ParseError::InvalidAtomLine {
+                    line: line_number,
+                    record_index,
+                })?;
+            if !charge.is_finite() {
+                return Err(Mol2ParseError::InvalidAtomLine {
+                    line: line_number,
+                    record_index,
+                });
+            }
+            Some(charge)
+        }
+        None => None,
+    };
+    Ok((
+        source_id,
+        MoleculeAtom {
+            index,
+            element,
+            token: fields[1].to_string(),
+            aromatic: atom_type.to_ascii_lowercase().contains(".ar"),
+            bracketed: false,
+            isotope: None,
+            explicit_hydrogens: 0,
+            charge: 0,
+            chirality: None,
+            atom_class: None,
+            coordinate: Some(MoleculeCoordinate { x, y, z }),
+            atom_type: Some(atom_type),
+            partial_charge,
+            substructure_id,
+            substructure_name,
+        },
+    ))
 }
 
 fn parse_bond_line(
     line: &str,
     line_number: usize,
     index: usize,
+    atom_id_to_index: &HashMap<usize, usize>,
     record_index: usize,
 ) -> Result<MoleculeBond, Mol2ParseError> {
     let fields = line.split_whitespace().collect::<Vec<_>>();
@@ -182,8 +230,10 @@ fn parse_bond_line(
             record_index,
         });
     }
-    let source_atom = parse_one_based_index(fields[1], line_number, record_index)?;
-    let target_atom = parse_one_based_index(fields[2], line_number, record_index)?;
+    let source_atom =
+        resolve_mol2_atom_index(fields[1], atom_id_to_index, line_number, record_index)?;
+    let target_atom =
+        resolve_mol2_atom_index(fields[2], atom_id_to_index, line_number, record_index)?;
     Ok(MoleculeBond {
         index,
         source_atom,
@@ -194,15 +244,18 @@ fn parse_bond_line(
     })
 }
 
-fn parse_one_based_index(
+fn resolve_mol2_atom_index(
     value: &str,
+    atom_id_to_index: &HashMap<usize, usize>,
     line: usize,
     record_index: usize,
 ) -> Result<usize, Mol2ParseError> {
-    value
+    let source_id = value
         .parse::<usize>()
-        .ok()
-        .and_then(|index| index.checked_sub(1))
+        .map_err(|_| Mol2ParseError::InvalidBondLine { line, record_index })?;
+    atom_id_to_index
+        .get(&source_id)
+        .copied()
         .ok_or(Mol2ParseError::InvalidBondLine { line, record_index })
 }
 

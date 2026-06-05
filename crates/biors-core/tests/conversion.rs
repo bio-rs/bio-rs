@@ -7,7 +7,7 @@ use biors_core::formats::{parse_fastq_records, BioFormat, FormatMetadata};
 use biors_core::molecule::parse_smiles_records;
 use biors_core::sequence::{SequenceKind, SequenceKindSelection};
 use biors_core::structure::{
-    Atom, Chain, Coordinate, Residue3D, StructureMetadata, StructureRecord,
+    Atom, Chain, Coordinate, MissingResidue, Residue3D, StructureMetadata, StructureRecord,
 };
 
 #[test]
@@ -72,6 +72,22 @@ fn fastq_records_convert_to_dna_entities_with_quality_and_warnings() {
 }
 
 #[test]
+fn fastq_conversion_rejects_non_ascii_quality_symbols() {
+    let records = parse_fastq_records("@read1\nAC\n+\né!\n").expect("parse FASTQ");
+
+    let export = convert_fastq_records(&records);
+
+    assert_eq!(export.records, 1);
+    assert_eq!(export.valid_records, 0);
+    assert_eq!(export.model_ready_records, 0);
+    assert_eq!(export.error_count, 1);
+    assert_eq!(
+        export.entities[0].validation.errors[0].code,
+        ConversionIssueCode::FastqInvalidQualityCharacter
+    );
+}
+
+#[test]
 fn structure_and_molecule_records_share_bioentity_export_shape() {
     let structure = minimal_structure_record();
     let structure_entity = structure_record_to_bio_entity(&structure);
@@ -107,6 +123,44 @@ fn structure_and_molecule_records_share_bioentity_export_shape() {
     assert_eq!(
         serde_json::to_value(&export).expect("serialize export")["schema_version"],
         CONVERSION_SCHEMA_VERSION
+    );
+}
+
+#[test]
+fn structure_conversion_with_missing_residue_is_valid_but_not_model_ready() {
+    let mut structure = minimal_structure_record();
+    structure.metadata.missing_residue_count = 1;
+    structure.chains[0].seqres_sequence = Some("AA".to_string());
+    structure.chains[0].missing_residues.push(MissingResidue {
+        name: "ALA".to_string(),
+        chain_id: "A".to_string(),
+        sequence_number: 2,
+        insertion_code: None,
+    });
+
+    let entity = structure_record_to_bio_entity(&structure);
+
+    assert!(entity.validation.valid);
+    assert!(!entity.validation.model_ready);
+    assert_eq!(entity.validation.warning_count, 1);
+    assert_eq!(
+        entity.validation.warnings[0].code,
+        ConversionIssueCode::StructureValidationWarning
+    );
+}
+
+#[test]
+fn molecule_conversion_with_aromaticity_warning_is_valid_but_not_model_ready() {
+    let molecule = parse_smiles_records("c1ccccc1 benzene\n").expect("valid aromatic SMILES");
+
+    let entity = molecule_record_to_bio_entity(&molecule[0]);
+
+    assert!(entity.validation.valid);
+    assert!(!entity.validation.model_ready);
+    assert_eq!(entity.validation.warning_count, 1);
+    assert_eq!(
+        entity.validation.warnings[0].code,
+        ConversionIssueCode::MoleculeValidationWarning
     );
 }
 

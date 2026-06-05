@@ -14,6 +14,9 @@ mod error;
 mod v2000;
 mod v3000;
 
+#[cfg(test)]
+mod tests;
+
 pub use error::SdfParseError;
 use v2000::parse_v2000;
 use v3000::parse_v3000;
@@ -174,6 +177,19 @@ pub(super) fn parse_one_based_index(
         .ok_or(SdfParseError::InvalidBondLine { line, record_index })
 }
 
+pub(super) fn parse_one_based_atom_index(
+    value: &str,
+    atom_count: usize,
+    line: usize,
+    record_index: usize,
+) -> Result<usize, SdfParseError> {
+    let index = parse_one_based_index(value, line, record_index)?;
+    if index >= atom_count {
+        return Err(SdfParseError::InvalidBondLine { line, record_index });
+    }
+    Ok(index)
+}
+
 pub(super) fn sdf_bond_order(
     value: &str,
     line: usize,
@@ -189,37 +205,5 @@ pub(super) fn sdf_bond_order(
             bond_type: other.to_string(),
             record_index,
         }),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parses_v2000_sdf_with_properties() {
-        let input = "\
-ethanol
-  bio-rs
-
-  3  2  0  0  0  0            999 V2000
-    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.5000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    2.1000    1.2000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  1  0  0  0  0
-  2  3  1  0  0  0  0
-M  END
->  <ASSAY>
-active
-
-$$$$
-";
-        let records = parse_sdf_records(input).expect("parse sdf");
-
-        assert_eq!(records[0].format, BioFormat::Sdf);
-        assert_eq!(records[0].metadata.atom_count, 3);
-        assert_eq!(records[0].metadata.bond_count, 2);
-        assert_eq!(records[0].properties[0].name, "ASSAY");
-        assert_eq!(records[0].properties[0].value, "active\n");
     }
 }

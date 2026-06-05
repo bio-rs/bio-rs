@@ -1,6 +1,6 @@
 # Molecule Support
 
-Version: 0.50.0
+Version: 0.57.0
 
 bio-rs molecule support is local-first and privacy-first. SMILES, SDF, and MOL2
 parsing run on local input and emit JSON contracts; bio-rs does not upload
@@ -73,9 +73,10 @@ Molecule validation includes:
 - MOL2 molecule/atom/bond section validation
 - disconnected component counting
 - conservative valence checks for common organic and bioactive atoms
-- deterministic `canonical_graph_key`
-- empirical formula from explicit atoms/hydrogens
-- exact mass for common bioactive elements
+- deterministic topology-oriented `canonical_graph_key`
+- explicit-atom empirical formula, including only hydrogens represented in the
+  parsed source
+- explicit-atom exact mass for common bioactive elements
 - heavy atom, hetero atom, ring bond, rotatable bond, donor, acceptor, and
   formal charge descriptors
 - deterministic `biors-ecfp-lite-v0` hashed fingerprint
@@ -87,7 +88,8 @@ chemical errors such as conservative valence overflow.
 
 The `canonical_graph_key` is a deterministic bio-rs graph key for equality,
 deduplication, and fixture comparison. It is not a claim of RDKit/Open Babel
-canonical SMILES equivalence.
+canonical SMILES equivalence, and it does not encode stereochemical or isotope
+equivalence classes beyond the parsed atom tokens preserved in the record.
 
 bio-rs preserves aromatic source notation and emits an
 `aromaticity_not_verified` warning when aromatic notation is present. Use a

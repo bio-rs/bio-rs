@@ -1,3 +1,4 @@
+use crate::formats::{FastqValidationIssue, FastqValidationIssueCode};
 use crate::molecule::MoleculeValidationIssue;
 use crate::sequence::{
     SequenceValidationIssue, SequenceValidationIssueCode, ValidatedSequenceRecord,
@@ -48,6 +49,20 @@ pub(crate) fn fastq_quality_length_mismatch(
             "FASTQ record '{id}' has sequence length {sequence_len} but quality length {quality_len}"
         ),
     )
+}
+
+pub(crate) fn fastq_quality_issue(issue: &FastqValidationIssue) -> ConversionIssue {
+    let code = match issue.code {
+        FastqValidationIssueCode::InvalidQualityCharacter => {
+            ConversionIssueCode::FastqInvalidQualityCharacter
+        }
+        FastqValidationIssueCode::AmbiguousSymbol | FastqValidationIssueCode::InvalidSymbol => {
+            ConversionIssueCode::FastqInvalidQualityCharacter
+        }
+    };
+    ConversionIssue::new(ConversionIssueSeverity::Error, code, issue.message.clone())
+        .with_source_code(issue.code.as_str())
+        .with_position(issue.position)
 }
 
 pub(crate) fn structure_warning(issue: &StructureValidationIssue) -> ConversionIssue {

@@ -5,6 +5,7 @@ use crate::verification::StableInputHasher;
 
 use super::error::{FastqParseError, FormatReadError};
 use super::types::{FastqRecord, ParsedFastqInput};
+use super::validation::fastq_quality_symbol_count;
 
 /// Parse FASTQ text into read records.
 pub fn parse_fastq_records(input: &str) -> Result<Vec<FastqRecord>, FastqParseError> {
@@ -154,12 +155,12 @@ fn read_quality_body<R: BufRead>(
 ) -> Result<(String, usize), FormatReadError> {
     let mut quality = String::new();
     let mut last_line = cursor.line_number;
-    while quality.len() < expected_len {
+    while fastq_quality_symbol_count(&quality) < expected_len {
         let Some((line, value)) = cursor.read_line(reader, hasher)? else {
             return Err(FastqParseError::MissingQuality {
                 id: id.to_string(),
                 expected: expected_len,
-                observed: quality.len(),
+                observed: fastq_quality_symbol_count(&quality),
                 record_index,
             }
             .into());
@@ -168,11 +169,12 @@ fn read_quality_body<R: BufRead>(
         quality.push_str(&value);
     }
 
-    if quality.len() != expected_len {
+    let observed_len = fastq_quality_symbol_count(&quality);
+    if observed_len != expected_len {
         return Err(FastqParseError::QualityLengthMismatch {
             id: id.to_string(),
             expected: expected_len,
-            observed: quality.len(),
+            observed: observed_len,
             line: last_line,
             record_index,
         }

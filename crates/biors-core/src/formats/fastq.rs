@@ -11,4 +11,5 @@ pub use types::{
     FastqRecord, FastqRecordValidation, FastqValidationIssue, FastqValidationIssueCode,
     FastqValidationReport, ParsedFastqInput, ValidatedFastqInput,
 };
+pub(crate) use validation::{fastq_quality_symbol_count, validate_fastq_quality};
 pub use validation::{validate_fastq_reader, validate_fastq_reader_with_hash};

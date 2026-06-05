@@ -1,7 +1,7 @@
 use crate::molecule::{MoleculeAtom, MoleculeBond, MoleculeCoordinate};
 
 use super::{
-    parse_one_based_index, parse_sdf_properties, sdf_bond_order, SdfGraphParts, SdfParseError,
+    parse_one_based_atom_index, parse_sdf_properties, sdf_bond_order, SdfGraphParts, SdfParseError,
 };
 
 pub(super) fn parse_v2000(
@@ -51,10 +51,13 @@ pub(super) fn parse_v2000(
             line,
             *line_number,
             bonds.len(),
+            atoms.len(),
             record_index,
         )?);
     }
-    let properties = parse_sdf_properties(&lines[4 + atom_count + bond_count..]);
+    let tail = &lines[4 + atom_count + bond_count..];
+    apply_v2000_charge_records(&mut atoms, tail, record_index)?;
+    let properties = parse_sdf_properties(tail);
     Ok((atoms, bonds, properties))
 }
 
@@ -71,24 +74,35 @@ fn parse_v2000_atom(
             record_index,
         });
     }
-    let x = fields[0]
+    let x: f64 = fields[0]
         .parse()
         .map_err(|_| SdfParseError::InvalidAtomLine {
             line: line_number,
             record_index,
         })?;
-    let y = fields[1]
+    let y: f64 = fields[1]
         .parse()
         .map_err(|_| SdfParseError::InvalidAtomLine {
             line: line_number,
             record_index,
         })?;
-    let z = fields[2]
+    let z: f64 = fields[2]
         .parse()
         .map_err(|_| SdfParseError::InvalidAtomLine {
             line: line_number,
             record_index,
         })?;
+    if !x.is_finite() || !y.is_finite() || !z.is_finite() {
+        return Err(SdfParseError::InvalidAtomLine {
+            line: line_number,
+            record_index,
+        });
+    }
+    let charge = fields
+        .get(5)
+        .map(|value| v2000_charge_code(value, line_number, record_index))
+        .transpose()?
+        .unwrap_or(0);
     Ok(MoleculeAtom {
         index,
         element: fields[3].to_string(),
@@ -97,7 +111,7 @@ fn parse_v2000_atom(
         bracketed: false,
         isotope: None,
         explicit_hydrogens: 0,
-        charge: 0,
+        charge,
         chirality: None,
         atom_class: None,
         coordinate: Some(MoleculeCoordinate { x, y, z }),
@@ -112,6 +126,7 @@ fn parse_v2000_bond(
     line: &str,
     line_number: usize,
     index: usize,
+    atom_count: usize,
     record_index: usize,
 ) -> Result<MoleculeBond, SdfParseError> {
     let fields = line.split_whitespace().collect::<Vec<_>>();
@@ -121,8 +136,8 @@ fn parse_v2000_bond(
             record_index,
         });
     }
-    let source_atom = parse_one_based_index(fields[0], line_number, record_index)?;
-    let target_atom = parse_one_based_index(fields[1], line_number, record_index)?;
+    let source_atom = parse_one_based_atom_index(fields[0], atom_count, line_number, record_index)?;
+    let target_atom = parse_one_based_atom_index(fields[1], atom_count, line_number, record_index)?;
     let order = sdf_bond_order(fields[2], line_number, record_index)?;
     Ok(MoleculeBond {
         index,
@@ -132,4 +147,75 @@ fn parse_v2000_bond(
         ring_closure: false,
         stereochemistry: None,
     })
+}
+
+fn v2000_charge_code(
+    value: &str,
+    line_number: usize,
+    record_index: usize,
+) -> Result<i8, SdfParseError> {
+    match value.parse::<u8>() {
+        Ok(0) | Ok(4) => Ok(0),
+        Ok(1) => Ok(3),
+        Ok(2) => Ok(2),
+        Ok(3) => Ok(1),
+        Ok(5) => Ok(-1),
+        Ok(6) => Ok(-2),
+        Ok(7) => Ok(-3),
+        _ => Err(SdfParseError::InvalidAtomLine {
+            line: line_number,
+            record_index,
+        }),
+    }
+}
+
+fn apply_v2000_charge_records(
+    atoms: &mut [MoleculeAtom],
+    lines: &[(usize, String)],
+    record_index: usize,
+) -> Result<(), SdfParseError> {
+    for (line_number, line) in lines {
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        if fields.first() != Some(&"M") || fields.get(1) != Some(&"CHG") {
+            continue;
+        }
+        let pair_count = fields
+            .get(2)
+            .and_then(|value| value.parse::<usize>().ok())
+            .ok_or(SdfParseError::InvalidAtomLine {
+                line: *line_number,
+                record_index,
+            })?;
+        if fields.len() < 3 + pair_count * 2 {
+            return Err(SdfParseError::InvalidAtomLine {
+                line: *line_number,
+                record_index,
+            });
+        }
+        for pair in 0..pair_count {
+            let atom_index = fields[3 + pair * 2]
+                .parse::<usize>()
+                .ok()
+                .and_then(|index| index.checked_sub(1))
+                .ok_or(SdfParseError::InvalidAtomLine {
+                    line: *line_number,
+                    record_index,
+                })?;
+            let charge =
+                fields[4 + pair * 2]
+                    .parse::<i8>()
+                    .map_err(|_| SdfParseError::InvalidAtomLine {
+                        line: *line_number,
+                        record_index,
+                    })?;
+            let atom = atoms
+                .get_mut(atom_index)
+                .ok_or(SdfParseError::InvalidAtomLine {
+                    line: *line_number,
+                    record_index,
+                })?;
+            atom.charge = charge;
+        }
+    }
+    Ok(())
 }

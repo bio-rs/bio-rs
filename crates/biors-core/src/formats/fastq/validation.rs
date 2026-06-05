@@ -56,7 +56,7 @@ fn validate_fastq_record(record: &FastqRecord) -> FastqRecordValidation {
         id: record.id.clone(),
         description: record.description.clone(),
         sequence_length: record.sequence.chars().count(),
-        quality_length: record.quality.chars().count(),
+        quality_length: fastq_quality_symbol_count(&record.quality),
         metadata: record.metadata.clone(),
         valid: warnings.is_empty() && errors.is_empty(),
         warnings,
@@ -83,7 +83,7 @@ fn validate_fastq_sequence(
     }
 }
 
-fn validate_fastq_quality(quality: &str, errors: &mut Vec<FastqValidationIssue>) {
+pub(crate) fn validate_fastq_quality(quality: &str, errors: &mut Vec<FastqValidationIssue>) {
     for (position, symbol) in quality.chars().enumerate() {
         if !matches!(symbol as u32, 33..=126) {
             errors.push(FastqValidationIssue::invalid_quality_character(
@@ -92,6 +92,10 @@ fn validate_fastq_quality(quality: &str, errors: &mut Vec<FastqValidationIssue>)
             ));
         }
     }
+}
+
+pub(crate) fn fastq_quality_symbol_count(quality: &str) -> usize {
+    quality.chars().count()
 }
 
 #[cfg(test)]
@@ -122,6 +126,21 @@ mod tests {
         assert_eq!(output.records, 1);
         assert_eq!(output.valid_records, 0);
         assert_eq!(output.error_count, 1);
+        assert_eq!(
+            output.record_reports[0].errors[0].code,
+            FastqValidationIssueCode::InvalidQualityCharacter
+        );
+    }
+
+    #[test]
+    fn validate_fastq_reports_non_ascii_quality_as_invalid_and_counts_symbols() {
+        let output = validate_fastq_reader("@r1\nAC\n+\né!\n".as_bytes()).expect("valid FASTQ");
+
+        assert_eq!(output.records, 1);
+        assert_eq!(output.valid_records, 0);
+        assert_eq!(output.error_count, 1);
+        assert_eq!(output.record_reports[0].sequence_length, 2);
+        assert_eq!(output.record_reports[0].quality_length, 2);
         assert_eq!(
             output.record_reports[0].errors[0].code,
             FastqValidationIssueCode::InvalidQualityCharacter

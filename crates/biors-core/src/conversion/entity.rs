@@ -56,7 +56,8 @@ pub fn structure_record_to_bio_entity(record: &StructureRecord) -> BioEntity {
         .iter()
         .map(structure_error)
         .collect::<Vec<_>>();
-    let validation = ConversionValidation::new(report.valid, report.valid, warnings, errors);
+    let model_ready = report.valid && warnings.is_empty() && errors.is_empty();
+    let validation = ConversionValidation::new(report.valid, model_ready, warnings, errors);
 
     BioEntity {
         id: structure_id(record),
@@ -84,8 +85,8 @@ pub fn molecule_record_to_bio_entity(record: &MoleculeRecord) -> BioEntity {
         .iter()
         .map(molecule_error)
         .collect::<Vec<_>>();
-    let validation =
-        ConversionValidation::new(record_report.valid, record_report.valid, warnings, errors);
+    let model_ready = record_report.valid && warnings.is_empty() && errors.is_empty();
+    let validation = ConversionValidation::new(record_report.valid, model_ready, warnings, errors);
 
     BioEntity {
         id: molecule_id(record),

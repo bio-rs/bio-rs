@@ -10,6 +10,7 @@ mod fastq;
 mod records;
 
 pub use capabilities::{format_capabilities, FormatCapability, FormatSupportStatus};
+pub(crate) use fastq::{fastq_quality_symbol_count, validate_fastq_quality};
 pub use fastq::{
     parse_fastq_records, parse_fastq_records_reader, validate_fastq_reader,
     validate_fastq_reader_with_hash, FastqParseError, FastqRecord, FastqRecordValidation,

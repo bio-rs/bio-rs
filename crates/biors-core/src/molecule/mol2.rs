@@ -110,4 +110,73 @@ USER_CHARGES
         );
         assert_eq!(records[0].graph.atoms.atoms[0].partial_charge, Some(-0.1));
     }
+
+    #[test]
+    fn parses_mol2_bonds_using_source_atom_ids() {
+        let input = "\
+@<TRIPOS>MOLECULE
+non_contiguous
+2 1 0 0 0
+SMALL
+USER_CHARGES
+@<TRIPOS>ATOM
+10 C1 0.000 0.000 0.000 C.3 1 MOL 0.0
+20 O1 1.500 0.000 0.000 O.3 1 MOL -0.2
+@<TRIPOS>BOND
+1 10 20 1
+";
+        let records = parse_mol2_records(input).expect("parse mol2 source ids");
+        let bond = &records[0].graph.bonds.bonds[0];
+
+        assert_eq!(bond.source_atom, 0);
+        assert_eq!(bond.target_atom, 1);
+        assert_eq!(records[0].metadata.disconnected_component_count, 1);
+    }
+
+    #[test]
+    fn rejects_mol2_bond_with_unknown_source_atom_id() {
+        let input = "\
+@<TRIPOS>MOLECULE
+bad_bond
+2 1 0 0 0
+SMALL
+USER_CHARGES
+@<TRIPOS>ATOM
+10 C1 0.000 0.000 0.000 C.3 1 MOL 0.0
+20 O1 1.500 0.000 0.000 O.3 1 MOL -0.2
+@<TRIPOS>BOND
+1 10 30 1
+";
+        let error = parse_mol2_records(input).expect_err("unknown atom id rejected");
+
+        assert!(matches!(error, Mol2ParseError::InvalidBondLine { .. }));
+    }
+
+    #[test]
+    fn rejects_mol2_invalid_partial_charge_and_non_finite_coordinate() {
+        let invalid_charge = "\
+@<TRIPOS>MOLECULE
+bad_charge
+1 0 0 0 0
+SMALL
+USER_CHARGES
+@<TRIPOS>ATOM
+1 C1 0.000 0.000 0.000 C.3 1 MOL not-a-charge
+";
+        let error = parse_mol2_records(invalid_charge).expect_err("invalid charge rejected");
+        assert!(matches!(error, Mol2ParseError::InvalidAtomLine { .. }));
+
+        let non_finite_coordinate = "\
+@<TRIPOS>MOLECULE
+bad_coordinate
+1 0 0 0 0
+SMALL
+USER_CHARGES
+@<TRIPOS>ATOM
+1 C1 NaN 0.000 0.000 C.3 1 MOL 0.0
+";
+        let error =
+            parse_mol2_records(non_finite_coordinate).expect_err("non-finite coordinate rejected");
+        assert!(matches!(error, Mol2ParseError::InvalidAtomLine { .. }));
+    }
 }

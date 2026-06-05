@@ -1,11 +1,13 @@
-use crate::formats::{BioFormat, FastqRecord};
+use crate::formats::{fastq_quality_symbol_count, validate_fastq_quality, BioFormat, FastqRecord};
 use crate::sequence::{
     detect_sequence_kind_with_metadata, validate_sequence_record, ProteinSequence, SequenceKind,
     SequenceKindDetection, SequenceKindSelection, SequenceRecord,
 };
 
 use super::entity::export_bio_entities;
-use super::issue::{empty_sequence_issue, fastq_quality_length_mismatch, sequence_validation};
+use super::issue::{
+    empty_sequence_issue, fastq_quality_issue, fastq_quality_length_mismatch, sequence_validation,
+};
 use super::types::{
     BioEntity, BioEntityJsonExport, BioEntityType, ConversionRecord, ConversionSource,
     ConvertedSequenceRecord,
@@ -101,7 +103,7 @@ fn sequence_to_bio_entity(
     }
     if let Some(quality) = &quality {
         let sequence_len = sequence_record.sequence.chars().count();
-        let quality_len = quality.len();
+        let quality_len = fastq_quality_symbol_count(quality);
         if sequence_len != quality_len {
             extra_errors.push(fastq_quality_length_mismatch(
                 &sequence_record.id,
@@ -109,6 +111,9 @@ fn sequence_to_bio_entity(
                 quality_len,
             ));
         }
+        let mut quality_errors = Vec::new();
+        validate_fastq_quality(quality, &mut quality_errors);
+        extra_errors.extend(quality_errors.iter().map(fastq_quality_issue));
     }
 
     let validation = sequence_validation(&validation, extra_errors);

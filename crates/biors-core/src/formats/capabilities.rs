@@ -120,7 +120,8 @@ pub fn format_capabilities() -> Vec<FormatCapability> {
         FormatCapability {
             format: BioFormat::Genbank,
             status: FormatSupportStatus::ReviewedCandidate,
-            record_contract: "FormatRecord plus future rich feature table projection".to_string(),
+            record_contract: "FormatRecord with feature table projection requirements"
+                .to_string(),
             validation_requirements: vec![
                 "LOCUS, FEATURES, ORIGIN, and terminator boundaries".to_string(),
                 "sequence length parity between LOCUS and ORIGIN".to_string(),
