@@ -45,6 +45,8 @@ jobs:
         run: cargo bench -p biors-core --bench fasta_workloads
       - name: Run package validation Criterion benchmark
         run: cargo bench -p biors-core --bench package_validation
+      - name: Run workflow Criterion benchmark
+        run: cargo bench -p biors-core --bench workflow_workloads
       - name: Run Candle backend Criterion benchmark
         run: cargo bench -p biors-backend-candle --bench candle_linear_probe
       - name: Run MCP request overhead Criterion benchmark

@@ -79,3 +79,46 @@ fn reader_kind_validation_summary_counts_without_record_payloads() {
     assert_eq!(output.summary.kind_counts.rna, 1);
     assert_eq!(output.summary.kind_counts.protein, 1);
 }
+
+#[test]
+fn explicit_kind_reader_summary_matches_full_report_counts() {
+    let raw = ">dna1\nACGTN\n>dna2\nACGU?\n";
+    let full = validate_fasta_reader_with_kind_and_hash(
+        Cursor::new(raw),
+        SequenceKindSelection::Explicit(SequenceKind::Dna),
+    )
+    .expect("valid FASTA envelope");
+    let summary = validate_fasta_reader_summary_with_kind_and_hash(
+        Cursor::new(raw),
+        SequenceKindSelection::Explicit(SequenceKind::Dna),
+    )
+    .expect("valid FASTA envelope");
+
+    assert_eq!(summary.input_hash, full.input_hash);
+    assert_eq!(summary.summary.records, full.report.records);
+    assert_eq!(summary.summary.valid_records, full.report.valid_records);
+    assert_eq!(summary.summary.warning_count, full.report.warning_count);
+    assert_eq!(summary.summary.error_count, full.report.error_count);
+    assert_eq!(summary.summary.kind_counts, full.report.kind_counts);
+}
+
+#[test]
+fn explicit_kind_summary_handles_large_single_record() {
+    let repeats = 20_000;
+    let mut raw = String::from(">long-dna\n");
+    raw.push_str(&"ACGTN".repeat(repeats));
+    raw.push('\n');
+
+    let output = validate_fasta_reader_summary_with_kind_and_hash(
+        Cursor::new(raw.as_bytes()),
+        SequenceKindSelection::Explicit(SequenceKind::Dna),
+    )
+    .expect("valid FASTA envelope");
+
+    assert_eq!(output.input_hash, stable_input_hash(&raw));
+    assert_eq!(output.summary.records, 1);
+    assert_eq!(output.summary.valid_records, 0);
+    assert_eq!(output.summary.warning_count, repeats);
+    assert_eq!(output.summary.error_count, 0);
+    assert_eq!(output.summary.kind_counts.dna, 1);
+}

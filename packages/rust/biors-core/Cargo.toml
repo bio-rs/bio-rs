@@ -25,3 +25,7 @@ harness = false
 [[bench]]
 name = "package_validation"
 harness = false
+
+[[bench]]
+name = "workflow_workloads"
+harness = false

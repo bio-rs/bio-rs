@@ -386,6 +386,8 @@ fn benchmark_workflow_runs_smoke_and_scheduled_criterion_suite() {
         "cargo test --workspace --benches --all-features",
         "if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'",
         "cargo bench -p biors-core --bench fasta_workloads",
+        "cargo bench -p biors-core --bench package_validation",
+        "cargo bench -p biors-core --bench workflow_workloads",
         "cargo bench -p biors-backend-candle --bench candle_linear_probe",
         "cargo bench -p biors-mcp-server --bench mcp_request_overhead",
     ] {

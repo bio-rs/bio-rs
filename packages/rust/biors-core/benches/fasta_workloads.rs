@@ -1,7 +1,10 @@
 use biors_core::{
     model_input::{build_model_inputs_checked, ModelInputPolicy, PaddingPolicy},
     parse_fasta_records_reader,
-    sequence::ProteinSequence,
+    sequence::{
+        validate_fasta_reader_summary_with_kind_and_hash, ProteinSequence, SequenceKind,
+        SequenceKindSelection,
+    },
     tokenize_fasta_records_reader,
     tokenizer::TokenizedProtein,
     validate_fasta_reader,
@@ -177,6 +180,27 @@ fn benchmark_validate_many_short_records(c: &mut Criterion) {
     group.finish();
 }
 
+fn benchmark_validate_explicit_kind_summary_large_fasta(c: &mut Criterion) {
+    let data = &*LARGE_FASTA_DATA;
+    let mut group = c.benchmark_group("validate_explicit_kind_summary_large_fasta");
+    group.throughput(Throughput::Bytes(data.len() as u64));
+    group.bench_function(
+        BenchmarkId::new("validate_summary", "protein_100MB_plus"),
+        |b| {
+            b.iter(|| {
+                let cursor = Cursor::new(data.as_slice());
+                let result = validate_fasta_reader_summary_with_kind_and_hash(
+                    cursor,
+                    SequenceKindSelection::Explicit(SequenceKind::Protein),
+                )
+                .unwrap();
+                black_box(result);
+            })
+        },
+    );
+    group.finish();
+}
+
 fn benchmark_tokenize_many_short_records(c: &mut Criterion) {
     let data = &*MANY_SHORT_DATA;
     let mut group = c.benchmark_group("tokenize_many_short_records");
@@ -220,6 +244,7 @@ criterion_group!(
     benchmark_tokenize_large_fasta,
     benchmark_parse_many_short_records,
     benchmark_validate_many_short_records,
+    benchmark_validate_explicit_kind_summary_large_fasta,
     benchmark_tokenize_many_short_records,
     benchmark_model_input_fixed_length,
 );
