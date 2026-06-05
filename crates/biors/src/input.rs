@@ -12,10 +12,6 @@ pub(crate) use sources::{
     ResolvedInputFile,
 };
 
-pub(crate) fn open_fasta_input(path: &PathBuf) -> Result<Box<dyn BufRead>, CliError> {
-    open_buffered_input(path)
-}
-
 pub(crate) fn open_buffered_input(path: &PathBuf) -> Result<Box<dyn BufRead>, CliError> {
     if path.as_os_str() == "-" {
         return Ok(Box::new(BufReader::new(io::stdin())));

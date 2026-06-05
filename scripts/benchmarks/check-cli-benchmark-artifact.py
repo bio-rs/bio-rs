@@ -3,9 +3,18 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
+from artifact_validation import (
+    JsonValue,
+    load_json_object,
+    require_fields,
+    require_object,
+    require_sha256,
+    require_timed_iterations,
+    require_top_level_fields,
+    validate_schema_version,
+)
 from benchmark_release_status import validate_release_status
 
 RESULT_PATH = Path("benchmarks/cli_surfaces.json")
@@ -27,12 +36,16 @@ REQUIRED_WORKLOADS = {
 
 
 def main() -> int:
-    result = json.loads(RESULT_PATH.read_text())
-    if result.get("schema_version") != "biors.benchmark.cli_surfaces.v1":
-        raise AssertionError("CLI benchmark artifact must use schema v1")
-    for field in ["generated_at_utc", "loops", "methodology", "environment", "workloads"]:
-        if field not in result:
-            raise AssertionError(f"missing top-level field: {field}")
+    result = load_json_object(RESULT_PATH)
+    validate_schema_version(
+        result,
+        "biors.benchmark.cli_surfaces.v1",
+        "CLI benchmark artifact must use schema v1",
+    )
+    require_top_level_fields(
+        result,
+        ["generated_at_utc", "loops", "methodology", "environment", "workloads"],
+    )
     validate_release_status(result, environment_key="biors", package_name="biors")
     workloads = {workload["name"]: workload for workload in result["workloads"]}
     missing = sorted(set(REQUIRED_WORKLOADS) - set(workloads))
@@ -47,33 +60,32 @@ def main() -> int:
     return 0
 
 
-def validate_input(input_: object) -> None:
-    if not isinstance(input_, dict):
-        raise AssertionError("workload input must be an object")
+def validate_input(input_: JsonValue) -> None:
+    input_ = require_object(input_, "workload input must be an object")
     if input_.get("kind") == "no_input":
         return
-    if "sha256" not in input_ or not str(input_["sha256"]).startswith("sha256:"):
+    if "sha256" not in input_:
         raise AssertionError("workload input sha256 must use sha256:<hex>")
+    require_sha256(input_["sha256"], "workload input sha256 must use sha256:<hex>")
     if "file_size_bytes" not in input_:
         raise AssertionError("workload input missing file_size_bytes")
     if "records" in input_ and "total_residues" not in input_:
         raise AssertionError("FASTA workload input missing total_residues")
 
 
-def validate_result(result: object) -> None:
-    if not isinstance(result, dict):
-        raise AssertionError("workload result must be an object")
-    for field in ["command", "output_hash", "seconds", "summary"]:
-        if field not in result:
-            raise AssertionError(f"workload result missing {field}")
-    if not str(result["output_hash"]).startswith("sha256:"):
-        raise AssertionError("workload output hash must use sha256:<hex>")
-    if not result["seconds"]:
-        raise AssertionError("workload must include timed iterations")
-    summary = result["summary"]
-    for field in ["mean_s", "median_s", "min_s", "max_s", "stdout_bytes"]:
-        if field not in summary:
-            raise AssertionError(f"workload summary missing {field}")
+def validate_result(result: JsonValue) -> None:
+    result = require_fields(
+        result,
+        ["command", "output_hash", "seconds", "summary"],
+        "workload result",
+    )
+    require_sha256(result["output_hash"], "workload output hash must use sha256:<hex>")
+    require_timed_iterations(result["seconds"], "workload must include timed iterations")
+    require_fields(
+        result["summary"],
+        ["mean_s", "median_s", "min_s", "max_s", "stdout_bytes"],
+        "workload summary",
+    )
 
 
 if __name__ == "__main__":

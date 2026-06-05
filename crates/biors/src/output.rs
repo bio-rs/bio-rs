@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::io::{self, Write};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const ERROR_SERIALIZATION_FALLBACK: &str = r#"{"ok":false,"error":{"code":"cli.internal_error","message":"failed to serialize error","location":null}}"#;
 
 #[derive(Debug, Serialize)]
 struct CliSuccess<T: Serialize> {
@@ -55,38 +56,28 @@ fn write_success_to<W: Write, T: Serialize>(
 }
 
 pub(crate) fn print_json_error(error: CliError) {
-    let payload = CliFailure {
-        ok: false,
-        error: CliErrorBody {
-            code: error.code(),
-            message: error.to_string(),
-            location: error.location(),
-            details: error.details().cloned(),
-        },
-    };
-    match to_json(&payload) {
-        Ok(json) => println!("{json}"),
-        Err(_) => println!(
-            r#"{{"ok":false,"error":{{"code":"cli.internal_error","message":"failed to serialize error","location":null}}}}"#
-        ),
-    }
+    print_json_failure(CliErrorBody {
+        code: error.code(),
+        message: error.to_string(),
+        location: error.location(),
+        details: error.details().cloned(),
+    });
 }
 
 pub(crate) fn print_json_parse_error(error: &clap::Error) {
-    let payload = CliFailure {
-        ok: false,
-        error: CliErrorBody {
-            code: "cli.invalid_arguments",
-            message: error.to_string(),
-            location: None,
-            details: None,
-        },
-    };
+    print_json_failure(CliErrorBody {
+        code: "cli.invalid_arguments",
+        message: error.to_string(),
+        location: None,
+        details: None,
+    });
+}
+
+fn print_json_failure(error: CliErrorBody) {
+    let payload = CliFailure { ok: false, error };
     match to_json(&payload) {
         Ok(json) => println!("{json}"),
-        Err(_) => println!(
-            r#"{{"ok":false,"error":{{"code":"cli.internal_error","message":"failed to serialize error","location":null}}}}"#
-        ),
+        Err(_) => println!("{ERROR_SERIALIZATION_FALLBACK}"),
     }
 }
 
@@ -109,10 +100,7 @@ mod tests {
         );
 
         assert!(output.ends_with(b"\n"));
-        let value: Value = match serde_json::from_slice(&output) {
-            Ok(v) => v,
-            Err(e) => panic!("invalid JSON: {e}"),
-        };
+        let value: Value = serde_json::from_slice(&output).expect("success envelope JSON");
         assert_eq!(value["ok"], true);
         assert_eq!(value["biors_version"], env!("CARGO_PKG_VERSION"));
         assert_eq!(value["input_hash"], "fnv1a64:test");

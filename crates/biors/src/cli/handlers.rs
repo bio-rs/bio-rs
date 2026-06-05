@@ -9,7 +9,7 @@ use crate::cli::{
     run_template_command, run_workflow, PipelineRunOptions,
 };
 use crate::errors::CliError;
-use crate::input::{open_buffered_input, open_fasta_input, read_tokenizer_config};
+use crate::input::{open_buffered_input, read_tokenizer_config};
 use crate::output::print_success;
 use biors_core::{
     formats::{format_capabilities, validate_fastq_reader_with_hash},
@@ -239,7 +239,7 @@ fn run_molecule_inspect(format: MoleculeFormatArg, path: PathBuf) -> Result<(), 
 }
 
 fn run_inspect(path: PathBuf) -> Result<(), CliError> {
-    let reader = open_fasta_input(&path)?;
+    let reader = open_buffered_input(&path)?;
     let output = summarize_fasta_records_reader(reader)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     print_success(Some(output.input_hash), output.summary)
@@ -253,7 +253,7 @@ fn run_model_input(
     path: PathBuf,
 ) -> Result<(), CliError> {
     let config = protein_tokenizer_config_for_profile(profile.into());
-    let reader = open_fasta_input(&path)?;
+    let reader = open_buffered_input(&path)?;
     let output = tokenize_fasta_records_reader_with_config(reader, &config)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     let model_input = build_model_inputs_checked(
@@ -273,7 +273,7 @@ fn run_tokenize(
     path: PathBuf,
 ) -> Result<(), CliError> {
     let config = resolve_tokenizer_config(profile, config)?;
-    let reader = open_fasta_input(&path)?;
+    let reader = open_buffered_input(&path)?;
     let output = tokenize_fasta_records_reader_with_config(reader, &config)
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     print_success(Some(output.input_hash), output.records)
@@ -304,7 +304,7 @@ fn resolve_tokenizer_config(
 }
 
 fn run_sequence_validation(path: PathBuf, kind: KindArg) -> Result<(), CliError> {
-    let reader = open_fasta_input(&path)?;
+    let reader = open_buffered_input(&path)?;
     let output = validate_fasta_reader_with_kind_and_hash(reader, kind.into())
         .map_err(|error| CliError::from_fasta_read(path, error))?;
     print_success(Some(output.input_hash), output.report)
