@@ -116,27 +116,10 @@ impl FastaRecordSink for KindAwareValidatedRecordSink {
         line: usize,
         record_index: usize,
     ) -> Result<(), BioRsError> {
-        if self.current_sequence.is_empty() {
-            return Err(BioRsError::MissingSequence {
-                id,
-                line,
-                record_index,
-            });
-        }
-
-        let sequence = std::mem::take(&mut self.current_sequence);
-        let (kind, auto_detection) = self
-            .selection
-            .explicit_kind()
-            .map(|kind| (kind, None))
-            .unwrap_or_else(|| {
-                let detection = detect_sequence_kind_with_metadata(&sequence);
-                (detection.selected_kind, Some(detection))
-            });
-        let record = SequenceRecord { id, sequence, kind };
-        let mut validated = crate::sequence::validate_sequence_record(&record);
-        validated.auto_detection = auto_detection;
-        self.sequences.push(validated);
+        let sequence =
+            take_non_empty_sequence(&mut self.current_sequence, &id, line, record_index)?;
+        self.sequences
+            .push(validate_record_for_selection(id, sequence, self.selection));
         Ok(())
     }
 }
@@ -176,24 +159,47 @@ impl FastaRecordSink for KindAwareValidationSummarySink {
         line: usize,
         record_index: usize,
     ) -> Result<(), BioRsError> {
-        if self.current_sequence.is_empty() {
-            return Err(BioRsError::MissingSequence {
-                id,
-                line,
-                record_index,
-            });
-        }
-
-        let sequence = std::mem::take(&mut self.current_sequence);
-        let kind = self
-            .selection
-            .explicit_kind()
-            .unwrap_or_else(|| detect_sequence_kind_with_metadata(&sequence).selected_kind);
-        let record = SequenceRecord { id, sequence, kind };
-        let validated = crate::sequence::validate_sequence_record(&record);
+        let sequence =
+            take_non_empty_sequence(&mut self.current_sequence, &id, line, record_index)?;
+        let validated = validate_record_for_selection(id, sequence, self.selection);
         self.summary.add_record(&validated);
         Ok(())
     }
+}
+
+fn take_non_empty_sequence(
+    current_sequence: &mut String,
+    id: &str,
+    line: usize,
+    record_index: usize,
+) -> Result<String, BioRsError> {
+    if current_sequence.is_empty() {
+        return Err(BioRsError::MissingSequence {
+            id: id.to_string(),
+            line,
+            record_index,
+        });
+    }
+
+    Ok(std::mem::take(current_sequence))
+}
+
+fn validate_record_for_selection(
+    id: String,
+    sequence: String,
+    selection: SequenceKindSelection,
+) -> ValidatedSequenceRecord {
+    let (kind, auto_detection) = selection
+        .explicit_kind()
+        .map(|kind| (kind, None))
+        .unwrap_or_else(|| {
+            let detection = detect_sequence_kind_with_metadata(&sequence);
+            (detection.selected_kind, Some(detection))
+        });
+    let record = SequenceRecord { id, sequence, kind };
+    let mut validated = crate::sequence::validate_sequence_record(&record);
+    validated.auto_detection = auto_detection;
+    validated
 }
 
 struct ExplicitKindValidationSummarySink {
