@@ -22,7 +22,7 @@ new numeric claims for later releases.
 - Biopython: `1.87`
 - Git commit: `a4aee2c2af1d0e23c72f73ef5f6dd48b48cf8252`
 - Benchmark schema: `biors.benchmark.fasta_vs_biopython.v1`
-- Release status: historical baseline retained for `0.56.0`
+- Release status: historical baseline retained for `0.57.0`
 - Claim policy: not current-version performance evidence; do not use these numeric FASTA results for current release claims until the artifact is regenerated
 
 ## Datasets

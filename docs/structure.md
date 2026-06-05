@@ -1,6 +1,6 @@
 # Structure Support
 
-Version: 0.56.0
+Version: 0.57.0
 
 This document records the structure-format contract for the current
 development line. Structure parsing stays local-first: bio-rs reads local input
