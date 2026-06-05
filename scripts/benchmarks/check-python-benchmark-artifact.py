@@ -6,6 +6,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from artifact_validation import (
+    JsonObject,
+    JsonValue,
     load_json_object,
     require_fields,
     require_sha256,
@@ -56,7 +58,7 @@ def main() -> int:
     return 0
 
 
-def validate_input(input_: object) -> None:
+def validate_input(input_: JsonValue) -> None:
     input_ = require_fields(
         input_,
         ["records", "record_length", "total_residues", "fasta_bytes", "sha256"],
@@ -65,7 +67,7 @@ def validate_input(input_: object) -> None:
     require_sha256(input_["sha256"], "input sha256 must use sha256:<hex>")
 
 
-def validate_workload(workload: dict) -> None:
+def validate_workload(workload: JsonObject) -> None:
     require_fields(
         workload,
         ["name", "output_hash", "warmup_summary", "seconds", "summary"],

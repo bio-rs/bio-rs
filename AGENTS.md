@@ -1,9 +1,5 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-06-05T20:45:07Z
-**Commit:** 2595486
-**Branch:** chore/init-deep-agents
-
 ## OVERVIEW
 
 bio-rs is a Rust workspace for biological AI tooling infrastructure: core

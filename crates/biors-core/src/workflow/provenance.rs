@@ -15,16 +15,17 @@ pub(super) fn workflow_provenance(
     hashes: SequenceWorkflowHashes,
     profile: ProteinTokenizerProfile,
 ) -> SequenceWorkflowProvenance {
-    let vocab =
-        inspect_protein_tokenizer_config(&protein_tokenizer_config_for_profile(profile)).vocabulary;
+    let config = protein_tokenizer_config_for_profile(profile);
+    let vocab = inspect_protein_tokenizer_config(&config).vocabulary;
+    let vocab_name = vocab.name.clone();
     SequenceWorkflowProvenance {
         biors_core_version: env!("CARGO_PKG_VERSION").to_string(),
         invocation,
         input_hash,
         normalization: NORMALIZATION_POLICY.to_string(),
-        validation_alphabet: vocab.name.clone(),
+        validation_alphabet: vocab_name.clone(),
         tokenizer: WorkflowTokenizerMetadata {
-            name: vocab.name.clone(),
+            name: vocab_name,
             vocab_size: vocab.tokens.len(),
             unknown_token_id: vocab.unknown_token_id,
             unknown_token_policy: vocab.unknown_token_policy.clone(),

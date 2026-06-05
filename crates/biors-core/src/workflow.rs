@@ -126,7 +126,8 @@ pub fn prepare_model_input_workflow_with_config(
         .map(|record| tokenize_protein_with_config(record, &config))
         .collect();
     let readiness_issues = readiness_issues(&tokenized);
-    let model_input = if readiness_issues.is_empty() {
+    let model_ready = readiness_issues.is_empty();
+    let model_input = if model_ready {
         Some(build_model_inputs_checked(&tokenized, policy.clone())?)
     } else {
         None
@@ -135,7 +136,6 @@ pub fn prepare_model_input_workflow_with_config(
         summary: summarize_tokenized_proteins(&tokenized),
         records: tokenized,
     };
-    let model_ready = readiness_issues.is_empty();
     let workflow = workflow_name(config.profile);
     let hashes = workflow_hashes(WorkflowHashInput {
         workflow,
