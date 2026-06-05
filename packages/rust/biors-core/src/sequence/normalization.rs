@@ -58,5 +58,39 @@ pub(crate) fn normalized_residues(sequence: &str) -> impl Iterator<Item = char> 
         .map(|residue| residue.to_ascii_uppercase())
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum NormalizedResidue {
+    Byte { value: u8, position: usize },
+    Char { value: char, position: usize },
+}
+
+pub(crate) fn for_each_normalized_residue(
+    normalized: &[u8],
+    mut visit: impl FnMut(NormalizedResidue),
+) {
+    if normalized.is_ascii() {
+        for (index, byte) in normalized.iter().copied().enumerate() {
+            visit(NormalizedResidue::Byte {
+                value: byte,
+                position: index + 1,
+            });
+        }
+    } else if let Ok(sequence) = std::str::from_utf8(normalized) {
+        for (index, residue) in sequence.chars().enumerate() {
+            visit(NormalizedResidue::Char {
+                value: residue,
+                position: index + 1,
+            });
+        }
+    } else {
+        for (index, byte) in normalized.iter().copied().enumerate() {
+            visit(NormalizedResidue::Byte {
+                value: byte,
+                position: index + 1,
+            });
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests;

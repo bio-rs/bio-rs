@@ -3,8 +3,8 @@ use super::{
     is_protein_20_residue_byte,
 };
 use super::{
-    AlphabetPolicy, ProteinSequence, ResidueIssue, SequenceRecord, SequenceValidationIssue,
-    SymbolClass, ValidatedSequence, ValidatedSequenceRecord, PROTEIN_20,
+    AlphabetPolicy, NormalizedResidue, ProteinSequence, ResidueIssue, SequenceRecord,
+    SequenceValidationIssue, SymbolClass, ValidatedSequence, ValidatedSequenceRecord, PROTEIN_20,
 };
 
 /// Validate one protein sequence against the `protein-20` policy.
@@ -17,19 +17,14 @@ pub(crate) fn validate_protein_sequence_owned(id: String, sequence: Vec<u8>) -> 
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
-    if normalized.is_ascii() {
-        for (index, byte) in normalized.iter().enumerate() {
-            push_protein_byte_issue(*byte, index + 1, &mut warnings, &mut errors);
+    super::for_each_normalized_residue(&normalized, |residue| match residue {
+        NormalizedResidue::Byte { value, position } => {
+            push_protein_byte_issue(value, position, &mut warnings, &mut errors);
         }
-    } else if let Ok(s) = std::str::from_utf8(&normalized) {
-        for (index, residue) in s.chars().enumerate() {
-            push_protein_issue(residue, index + 1, &mut warnings, &mut errors);
+        NormalizedResidue::Char { value, position } => {
+            push_protein_issue(value, position, &mut warnings, &mut errors);
         }
-    } else {
-        for (index, byte) in normalized.iter().enumerate() {
-            push_protein_byte_issue(*byte, index + 1, &mut warnings, &mut errors);
-        }
-    }
+    });
 
     let normalized_sequence = String::from_utf8(normalized)
         .unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
@@ -234,5 +229,33 @@ mod tests {
         assert!(result.warnings.is_empty());
         assert!(result.errors.is_empty());
         assert_eq!(result.sequence, "");
+    }
+
+    #[test]
+    fn validate_protein_sequence_keeps_unicode_positions_as_characters() {
+        let protein = ProteinSequence::new_normalized("unicode", "ACΩ");
+        let result = validate_protein_sequence(&protein);
+
+        assert!(!result.valid);
+        assert!(result.warnings.is_empty());
+        assert_eq!(result.sequence, "ACΩ");
+        assert_eq!(result.errors.len(), 1);
+        assert_eq!(result.errors[0].residue, 'Ω');
+        assert_eq!(result.errors[0].position, 3);
+    }
+
+    #[test]
+    fn validate_protein_sequence_falls_back_to_bytes_for_invalid_utf8() {
+        let protein = ProteinSequence {
+            id: "invalid-utf8".into(),
+            sequence: vec![b'A', 0xff, b'C'],
+        };
+        let result = validate_protein_sequence(&protein);
+
+        assert!(!result.valid);
+        assert_eq!(result.sequence, "A�C");
+        assert_eq!(result.errors.len(), 1);
+        assert_eq!(result.errors[0].residue, 'ÿ');
+        assert_eq!(result.errors[0].position, 2);
     }
 }

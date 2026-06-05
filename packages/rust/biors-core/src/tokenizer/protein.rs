@@ -4,7 +4,7 @@ use super::{
     load_protein_20_vocab, protein_20_vocabulary, ProteinTokenizerConfig, TokenizedProtein,
     Vocabulary,
 };
-use crate::sequence::{ProteinSequence, PROTEIN_20};
+use crate::sequence::{NormalizedResidue, ProteinSequence, PROTEIN_20};
 
 pub trait Tokenizer {
     fn alphabet(&self) -> &'static str;
@@ -52,7 +52,8 @@ pub fn tokenize_protein_with_config(
     config: &ProteinTokenizerConfig,
 ) -> TokenizedProtein {
     let sequence = crate::sequence::normalize_sequence_bytes(&protein.sequence);
-    let mut tokens = Vec::with_capacity(sequence.len());
+    let special_token_count = usize::from(config.add_special_tokens) * 2;
+    let mut tokens = Vec::with_capacity(sequence.len() + special_token_count);
     let mut warnings = Vec::new();
     let mut errors = Vec::new();
 
@@ -60,40 +61,28 @@ pub fn tokenize_protein_with_config(
         tokens.push(special_tokens_for_profile(config.profile).cls.token_id);
     }
 
-    if sequence.is_ascii() {
-        for (index, byte) in sequence.iter().enumerate() {
+    crate::sequence::for_each_normalized_residue(&sequence, |residue| match residue {
+        NormalizedResidue::Byte { value, position } => {
             push_tokenized_residue_byte(
                 config.profile,
-                *byte,
-                index + 1,
+                value,
+                position,
                 &mut tokens,
                 &mut warnings,
                 &mut errors,
             );
         }
-    } else if let Ok(s) = std::str::from_utf8(&sequence) {
-        for (index, residue) in s.chars().enumerate() {
+        NormalizedResidue::Char { value, position } => {
             push_tokenized_residue(
                 config.profile,
-                residue,
-                index + 1,
+                value,
+                position,
                 &mut tokens,
                 &mut warnings,
                 &mut errors,
             );
         }
-    } else {
-        for (index, byte) in sequence.iter().enumerate() {
-            push_tokenized_residue_byte(
-                config.profile,
-                *byte,
-                index + 1,
-                &mut tokens,
-                &mut warnings,
-                &mut errors,
-            );
-        }
-    }
+    });
 
     if config.add_special_tokens {
         tokens.push(special_tokens_for_profile(config.profile).sep.token_id);
