@@ -1,8 +1,8 @@
 # Biological Format Support
 
-Version: 0.57.0
+Version: 0.57.1
 
-This document records the `0.57.0` format-expansion contract. bio-rs keeps
+This document records the `0.57.1` format-expansion contract. bio-rs keeps
 format support local-first: parsing and validation run on local input, emit
 machine-readable diagnostics, and do not upload biological data.
 
@@ -212,7 +212,7 @@ verified. See [Molecule support](molecule.md) for the detailed contract.
 
 ## `crates/biors-formats` Decision
 
-`0.57.0` does not introduce a separate `biors-formats` crate. The supported
+`0.57.1` does not introduce a separate `biors-formats` crate. The supported
 FASTQ parser, molecule parsers, and shared format contracts live in
 `biors-core` because:
 

@@ -134,7 +134,7 @@ schemas by stable `https://bio-rs.dev/schemas/...` identifiers.
 
 ## `biors-service` Crate Review
 
-The 0.57.0 implementation keeps the HTTP runtime inside the `biors` CLI crate
+The 0.57.1 implementation keeps the HTTP runtime inside the `biors` CLI crate
 instead of introducing `crates/biors-service`. That is intentional for this
 release: the current server is small, local-only, dependency-light, and directly
 tied to CLI process lifecycle. Splitting a crate now would add release surface
