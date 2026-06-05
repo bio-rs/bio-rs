@@ -6,6 +6,7 @@ mod debug;
 mod diff;
 mod doctor;
 pub mod handlers;
+mod molecule_args;
 mod package;
 mod package_args;
 mod package_convert;
@@ -32,6 +33,7 @@ pub(crate) use debug::run_debug;
 pub(crate) use diff::run_diff;
 pub(crate) use doctor::build_doctor_report;
 pub use handlers::run;
+pub use molecule_args::{MoleculeCommand, MoleculeFormatArg};
 pub(crate) use package::run_package_command;
 pub use package_args::{
     PackageCommand, PackageConvertArgs, PackageConvertProjectArgs, PackageInitArgs,

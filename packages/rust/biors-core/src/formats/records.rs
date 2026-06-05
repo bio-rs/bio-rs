@@ -28,6 +28,12 @@ pub enum BioFormat {
     Csv,
     /// Tab-separated biological tables.
     Tsv,
+    /// SMILES molecular line notation.
+    Smiles,
+    /// Structure-data files / MDL SDfiles.
+    Sdf,
+    /// Tripos MOL2 molecular graph files.
+    Mol2,
 }
 
 impl BioFormat {
@@ -46,6 +52,9 @@ impl BioFormat {
             Self::Mmcif => "mmcif",
             Self::Csv => "csv",
             Self::Tsv => "tsv",
+            Self::Smiles => "smiles",
+            Self::Sdf => "sdf",
+            Self::Mol2 => "mol2",
         }
     }
 
@@ -64,6 +73,9 @@ impl BioFormat {
             Self::Mmcif => "mmCIF",
             Self::Csv => "CSV biological table",
             Self::Tsv => "TSV biological table",
+            Self::Smiles => "SMILES",
+            Self::Sdf => "SDF",
+            Self::Mol2 => "MOL2",
         }
     }
 }

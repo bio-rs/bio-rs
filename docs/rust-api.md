@@ -16,6 +16,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
   - [`formats`](#module-formats)
   - [`hash`](#module-hash)
   - [`model_input`](#module-model_input)
+  - [`molecule`](#module-molecule)
   - [`package`](#module-package)
   - [`runtime`](#module-runtime)
   - [`sequence`](#module-sequence)
@@ -31,7 +32,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB format parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -772,6 +773,85 @@ protein-sequence-to-structure mapping.
 
 - `pub fn extract_structure_sequences(record: &StructureRecord) -> StructureSequenceOutput`
   Extract per-chain coordinate and SEQRES sequences plus mapping metadata.
+
+### Module: `molecule`
+
+The `molecule` module provides molecular records, SMILES/SDF/MOL2 parsing,
+graph validation, conservative valence checks, deterministic graph keys,
+descriptors, and hashed fingerprints.
+
+#### Types
+
+- **`MoleculeRecord`** — Parsed molecule with `format`, optional `id`, source
+  label, `MoleculeMetadata`, `MolecularGraph`, and preserved source
+  `MoleculeProperty` values.
+- **`MoleculeMetadata`** — Source line metadata plus atom count, bond count,
+  branch count, ring-closure count, disconnected component count, and aromatic
+  atom count.
+- **`MolecularGraph`** — Split `AtomGraph` and `BondGraph`.
+- **`MoleculeAtom`** — Atom index, element, source token/name, aromatic and
+  bracket flags, isotope, explicit hydrogens, charge, chirality, atom class,
+  optional coordinate, atom type, partial charge, and substructure metadata.
+- **`MoleculeBond`** — Bond index, source/target atom indices, `BondOrder`,
+  ring-closure marker, and optional stereochemistry marker.
+- **`MoleculeCoordinate`** — Optional molecule-space `x`, `y`, `z`
+  coordinate.
+- **`MoleculeProperty`** — Name/value property preserved from SDF and MOL2
+  sources.
+- **`MoleculeValidationReport`** — Aggregate molecule validation result.
+- **`MoleculeValidationRecord`** — Per-record validation result with derived
+  features and structured issue lists.
+- **`MoleculeDerivedFeatures`** — `canonical_graph_key`, formula, exact mass,
+  heavy/hetero atom counts, ring bond count, rotatable bond count, donor and
+  acceptor counts, formal charge, and fingerprint.
+- **`MoleculeFingerprint`** — deterministic `biors-ecfp-lite-v0` fingerprint
+  with bit count and set bit positions.
+- **`MoleculeValidationIssueCode`** — `AromaticityNotVerified`,
+  `ValenceExceeded`, or `UnknownValenceModel`.
+- **`SmilesParseError`**, **`SdfParseError`**, and **`Mol2ParseError`** —
+  format-specific parse errors with stable `smiles.*`, `sdf.*`, and `mol2.*`
+  codes.
+- **`MoleculeReadError`** — streaming molecule reader error wrapping
+  SMILES/SDF/MOL2 parse failures or I/O failures.
+- **`ParsedMoleculeInput`** — `pub input_hash: String`,
+  `pub records: Vec<MoleculeRecord>`.
+- **`ValidatedMoleculeInput`** — `pub input_hash: String`,
+  `pub report: MoleculeValidationReport`.
+
+#### Functions
+
+- `pub fn parse_smiles_records(input: &str) -> Result<Vec<MoleculeRecord>, SmilesParseError>`
+  Parse line-oriented SMILES records.
+
+- `pub fn parse_smiles_records_reader<R: BufRead>(reader: R) -> Result<ParsedMoleculeInput, MoleculeReadError>`
+  Parse SMILES records from a buffered reader and return a stable raw input hash.
+
+- `pub fn parse_sdf_records(input: &str) -> Result<Vec<MoleculeRecord>, SdfParseError>`
+  Parse SDF/MOLfile records.
+
+- `pub fn parse_sdf_records_reader<R: BufRead>(reader: R) -> Result<ParsedMoleculeInput, MoleculeReadError>`
+  Parse SDF records from a buffered reader and return a stable raw input hash.
+
+- `pub fn parse_mol2_records(input: &str) -> Result<Vec<MoleculeRecord>, Mol2ParseError>`
+  Parse Tripos MOL2 records.
+
+- `pub fn parse_mol2_records_reader<R: BufRead>(reader: R) -> Result<ParsedMoleculeInput, MoleculeReadError>`
+  Parse MOL2 records from a buffered reader and return a stable raw input hash.
+
+- `pub fn validate_smiles_reader<R: BufRead>(reader: R) -> Result<MoleculeValidationReport, MoleculeReadError>`
+  Parse and validate SMILES records.
+
+- `pub fn validate_smiles_reader_with_hash<R: BufRead>(reader: R) -> Result<ValidatedMoleculeInput, MoleculeReadError>`
+  Validate SMILES records and include the raw input hash.
+
+- `pub fn validate_molecule_records(records: &[MoleculeRecord]) -> MoleculeValidationReport`
+  Validate already parsed molecule records from SMILES, SDF, or MOL2.
+
+- `pub fn summarize_molecule_records(records: &[MoleculeRecord]) -> MoleculeValidationReport`
+  Alias for molecule validation summaries.
+
+- `pub fn derive_molecule_features(record: &MoleculeRecord) -> MoleculeDerivedFeatures`
+  Compute deterministic graph keys, descriptors, and hashed fingerprints.
 
 ### Module: `tokenizer`
 

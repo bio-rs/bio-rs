@@ -1,3 +1,4 @@
+use super::molecule_args::MoleculeCommand;
 use super::package_args::PackageCommand;
 use super::structure_args::StructureCommand;
 use biors_core::{
@@ -70,6 +71,10 @@ pub enum Command {
         #[arg(long, default_value_t = PaddingArg::FixedLength, value_enum)]
         padding: PaddingArg,
         path: PathBuf,
+    },
+    Molecule {
+        #[command(subcommand)]
+        command: MoleculeCommand,
     },
     Package {
         #[command(subcommand)]

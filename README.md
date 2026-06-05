@@ -7,8 +7,9 @@
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 bio-rs is a local, reproducible input layer for bio-AI tools. It takes raw
-biological sequences, structure files, tokenizer profiles, package manifests,
-model artifacts, and fixture outputs, then turns them into checked contracts
+biological sequences, structure files, molecule files, tokenizer profiles,
+package manifests, model artifacts, and fixture outputs, then turns them into
+checked contracts
 that can run in CLIs, CI, Python notebooks, browsers, and agent tools.
 
 ```txt
@@ -83,6 +84,7 @@ cargo install biors --version 0.49.0
 biors doctor
 biors seq validate --kind auto examples/multi.fasta
 printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
+printf 'CC(=O)O acetate\n' | biors molecule validate --format smiles -
 printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
 biors batch validate --kind auto examples/
 biors tokenizer inspect --profile protein-20-special
@@ -172,6 +174,18 @@ CLI surface.
 - mmCIF is reviewed as the next structure parser candidate but is not exposed
   as executable parser support yet
 
+### Molecule handling
+- SMILES parsing with branch, ring-closure, bracket atom, bond-order, and
+  disconnected component validation
+- SDF V2000/basic V3000 parsing with coordinates and data-item preservation
+- MOL2 parsing with atom types, partial charges, and substructure metadata
+- `MoleculeRecord`, `AtomGraph`, `BondGraph`, and `MoleculeMetadata` contracts
+- Conservative valence validation, deterministic canonical graph keys, formula
+  and mass descriptors, simple drug-discovery descriptors, and
+  `biors-ecfp-lite-v0` hashed fingerprints
+- CLI support through `biors molecule validate --format smiles|sdf|mol2` and
+  `biors molecule inspect --format smiles|sdf|mol2`
+
 ### Tokenization
 - `protein-20` tokenization with stable IDs
 - `protein-20-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
@@ -232,8 +246,9 @@ CLI surface.
 - [Service interface](docs/service-interface.md) — service-host contract and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
-- [Biological format support](docs/formats.md) — FASTQ/PDB support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
+- [Biological format support](docs/formats.md) — FASTQ/PDB/SMILES/SDF/MOL2 support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
 - [Structure support](docs/structure.md) — PDB validation, chain extraction, sequence mapping, and mmCIF candidate requirements
+- [Molecule support](docs/molecule.md) — SMILES/SDF/MOL2 parsing, graph validation, descriptors, and fingerprints
 - [Error code registry](docs/error-codes.md)
 - [Rust API](docs/rust-api.md)
 - [Python API](docs/python-api.md)
@@ -251,6 +266,8 @@ These are roadmap directions, not current capabilities:
 - package registry or plugin ecosystem
 - general-purpose chemistry tooling
 - mmCIF structure parsing beyond reviewed candidate requirements
+- tautomer normalization, force-field chemistry, conformer generation, and
+  RDKit/Open Babel canonical SMILES equivalence
 - no-code or low-code workflows
 
 ## Development

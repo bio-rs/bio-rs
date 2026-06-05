@@ -12,6 +12,7 @@ mod fasta_scan;
 pub mod formats;
 pub mod hash;
 pub mod model_input;
+pub mod molecule;
 pub mod package;
 pub mod runtime;
 pub mod sequence;
@@ -26,6 +27,9 @@ pub use error::{BioRsError, FastaReadError};
 pub use fasta::{parse_fasta_records, parse_fasta_records_reader, validate_fasta_reader};
 pub use formats::{parse_fastq_records, parse_fastq_records_reader, validate_fastq_reader};
 pub use model_input::ModelInput;
+pub use molecule::{
+    parse_smiles_records, parse_smiles_records_reader, validate_smiles_reader, MoleculeRecord,
+};
 pub use sequence::{BiologicalSequence, FastaSequence, ProteinSequence, SequenceKind};
 pub use structure::{
     parse_pdb_record, parse_pdb_record_reader, validate_pdb_reader, StructureRecord,

@@ -3,6 +3,7 @@ use biors_core::{
     error::{BioRsError, Diagnostic, ErrorLocation, FastaReadError},
     formats::FormatReadError,
     model_input::ModelInputBuildError,
+    molecule::MoleculeReadError,
     package::{PackageValidationIssueCode, PackageValidationReport},
     structure::StructureReadError,
     verification::{PackageVerificationReport, VerificationIssueCode, VerificationStatus},
@@ -16,6 +17,7 @@ pub(crate) enum CliError {
     Core(BioRsError),
     Format(FormatReadError),
     Structure(StructureReadError),
+    Molecule(MoleculeReadError),
     ModelInput(ModelInputBuildError),
     Json(serde_json::Error),
     CurrentDir(std::io::Error),
@@ -51,6 +53,7 @@ impl CliError {
             Self::Core(error) => error.code(),
             Self::Format(error) => error.code(),
             Self::Structure(error) => error.code(),
+            Self::Molecule(error) => error.code(),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => {
                 "model_input.invalid_policy"
             }
@@ -77,6 +80,7 @@ impl CliError {
             Self::Core(error) => error.location().map(ErrorLocationValue::Core),
             Self::Format(error) => error.location().map(ErrorLocationValue::Core),
             Self::Structure(error) => error.location().map(ErrorLocationValue::Core),
+            Self::Molecule(error) => error.location().map(ErrorLocationValue::Core),
             Self::ModelInput(ModelInputBuildError::InvalidPolicy { .. }) => None,
             Self::ModelInput(ModelInputBuildError::InvalidInputHash { .. }) => None,
             Self::ModelInput(ModelInputBuildError::EmptyTokenizedSequence { id }) => {
@@ -105,6 +109,7 @@ impl CliError {
             Self::Core(_)
             | Self::Format(_)
             | Self::Structure(_)
+            | Self::Molecule(_)
             | Self::ModelInput(_)
             | Self::Json(_)
             | Self::Validation { .. }
@@ -135,6 +140,13 @@ impl CliError {
             error => Self::Structure(error),
         }
     }
+
+    pub(crate) fn from_molecule_read(path: PathBuf, error: MoleculeReadError) -> Self {
+        match error {
+            MoleculeReadError::Io(source) => Self::Read { path, source },
+            error => Self::Molecule(error),
+        }
+    }
 }
 
 impl std::fmt::Display for CliError {
@@ -143,6 +155,7 @@ impl std::fmt::Display for CliError {
             Self::Core(error) => write!(f, "{error}"),
             Self::Format(error) => write!(f, "{error}"),
             Self::Structure(error) => write!(f, "{error}"),
+            Self::Molecule(error) => write!(f, "{error}"),
             Self::ModelInput(error) => write!(f, "{error}"),
             Self::Json(error) => write!(f, "{error}"),
             Self::CurrentDir(error) => write!(f, "failed to determine current directory: {error}"),

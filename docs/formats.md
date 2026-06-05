@@ -1,8 +1,8 @@
 # Biological Format Support
 
-Version: 0.49.0
+Version: 0.50.0
 
-This document records the `0.49.0` format-expansion contract. bio-rs keeps
+This document records the `0.50.0` format-expansion contract. bio-rs keeps
 format support local-first: parsing and validation run on local input, emit
 machine-readable diagnostics, and do not upload biological data.
 
@@ -28,6 +28,9 @@ biors formats list
 | mmCIF | Reviewed candidate | `_atom_site` and sequence-category requirements documented; parser not exposed yet |
 | CSV biological table | Reviewed candidate | Header/row validation requirements documented; parser not exposed yet |
 | TSV biological table | Reviewed candidate | Header/row validation requirements documented; parser not exposed yet |
+| SMILES | Supported | `MoleculeRecord`, molecular graph construction, validation, descriptors, and fingerprints |
+| SDF | Supported | V2000/basic V3000 molecule parsing with coordinates and SDF data-item preservation |
+| MOL2 | Supported | TRIPOS molecule/atom/bond parsing with atom types, partial charges, and substructure metadata |
 
 `reviewed_candidate` means the validation requirements are public but the parser
 is not part of the executable contract yet. Callers must not treat those formats
@@ -179,13 +182,42 @@ Before table parsing becomes `supported`, bio-rs must validate:
 
 TSV can land before CSV if the CSV quoted-field contract is still under review.
 
+### SMILES, SDF, And MOL2
+
+Molecule support is executable through:
+
+```bash
+biors molecule validate --format smiles molecules.smi
+biors molecule inspect --format sdf compounds.sdf
+biors molecule validate --format mol2 ligand.mol2
+```
+
+All three formats project into `MoleculeRecord` with `AtomGraph`, `BondGraph`,
+`MoleculeMetadata`, and preserved source properties. Validation includes graph
+construction, disconnected component counting, conservative valence checks,
+deterministic canonical graph keys, formula/mass descriptors, simple
+drug-discovery descriptors, and `biors-ecfp-lite-v0` hashed fingerprints.
+
+SMILES support covers organic subset atoms, bracket atoms, branches, bond
+orders, directional bond markers, one-digit and `%NN` ring closures, and
+disconnected components. SDF support covers V2000 connection tables, basic
+V3000 atom/bond blocks, coordinates, and data items. MOL2 support covers
+`@<TRIPOS>MOLECULE`, `ATOM`, and `BOND` sections, including atom types,
+partial charges, and substructure metadata.
+
+The canonical graph key is a bio-rs deterministic graph key, not an
+RDKit/Open Babel canonical SMILES equivalence claim. Aromatic source notation
+is preserved and flagged when aromaticity perception has not been independently
+verified. See [Molecule support](molecule.md) for the detailed contract.
+
 ## `crates/biors-formats` Decision
 
-`0.49.0` does not introduce a separate `biors-formats` crate. The supported
-FASTQ parser and shared format contracts live in `biors-core::formats` because:
+`0.50.0` does not introduce a separate `biors-formats` crate. The supported
+FASTQ parser, molecule parsers, and shared format contracts live in
+`biors-core` because:
 
-- the release has one supported new format family, so a new crate would add
-  packaging and release surface before there is a stable split point
+- the molecule contracts share validation and derived-feature code with the
+  core conversion work planned for entity mapping
 - `FormatRecord` is needed by later core conversion work in `0.51.0`
 - keeping the API in `biors-core` lets Rust, CLI, Python, WASM, MCP, and service
   surfaces converge on one contract first

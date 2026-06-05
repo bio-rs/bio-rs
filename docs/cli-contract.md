@@ -17,6 +17,8 @@ try it quickly.
 - `biors doctor`
 - `biors formats list`
 - `biors formats validate --format fastq <path|->`
+- `biors molecule validate --format smiles|sdf|mol2 <path|->`
+- `biors molecule inspect --format smiles|sdf|mol2 <path|->`
 - `biors structure validate --format pdb <path|->`
 - `biors structure sequence --format pdb <path|->`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
@@ -61,6 +63,8 @@ metadata, and workflow payloads:
 - `format-capabilities-output.v0.json`
 - `inspect-output.v0.json`
 - `model-input-output.v0.json`
+- `molecule-records-output.v0.json`
+- `molecule-validation-output.v0.json`
 - `output-diff.v0.json`
 - `package-bridge-output.v0.json`
 - `package-compatibility-output.v0.json`
@@ -191,6 +195,16 @@ sequence symbols, quality length parity, and printable Phred+33 quality
 characters. The output uses `fastq-validation-output.v0.json` and includes
 per-record line ranges, sequence length, quality length, warnings, and errors
 without repeating raw read payloads.
+`molecule validate --format smiles|sdf|mol2` parses molecule records into a
+shared graph contract, validates source syntax, checks conservative valence for
+common organic and bioactive atoms, emits deterministic canonical graph keys,
+formula/mass descriptors, simple molecular descriptors, and
+`biors-ecfp-lite-v0` hashed fingerprints. The output uses
+`molecule-validation-output.v0.json`.
+`molecule inspect --format smiles|sdf|mol2` emits parsed `MoleculeRecord`
+values with `AtomGraph`, `BondGraph`, source metadata, coordinates when present,
+SDF data items, MOL2 atom types, partial charges, and substructure metadata.
+The output uses `molecule-records-output.v0.json`.
 `structure validate --format pdb` validates fixed-column PDB ATOM/HETATM
 records, extracts chains and residues, preserves `REMARK 465` missing residues,
 checks finite coordinates and occupancy ranges, and maps coordinate-derived
@@ -239,7 +253,8 @@ All successful command output is written to stdout as pretty JSON:
 ```
 
 `input_hash` is present for commands that stream and hash biological input,
-including FASTA-backed commands, FASTQ validation, and PDB structure commands.
+including FASTA-backed commands, FASTQ validation, molecule commands, and PDB
+structure commands.
 Package commands omit it unless they directly hash a user input contract in a
 later release.
 

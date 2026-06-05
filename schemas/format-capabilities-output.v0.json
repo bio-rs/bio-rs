@@ -20,7 +20,10 @@
           "pdb",
           "mmcif",
           "csv",
-          "tsv"
+          "tsv",
+          "smiles",
+          "sdf",
+          "mol2"
         ]
       },
       "status": {

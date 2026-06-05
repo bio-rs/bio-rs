@@ -27,6 +27,34 @@ validation issues.
 - `pdb.missing_atom_field`: a required fixed-column ATOM/HETATM field was blank or unavailable
 - `pdb.invalid_atom_field`: a fixed-column ATOM/HETATM field could not be parsed as the required numeric or text value
 
+## Molecule Parsing
+
+- `smiles.empty_input`: input contained no SMILES records
+- `smiles.missing_smiles`: a SMILES record line did not contain a SMILES token
+- `smiles.missing_atom`: a SMILES atom token was expected
+- `smiles.unexpected_character`: a SMILES token contained an unsupported character
+- `smiles.dangling_bond`: a SMILES bond marker had no following atom or ring closure
+- `smiles.invalid_branch`: a SMILES branch opened before any atom was available
+- `smiles.unclosed_branch`: a SMILES branch was opened but never closed
+- `smiles.unmatched_branch`: a SMILES branch close had no corresponding open branch
+- `smiles.unclosed_ring`: a SMILES ring closure was opened but never closed
+- `smiles.invalid_ring_closure`: a SMILES ring closure appeared before any atom
+- `smiles.invalid_bracket_atom`: a SMILES bracket atom could not be parsed
+- `sdf.empty_input`: input contained no SDF records
+- `sdf.missing_counts_line`: an SDF record is missing a counts line
+- `sdf.invalid_counts_line`: an SDF counts line could not be parsed
+- `sdf.invalid_atom_line`: an SDF atom line could not be parsed
+- `sdf.invalid_bond_line`: an SDF bond line could not be parsed
+- `sdf.unsupported_bond_type`: an SDF bond type is not supported by the graph contract
+- `sdf.invalid_v3000_line`: an SDF V3000 atom or bond line could not be parsed
+- `mol2.empty_input`: input contained no MOL2 records
+- `mol2.missing_molecule_section`: a MOL2 record is missing `@<TRIPOS>MOLECULE`
+- `mol2.missing_molecule_name`: a MOL2 record is missing a molecule name
+- `mol2.missing_counts_line`: a MOL2 record is missing or mismatches its counts line
+- `mol2.invalid_atom_line`: a MOL2 atom line could not be parsed
+- `mol2.invalid_bond_line`: a MOL2 bond line could not be parsed
+- `mol2.unsupported_bond_type`: a MOL2 bond type is not supported by the graph contract
+
 ## Sequence Validation
 
 Sequence validation warnings and errors are reported inside successful FASTA or
@@ -51,6 +79,16 @@ Structure validation warnings and errors are reported inside successful
 - `missing_residue`: a residue is annotated as missing from coordinates
 - `unknown_residue`: a coordinate residue could not be mapped to a standard protein one-letter code
 - `sequence_mismatch`: coordinate-derived protein sequence could not be mapped to SEQRES
+
+## Molecule Validation
+
+Molecule validation warnings and errors are reported inside successful
+`molecule validate --format smiles|sdf|mol2` payloads, not as top-level CLI
+failures.
+
+- `aromaticity_not_verified`: aromatic source notation was preserved but not independently perceived from first principles
+- `valence_exceeded`: a parsed atom exceeds the conservative valence model used by bio-rs
+- `unknown_valence_model`: a parsed atom has no configured conservative valence model
 
 ## JSON
 

@@ -1,6 +1,7 @@
 use super::{
-    Cli, Command, FastaCommand, FormatArg, FormatsCommand, KindArg, PaddingArg, SeqCommand,
-    ServiceCommand, StructureCommand, StructureFormatArg, TokenizerCommand, TokenizerProfileArg,
+    Cli, Command, FastaCommand, FormatArg, FormatsCommand, KindArg, MoleculeCommand,
+    MoleculeFormatArg, PaddingArg, SeqCommand, ServiceCommand, StructureCommand,
+    StructureFormatArg, TokenizerCommand, TokenizerProfileArg,
 };
 use crate::cli::{
     build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
@@ -12,6 +13,10 @@ use crate::output::print_success;
 use biors_core::{
     formats::{format_capabilities, validate_fastq_reader_with_hash},
     model_input::{build_model_inputs_checked, ModelInputPolicy},
+    molecule::{
+        parse_mol2_records_reader, parse_sdf_records_reader, parse_smiles_records_reader,
+        validate_molecule_records, validate_smiles_reader_with_hash,
+    },
     sequence::validate_fasta_reader_with_kind_and_hash,
     service::current_service_interface_document,
     structure::{
@@ -45,6 +50,7 @@ pub fn run(command: Command) -> Result<(), CliError> {
             padding,
             path,
         } => run_model_input(profile, max_length, pad_token_id, padding, path),
+        Command::Molecule { command } => run_molecule_command(command),
         Command::Package { command } => run_package_command(command),
         Command::Pipeline {
             config,
@@ -159,6 +165,65 @@ fn run_structure_sequence(format: StructureFormatArg, path: PathBuf) -> Result<(
                 .map_err(|error| CliError::from_structure_read(path, error))?;
             let sequences = extract_structure_sequences(&output.record);
             print_success(Some(output.input_hash), sequences)
+        }
+    }
+}
+
+fn run_molecule_command(command: MoleculeCommand) -> Result<(), CliError> {
+    match command {
+        MoleculeCommand::Validate { format, path } => run_molecule_validation(format, path),
+        MoleculeCommand::Inspect { format, path } => run_molecule_inspect(format, path),
+    }
+}
+
+fn run_molecule_validation(format: MoleculeFormatArg, path: PathBuf) -> Result<(), CliError> {
+    match format {
+        MoleculeFormatArg::Smiles => {
+            let reader = open_buffered_input(&path)?;
+            let output = validate_smiles_reader_with_hash(reader)
+                .map_err(|error| CliError::from_molecule_read(path, error))?;
+            print_success(Some(output.input_hash), output.report)
+        }
+        MoleculeFormatArg::Sdf => {
+            let reader = open_buffered_input(&path)?;
+            let output = parse_sdf_records_reader(reader)
+                .map_err(|error| CliError::from_molecule_read(path, error))?;
+            print_success(
+                Some(output.input_hash),
+                validate_molecule_records(&output.records),
+            )
+        }
+        MoleculeFormatArg::Mol2 => {
+            let reader = open_buffered_input(&path)?;
+            let output = parse_mol2_records_reader(reader)
+                .map_err(|error| CliError::from_molecule_read(path, error))?;
+            print_success(
+                Some(output.input_hash),
+                validate_molecule_records(&output.records),
+            )
+        }
+    }
+}
+
+fn run_molecule_inspect(format: MoleculeFormatArg, path: PathBuf) -> Result<(), CliError> {
+    match format {
+        MoleculeFormatArg::Smiles => {
+            let reader = open_buffered_input(&path)?;
+            let output = parse_smiles_records_reader(reader)
+                .map_err(|error| CliError::from_molecule_read(path, error))?;
+            print_success(Some(output.input_hash), output.records)
+        }
+        MoleculeFormatArg::Sdf => {
+            let reader = open_buffered_input(&path)?;
+            let output = parse_sdf_records_reader(reader)
+                .map_err(|error| CliError::from_molecule_read(path, error))?;
+            print_success(Some(output.input_hash), output.records)
+        }
+        MoleculeFormatArg::Mol2 => {
+            let reader = open_buffered_input(&path)?;
+            let output = parse_mol2_records_reader(reader)
+                .map_err(|error| CliError::from_molecule_read(path, error))?;
+            print_success(Some(output.input_hash), output.records)
         }
     }
 }
