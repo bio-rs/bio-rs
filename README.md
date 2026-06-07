@@ -26,15 +26,6 @@ See [docs/sequence-kind-support.md](docs/sequence-kind-support.md) before making
 broad DNA/RNA support claims. Package skeleton generation and Python/Hugging
 Face conversion remain protein-first.
 
-## What It Is Not
-
-- Not a full AI agent.
-- Not a hosted SaaS platform, model registry, training framework, or remote
-  inference service.
-- Not a complete bioinformatics suite.
-- No biological data uploads, telemetry, remote storage, or hosted workspace
-  behavior by default.
-
 ## Quickstart
 
 ```bash
