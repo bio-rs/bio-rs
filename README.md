@@ -6,371 +6,86 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/cli-contract.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs is a Rust-based bio-AI data/tooling engine for validating biological
-data, preparing model-ready inputs, and emitting reproducible JSON contracts
-across CLI, Python, WASM, local services, and agent tools.
+bio-rs is a Rust-based bio-AI data/tooling engine.
 
-It is the local-first contract layer around model workflows: parse and validate
-biological files, preserve provenance, build tokenizer/model-input payloads, and
-return machine-readable outputs that callers can inspect, test, cite, and reuse.
+It validates biological data, prepares model-ready inputs, and emits
+reproducible JSON contracts across CLI, Rust, Python, WASM, local services, and
+agent tools.
 
-```txt
-raw sequence data + package metadata + model artifacts
-  -> validation diagnostics + provenance
-  -> tokenizer IDs, model-input tensors, pipeline locks, package checks
-  -> JSON contracts for Rust, CLI, Python, WASM, MCP, and service hosts
-```
+## What It Does
 
-Agent-ready means interface-ready: deterministic JSON envelopes, local MCP
-tools, and service schemas that an agent or workflow runner can call. bio-rs is
-not itself an autonomous AI agent.
+- Validates protein, DNA, RNA, FASTQ, PDB, SMILES, SDF, and MOL2 inputs.
+- Builds tokenizer IDs, attention masks, model-input payloads, reports, and
+  pipeline locks.
+- Checks package manifests, model artifacts, checksums, fixtures, and runtime
+  bridge plans.
+- Exposes the same local-first contracts through the CLI, Rust, Python, WASM,
+  MCP, and local HTTP/service schemas.
 
-> Status: pre-1.0 CLI, binding, service, and JSON contract stabilization.
+See [docs/sequence-kind-support.md](docs/sequence-kind-support.md) before making
+broad DNA/RNA support claims. Package skeleton generation and Python/Hugging
+Face conversion remain protein-first.
 
-## What Works Today
+## What It Is Not
 
-The current release line supports:
-
-- protein, DNA, and RNA FASTA validation, tokenization, model-input generation,
-  and workflow JSON through explicit sequence-kind profiles
-- FASTQ, PDB, SMILES, SDF, and MOL2 validation/inspection contracts
-- package manifests, package artifact checks, fixture verification, runtime
-  bridge planning, and reproducible pipeline locks
-- Rust, CLI, Python, WASM, MCP, and local HTTP/service contract surfaces
-- benchmark regression guards for CLI, Python, WASM, MCP, and optional backend
-  smoke paths
-
-Package skeleton generation and Python/Hugging Face conversion remain
-protein-first; see the
-[sequence-kind support matrix](docs/sequence-kind-support.md) before making
-broad DNA/RNA full-support claims.
-
-## Limited Or Experimental
-
-- The optional Candle crate is a CPU safetensors linear-probe adapter and smoke
-  path, not a pretrained model backend.
-- The local HTTP server exposes health, OpenAPI, and inline FASTA batch
-  validation; it is not a production service platform.
-- The Docker/OCI file under `deploy/service/` is a local service template for
-  operators who provide their own auth, TLS, logging, supervision, and ingress
-  policy.
-- mmCIF, GFF3/GTF/BED/VCF/GenBank/UniProt, no-code workflows, hosted
-  workspaces, and package registries are future or candidate surfaces unless a
-  linked doc marks a specific command as implemented.
-
-## Current Boundaries
-
-bio-rs is not a full AI agent, hosted SaaS platform, hosted model registry,
-model training framework, remote inference service, or complete bioinformatics
-suite. It does not upload biological data or package artifacts by default.
-Current binary archives are limited to the platforms documented in
-[docs/install.md](docs/install.md); other platforms should use source builds
-until release artifacts are added. Package trust is local validation,
-checksums, schemas, and reproducible lockfiles, not a remote signing or review
-service.
-
-## Why bio-rs?
-
-Bio research code often starts as a notebook and then has to survive handoff:
-to a CLI, a CI job, a browser integration, an agent, a package fixture, or a service
-owned by someone else. The brittle part is usually not the model. It is the
-input contract around the model: what was parsed, how residues were normalized,
-which symbols were warnings, which tokenizer IDs were emitted, whether the
-model input is actually safe to run, and which artifacts were used.
-
-bio-rs makes that layer explicit:
-
-- validate protein, DNA, and RNA with stable diagnostics instead of hidden
-  string cleanup
-- preserve token positions with known profile IDs instead of shortening inputs
-  silently
-- emit model-input JSON only when unresolved residues have been handled
-- pin provenance, vocabulary hashes, output hashes, package checksums, and
-  pipeline lockfiles for repeatable runs
-- expose the same deterministic core through Rust, the CLI, Python, WASM, MCP,
-  and local-first service schemas
-
-The goal is not to replace Python research workflows. The goal is to give those
-workflows a portable contract layer that is easy to inspect, test, cite, and
-share.
-
-## Made For Sharing
-
-The project is built for open-source bio-AI work where examples need to be
-reproducible and claims need evidence:
-
-- Researchers can share a small FASTA, command, and JSON contract instead of a
-  screenshot from a notebook.
-- Model/package authors can ship fixture outputs, checksums, citations, model
-  cards, and runtime bridge plans next to their artifacts.
-- Tool builders can embed the same preprocessing behavior in CLIs,
-  local agents, and internal services without reimplementing the parser.
-- Maintainers can point every public claim at schemas, tests, package artifact
-  checks, and benchmark regression guards.
+- Not a full AI agent.
+- Not a hosted SaaS platform, model registry, training framework, or remote
+  inference service.
+- Not a complete bioinformatics suite.
+- No biological data uploads, telemetry, remote storage, or hosted workspace
+  behavior by default.
 
 ## Quickstart
 
 ```bash
 cargo install biors --version 0.57.2
+biors --version
 biors doctor
 biors seq validate --kind auto testdata/sequences/multi.fasta
-printf '@read1\nACGN\n+\n!!!!\n' | biors formats validate --format fastq -
-printf 'CC(=O)O acetate\n' | biors molecule validate --format smiles -
 printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
-biors batch validate --kind auto testdata/sequences/
-biors tokenizer inspect --profile protein-20-special
 biors package validate testdata/protein-package/manifest.json
 biors service contract
 biors service hosted-boundary
-# in another terminal: biors serve --host 127.0.0.1 --port 8787
-biors dataset inspect --source uniprot --version 2026_02 --split train testdata/sequences/
 ```
 
-Full commands, validation flows, and install options: [docs/quickstart.md](docs/quickstart.md)
+More examples: [docs/quickstart.md](docs/quickstart.md)
 
-## Proof
+## Main Docs
 
-bio-rs keeps performance evidence scoped to reproducible in-repo regression
-guards. Current committed benchmark reports cover CLI, Python, WASM, MCP, and
-optional backend smoke paths; they are guardrails for release regressions, not
-universal throughput claims.
-
-## Surface Details
-
-`biors-core` provides the Rust engine and data contracts. `biors` provides the
-CLI surface.
-
-### Sequence handling
-- FASTA parsing and normalization with buffered reader APIs
-- FASTQ parsing and validation with shared format metadata, sequence/quality
-  length checks, Phred+33 quality character validation, and DNA IUPAC sequence
-  diagnostics
-- Protein/DNA/RNA validation with per-record kind detection (`--kind auto`)
-- Line and record-index diagnostics with residue warning/error reporting
-
-### Structure handling
-- PDB fixed-column ATOM/HETATM parsing with `StructureRecord`, `Chain`,
-  `Residue3D`, `Atom`, and `Coordinate` contracts
-- Chain extraction, `REMARK 465` missing-residue preservation, coordinate
-  validation, occupancy checks, and missing element warnings
-- Coordinate-derived protein sequence extraction and SEQRES mapping through
-  `biors structure validate --format pdb` and
-  `biors structure sequence --format pdb`
-- mmCIF is reviewed as the next structure parser candidate but is not exposed
-  as executable parser support yet
-
-### Molecule handling
-- SMILES parsing with branch, ring-closure, bracket atom, bond-order, and
-  disconnected component validation
-- SDF V2000/basic V3000 parsing with coordinates and data-item preservation
-- MOL2 parsing with atom types, partial charges, and substructure metadata
-- `MoleculeRecord`, `AtomGraph`, `BondGraph`, and `MoleculeMetadata` contracts
-- Conservative valence validation, deterministic canonical graph keys, formula
-  and mass descriptors, simple drug-discovery descriptors, and
-  `biors-ecfp-lite-v0` hashed fingerprints
-- CLI support through `biors molecule validate --format smiles|sdf|mol2` and
-  `biors molecule inspect --format smiles|sdf|mol2`
-
-### Tokenization
-- `protein-20` tokenization with stable IDs
-- `protein-20-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
-- `dna-iupac` and `rna-iupac` tokenization with stable canonical base IDs
-- `dna-iupac-special` and `rna-iupac-special` tokenization with UNK/PAD/CLS/SEP/MASK special tokens
-- JSON tokenizer config loading and inspection
-- Hugging Face tokenizer config conversion
-- Positional token alignment preserved with explicit unknown-token IDs
-
-### Model input
-- `model-input` CLI: profile-aware `input_ids`, `attention_mask`, and truncation metadata for protein, DNA, and RNA token profiles
-- `workflow` CLI: profile-aware validation → tokenization → model input with readiness issues and reproducibility provenance
-- `report generate` CLI: deterministic JSON → Markdown/shareable report export with provenance hashes
-- `pipeline` CLI: no-config validate → tokenize → export, or config-driven (TOML/JSON) workflows with lockfile generation
-- `debug` CLI: step-by-step per-record inspection with compact residue markers
-- Checked and unchecked model-input builders with safety checks for unresolved residues
-- Python, WASM, MCP, package artifact validation, and regression benchmarks cover nucleotide model-ready workflows. Package skeleton/conversion helpers remain protein-first; see [Protein, DNA, and RNA support](docs/sequence-kind-support.md).
-
-### Batch and dataset operations
-- `batch validate`: multiple files, recursive directories, quoted globs
-- `dataset inspect`: dataset descriptors, sample mapping, file SHA-256 provenance
-- `cache inspect` and guarded `cache clean` for local artifact store
-
-### Package management
-- Manifest inspection, validation, and migration (v0 → v1)
-- Schema compatibility checks and canonical diffs
-- SHA-256 checksum verification and fixture verification
-- Python project to bio-rs package skeleton conversion
-- Runtime bridge planning reports, backend execution abstraction contracts, and
-  guarded external-process backend adapters
-- Optional Candle backend crate for CPU safetensors linear-probe inference
-- Model artifact metadata and runtime/model compatibility checks in package
-  bridge reports
-- Local-first `biors serve` HTTP runtime plus service interface contracts for
-  service hosts
-- Typed validation issue codes and manifest enums
-
-### External interfaces
-- `biors-python`: PyO3 bindings for Python integration and notebook workflows
-- `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions
-  and browser file validation/tokenization helpers
-- `biors-mcp-server`: local MCP server crate for agent-callable validation,
-  tokenization, workflow, package validation, and doctor tools
-- `service contract`: JSON route/schema contract for caller-owned service hosts
-- `service hosted-boundary`: local-first OSS core and hosted-layer separation
-  policy
-- `biors serve`: local-first HTTP API for health, OpenAPI, and inline FASTA
-  batch validation
-
-### Utilities
-- `diff`: canonical JSON/raw comparison with SHA-256 hashes
-- `report generate`: reproducible Markdown and shareable JSON reports from bio-rs JSON output
-- `doctor`: core CLI, WASM, Python, package, release, and benchmark readiness
-- `completions`: shell completion generation
-- JSON success/error envelopes for all commands
-
-## Documentation
-
-- [Quickstart](docs/quickstart.md) — install and first commands
-- [Installation and distribution](docs/install.md) — cargo, binaries, completions
-- [CLI contract](docs/cli-contract.md) — commands, JSON envelopes, report generation, task templates, and exit codes
-- [Package format and conversion](docs/package-format.md) — manifest layout, research metadata, and HF/Python project conversion
-- [Rust API](docs/rust-api.md) — core modules including conversion, reports, and task templates
-- [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
-- [Service interface and local HTTP mode](docs/service-interface.md) — local HTTP mode, REST/OpenAPI contract, Docker/OCI template, and runtime boundary
-- [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
-- [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
-- [Biological format support](docs/formats.md) — FASTQ/PDB/SMILES/SDF/MOL2 support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
-- [Structure support](docs/structure.md) — PDB validation, chain extraction, sequence mapping, and mmCIF candidate requirements
-- [Molecule support](docs/molecule.md) — SMILES/SDF/MOL2 parsing, graph validation, descriptors, and fingerprints
-- [Error code registry](docs/error-codes.md)
+- [Installation](docs/install.md)
+- [CLI contract](docs/cli-contract.md)
+- [JSON schemas](schemas)
+- [Protein, DNA, and RNA support](docs/sequence-kind-support.md)
+- [Biological formats](docs/formats.md)
+- [Structure support](docs/structure.md)
+- [Molecule support](docs/molecule.md)
+- [Package format and conversion](docs/package-format.md)
+- [Pipeline config](docs/pipeline-config.md)
+- [Service interface and local HTTP mode](docs/service-interface.md)
 - [Rust API](docs/rust-api.md)
 - [Python API](docs/python-api.md)
 - [WASM API](docs/wasm-api.md)
+- [Candle backend](docs/candle-backend.md)
 - [Versioning policy](docs/versioning.md)
-- [JSON schemas](schemas)
+- [Error codes](docs/error-codes.md)
 - [Citation metadata](CITATION.cff)
 
-## Not yet
+## Roadmap Boundaries
 
-These are roadmap directions, not current capabilities:
-
-- hosted web workflow runtime beyond the `service hosted-boundary` contract
-- pretrained model-specific inference backends
-- package registry or plugin ecosystem
-- general-purpose chemistry tooling
-- mmCIF structure parsing beyond reviewed candidate requirements
-- tautomer normalization, force-field chemistry, conformer generation, and
-  RDKit/Open Babel canonical SMILES equivalence
-- no-code or low-code workflows
-- hosted workflow workspace management beyond the boundary contract
-- full autonomous agent behavior or hosted product workflows
+Future work must stay clearly labeled until implemented. This includes hosted
+workflow products, package registries, pretrained model-specific inference,
+mmCIF parsing, broader file-format parsers, no-code workflows, and general
+chemistry tooling.
 
 ## Development
 
-Run checks:
-
 ```bash
+scripts/check-fast.sh
 scripts/check.sh
 ```
 
-Run the faster local commit gate:
-
-```bash
-scripts/check-fast.sh
-```
-
-The check suite runs:
-
-- `cargo fmt`
-- shell and Python syntax checks for repo scripts
-- benchmark Markdown regeneration check
-- release workflow publish-order invariant check
-- Rust checks
-- `biors-core` `wasm32-unknown-unknown` build check
-- tests
-- `cargo clippy` with warnings denied
-
-Reproduce a committed benchmark report:
-
-```bash
-python3 scripts/benchmarks/benchmark_cli_surfaces.py
-cat benchmarks/cli_surfaces.json
-```
-
-Benchmark scripts update their JSON result artifact and matching Markdown
-report. `scripts/check-benchmark-docs.sh` verifies that rendered reports still
-match the committed JSON artifacts.
-
-Compare two benchmark artifacts:
-
-```bash
-python scripts/benchmarks/compare-benchmark-artifacts.py before.json after.json
-```
-
-## Repository Map
-
-Most users only need the `biors` CLI or one binding package. This map is for
-contributors and integrators who need to understand where public surfaces live.
-
-```txt
-crates/
-  biors/                 CLI
-  biors-backend-candle/  Optional Candle runtime backend
-  biors-core/            Core engine + contracts
-  biors-mcp-server/      Local MCP server
-  biors-python/          PyO3 bindings
-  biors-wasm/            WASM/JS bindings
-
-contracts/
-  Machine-readable support matrices that are enforced by docs/tests
-
-schemas/
-  JSON contracts for CLI, package, pipeline, report, service, tokenizer, and workflow outputs
-
-testdata/
-  sequences/
-    protein.fasta
-    multi.fasta
-  model-input-contract/
-    protein.fasta
-    protein-20-special.config.json
-    protein-20-special.expected.json
-    reference-python-parity.json
-  protein-package/
-    models/
-    docs/
-    manifest.json
-    observations.json
-    fixtures/
-    observed/
-    tokenizers/
-    vocabs/
-    pipelines/
-  pipeline/
-    protein.toml
-    protein.yaml
-    protein.json
-    pipeline.lock
-
-deploy/
-  service/
-    Dockerfile
-```
-
-The full schema inventory and command-to-schema mapping live in
-[docs/cli-contract.md](docs/cli-contract.md). Release tests keep that contract
-inventory aligned with the files under [schemas](schemas).
-
-## Protein-20 alphabet
-
-```txt
-A C D E F G H I K L M N P Q R S T V W Y
-```
-
-Token IDs follow that order, starting at `0`.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, checks, and PR expectations.
+Benchmark artifacts are release regression guards, not universal throughput
+claims. Re-render checks live in `scripts/check-benchmark-docs.sh`.
 
 ## License
 

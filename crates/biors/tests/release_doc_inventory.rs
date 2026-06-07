@@ -92,14 +92,29 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "README should use contributor-facing repository language instead of Workspace"
     );
 
+    assert!(
+        readme.lines().count() <= 120,
+        "README should stay concise and point detailed readers to docs/"
+    );
+    assert!(
+        readme.split_whitespace().count() <= 700,
+        "README should stay focused on essential first-impression content"
+    );
+
     for expected in [
-        "raw sequence data + package metadata",
+        "Rust-based bio-AI data/tooling engine",
+        "model-ready inputs",
+        "reproducible JSON contracts",
+        "CLI, Rust, Python, WASM",
+        "agent tools",
         "pipeline locks",
         "package manifests",
         "model artifacts",
-        "Rust, CLI, Python, WASM, MCP, and service hosts",
-        "Made For Sharing",
-        "Repository Map",
+        "MCP",
+        "local HTTP/service schemas",
+        "Not a full AI agent",
+        "Not a hosted SaaS platform",
+        "No biological data uploads",
         "biors seq validate --kind auto testdata/sequences/multi.fasta",
         "workflow --profile dna-iupac",
         "biors package validate testdata/protein-package/manifest.json",
@@ -107,7 +122,6 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "biors service hosted-boundary",
         "docs/formats.md",
         "docs/structure.md",
-        "task templates",
         "docs/sequence-kind-support.md",
         "docs/cli-contract.md",
     ] {
