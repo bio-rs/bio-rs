@@ -115,7 +115,6 @@ fn security_policy_covers_promoted_public_surfaces() {
             "biors-python",
             "biors-wasm",
             "package conversion",
-            "cache cleanup",
             "MCP tool inputs",
             "WASM/npm package APIs",
             "external-process backend contracts",

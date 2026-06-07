@@ -5,7 +5,6 @@ use super::report_args::ReportCommand;
 use super::serve_args::ServeArgs;
 use super::service_args::ServiceCommand;
 use super::structure_args::StructureCommand;
-use super::template_args::TemplateCommand;
 use biors_core::{
     formats::BioFormat,
     model_input::PaddingPolicy,
@@ -31,10 +30,6 @@ pub enum Command {
     Batch {
         #[command(subcommand)]
         command: BatchCommand,
-    },
-    Cache {
-        #[command(subcommand)]
-        command: CacheCommand,
     },
     Completions {
         #[arg(value_enum)]
@@ -120,10 +115,6 @@ pub enum Command {
         #[command(subcommand)]
         command: StructureCommand,
     },
-    Templates {
-        #[command(subcommand)]
-        command: TemplateCommand,
-    },
     Tokenize {
         #[arg(long, value_enum, default_value_t = TokenizerProfileArg::Protein20)]
         profile: TokenizerProfileArg,
@@ -170,22 +161,6 @@ pub enum BatchCommand {
         kind: KindArg,
         #[arg(required = true)]
         inputs: Vec<PathBuf>,
-    },
-}
-
-#[derive(Debug, Subcommand)]
-pub enum CacheCommand {
-    Clean {
-        #[arg(long)]
-        root: Option<PathBuf>,
-        #[arg(long)]
-        dry_run: bool,
-        #[arg(long)]
-        yes: bool,
-    },
-    Inspect {
-        #[arg(long)]
-        root: Option<PathBuf>,
     },
 }
 

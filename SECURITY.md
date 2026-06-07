@@ -21,8 +21,8 @@ repository:
 
 - Rust crates: `biors-core`, `biors`, `biors-backend-candle`,
   `biors-mcp-server`, `biors-python`, and `biors-wasm`
-- CLI commands, including local FASTA/JSON processing, package validation,
-  package conversion, cache inspection, and guarded cache cleanup
+- CLI commands, including local FASTA/JSON processing, package validation, and
+  package conversion
 - Python bindings, WASM/npm package APIs, and MCP tool inputs
 - offline service contracts and JSON schemas
 - package artifact validation, fixture verification, manifest migration, and
@@ -32,7 +32,7 @@ repository:
 
 The most security-sensitive areas are local filesystem safety, path traversal
 and symlink handling, package artifact checksums, malformed JSON and FASTA
-inputs, bounded process execution, cache cleanup root guards, and model artifact
+inputs, bounded process execution, package path guards, and model artifact
 loading boundaries.
 
 bio-rs should not upload biological data, model inputs, package artifacts, or

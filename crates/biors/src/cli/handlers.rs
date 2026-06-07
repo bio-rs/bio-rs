@@ -4,9 +4,9 @@ use super::{
     StructureFormatArg, TokenizerCommand, TokenizerProfileArg,
 };
 use crate::cli::{
-    build_doctor_report, run_batch_command, run_cache_command, run_dataset_command, run_debug,
-    run_diff, run_package_command, run_pipeline, run_report_command, run_serve,
-    run_template_command, run_workflow, PipelineRunOptions,
+    build_doctor_report, run_batch_command, run_dataset_command, run_debug, run_diff,
+    run_package_command, run_pipeline, run_report_command, run_serve, run_workflow,
+    PipelineRunOptions,
 };
 use crate::errors::CliError;
 use crate::input::{open_buffered_input, read_tokenizer_config};
@@ -34,7 +34,6 @@ use std::path::PathBuf;
 pub fn run(command: Command) -> Result<(), CliError> {
     match command {
         Command::Batch { command } => run_batch_command(command),
-        Command::Cache { command } => run_cache_command(command),
         Command::Completions { shell } => run_completions(shell),
         Command::Dataset { command } => run_dataset_command(command),
         Command::Debug { max_length, path } => run_debug(max_length, path),
@@ -78,7 +77,6 @@ pub fn run(command: Command) -> Result<(), CliError> {
         Command::Serve(args) => run_serve(args),
         Command::Service { command } => run_service_command(command),
         Command::Structure { command } => run_structure_command(command),
-        Command::Templates { command } => run_template_command(command),
         Command::Tokenize {
             profile,
             config,
@@ -141,10 +139,6 @@ fn run_service_command(command: ServiceCommand) -> Result<(), CliError> {
         ServiceCommand::Contract => print_success(
             None,
             biors_core::service::current_service_interface_document(),
-        ),
-        ServiceCommand::HostedBoundary => print_success(
-            None,
-            biors_core::service::current_hosted_workflow_boundary(),
         ),
     }
 }

@@ -220,7 +220,6 @@ record IDs.
 
 ```bash
 biors service contract
-biors service hosted-boundary
 biors serve --host 127.0.0.1 --port 8787
 ```
 
@@ -235,9 +234,6 @@ curl -s http://127.0.0.1:8787/v0/batch/sequence/validate \
 
 `biors serve` is local-first. It does not upload biological data, call external
 services, run model inference, or persist request bodies.
-`biors service hosted-boundary` records the separate hosted-layer policy for
-user/project workspaces, consent, billing, retention, and product web surfaces;
-it does not start or create a hosted workspace.
 
 ## Run A Pipeline Config
 
@@ -293,15 +289,3 @@ multiple ONNX or tokenizer config candidates are found, pass `--model` or
 metadata to bio-rs tokenizer config, creates package docs, writes a pipeline
 config, records checksums, and leaves optional model artifact metadata unset for
 the package author to fill in.
-
-## Inspect The Local Artifact Store
-
-```bash
-biors cache inspect
-biors cache clean --dry-run
-```
-
-The default artifact store root is `.biors/artifacts`, or
-`BIORS_ARTIFACT_STORE` when set. Cleaning accepts only `.biors/artifacts` or an
-existing artifact-store layout, rejects broad or generic roots, and requires
-`--dry-run` or `--yes`.

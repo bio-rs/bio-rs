@@ -3,10 +3,7 @@ use std::fs;
 
 use biors_core::conversion::convert_fasta_records;
 use biors_core::sequence::SequenceKindSelection;
-use biors_core::service::{
-    current_hosted_workflow_boundary, current_service_interface_document, service_openapi_document,
-};
-use biors_core::templates::{find_task_template, task_templates};
+use biors_core::service::{current_service_interface_document, service_openapi_document};
 
 mod common;
 
@@ -52,17 +49,6 @@ fn service_contract_references_checked_in_schemas() {
             );
         }
     }
-}
-
-#[test]
-fn hosted_boundary_output_matches_checked_in_schema() {
-    let boundary = current_hosted_workflow_boundary();
-    let value = serde_json::to_value(boundary).expect("serialize hosted boundary");
-
-    common::assert_json_value_matches_schema(
-        &value,
-        "schemas/hosted-workflow-boundary-output.v0.json",
-    );
 }
 
 #[test]
@@ -229,26 +215,13 @@ fn browser_tooling_examples_match_checked_in_schema() {
 }
 
 #[test]
-fn conversion_and_template_outputs_match_contract_schemas() {
+fn conversion_output_matches_contract_schema() {
     let records = biors_core::parse_fasta_records(">seq1\nACDE\n").expect("parse FASTA");
     let export = convert_fasta_records(&records, SequenceKindSelection::Auto);
     let export_value = serde_json::to_value(export).expect("serialize conversion export");
     common::assert_json_value_matches_schema(
         &export_value,
         "schemas/bio-entity-export-output.v0.json",
-    );
-
-    let catalog = serde_json::to_value(task_templates()).expect("serialize template catalog");
-    common::assert_json_value_matches_schema(
-        &catalog,
-        "schemas/task-template-catalog-output.v0.json",
-    );
-
-    let template = find_task_template("molecule-property-prediction-v0").expect("template exists");
-    let template_value = serde_json::to_value(template).expect("serialize template");
-    common::assert_json_value_matches_schema(
-        &template_value,
-        "schemas/task-template-output.v0.json",
     );
 }
 

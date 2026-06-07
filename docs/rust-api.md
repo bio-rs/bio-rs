@@ -24,7 +24,6 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
   - [`sequence`](#module-sequence)
   - [`service`](#module-service)
   - [`structure`](#module-structure)
-  - [`templates`](#module-templates)
   - [`tokenizer`](#module-tokenizer)
   - [`verification`](#module-verification)
   - [`versioning`](#module-versioning)
@@ -35,7 +34,7 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 ## Overview
 
-`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, local task template contracts, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, reproducible report generation, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
+`biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, reproducible report generation, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
 The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
 
@@ -626,8 +625,6 @@ listener lives in the `biors` CLI crate.
 
 - **`SERVICE_INTERFACE_SCHEMA_VERSION`** — current service contract schema
   version, `biors.service_interface.v0`.
-- **`HOSTED_WORKFLOW_BOUNDARY_SCHEMA_VERSION`** — current hosted workflow
-  boundary schema version, `biors.hosted_workflow_boundary.v0`.
 - **`SERVICE_HEALTH_SCHEMA_VERSION`** — current local service health schema
   version, `biors.service_health.v0`.
 - **`SERVICE_BATCH_SEQUENCE_VALIDATE_SCHEMA_VERSION`** — current inline batch
@@ -671,35 +668,6 @@ listener lives in the `biors` CLI crate.
   - `pub file_access: String`
   - `pub runtime_boundary: String`
 
-- **`HostedWorkflowBoundary`** — local-first open-source core and hosted-layer
-  separation contract.
-  - `pub schema_version: String`
-  - `pub product_name: String`
-  - `pub core_version: String`
-  - `pub status: String`
-  - `pub execution_policy: HostedExecutionPolicy`
-  - `pub open_source_core: HostedResponsibilitySet`
-  - `pub hosted_layer: HostedResponsibilitySet`
-  - `pub workspace_model: Vec<HostedWorkspaceConcept>`
-  - `pub commercial_policy: HostedCommercialPolicy`
-  - `pub web_product_policy: HostedWebProductPolicy`
-  - `pub validation_requirements: Vec<String>`
-
-- **`HostedExecutionPolicy`** — local-first, no-network-by-default execution
-  flags and remote-processing consent requirement.
-
-- **`HostedResponsibilitySet`** — allowed and excluded responsibilities for
-  the open-source core or the separate hosted layer.
-
-- **`HostedWorkspaceConcept`** — user, project, and workflow-run workspace
-  concepts evaluated for a hosted layer but not implemented in `biors-core`.
-
-- **`HostedCommercialPolicy`** — paid hosted service and billing separation
-  policy.
-
-- **`HostedWebProductPolicy`** — product web runtime and landing-page
-  separation policy.
-
 - **`ServiceHealthDocument`** — local HTTP health response payload.
   - `pub schema_version: String`
   - `pub service_name: String`
@@ -730,12 +698,6 @@ listener lives in the `biors` CLI crate.
 
 - `pub fn service_interface_document(version: impl Into<String>) -> ServiceInterfaceDocument`
   Build a service interface document for a provided version string.
-
-- `pub fn current_hosted_workflow_boundary() -> HostedWorkflowBoundary`
-  Build the current hosted workflow boundary document using the crate version.
-
-- `pub fn hosted_workflow_boundary(version: impl Into<String>) -> HostedWorkflowBoundary`
-  Build a hosted workflow boundary document for a provided version string.
 
 - `pub fn service_routes() -> Vec<ServiceRoute>`
   Return the stable v0 operation list for service hosts.
@@ -1008,52 +970,6 @@ descriptors, and hashed fingerprints.
 
 - `pub fn derive_molecule_features(record: &MoleculeRecord) -> MoleculeDerivedFeatures`
   Compute deterministic graph keys, descriptors, and hashed fingerprints.
-
-### Module: `templates`
-
-The `templates` module exposes local task contracts for common bio-AI workflow
-families. Templates are metadata only: they describe required inputs,
-validations, model-ready fields, output expectations, and execution
-assumptions without running inference, uploading data, or opening network
-connections.
-
-#### Types
-
-- **`TaskTemplate`** — Full template contract with `schema_version`, `id`,
-  kind, title, summary, supported inputs, validations, model fields, output
-  expectations, and execution assumptions.
-- **`TaskTemplateKind`** — `ProteinClassification`,
-  `ProteinEmbeddingGeneration`, `VariantEffectPrediction`,
-  `MoleculePropertyPrediction`, `StructureValidation`, or
-  `SequenceSimilarityPreprocess`.
-- **`TemplateEntity`** — `ProteinSequence`, `ProteinVariant`, `Molecule`,
-  `ProteinStructure`, or `SequenceSet`.
-- **`TemplateInputFormat`** — Input format plus core reader support marker.
-- **`CoreReaderSupport`** — `Executable` for checked-in parsers/validators or
-  `ContractOnly` for normalized field contracts without an executable reader.
-- **`TemplateInput`** — Required entity, accepted formats, and normalized field
-  names.
-- **`TemplateValidation`** — Stable validation id and description.
-- **`TemplateModelField`** — Model-ready field name, description, and required
-  flag.
-- **`TemplateOutputExpectation`** — Output field name, description, and
-  required flag.
-- **`TemplateExecutionAssumptions`** — Local execution boundary. Current
-  templates set `network_access` to `none`, `external_model_calls` to `false`,
-  and `uploads_input_data` to `false`.
-
-#### Constants
-
-- **`TASK_TEMPLATE_SCHEMA_VERSION`** — `biors.task_template.v0`.
-
-#### Functions
-
-- `pub fn task_templates() -> &'static [TaskTemplate]`
-  Return the stable built-in template catalog.
-- `pub fn task_template_ids() -> &'static [&'static str]`
-  Return stable template ids in display order.
-- `pub fn find_task_template(id: &str) -> Option<&'static TaskTemplate>`
-  Look up one built-in template by id.
 
 ### Module: `tokenizer`
 

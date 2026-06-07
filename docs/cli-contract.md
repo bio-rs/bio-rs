@@ -8,8 +8,6 @@ try it quickly.
 ## Commands
 
 - `biors --version`
-- `biors cache inspect [--root <path>]`
-- `biors cache clean [--root <path>] (--dry-run|--yes)`
 - `biors completions <bash|elvish|fish|powershell|zsh>`
 - `biors dataset inspect [--source <name>] [--version <version>] [--split <split>] [--metadata key=value]... <path|directory|glob>...`
 - `biors debug --max-length <usize> <path|->`
@@ -21,8 +19,6 @@ try it quickly.
 - `biors molecule inspect --format smiles|sdf|mol2 <path|->`
 - `biors structure validate --format pdb <path|->`
 - `biors structure sequence --format pdb <path|->`
-- `biors templates list`
-- `biors templates show <template-id>`
 - `biors batch validate [--kind auto|protein|dna|rna] <path|directory|glob>...`
 - `biors tokenize <path|->`
 - `biors tokenize [--profile protein-20|protein-20-special|dna-iupac|dna-iupac-special|rna-iupac|rna-iupac-special] [--config <json>] <path|->`
@@ -49,7 +45,6 @@ try it quickly.
 - `biors pipeline --config <toml|json> [--package <manifest>] --write-lock <pipeline.lock>`
 - `biors report generate <json|-> [--output <report.md>] [--shareable-json <report.json>]`
 - `biors service contract`
-- `biors service hosted-boundary`
 
 ## Schema Inventory
 
@@ -60,7 +55,6 @@ metadata, and workflow payloads:
 - `batch-validation-output.v0.json`
 - `bio-entity-export-output.v0.json`
 - `browser-tooling-output.v0.json`
-- `cache-output.v0.json`
 - `cli-error.v0.json`
 - `cli-success.v0.json`
 - `dataset-inspect-output.v0.json`
@@ -68,7 +62,6 @@ metadata, and workflow payloads:
 - `fasta-validation-output.v0.json`
 - `fastq-validation-output.v0.json`
 - `format-capabilities-output.v0.json`
-- `hosted-workflow-boundary-output.v0.json`
 - `inspect-output.v0.json`
 - `model-input-output.v0.json`
 - `molecule-records-output.v0.json`
@@ -105,8 +98,6 @@ metadata, and workflow payloads:
 - `service-sequence-validate-request.v0.json`
 - `structure-sequence-output.v0.json`
 - `structure-validation-output.v0.json`
-- `task-template-catalog-output.v0.json`
-- `task-template-output.v0.json`
 - `tokenize-output.v0.json`
 - `tokenizer-conversion-output.v0.json`
 - `tokenizer-inspect-output.v0.json`
@@ -159,13 +150,6 @@ reported as warnings with install hints rather than causing the command to fail.
 deterministic operations, JSON schema names, file access policy,
 runtime/package boundaries, and the local CLI server endpoints exposed by
 `biors serve`.
-`biors service hosted-boundary` emits the hosted workflow boundary contract. It
-keeps the open-source core local-first and no-network-by-default, separates
-user/project workspace, billing, remote storage, hosted web/product, and landing
-page responsibilities into an external hosted layer, and records the consent,
-retention, provenance, and version-pinning requirements a hosted caller must
-satisfy. It does not create a hosted workspace, upload data, call a remote
-model, start a web UI, or add a product landing page.
 `biors serve` starts a local-first HTTP JSON server on `127.0.0.1:8787` by
 default. It does not call external services, upload biological data, persist
 requests, run model inference, or open a hosted workspace. The current runtime
@@ -186,11 +170,6 @@ only sample IDs and sequence lengths rather than retaining full sequence
 records; the emitted JSON can still be large when a dataset has many records
 because `samples[]` is an explicit per-record mapping. Empty datasets fail with
 `dataset.no_inputs`.
-`cache inspect` reports the local artifact store root, layout policy, and file
-inventory. The default root is `.biors/artifacts`, overridden by
-`BIORS_ARTIFACT_STORE` or `--root`. `cache clean` accepts only `.biors/artifacts`
-or an existing artifact-store layout, rejects broad or generic roots, and
-requires `--dry-run` or `--yes`.
 `--max-length` must be greater than zero.
 `tokenize` preserves positional alignment by emitting explicit unknown-token IDs for ambiguous or invalid residues instead of shortening the token vector.
 Without `--config`, tokenization defaults to the stable `protein-20` profile.
@@ -248,15 +227,6 @@ protein sequence against SEQRES when present. The output uses
 sequence, optional SEQRES sequence, missing-residue annotations, and one-based
 coordinate-to-SEQRES mapping positions. The output uses
 `structure-sequence-output.v0.json`.
-`templates list` emits stable local task template contracts for protein
-classification, protein embeddings, variant effects, molecule properties,
-structure validation, and sequence similarity preprocessing. The output uses
-`task-template-catalog-output.v0.json`.
-`templates show <template-id>` emits one template using
-`task-template-output.v0.json`. Templates describe inputs, validations,
-model-ready fields, expected outputs, and local execution assumptions; they do
-not call models, rank search results, upload input data, or open network
-connections.
 FASTA-backed CLI commands read through buffered reader APIs and compute the legacy `fnv1a64:` input hash during the same pass.
 `inspect` uses a summary-only reader path and does not materialize token vectors
 when it only needs record, residue, warning, and error counts.
@@ -362,10 +332,7 @@ Dataset inspection payloads use `schemas/dataset-inspect-output.v0.json` and
 include `provided_inputs`, descriptor, metadata, resolved file count, total
 byte count, sample count, portable dataset content hash, local mapping hash,
 deterministic `resolved_files`, and sample mapping lists.
-Cache payloads use `schemas/cache-output.v0.json`.
 Service interface payloads use `schemas/service-interface-output.v0.json`.
-Hosted workflow boundary payloads use
-`schemas/hosted-workflow-boundary-output.v0.json`.
 WASM browser helper payloads use
 `schemas/browser-tooling-output.v0.json`.
 Local HTTP health payloads use `schemas/service-health-output.v0.json`.
@@ -373,10 +340,6 @@ The served OpenAPI document uses `schemas/service-openapi-output.v0.json`.
 The batch sequence endpoint accepts
 `schemas/service-batch-sequence-validate-request.v0.json` and returns
 `schemas/service-batch-sequence-validate-output.v0.json`.
-Task template payloads use `schemas/task-template-catalog-output.v0.json` for
-`templates list` and `schemas/task-template-output.v0.json` for
-`templates show`.
-
 Tokenizer inspection payloads use `schemas/tokenizer-inspect-output.v0.json`.
 Tokenizer config files reject unknown top-level fields so preprocessing
 configuration stays explicit.

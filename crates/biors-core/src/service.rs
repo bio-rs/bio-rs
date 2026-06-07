@@ -6,8 +6,6 @@
 
 #[path = "service/batch.rs"]
 mod batch;
-#[path = "service/hosted.rs"]
-mod hosted;
 #[path = "service/http.rs"]
 mod http;
 #[path = "service/interface.rs"]
@@ -19,11 +17,6 @@ pub use batch::{
     ServiceBatchSequenceValidateOutput, ServiceBatchSequenceValidateRequest,
     ServiceBatchValidationError, ServiceSequenceKindSelection,
     SERVICE_BATCH_SEQUENCE_VALIDATE_SCHEMA_VERSION,
-};
-pub use hosted::{
-    current_hosted_workflow_boundary, hosted_workflow_boundary, HostedCommercialPolicy,
-    HostedExecutionPolicy, HostedResponsibilitySet, HostedWebProductPolicy, HostedWorkflowBoundary,
-    HostedWorkspaceConcept, HOSTED_WORKFLOW_BOUNDARY_SCHEMA_VERSION,
 };
 pub use http::{
     service_health_document, service_openapi_document, ServiceEndpointStatus,

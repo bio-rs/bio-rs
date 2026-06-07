@@ -1,6 +1,5 @@
 pub mod args;
 mod batch;
-mod cache;
 mod dataset;
 mod debug;
 mod diff;
@@ -27,16 +26,13 @@ mod serve_handlers;
 mod serve_http;
 mod service_args;
 mod structure_args;
-mod template_args;
-mod templates;
 pub(crate) mod tokenizer_convert;
 mod workflow;
 pub use args::{
-    BatchCommand, CacheCommand, Cli, Command, DatasetCommand, FastaCommand, FormatArg,
-    FormatsCommand, KindArg, PaddingArg, SeqCommand, TokenizerCommand,
+    BatchCommand, Cli, Command, DatasetCommand, FastaCommand, FormatArg, FormatsCommand, KindArg,
+    PaddingArg, SeqCommand, TokenizerCommand,
 };
 pub(crate) use batch::run_batch_command;
-pub(crate) use cache::run_cache_command;
 pub(crate) use dataset::run_dataset_command;
 pub(crate) use debug::run_debug;
 pub(crate) use diff::run_diff;
@@ -56,6 +52,4 @@ pub use report_args::ReportCommand;
 pub(crate) use serve::run_serve;
 pub use service_args::ServiceCommand;
 pub use structure_args::{StructureCommand, StructureFormatArg};
-pub use template_args::TemplateCommand;
-pub(crate) use templates::run_template_command;
 pub(crate) use workflow::run_workflow;

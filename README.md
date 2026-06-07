@@ -36,7 +36,6 @@ biors seq validate --kind auto testdata/sequences/multi.fasta
 printf '>dna\nACGT\n' | biors workflow --profile dna-iupac --max-length 128 -
 biors package validate testdata/protein-package/manifest.json
 biors service contract
-biors service hosted-boundary
 ```
 
 More examples: [docs/quickstart.md](docs/quickstart.md)

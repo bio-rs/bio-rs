@@ -124,11 +124,6 @@ failures.
 - `dataset.invalid_metadata`: dataset metadata was not supplied as non-empty `key=value`
 - `dataset.duplicate_metadata_key`: dataset metadata supplied the same normalized key more than once
 
-## Cache
-
-- `cache.clean_requires_confirmation`: cache cleaning was requested without `--dry-run` or `--yes`
-- `cache.invalid_root`: cache cleaning was requested for a broad or non-artifact-store root path
-
 ## I/O
 
 - `io.read_failed`: input path or stdin could not be read
@@ -220,7 +215,6 @@ Model-input validation failures keep the shared `model_input.*` codes.
 - structure issue codes: per-chain and per-atom structure validation diagnostics
 - `batch.*`: batch input expansion failures
 - `dataset.*`: shared dataset/file input resolution failures
-- `cache.*`: local artifact store inspection or cleaning failures
 - `json.*`: machine-readable input or output failures
 - `report.*`: reproducible report input or output option failures
 - `io.*`: local filesystem or stdin failures

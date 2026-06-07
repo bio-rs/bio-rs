@@ -31,43 +31,6 @@ fn service_contract_outputs_stable_json_boundary() {
 }
 
 #[test]
-fn service_hosted_boundary_outputs_local_first_hosted_separation_policy() {
-    let output = common::run_biors_paths(&["service", "hosted-boundary"], &[]);
-    let value: Value = serde_json::from_slice(&output.stdout).expect("valid JSON output");
-
-    assert_eq!(value["ok"], true);
-    assert_eq!(
-        value["data"]["schema_version"],
-        "biors.hosted_workflow_boundary.v0"
-    );
-    assert_eq!(value["data"]["status"], "boundary_contract_only");
-    assert_eq!(value["data"]["execution_policy"]["local_first"], true);
-    assert_eq!(
-        value["data"]["execution_policy"]["no_network_by_default"],
-        true
-    );
-    assert_eq!(
-        value["data"]["execution_policy"]["biological_data_uploads_by_default"],
-        false
-    );
-    assert_eq!(value["data"]["commercial_policy"]["billing_in_core"], false);
-    assert_eq!(
-        value["data"]["web_product_policy"]["product_web_runtime_in_core"],
-        false
-    );
-    assert!(value["data"]["workspace_model"]
-        .as_array()
-        .expect("workspace model")
-        .iter()
-        .any(|workspace| workspace["name"] == "ProjectWorkspace"
-            && workspace["implemented_in_core"] == false));
-    common::assert_json_value_matches_schema(
-        &value["data"],
-        "schemas/hosted-workflow-boundary-output.v0.json",
-    );
-}
-
-#[test]
 fn serve_exposes_health_openapi_and_batch_validation() {
     let port = allocate_port();
     let mut child =

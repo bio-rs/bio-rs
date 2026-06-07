@@ -20,7 +20,6 @@ pub mod runtime;
 pub mod sequence;
 pub mod service;
 pub mod structure;
-pub mod templates;
 pub mod tokenizer;
 pub mod verification;
 pub mod versioning;
@@ -37,7 +36,6 @@ pub use sequence::{BiologicalSequence, FastaSequence, ProteinSequence, SequenceK
 pub use structure::{
     parse_pdb_record, parse_pdb_record_reader, validate_pdb_reader, StructureRecord,
 };
-pub use templates::{find_task_template, task_template_ids, task_templates, TaskTemplate};
 pub use tokenizer::{
     tokenize_fasta_records_reader, tokenize_protein, ProteinTokenizer, ProteinTokenizerConfig,
     TokenizedSequence, TokenizerConfig, TokenizerProfile,
