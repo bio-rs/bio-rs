@@ -643,7 +643,7 @@ listener lives in the `biors` CLI crate.
   - `pub routes: Vec<ServiceRoute>`
 
 - **`RuntimeServiceSeparation`** — explicit ownership split between
-  `biors-core` and the embedding service host.
+  `biors-core` and the CLI local service runtime.
   - `pub core_contract_owner: String`
   - `pub service_runtime_owner: String`
   - `pub permitted_in_core: Vec<String>`
