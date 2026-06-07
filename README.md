@@ -6,33 +6,64 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/cli-contract.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs is a local, reproducible input layer for bio-AI tools. It takes raw
-biological sequences, structure files, molecule files, tokenizer profiles,
-package manifests, model artifacts, and fixture outputs, then turns them into
-checked contracts
-that can run in CLIs, CI, Python notebooks, browsers, and agent tools.
+bio-rs is a Rust-based bio-AI data/tooling engine for validating biological
+data, preparing model-ready inputs, and emitting reproducible JSON contracts
+across CLI, Python, WASM, local services, and agent tools.
+
+It is the local-first contract layer around model workflows: parse and validate
+biological files, preserve provenance, build tokenizer/model-input payloads, and
+return machine-readable outputs that callers can inspect, test, cite, and reuse.
 
 ```txt
-raw sequence data + package metadata
+raw sequence data + package metadata + model artifacts
   -> validation diagnostics + provenance
   -> tokenizer IDs, model-input tensors, pipeline locks, package checks
   -> JSON contracts for Rust, CLI, Python, WASM, MCP, and service hosts
 ```
 
-Protein, DNA, and RNA validation, tokenization, model-input generation, workflow
-generation, Python/WASM/MCP bindings, package artifact validation, and benchmark
-regression guards are supported through explicit sequence-kind profiles. Package
-generation and Python/Hugging Face conversion remain protein-first; see the
+Agent-ready means interface-ready: deterministic JSON envelopes, local MCP
+tools, and service schemas that an agent or workflow runner can call. bio-rs is
+not itself an autonomous AI agent.
+
+> Status: pre-1.0 CLI, binding, service, and JSON contract stabilization.
+
+## What Works Today
+
+The current release line supports:
+
+- protein, DNA, and RNA FASTA validation, tokenization, model-input generation,
+  and workflow JSON through explicit sequence-kind profiles
+- FASTQ, PDB, SMILES, SDF, and MOL2 validation/inspection contracts
+- package manifests, package artifact checks, fixture verification, runtime
+  bridge planning, and reproducible pipeline locks
+- Rust, CLI, Python, WASM, MCP, and local HTTP/service contract surfaces
+- benchmark regression guards for CLI, Python, WASM, MCP, and optional backend
+  smoke paths
+
+Package skeleton generation and Python/Hugging Face conversion remain
+protein-first; see the
 [sequence-kind support matrix](docs/sequence-kind-support.md) before making
-broad full-support claims.
+broad DNA/RNA full-support claims.
 
-> Status: pre-1.0 CLI and JSON contract stabilization.
+## Limited Or Experimental
 
-## Current boundaries
+- The optional Candle crate is a CPU safetensors linear-probe adapter and smoke
+  path, not a pretrained model backend.
+- The local HTTP server exposes health, OpenAPI, and inline FASTA batch
+  validation; it is not a production service platform.
+- The Docker/OCI file under `deploy/service/` is a local service template for
+  operators who provide their own auth, TLS, logging, supervision, and ingress
+  policy.
+- mmCIF, GFF3/GTF/BED/VCF/GenBank/UniProt, no-code workflows, hosted
+  workspaces, and package registries are future or candidate surfaces unless a
+  linked doc marks a specific command as implemented.
 
-bio-rs is not a hosted model registry, a model training framework, or a remote
-inference service. It does not upload biological data or package artifacts by
-default. Current binary archives are limited to the platforms documented in
+## Current Boundaries
+
+bio-rs is not a full AI agent, hosted SaaS platform, hosted model registry,
+model training framework, remote inference service, or complete bioinformatics
+suite. It does not upload biological data or package artifacts by default.
+Current binary archives are limited to the platforms documented in
 [docs/install.md](docs/install.md); other platforms should use source builds
 until release artifacts are added. Package trust is local validation,
 checksums, schemas, and reproducible lockfiles, not a remote signing or review
@@ -104,7 +135,7 @@ guards. Current committed benchmark reports cover CLI, Python, WASM, MCP, and
 optional backend smoke paths; they are guardrails for release regressions, not
 universal throughput claims.
 
-## What Works Today
+## Surface Details
 
 `biors-core` provides the Rust engine and data contracts. `biors` provides the
 CLI surface.
@@ -181,7 +212,8 @@ CLI surface.
 - `biors-python`: PyO3 bindings for Python integration and notebook workflows
 - `biors-wasm`: WebAssembly/JavaScript bindings with TypeScript definitions
   and browser file validation/tokenization helpers
-- `biors-mcp-server`: local MCP server crate for agent-callable sequence tools
+- `biors-mcp-server`: local MCP server crate for agent-callable validation,
+  tokenization, workflow, package validation, and doctor tools
 - `service contract`: JSON route/schema contract for caller-owned service hosts
 - `service hosted-boundary`: local-first OSS core and hosted-layer separation
   policy
@@ -203,7 +235,7 @@ CLI surface.
 - [Package format and conversion](docs/package-format.md) — manifest layout, research metadata, and HF/Python project conversion
 - [Rust API](docs/rust-api.md) — core modules including conversion, reports, and task templates
 - [Candle backend](docs/candle-backend.md) — optional Candle runtime crate
-- [Service interface and deployment](docs/service-interface.md) — local HTTP mode, REST/OpenAPI contract, Docker/OCI template, and runtime boundary
+- [Service interface and local HTTP mode](docs/service-interface.md) — local HTTP mode, REST/OpenAPI contract, Docker/OCI template, and runtime boundary
 - [Protein, DNA, and RNA support](docs/sequence-kind-support.md) — public support matrix by surface
 - [Pipeline config](docs/pipeline-config.md) — config-driven static preprocessing workflows
 - [Biological format support](docs/formats.md) — FASTQ/PDB/SMILES/SDF/MOL2 support and reviewed candidate requirements for GFF3/GTF/BED/VCF/GenBank/UniProt/mmCIF/table formats
@@ -230,6 +262,7 @@ These are roadmap directions, not current capabilities:
   RDKit/Open Babel canonical SMILES equivalence
 - no-code or low-code workflows
 - hosted workflow workspace management beyond the boundary contract
+- full autonomous agent behavior or hosted product workflows
 
 ## Development
 

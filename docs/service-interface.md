@@ -1,8 +1,8 @@
 # Service Interface And Local HTTP Mode
 
-bio-rs exposes deterministic service contracts for teams that want to place
-the preprocessing layer behind a local command, lab service, notebook gateway,
-agent tool, or workflow runner.
+bio-rs exposes deterministic service contracts for teams that want to place the
+validation and model-input preparation layer behind a local command, lab
+service, notebook gateway, agent tool, or workflow runner.
 
 The contract is available from Rust:
 
@@ -55,7 +55,7 @@ The batch endpoint rejects empty input lists, empty IDs, duplicate IDs, empty
 FASTA text, malformed JSON, oversized request bodies, and FASTA parsing errors
 with structured JSON error codes.
 
-## REST And Deployment Template
+## Local REST And Container Template
 
 The built-in local REST surface is intentionally minimal:
 
@@ -79,13 +79,13 @@ The container binds `0.0.0.0:8787` inside the container so Docker can publish
 the port. The host mapping should stay local unless an operator deliberately
 places authentication, TLS, request limits, and logging policy in front of it.
 
-`biors serve` gives researchers a reproducible validation/tokenization-adjacent
-REST surface, not a full production platform. Operators own authentication,
-authorization, TLS termination, request and body-size policy beyond
-`--max-body-bytes`, audit logging, ingress controls, scaling, service
-supervision, and shutdown handling. Keep biological input data in local or
-institution-controlled environments unless a separate data-governance review
-explicitly approves wider exposure.
+`biors serve` gives researchers a reproducible validation/model-input-adjacent
+REST surface, not a full production platform or hosted workflow runtime.
+Operators own authentication, authorization, TLS termination, request and
+body-size policy beyond `--max-body-bytes`, audit logging, ingress controls,
+scaling, service supervision, and shutdown handling. Keep biological input data
+in local or institution-controlled environments unless a separate
+data-governance review explicitly approves wider exposure.
 
 ## Boundary
 
@@ -95,8 +95,8 @@ does not bind sockets, authenticate users, rate-limit requests, queue jobs,
 touch remote object storage, or deploy infrastructure.
 
 The CLI crate owns the built-in local HTTP listener. External service hosts can
-still adapt the same deterministic contracts to their own transport and
-deployment stack.
+adapt the same deterministic contracts to their own transport and deployment
+stack, but that hosted or production layer is caller-owned.
 
 This keeps the research contract portable across:
 
