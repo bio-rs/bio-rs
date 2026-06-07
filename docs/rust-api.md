@@ -700,10 +700,10 @@ listener lives in the `biors` CLI crate.
   Build a service interface document for a provided version string.
 
 - `pub fn service_routes() -> Vec<ServiceRoute>`
-  Return the stable v0 operation list for service hosts.
+  Return the stable v0 operation list served by the local HTTP runtime.
 
 - `pub fn local_service_routes() -> Vec<ServiceRoute>`
-  Return the subset currently served by `biors serve`.
+  Return the same canonical local route list used by `biors serve`.
 
 - `pub fn service_health_document(version: impl Into<String>) -> ServiceHealthDocument`
   Build the local service health payload.

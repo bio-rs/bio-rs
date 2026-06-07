@@ -21,7 +21,7 @@ The surface/status cells are checked against
 | Python bindings | Supported | Supported | Supported | `validate_fasta_input_with_kind`, tokenization, checked model-input building, and workflow helpers accept explicit kinds/profiles. `validate_fasta_input` remains protein-default for compatibility. |
 | WASM / JavaScript bindings | Supported | Supported | Supported | `validateFasta`, `tokenize`, and `runWorkflow` accept nucleotide kinds/profiles. |
 | MCP server | Supported | Supported | Supported | `validate`, `tokenize`, and `workflow` accept nucleotide kinds/profiles and reject kind/profile mismatches. |
-| Service contract schemas | Supported | Supported | Supported | The offline service request schemas enumerate the same profiles; service hosts own transport and route execution. |
+| Service contract schemas | Supported | Supported | Supported | The local batch validation request schema accepts `auto`, `protein`, `dna`, and `rna` kind policy. |
 | Package manifest validation | Supported | Supported | Supported | Tokenizer config and vocab artifacts are validated for built-in protein, DNA, and RNA profile contracts. `package init --tokenizer-config` generates a matching kind/profile pipeline. |
 | Package conversion from Python/HF projects | Supported for protein preview configs | Not promoted | Not promoted | `convert-hf` and `convert-project` remain protein-tokenizer preview tools until nucleotide project-conversion fixtures exist. |
 | Benchmarks | Supported | Supported | Supported | Current nucleotide numbers are committed regression guards only, not public throughput claims. |

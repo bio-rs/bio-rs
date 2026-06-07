@@ -89,13 +89,7 @@ metadata, and workflow payloads:
 - `service-batch-sequence-validate-request.v0.json`
 - `service-empty-request.v0.json`
 - `service-health-output.v0.json`
-- `service-model-input-request.v0.json`
 - `service-openapi-output.v0.json`
-- `service-package-compatibility-request.v0.json`
-- `service-package-request.v0.json`
-- `service-sequence-inspect-request.v0.json`
-- `service-sequence-tokenize-request.v0.json`
-- `service-sequence-validate-request.v0.json`
 - `structure-sequence-output.v0.json`
 - `structure-validation-output.v0.json`
 - `tokenize-output.v0.json`
@@ -332,7 +326,8 @@ Dataset inspection payloads use `schemas/dataset-inspect-output.v0.json` and
 include `provided_inputs`, descriptor, metadata, resolved file count, total
 byte count, sample count, portable dataset content hash, local mapping hash,
 deterministic `resolved_files`, and sample mapping lists.
-Service interface payloads use `schemas/service-interface-output.v0.json`.
+Service interface payloads use `schemas/service-interface-output.v0.json` and
+list only endpoints served by the built-in local HTTP runtime.
 WASM browser helper payloads use
 `schemas/browser-tooling-output.v0.json`.
 Local HTTP health payloads use `schemas/service-health-output.v0.json`.

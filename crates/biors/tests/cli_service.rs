@@ -18,16 +18,20 @@ fn service_contract_outputs_stable_json_boundary() {
     );
     assert_eq!(value["data"]["server_runtime"], "cli_local_http_server");
     assert_eq!(value["data"]["openapi"]["status"], "served_by_cli_runtime");
-    assert!(value["data"]["routes"]
+    let operation_ids: Vec<_> = value["data"]["routes"]
         .as_array()
         .expect("routes")
         .iter()
-        .any(|route| route["operation_id"] == "sequence.batch_validate"));
-    assert!(value["data"]["routes"]
-        .as_array()
-        .expect("routes")
-        .iter()
-        .any(|route| route["operation_id"] == "package.bridge.plan"));
+        .map(|route| route["operation_id"].as_str().expect("operation_id"))
+        .collect();
+    assert_eq!(
+        operation_ids,
+        vec![
+            "service.health",
+            "service.openapi",
+            "sequence.batch_validate"
+        ]
+    );
 }
 
 #[test]
@@ -74,6 +78,33 @@ fn serve_exposes_health_openapi_and_batch_validation() {
     common::assert_json_value_matches_schema(
         &batch_json,
         "schemas/service-batch-sequence-validate-output.v0.json",
+    );
+
+    let removed_route = http_request(
+        address,
+        "POST /v0/package/bridge/plan HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 0\r\n\r\n",
+    );
+    assert!(
+        removed_route.starts_with("HTTP/1.1 404 Not Found"),
+        "{removed_route}"
+    );
+    let removed_json: Value =
+        serde_json::from_str(response_body(&removed_route)).expect("removed route JSON");
+    assert_eq!(removed_json["error"]["code"], "service.route_not_found");
+
+    let wrong_method = http_request(
+        address,
+        "POST /health HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 0\r\n\r\n",
+    );
+    assert!(
+        wrong_method.starts_with("HTTP/1.1 405 Method Not Allowed"),
+        "{wrong_method}"
+    );
+    let wrong_method_json: Value =
+        serde_json::from_str(response_body(&wrong_method)).expect("method error JSON");
+    assert_eq!(
+        wrong_method_json["error"]["code"],
+        "service.method_not_allowed"
     );
 
     let _ = child.kill();

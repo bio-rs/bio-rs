@@ -15,19 +15,8 @@ fn service_interface_docs_list_request_response_examples() {
         "GET /health",
         "GET /openapi.json",
         "POST /v0/batch/sequence/validate",
-        "sequence.validate",
         "sequence.batch_validate",
-        "sequence.inspect",
-        "sequence.tokenize",
-        "model_input.build",
-        "package.inspect",
-        "package.validate",
-        "package.bridge.plan",
-        "package.compatibility.compare",
-        "fasta-validation-output.v0.json",
         "service-batch-sequence-validate-output.v0.json",
-        "model-input-output.v0.json",
-        "package-compatibility-output.v0.json",
     ] {
         assert!(
             service_doc.contains(expected),
@@ -42,12 +31,6 @@ fn sequence_kind_support_matrix_covers_promoted_surfaces() {
     let matrix =
         fs::read_to_string(repo.join("docs/sequence-kind-support.md")).expect("read matrix");
     let readme = fs::read_to_string(repo.join("README.md")).expect("read README");
-    let service_tokenize_schema =
-        fs::read_to_string(repo.join("schemas/service-sequence-tokenize-request.v0.json"))
-            .expect("read service tokenize schema");
-    let service_model_input_schema =
-        fs::read_to_string(repo.join("schemas/service-model-input-request.v0.json"))
-            .expect("read service model-input schema");
     let pipeline_config_schema = fs::read_to_string(repo.join("schemas/pipeline-config.v0.json"))
         .expect("read pipeline config schema");
     let python_api = fs::read_to_string(repo.join("docs/python-api.md")).expect("read Python API");
@@ -94,14 +77,6 @@ fn sequence_kind_support_matrix_covers_promoted_surfaces() {
         assert!(
             matrix.contains(profile),
             "support matrix missing tokenizer profile: {profile}"
-        );
-        assert!(
-            service_tokenize_schema.contains(profile),
-            "service tokenize schema missing tokenizer profile: {profile}"
-        );
-        assert!(
-            service_model_input_schema.contains(profile),
-            "service model-input schema missing tokenizer profile: {profile}"
         );
         assert!(
             pipeline_config_schema.contains(profile),

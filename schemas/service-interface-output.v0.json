@@ -65,7 +65,8 @@
     },
     "routes": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 3,
+      "maxItems": 3,
       "items": {
         "type": "object",
         "required": [
@@ -81,21 +82,36 @@
           "runtime_boundary"
         ],
         "properties": {
-          "operation_id": { "type": "string", "minLength": 1 },
+          "operation_id": {
+            "enum": ["service.health", "service.openapi", "sequence.batch_validate"]
+          },
           "domain": {
-            "enum": ["service", "sequence", "tokenizer", "model_input", "package", "runtime"]
+            "enum": ["service", "sequence"]
           },
           "method": { "enum": ["GET", "POST"] },
-          "path": { "type": "string", "pattern": "^(/v0/|/health$|/openapi\\.json$)" },
-          "request_schema": { "type": "string", "pattern": "\\.v0\\.json$" },
-          "response_schema": { "type": "string", "pattern": "\\.v0\\.json$" },
+          "path": {
+            "enum": ["/health", "/openapi.json", "/v0/batch/sequence/validate"]
+          },
+          "request_schema": {
+            "enum": [
+              "service-empty-request.v0.json",
+              "service-batch-sequence-validate-request.v0.json"
+            ]
+          },
+          "response_schema": {
+            "enum": [
+              "service-health-output.v0.json",
+              "service-openapi-output.v0.json",
+              "service-batch-sequence-validate-output.v0.json"
+            ]
+          },
           "deterministic": { "const": true },
           "idempotent": { "const": true },
           "file_access": {
-            "enum": ["no_file_access", "read_only_input", "package_read_only"]
+            "enum": ["no_file_access", "read_only_input"]
           },
           "runtime_boundary": {
-            "enum": ["cli_local_server", "core_deterministic", "package_contract", "runtime_planning_only"]
+            "enum": ["cli_local_server", "core_deterministic"]
           }
         },
         "additionalProperties": false

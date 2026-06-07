@@ -59,13 +59,12 @@ pub fn service_interface_document(version: impl Into<String>) -> ServiceInterfac
         transport_model: "local_first_http_json".to_string(),
         runtime_separation: RuntimeServiceSeparation {
             core_contract_owner: "biors-core".to_string(),
-            service_runtime_owner: "biors CLI local server or external service host".to_string(),
+            service_runtime_owner: "biors CLI local server".to_string(),
             permitted_in_core: vec![
-                "deterministic sequence parsing".to_string(),
-                "tokenization and model input construction".to_string(),
-                "read-only package inspection and compatibility planning".to_string(),
-                "runtime bridge planning without backend execution".to_string(),
-                "service route, schema, health, and OpenAPI metadata".to_string(),
+                "deterministic inline FASTA batch validation".to_string(),
+                "service route, schema, health, and OpenAPI metadata for the local runtime"
+                    .to_string(),
+                "local-first request and response contracts for served endpoints".to_string(),
             ],
             forbidden_in_core: vec![
                 "network listener".to_string(),
@@ -128,113 +127,11 @@ pub fn service_routes() -> Vec<ServiceRoute> {
             "read_only_input",
             "core_deterministic",
         ),
-        route(
-            "sequence.validate",
-            "sequence",
-            "POST",
-            "/v0/sequence/validate",
-            (
-                "service-sequence-validate-request.v0.json",
-                "fasta-validation-output.v0.json",
-            ),
-            "read_only_input",
-            "core_deterministic",
-        ),
-        route(
-            "sequence.inspect",
-            "sequence",
-            "POST",
-            "/v0/sequence/inspect",
-            (
-                "service-sequence-inspect-request.v0.json",
-                "inspect-output.v0.json",
-            ),
-            "read_only_input",
-            "core_deterministic",
-        ),
-        route(
-            "sequence.tokenize",
-            "tokenizer",
-            "POST",
-            "/v0/sequence/tokenize",
-            (
-                "service-sequence-tokenize-request.v0.json",
-                "tokenize-output.v0.json",
-            ),
-            "read_only_input",
-            "core_deterministic",
-        ),
-        route(
-            "model_input.build",
-            "model_input",
-            "POST",
-            "/v0/model-input/build",
-            (
-                "service-model-input-request.v0.json",
-                "model-input-output.v0.json",
-            ),
-            "read_only_input",
-            "core_deterministic",
-        ),
-        route(
-            "package.inspect",
-            "package",
-            "POST",
-            "/v0/package/inspect",
-            (
-                "service-package-request.v0.json",
-                "package-inspect-output.v0.json",
-            ),
-            "package_read_only",
-            "package_contract",
-        ),
-        route(
-            "package.validate",
-            "package",
-            "POST",
-            "/v0/package/validate",
-            (
-                "service-package-request.v0.json",
-                "package-validation-report.v0.json",
-            ),
-            "package_read_only",
-            "package_contract",
-        ),
-        route(
-            "package.bridge.plan",
-            "runtime",
-            "POST",
-            "/v0/package/bridge/plan",
-            (
-                "service-package-request.v0.json",
-                "package-bridge-output.v0.json",
-            ),
-            "package_read_only",
-            "runtime_planning_only",
-        ),
-        route(
-            "package.compatibility.compare",
-            "package",
-            "POST",
-            "/v0/package/compatibility/compare",
-            (
-                "service-package-compatibility-request.v0.json",
-                "package-compatibility-output.v0.json",
-            ),
-            "package_read_only",
-            "package_contract",
-        ),
     ]
 }
 
 pub fn local_service_routes() -> Vec<ServiceRoute> {
     service_routes()
-        .into_iter()
-        .filter(|route| {
-            route.runtime_boundary == "cli_local_server"
-                || route.operation_id == "sequence.batch_validate"
-        })
-        .collect()
 }
 
 fn route(
