@@ -41,6 +41,21 @@ biors service hosted-boundary
 
 More examples: [docs/quickstart.md](docs/quickstart.md)
 
+## Evidence
+
+Committed benchmark reports track release regressions across CLI, Python, WASM,
+MCP, and optional backend smoke paths. They are reproducible guardrails, not
+universal throughput claims.
+
+Current checked-in examples include:
+
+- CLI DNA/RNA validation on 256 records in about 6 ms:
+  [benchmarks/cli_surfaces.md](benchmarks/cli_surfaces.md)
+- WASM workflow on 256 records in about 8-10 ms:
+  [benchmarks/wasm_bindings.md](benchmarks/wasm_bindings.md)
+- MCP doctor request overhead at about 60 us:
+  [benchmarks/mcp_server.md](benchmarks/mcp_server.md)
+
 ## Main Docs
 
 - [Installation](docs/install.md)
