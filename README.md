@@ -76,22 +76,12 @@ Current checked-in examples include:
 - [Error codes](docs/error-codes.md)
 - [Citation metadata](CITATION.cff)
 
-## Roadmap Boundaries
-
-Future work must stay clearly labeled until implemented. This includes hosted
-workflow products, package registries, pretrained model-specific inference,
-mmCIF parsing, broader file-format parsers, no-code workflows, and general
-chemistry tooling.
-
 ## Development
 
 ```bash
 scripts/check-fast.sh
 scripts/check.sh
 ```
-
-Benchmark artifacts are release regression guards, not universal throughput
-claims. Re-render checks live in `scripts/check-benchmark-docs.sh`.
 
 ## License
 

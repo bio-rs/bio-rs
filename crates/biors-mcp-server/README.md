@@ -4,9 +4,8 @@ Model Context Protocol (MCP) server for
 [bio-rs](https://github.com/bio-rs/bio-rs) validation, tokenization, workflow,
 and package-check tools.
 
-This crate makes bio-rs agent-callable over local stdio. It is an interface
-surface for deterministic JSON contracts, not a hosted platform or autonomous AI
-agent.
+This crate makes bio-rs agent-callable over local stdio through deterministic
+JSON contracts.
 
 ## Usage
 
