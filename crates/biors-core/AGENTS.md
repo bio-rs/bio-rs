@@ -17,8 +17,7 @@ src/
 |-- package/        # package manifests, layout, validation, artifacts
 |-- runtime/        # runtime contracts and external-process bridge
 |-- verification/   # fixture verification, diffs, hashes
-|-- reports/        # JSON-to-human report assembly
-`-- templates/      # task template definitions
+`-- reports/        # JSON-to-human report assembly
 ```
 
 ## WHERE TO LOOK
