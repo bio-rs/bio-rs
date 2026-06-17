@@ -345,8 +345,8 @@ for every file that affects interpretation or reproducibility.
 
 ## Crate Split Review
 
-The manifest contract remains in `biors-core` for the current pre-1.0 release
-line instead of creating a new `biors-manifest` crate.
+The manifest contract remains in `biors-core` for the current 0.x release line
+before 1.0.0 instead of creating a new `biors-manifest` crate.
 
 Rationale:
 

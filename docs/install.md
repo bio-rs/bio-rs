@@ -1,6 +1,6 @@
 # Installation And Distribution
 
-bio-rs supports three install paths for the pre-1.0 line.
+bio-rs supports three install paths for the current 0.x line before 1.0.0.
 
 ## Cargo Install
 
@@ -10,7 +10,7 @@ biors --version
 biors doctor
 ```
 
-This is the canonical reproducible install flow while the CLI is pre-1.0.
+This is the canonical reproducible install flow for the current 0.x CLI line.
 
 ## Versioned Binary Archives
 

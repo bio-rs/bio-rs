@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Prepare a bio-rs patch release version across package metadata and fixtures."""
-
 from __future__ import annotations
 
 import argparse
@@ -40,11 +38,12 @@ TEXT_VERSION_FILES = [
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Update release version metadata, example package checksums, and the "
-            "checked-in pipeline lockfile in one command."
+            "Prepare a bio-rs release version by updating package metadata, "
+            "example package checksums, and the checked-in pipeline lockfile in "
+            "one command."
         ),
     )
-    parser.add_argument("version", help="new release version, for example 0.48.0")
+    parser.add_argument("version", help="new release version, for example 1.0.0")
     parser.add_argument(
         "--verify",
         action="store_true",

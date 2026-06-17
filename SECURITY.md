@@ -2,8 +2,13 @@
 
 ## Supported Versions
 
-Security reports are accepted for the latest published `0.x` release and the
-current `main` branch.
+Until `1.0.0` is published, security reports are accepted for the latest
+published `0.x` release and the current `main` branch.
+
+After `1.0.0` is published, security reports are accepted for the latest
+published `1.x` release and the current `main` branch. The latest published
+`0.x` release is transitional support during the 1.0 cutover unless explicitly
+extended by maintainers in this policy.
 
 ## Reporting a Vulnerability
 

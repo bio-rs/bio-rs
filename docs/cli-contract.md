@@ -1,6 +1,7 @@
 # CLI and JSON Contract
 
-This document records the current pre-1.0 CLI and JSON contract surface. It is
+This document records the current 0.x CLI and JSON contract surface before
+1.0.0. It is
 the detailed home for command behavior, schema names, and machine-readable
 payload boundaries; the README stays focused on what bio-rs is for and how to
 try it quickly.

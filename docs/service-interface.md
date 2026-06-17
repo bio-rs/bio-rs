@@ -154,6 +154,6 @@ background execution, or a public library API for embedding a server process.
 
 The current contract version is `biors.service_interface.v0`. Route identifiers,
 schema names, and boundary labels are intended to be stable within the same
-minor release line. Because bio-rs is pre-1.0, incompatible contract changes may
-ship in a future minor version and will be reflected in this document and the
-JSON schema.
+minor release line. In the current 0.x line before 1.0.0, incompatible contract
+changes may ship in a future minor version and will be reflected in this
+document and the JSON schema.

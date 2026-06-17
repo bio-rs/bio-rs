@@ -56,7 +56,10 @@ No other external dependencies are required.
 
 ## Stability Guarantees
 
-`biors-core` is pre-1.0. We follow SemVer with one important caveat: minor version bumps may include breaking API changes. Patch releases are reserved for bug fixes and documentation improvements only.
+The current `biors-core` 0.x API has not yet reached crate SemVer 1.0. We
+follow SemVer with one important caveat: minor version bumps may include
+breaking API changes. Patch releases are reserved for bug fixes and
+documentation improvements only.
 
 If you pin to a specific minor version, you should expect stability within that line. Before upgrading across minor versions, review the changelog for renamed types, removed functions, or changed defaults.
 

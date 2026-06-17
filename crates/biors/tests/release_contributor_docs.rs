@@ -78,3 +78,71 @@ fn contributing_docs_cover_promoted_surface_checks() {
         );
     }
 }
+
+#[test]
+fn security_policy_is_ready_for_1_0_support_line() {
+    let repo = common::repo_root();
+    let security = fs::read_to_string(repo.join("SECURITY.md")).expect("read security policy");
+
+    for expected in [
+        "Until `1.0.0` is published",
+        "After `1.0.0` is published",
+        "latest published `1.x` release",
+        "current `main` branch",
+        "latest published `0.x` release",
+        "transitional",
+        "unless explicitly extended",
+    ] {
+        assert!(
+            contains_normalized(&security, expected),
+            "SECURITY.md missing 1.0 support policy: {expected}"
+        );
+    }
+}
+
+#[test]
+fn versioning_docs_separate_crate_1_0_from_schema_lifecycle() {
+    let repo = common::repo_root();
+    let versioning =
+        fs::read_to_string(repo.join("docs/versioning.md")).expect("read versioning policy");
+
+    for expected in [
+        "crate SemVer 1.0",
+        "schema lifecycle",
+        "JSON schema names do not need to be renamed for crate 1.0",
+        "product workflow stability",
+        "biors.package.v0",
+        "biors.package.v1",
+    ] {
+        assert!(
+            contains_normalized(&versioning, expected),
+            "versioning policy missing 1.0 schema lifecycle distinction: {expected}"
+        );
+    }
+}
+
+#[test]
+fn release_version_prep_script_is_not_patch_release_only() {
+    let repo = common::repo_root();
+    let script = fs::read_to_string(repo.join("scripts/prepare-release-version.py"))
+        .expect("read release prep script");
+
+    assert!(
+        script.contains("Prepare a bio-rs release version"),
+        "release prep script must describe general release version prep"
+    );
+    assert!(
+        script.contains("for example 1.0.0"),
+        "release prep help should include a 1.0.0 example"
+    );
+    assert!(
+        !script.contains("patch release version"),
+        "release prep script must not describe itself as patch-release-only"
+    );
+}
+
+fn contains_normalized(haystack: &str, needle: &str) -> bool {
+    let normalized_haystack = haystack.split_whitespace().collect::<Vec<_>>().join(" ");
+    let normalized_needle = needle.split_whitespace().collect::<Vec<_>>().join(" ");
+    normalized_haystack.contains(&normalized_needle)
+}

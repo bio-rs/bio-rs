@@ -16,7 +16,7 @@ pub(crate) fn py_error(
     location: Option<ErrorLocation>,
 ) -> PyErr {
     let message = message.into();
-    Python::with_gil(|py| {
+    Python::attach(|py| {
         let error = BioRsError::new_err(message.clone());
         let value = error.value(py);
         value.setattr("code", code).expect("set error code");

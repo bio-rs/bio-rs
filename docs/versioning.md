@@ -2,12 +2,12 @@
 
 `biors-core` and `biors` currently ship in lockstep.
 
-This is intentional for the pre-1.0 stabilization line:
+This is intentional for the current 0.x stabilization line:
 
 - the CLI is a thin public wrapper over the core contracts
 - CLI JSON schemas expose core data structures directly
 - package verification and model-input behavior must stay reproducible across both crates
-- lockstep publishing keeps pre-1.0 support and bug triage simpler
+- lockstep publishing keeps current 0.x support and bug triage simpler
 
 Documentation-only changes do not require a version bump or package release.
 
@@ -17,6 +17,23 @@ After the first stable release, independent patch releases can be considered onl
 - core-only release: internal library bug fix that does not affect CLI output, schemas, or package verification behavior
 
 Minor or breaking releases should stay lockstep whenever public contracts, schemas, tokenizer behavior, model-input behavior, or package manifests change.
+
+## Crate SemVer 1.0 And Product Workflow Stability
+
+The `crate SemVer 1.0` release line is the Rust workspace stability milestone:
+public crate APIs, CLI contracts, and binding surfaces should avoid breaking
+changes unless a major release is planned.
+
+The schema lifecycle is related but separate. JSON schema names do not need to
+be renamed for crate 1.0. Existing schema identifiers such as
+`biors.package.v0` and `biors.package.v1` remain data-contract versions, not
+crate-version mirrors.
+
+For the local bio-AI tool layer, product workflow stability means documented
+researcher and research-agent workflows keep the same command/tool shape,
+machine-readable output envelopes, recovery hints, and local-only defaults
+across compatible releases. A future crate `1.0.0` release may still support
+older schema tags when those tags remain valid and reproducible.
 
 ## Schema Versioning
 

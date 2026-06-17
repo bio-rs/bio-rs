@@ -3,7 +3,7 @@ use biors_core::{model_input, sequence, tokenizer};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-#[pyclass(name = "ResidueIssue")]
+#[pyclass(name = "ResidueIssue", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyResidueIssue {
     #[pyo3(get)]
@@ -25,7 +25,7 @@ impl PyResidueIssue {
     }
 }
 
-#[pyclass(name = "ValidatedSequence")]
+#[pyclass(name = "ValidatedSequence", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyValidatedSequence {
     #[pyo3(get)]
@@ -65,7 +65,7 @@ impl PyValidatedSequence {
     }
 }
 
-#[pyclass(name = "TokenizedProtein")]
+#[pyclass(name = "TokenizedProtein", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyTokenizedProtein {
     #[pyo3(get)]
@@ -109,7 +109,7 @@ impl PyTokenizedProtein {
     }
 }
 
-#[pyclass(name = "ModelInputRecord")]
+#[pyclass(name = "ModelInputRecord", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyModelInputRecord {
     #[pyo3(get)]

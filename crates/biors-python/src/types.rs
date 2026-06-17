@@ -1,7 +1,7 @@
 use crate::conversion::{PyModelInputRecord, PyValidatedSequence};
 use pyo3::prelude::*;
 
-#[pyclass(name = "ProteinSequence")]
+#[pyclass(name = "ProteinSequence", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyProteinSequence {
     #[pyo3(get)]
@@ -18,7 +18,7 @@ impl PyProteinSequence {
     }
 }
 
-#[pyclass(name = "SequenceValidationReport")]
+#[pyclass(name = "SequenceValidationReport", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PySequenceValidationReport {
     #[pyo3(get)]
@@ -33,14 +33,14 @@ pub struct PySequenceValidationReport {
     pub sequences: Vec<PyValidatedSequence>,
 }
 
-#[pyclass(name = "ModelInput")]
+#[pyclass(name = "ModelInput", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyModelInput {
     #[pyo3(get)]
     pub records: Vec<PyModelInputRecord>,
 }
 
-#[pyclass(name = "SequenceWorkflowOutput")]
+#[pyclass(name = "SequenceWorkflowOutput", from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PySequenceWorkflowOutput {
     #[pyo3(get)]
