@@ -30,7 +30,8 @@ biors serve --host 127.0.0.1 --port 8787
 The default bind address is `127.0.0.1:8787`. The runtime performs no external
 network calls, uploads, telemetry, model inference, request persistence, remote
 object storage access, or hosted workspace operations. Inputs are processed in
-memory and returned to the caller as JSON.
+memory and returned to the caller as JSON; the service does not upload
+biological data.
 
 Current endpoints:
 

@@ -10,6 +10,12 @@ bio-rs is a Rust-based bio-AI data/tooling engine for validating biological
 data, preparing model-ready inputs, and emitting reproducible JSON contracts
 across CLI, Rust, Python, WASM, local services, and agent tools.
 
+Promoted local workflows run without uploading biological data. No API keys,
+tokens, secrets, credentials, or network access are required for validation,
+model-input preparation, package checks, local service use, or MCP tool calls.
+Defaults are no telemetry, no biological data upload, and no external model
+calls.
+
 ## What It Does
 
 - Validates protein, DNA, RNA, FASTQ, PDB, SMILES, SDF, and MOL2 inputs.

@@ -3,7 +3,9 @@
 These recipes define the promoted local 1.0 workflows for biological
 researchers and research agents. They use repository fixtures, produce local
 JSON or local files, and avoid registry publish, external model calls, private
-data, and network dependencies.
+data, and network dependencies. No API keys, tokens, secrets, credentials, or
+network access are required for these recipes, and the commands run without
+uploading biological data.
 
 Run the executable checks from a source checkout:
 
