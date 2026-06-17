@@ -102,7 +102,9 @@ fn readme_presents_full_bio_ai_contract_surface() {
     );
 
     for expected in [
-        "Rust-based bio-AI data/tooling engine",
+        "local bio-AI tool layer",
+        "biological researchers",
+        "research agents",
         "model-ready inputs",
         "JSON contracts",
         "package manifests",
@@ -114,7 +116,7 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "docs/sequence-kind-support.md",
     ] {
         assert!(
-            readme.contains(expected),
+            contains_normalized(&readme, expected),
             "README is missing broad bio-AI contract positioning: {expected}"
         );
     }
@@ -143,4 +145,10 @@ fn cli_contract_schema_inventory_lists_all_schema_files() {
             "CLI contract schema inventory is missing schemas/{file_name}"
         );
     }
+}
+
+fn contains_normalized(haystack: &str, needle: &str) -> bool {
+    let normalized_haystack = haystack.split_whitespace().collect::<Vec<_>>().join(" ");
+    let normalized_needle = needle.split_whitespace().collect::<Vec<_>>().join(" ");
+    normalized_haystack.contains(&normalized_needle)
 }
