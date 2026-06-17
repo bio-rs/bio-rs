@@ -129,3 +129,16 @@ Schema lifecycle is separate from crate versioning. These classes describe the
 | `tokenize-output.v0.json` | public stable | primary researcher interface |
 | `tokenizer-conversion-output.v0.json` | candidate for merge | preview/internal |
 | `tokenizer-inspect-output.v0.json` | public experimental | preview/internal |
+
+## Cross-Surface Parity Gaps
+
+Workflow parity details live in `docs/1-0-workflow-parity.md`. Important gaps
+are explicit:
+
+- Package validation and runtime bridge planning are not exposed in WASM.
+- Package bridge planning is not exposed in MCP.
+- Tokenization, model-input generation, package checks, and runtime bridge
+  planning are unsupported on this surface for the local HTTP service.
+- Some embedding APIs are intentionally different from CLI/MCP ergonomics; those
+  differences are documented as integration-surface boundaries rather than
+  researcher workflow failures.

@@ -102,6 +102,55 @@ def test_prepare_workflow_from_fasta_computes_input_hash_internally():
     assert len(output.records[0].input_ids) == 10
 
 
+def test_prepare_workflow_parity_for_canonical_protein():
+    output = biors.prepare_workflow_from_fasta(
+        ">protein_example\nACDEFGHIK\n",
+        max_length=16,
+        padding="fixed_length",
+        profile="protein-20",
+    )
+    report = json.loads(output.report_json)
+
+    assert output.model_ready is True
+    assert output.records[0].input_ids == [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ]
+    assert report["workflow"] == "protein_model_input.v0"
+    assert report["model_ready"] is True
+    assert report["readiness_issues"] == []
+    assert report["provenance"]["input_hash"] == output.input_hash
+
+
+def test_prepare_workflow_invalid_sequence_parity_readiness_code():
+    output = biors.prepare_workflow_from_fasta(
+        ">seq1\nAC*X\n",
+        max_length=8,
+        padding="fixed_length",
+    )
+    report = json.loads(output.report_json)
+
+    assert output.model_ready is False
+    assert output.records == []
+    assert report["model_ready"] is False
+    assert report["model_input"] is None
+    assert report["readiness_issues"][0]["code"] == "sequence.not_model_ready"
+
+
 def test_prepare_workflow_from_fasta_accepts_nucleotide_profiles():
     output = biors.prepare_workflow_from_fasta(
         ">dna\nACGT\n",

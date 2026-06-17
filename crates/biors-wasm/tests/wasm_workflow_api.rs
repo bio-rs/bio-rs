@@ -47,6 +47,84 @@ fn test_run_workflow() {
 }
 
 #[wasm_bindgen_test]
+fn test_run_workflow_parity_with_core_for_canonical_protein() {
+    let fasta = ">protein_example\nACDEFGHIK\n";
+    let config = workflow_config(fasta);
+    js_sys::Reflect::set(&config, &"maxLength".into(), &16.into()).unwrap();
+    js_sys::Reflect::set(&config, &"padding".into(), &"fixed_length".into()).unwrap();
+    js_sys::Reflect::set(&config, &"padTokenId".into(), &0.into()).unwrap();
+    js_sys::Reflect::set(&config, &"kind".into(), &"protein".into()).unwrap();
+    js_sys::Reflect::set(&config, &"profile".into(), &"protein-20".into()).unwrap();
+
+    let wasm = biors_wasm::run_workflow(config.into()).unwrap();
+    let records = vec![biors_core::sequence::ProteinSequence::new_normalized(
+        "protein_example",
+        "ACDEFGHIK",
+    )];
+    let core = biors_core::workflow::prepare_model_input_workflow_with_config(
+        biors_core::verification::stable_input_hash(fasta),
+        &records,
+        biors_core::model_input::ModelInputPolicy {
+            max_length: 16,
+            pad_token_id: 0,
+            padding: biors_core::model_input::PaddingPolicy::FixedLength,
+        },
+        biors_core::tokenizer::protein_tokenizer_config_for_profile(
+            biors_core::tokenizer::ProteinTokenizerProfile::Protein20,
+        ),
+        biors_core::workflow::SequenceWorkflowInvocation {
+            command: "parity".to_string(),
+            arguments: vec![],
+        },
+    )
+    .unwrap();
+
+    assert_eq!(string_field(&wasm, "workflow"), core.workflow);
+    assert_eq!(bool_field(&wasm, "model_ready"), core.model_ready);
+    assert_eq!(
+        first_record_input_ids(&wasm),
+        core.model_input.unwrap().records[0].input_ids
+    );
+}
+
+#[wasm_bindgen_test]
+fn test_run_workflow_invalid_sequence_parity_with_core_readiness() {
+    let fasta = ">seq1\nAC*X\n";
+    let config = workflow_config(fasta);
+    js_sys::Reflect::set(&config, &"maxLength".into(), &8.into()).unwrap();
+    js_sys::Reflect::set(&config, &"padding".into(), &"fixed_length".into()).unwrap();
+
+    let wasm = biors_wasm::run_workflow(config.into()).unwrap();
+    let records = vec![biors_core::sequence::ProteinSequence::new_normalized(
+        "seq1", "AC*X",
+    )];
+    let core = biors_core::workflow::prepare_model_input_workflow_with_config(
+        biors_core::verification::stable_input_hash(fasta),
+        &records,
+        biors_core::model_input::ModelInputPolicy {
+            max_length: 8,
+            pad_token_id: 0,
+            padding: biors_core::model_input::PaddingPolicy::FixedLength,
+        },
+        biors_core::tokenizer::protein_tokenizer_config_for_profile(
+            biors_core::tokenizer::ProteinTokenizerProfile::Protein20,
+        ),
+        biors_core::workflow::SequenceWorkflowInvocation {
+            command: "parity".to_string(),
+            arguments: vec![],
+        },
+    )
+    .unwrap();
+
+    assert_eq!(bool_field(&wasm, "model_ready"), false);
+    assert_eq!(core.model_ready, false);
+    assert_eq!(
+        first_readiness_issue_code(&wasm),
+        core.readiness_issues[0].code
+    );
+}
+
+#[wasm_bindgen_test]
 fn test_run_workflow_accepts_nucleotide_kind_and_profile() {
     let config = workflow_config(">seq1\nACGT\n");
     js_sys::Reflect::set(&config, &"maxLength".into(), &6.into()).unwrap();
@@ -149,4 +227,35 @@ fn workflow_config(fasta: &str) -> js_sys::Object {
     )
     .unwrap();
     config
+}
+
+fn string_field(value: &wasm_bindgen::JsValue, key: &str) -> String {
+    js_sys::Reflect::get(value, &key.into())
+        .unwrap()
+        .as_string()
+        .unwrap()
+}
+
+fn bool_field(value: &wasm_bindgen::JsValue, key: &str) -> bool {
+    js_sys::Reflect::get(value, &key.into())
+        .unwrap()
+        .as_bool()
+        .unwrap()
+}
+
+fn first_record_input_ids(value: &wasm_bindgen::JsValue) -> Vec<u8> {
+    let json_text = js_sys::JSON::stringify(value).unwrap().as_string().unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_text).unwrap();
+    json["model_input"]["records"][0]["input_ids"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|value| u8::try_from(value.as_u64().unwrap()).expect("WASM input id should fit u8"))
+        .collect()
+}
+
+fn first_readiness_issue_code(value: &wasm_bindgen::JsValue) -> String {
+    let issues = js_sys::Reflect::get(value, &"readiness_issues".into()).unwrap();
+    let first_issue = js_sys::Array::from(&issues).get(0);
+    string_field(&first_issue, "code")
 }
