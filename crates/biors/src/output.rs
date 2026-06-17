@@ -26,6 +26,8 @@ struct CliErrorBody {
     message: String,
     location: Option<ErrorLocationValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    recovery_hint: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     details: Option<serde_json::Value>,
 }
 
@@ -60,6 +62,7 @@ pub(crate) fn print_json_error(error: CliError) {
         code: error.code(),
         message: error.to_string(),
         location: error.location(),
+        recovery_hint: error.recovery_hint(),
         details: error.details().cloned(),
     });
 }
@@ -69,6 +72,9 @@ pub(crate) fn print_json_parse_error(error: &clap::Error) {
         code: "cli.invalid_arguments",
         message: error.to_string(),
         location: None,
+        recovery_hint: Some(
+            "Run the same command with --help and use one of the documented argument values.",
+        ),
         details: None,
     });
 }

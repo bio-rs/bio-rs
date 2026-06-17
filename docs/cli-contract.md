@@ -370,7 +370,8 @@ Passing `--json` writes errors to stdout as:
     "location": {
       "line": 1,
       "record_index": null
-    }
+    },
+    "recovery_hint": "Add a FASTA header line starting with '>' before sequence data, then rerun validation."
   }
 }
 ```
@@ -378,7 +379,8 @@ Passing `--json` writes errors to stdout as:
 Without `--json`, errors are written to stderr as `error[code]: message`.
 `--json` also applies to CLI argument parse failures, including invalid enum
 values rejected by clap; those use `code: "cli.invalid_arguments"` with
-`location: null`.
+`location: null`. When the next action is deterministic, JSON errors include
+`recovery_hint` so agents do not have to parse the human-readable message.
 
 ## Exit Codes
 

@@ -29,7 +29,16 @@ pub(super) fn readiness_issues(
                 warning_count,
                 error_count,
                 message,
+                recovery_hint: recovery_hint(record.tokens.is_empty()).to_string(),
             }
         })
         .collect()
+}
+
+fn recovery_hint(empty_sequence: bool) -> &'static str {
+    if empty_sequence {
+        "Add sequence residues after the FASTA header before generating model input."
+    } else {
+        "Fix validation warnings/errors or choose a matching sequence kind and tokenizer profile before rerunning workflow."
+    }
 }

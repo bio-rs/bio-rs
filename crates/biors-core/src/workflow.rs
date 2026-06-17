@@ -74,6 +74,7 @@ pub struct SequenceWorkflowReadinessIssue {
     pub warning_count: usize,
     pub error_count: usize,
     pub message: String,
+    pub recovery_hint: String,
 }
 
 /// Build the stable legacy protein validation -> tokenization -> model-input workflow.

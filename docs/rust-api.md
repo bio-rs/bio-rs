@@ -1192,7 +1192,8 @@ The `workflow` module orchestrates the end-to-end pipeline: validation, tokeniza
 
 - **`TokenizationWorkflowOutput`** — `pub summary: ProteinBatchSummary`, `pub records: Vec<TokenizedProtein>`
 
-- **`SequenceWorkflowReadinessIssue`** — Reason a record is not model-ready.
+- **`SequenceWorkflowReadinessIssue`** — Reason a record is not model-ready,
+  including a deterministic `recovery_hint` for local remediation.
   - `pub code: String`, `pub id: String`, `pub warning_count: usize`, `pub error_count: usize`, `pub message: String`
 
 #### Functions

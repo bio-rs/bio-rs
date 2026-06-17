@@ -137,13 +137,21 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["code", "id", "warning_count", "error_count", "message"],
+        "required": [
+          "code",
+          "id",
+          "warning_count",
+          "error_count",
+          "message",
+          "recovery_hint"
+        ],
         "properties": {
           "code": { "const": "sequence.not_model_ready" },
           "id": { "type": "string" },
           "warning_count": { "type": "integer", "minimum": 0 },
           "error_count": { "type": "integer", "minimum": 0 },
-          "message": { "type": "string", "minLength": 1 }
+          "message": { "type": "string", "minLength": 1 },
+          "recovery_hint": { "type": "string", "minLength": 1 }
         },
         "additionalProperties": false
       }

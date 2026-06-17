@@ -132,6 +132,8 @@ failures.
 ## Package
 
 Package validation also emits typed `structured_issues[*].code` values in validation reports. CLI JSON error codes remain the top-level command failure category.
+For deterministic local recovery, CLI JSON errors may also include a
+machine-readable `recovery_hint` field alongside the stable error code.
 
 - `package.invalid_checksum_format`: a package checksum field does not use `sha256:<64hex>`
 - `package.checksum_mismatch`: a manifest or verification checksum does not match the file on disk

@@ -117,6 +117,7 @@ export interface WorkflowReadinessIssue {
     warning_count: number;
     error_count: number;
     message: string;
+    recovery_hint: string;
 }
 
 export interface WorkflowOutput {

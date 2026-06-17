@@ -87,6 +87,7 @@ run_failure() {
   fi
   assert_file_contains "$WORKDIR/invalid.json" '"error"'
   assert_file_contains "$WORKDIR/invalid.json" 'fasta\.missing_header'
+  assert_file_contains "$WORKDIR/invalid.json" '"recovery_hint"'
 }
 
 run_package() {

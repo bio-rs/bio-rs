@@ -30,7 +30,8 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
 - Failure case:
   - `biors fasta validate testdata/researcher-workflows/invalid.fasta` exits
     non-zero with a stable FASTA error code, so the next action is to repair
-    the missing header before running downstream workflows.
+    the missing header before running downstream workflows. In JSON mode the
+    error includes `recovery_hint`.
 
 ### validate-sequence-kinds
 
@@ -47,7 +48,9 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
     and kind-specific validation counts.
 - Failure case:
   - A kind/profile mismatch should stop before model-ready output; choose a
-    matching sequence kind and tokenizer profile, then rerun the command.
+    matching sequence kind and tokenizer profile, then rerun the command. The
+    workflow output keeps `model_ready=false` and records the next action in
+    `readiness_issues[*].recovery_hint`.
 
 ### protein-model-ready-workflow
 
@@ -64,7 +67,9 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
     model-input payloads.
 - Failure case:
   - If a protein input has invalid FASTA structure or unsupported residues, fix
-    the input before passing the record to package or report workflows.
+    the input or choose the matching tokenizer profile before passing the
+    record to package or report workflows. JSON errors include
+    `recovery_hint` for model-input failures.
 
 ### invalid-workflow-recovery
 
@@ -109,7 +114,9 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
   - Bridge returns a runtime bridge report.
 - Failure case:
   - Path, checksum, schema, or observation mismatches should be fixed in the
-    package manifest or observed outputs before release-artifact QA.
+    package manifest or observed outputs before release-artifact QA. JSON
+    errors include `recovery_hint` for path traversal, checksum mismatch,
+    unsupported public package runtime, malformed JSON, and missing local files.
 
 ### local-report-json-output
 
@@ -143,4 +150,3 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
   - Tool errors are treated as structured local failures. The agent should fix
     the local input or manifest, then rerun the failed tool before composing
     downstream work.
-
