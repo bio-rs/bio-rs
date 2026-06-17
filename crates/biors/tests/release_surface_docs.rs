@@ -98,3 +98,112 @@ fn sequence_kind_support_matrix_covers_promoted_surfaces() {
         );
     }
 }
+
+#[test]
+fn researcher_workflow_recipes_map_to_real_cli_and_mcp_surfaces() {
+    let repo = common::repo_root();
+    let workflows = fs::read_to_string(repo.join("docs/researcher-workflows.md"))
+        .expect("read researcher workflows");
+    let script = fs::read_to_string(repo.join("scripts/check-researcher-workflows.sh"))
+        .expect("read researcher workflow check script");
+    let cli_args =
+        fs::read_to_string(repo.join("crates/biors/src/cli/args.rs")).expect("read CLI args");
+    let package_args = fs::read_to_string(repo.join("crates/biors/src/cli/package_args.rs"))
+        .expect("read package CLI args");
+    let mcp_server = fs::read_to_string(repo.join("crates/biors-mcp-server/src/server.rs"))
+        .expect("read MCP server");
+
+    for recipe_id in [
+        "validate-fasta-fastq",
+        "validate-sequence-kinds",
+        "protein-model-ready-workflow",
+        "invalid-workflow-recovery",
+        "molecule-structure-validation",
+        "package-validate-verify-bridge",
+        "local-report-json-output",
+        "mcp-agent-sequence",
+    ] {
+        assert!(
+            workflows.contains(recipe_id),
+            "researcher workflow docs missing recipe id: {recipe_id}"
+        );
+        assert!(
+            script.contains(recipe_id),
+            "workflow check script missing recipe id: {recipe_id}"
+        );
+    }
+
+    for mode in [
+        "--list",
+        "--happy",
+        "--failure",
+        "--package",
+        "--check-local-only",
+        "--all",
+    ] {
+        assert!(
+            script.contains(mode),
+            "workflow check script missing required mode: {mode}"
+        );
+    }
+
+    for expected_command in [
+        "fasta validate",
+        "formats validate --format fastq",
+        "seq validate --kind protein",
+        "seq validate --kind dna",
+        "seq validate --kind rna",
+        "tokenize --profile protein-20",
+        "model-input --max-length",
+        "workflow --max-length",
+        "molecule validate",
+        "structure validate",
+        "package inspect",
+        "package validate",
+        "package verify",
+        "package bridge",
+        "report generate",
+    ] {
+        assert!(
+            workflows.contains(expected_command),
+            "researcher workflow docs missing CLI command: {expected_command}"
+        );
+    }
+
+    for cli_variant in [
+        "pub enum FastaCommand",
+        "pub enum FormatsCommand",
+        "pub enum SeqCommand",
+        "ModelInput",
+        "Workflow",
+        "Report",
+    ] {
+        assert!(
+            cli_args.contains(cli_variant),
+            "CLI inventory missing command marker: {cli_variant}"
+        );
+    }
+
+    for package_variant in ["Inspect", "Validate", "Verify", "Bridge"] {
+        assert!(
+            package_args.contains(package_variant),
+            "package CLI inventory missing command marker: {package_variant}"
+        );
+    }
+
+    for tool in [
+        "validate",
+        "workflow",
+        "package_validate_fields",
+        "package_validate",
+    ] {
+        assert!(
+            workflows.contains(tool),
+            "researcher workflow docs missing MCP tool: {tool}"
+        );
+        assert!(
+            mcp_server.contains(tool),
+            "MCP server registration missing tool: {tool}"
+        );
+    }
+}

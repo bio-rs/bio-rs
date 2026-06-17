@@ -1,0 +1,8 @@
+HEADER    TEST STRUCTURE                          01-JAN-00   1ABC
+TITLE     EXAMPLE STRUCTURE
+SEQRES   1 A    4  ALA CYS ASP GLU
+REMARK 465     CYS A    2
+ATOM      1  N   ALA A   1      11.104  13.207  14.100  1.00 20.00           N
+ATOM      2  CA  ALA A   1      12.000  13.500  14.700  1.00 21.00           C
+ATOM      3  N   GLU A   4      15.104  17.207  18.100  1.00 20.00           N
+END
