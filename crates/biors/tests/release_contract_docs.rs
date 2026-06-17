@@ -5,13 +5,19 @@ use std::fs;
 mod common;
 
 #[test]
-fn python_api_docs_use_runtime_bridge_ready_field() {
+fn python_api_docs_do_not_use_runtime_bridge_ready_alone() {
     let repo = common::repo_root();
     let python_api = fs::read_to_string(repo.join("docs/python-api.md")).expect("read Python API");
 
     assert!(
-        python_api.contains("print(bridge[\"ready\"])"),
-        "Python API runtime bridge example must use the schema-backed ready field"
+        python_api.contains("bridge[\"contract_ready\"]")
+            && python_api.contains("bridge[\"artifact_checked\"]")
+            && python_api.contains("bridge[\"execution_ready\"]"),
+        "Python API runtime bridge example must inspect contract and execution readiness fields"
+    );
+    assert!(
+        !python_api.contains("print(bridge[\"ready\"])"),
+        "Python API runtime bridge example must not use ready alone as execution readiness"
     );
     assert!(
         !python_api.contains("bridge[\"compatible\"]"),

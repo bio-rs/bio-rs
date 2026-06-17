@@ -237,7 +237,9 @@ print(summary["name"])
 print(report["valid"])
 print(artifact_report["valid"])
 print(file_report["valid"])
-print(bridge["ready"])
+print(bridge["contract_ready"])
+print(bridge["artifact_checked"])
+print(bridge["execution_ready"])
 ```
 
 ### `inspect_package_manifest(manifest_json: str) -> str`

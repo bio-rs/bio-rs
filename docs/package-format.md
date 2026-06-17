@@ -135,6 +135,12 @@ or run an execution smoke test, so placeholder or corrupted artifacts can still
 be `contract_ready: true` while `artifact_checked: false` and
 `execution_ready: false`.
 
+Consumers must not use `ready` alone as execution readiness. Treat the bridge as
+contract planning until `artifact_checked` and `execution_ready` are both true.
+The internal `external-process` adapter is not part of the public package
+manifest contract; package bridge reports it as a failed `runtime_model_pair`
+check instead of marking external command execution ready.
+
 `biors package init` infers these defaults from the model filename extension:
 `.onnx` selects `onnx` with `onnx-webgpu/browser-wasm-webgpu`, and
 `.safetensors` selects `safetensors` with `candle/local-cpu`. Unknown model

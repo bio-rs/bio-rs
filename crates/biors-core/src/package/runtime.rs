@@ -62,6 +62,16 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
 }
 
 fn runtime_model_pair_check(manifest: &PackageManifest) -> BackendCompatibilityCheck {
+    if manifest.runtime.backend == RuntimeBackend::ExternalProcess {
+        return BackendCompatibilityCheck {
+            code: "runtime_model_pair".to_string(),
+            passed: false,
+            message:
+                "external-process is experimental and is not supported by the public package manifest contract"
+                    .to_string(),
+        };
+    }
+
     let passed = matches!(
         (
             manifest.model.format,
@@ -75,10 +85,6 @@ fn runtime_model_pair_check(manifest: &PackageManifest) -> BackendCompatibilityC
         ) | (
             ModelFormat::Safetensors,
             RuntimeBackend::Candle,
-            RuntimeTargetPlatform::LocalCpu
-        ) | (
-            _,
-            RuntimeBackend::ExternalProcess,
             RuntimeTargetPlatform::LocalCpu
         )
     );

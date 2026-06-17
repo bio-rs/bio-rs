@@ -118,6 +118,9 @@ fn runtime_bridge_blocks_external_process_manifest_backend() {
     let report = plan_runtime_bridge(&manifest);
 
     assert!(!report.ready);
+    assert!(!report.contract_ready);
+    assert!(!report.artifact_checked);
+    assert!(!report.execution_ready);
     assert_eq!(report.backend, RuntimeBackend::ExternalProcess);
     assert_eq!(report.target, RuntimeTargetPlatform::LocalCpu);
     assert_eq!(report.execution_provider, "external-process");
@@ -125,10 +128,16 @@ fn runtime_bridge_blocks_external_process_manifest_backend() {
         issue.contains("external-process")
             && issue.contains("not supported by the public package manifest contract")
     }));
-    assert!(report
+    let runtime_check = report
         .compatibility_checks
         .iter()
-        .any(|check| { check.code == "runtime_model_pair" && check.passed }));
+        .find(|check| check.code == "runtime_model_pair")
+        .expect("runtime-model compatibility check");
+    assert!(!runtime_check.passed);
+    assert!(runtime_check.message.contains("external-process"));
+    assert!(runtime_check
+        .message
+        .contains("not supported by the public package manifest contract"));
 }
 
 #[test]
