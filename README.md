@@ -6,9 +6,10 @@
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/cli-contract.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-bio-rs is a Rust-based bio-AI data/tooling engine for validating biological
-data, preparing model-ready inputs, and emitting reproducible JSON contracts
-across CLI, Rust, Python, WASM, local services, and agent tools.
+bio-rs is a local bio-AI tool layer for biological researchers and research
+agents. It validates biological data, prepares model-ready inputs, checks
+packages and artifacts, and emits reproducible JSON contracts across CLI, MCP,
+Rust, Python, WASM, local services, and backend integration surfaces.
 
 Promoted local workflows run without uploading biological data. No API keys,
 tokens, secrets, credentials, or network access are required for validation,

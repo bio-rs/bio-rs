@@ -1,6 +1,11 @@
 # MCP Agent Tools
 
-bio-rs exposes local MCP tools for research agents that need deterministic biological validation, tokenization, workflow, and package checks. This local tool layer does not provide autonomous research planning, hosted execution, literature review, long-term memory, or remote lab automation.
+bio-rs exposes local MCP tools as the agent-callable surface of the local
+bio-AI tool layer for research agents that need deterministic biological
+validation, tokenization, workflow, and package checks. This local tool layer
+does not provide autonomous research planning. It does not provide hosted
+execution. It does not provide literature review, long-term memory, or remote
+lab automation.
 
 ## Output Policy
 

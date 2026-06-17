@@ -3,6 +3,11 @@
 `biors-python` exposes the core bio-rs FASTA, validation, tokenization, model
 input, package-manifest, and runtime-planning surfaces through PyO3.
 
+This is a local bio-AI integration surface for researchers and research agents
+that need Python notebooks, scripts, or pipelines to call the same deterministic
+validation, model-ready preparation, package checks, and reproducible JSON
+contracts as the CLI.
+
 > **Status:** The `biors-python` crate is implemented in this repository and is
 > published to PyPI by the tag release workflow.
 

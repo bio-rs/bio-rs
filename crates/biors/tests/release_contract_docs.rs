@@ -103,6 +103,73 @@ fn public_docs_preserve_local_no_secret_no_upload_defaults() {
 }
 
 #[test]
+fn public_docs_use_researcher_agent_tool_layer_framing() {
+    let repo = common::repo_root();
+    let framed_docs = [
+        ("README", "README.md"),
+        ("quickstart", "docs/quickstart.md"),
+        ("CLI contract", "docs/cli-contract.md"),
+        ("package format", "docs/package-format.md"),
+        ("service interface", "docs/service-interface.md"),
+        ("Python API", "docs/python-api.md"),
+        ("WASM API", "docs/wasm-api.md"),
+        ("Candle backend", "docs/candle-backend.md"),
+        ("MCP agent tools", "docs/mcp-agent-tools.md"),
+        ("MCP README", "crates/biors-mcp-server/README.md"),
+    ];
+
+    let mut combined = String::new();
+    for (name, path) in framed_docs {
+        let contents =
+            fs::read_to_string(repo.join(path)).unwrap_or_else(|_| panic!("read {name}"));
+        let normalized = normalize_whitespace(&contents);
+        assert!(
+            contains_any(
+                &normalized,
+                &[
+                    "local bio-AI tool layer",
+                    "local bio-AI integration surface",
+                    "agent-callable",
+                    "researcher-callable",
+                ],
+            ),
+            "{name} must use the local researcher/agent tool-layer framing"
+        );
+        combined.push_str(&normalized);
+        combined.push('\n');
+    }
+
+    assert_contains_all(
+        &combined,
+        &[
+            "researchers",
+            "research agents",
+            "CLI",
+            "MCP",
+            "model-ready",
+            "package",
+            "reproducible JSON",
+        ],
+        "public docs missing local bio-AI product framing:",
+    );
+
+    for forbidden in [
+        "bio-rs is an autonomous research agent",
+        "provides autonomous research planning",
+        "hosted workspace by default",
+        "browser model execution",
+        "cloud model execution",
+        "full DNA/RNA package conversion",
+        "pretrained inference service",
+    ] {
+        assert!(
+            !combined.contains(forbidden),
+            "public docs must not overclaim 1.0 scope: {forbidden}"
+        );
+    }
+}
+
+#[test]
 fn sequence_issue_codes_match_docs_schemas_wasm_and_diagnostic_contracts() {
     let repo = common::repo_root();
     let expected_codes = ["ambiguous_symbol", "invalid_symbol"];
