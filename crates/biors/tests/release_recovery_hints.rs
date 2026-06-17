@@ -204,8 +204,15 @@ fn workflow_docs_cover_recovery_hint_failure_types() {
         "recovery_hint",
     ] {
         assert!(
-            workflows.contains(expected) || cli_contract.contains(expected),
+            contains_normalized(&workflows, expected)
+                || contains_normalized(&cli_contract, expected),
             "recovery docs missing {expected}"
         );
     }
+}
+
+fn contains_normalized(haystack: &str, needle: &str) -> bool {
+    let normalized_haystack = haystack.split_whitespace().collect::<Vec<_>>().join(" ");
+    let normalized_needle = needle.split_whitespace().collect::<Vec<_>>().join(" ");
+    normalized_haystack.contains(&normalized_needle)
 }
