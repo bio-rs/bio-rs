@@ -24,7 +24,7 @@ fn package_artifact_workflow_docs_name_required_safety_boundaries() {
         "execution_ready",
     ] {
         assert!(
-            docs.contains(required),
+            contains_normalized(&docs, required),
             "package workflow docs missing {required}"
         );
     }
@@ -74,4 +74,10 @@ fn package_artifact_safety_tests_cover_required_failures() {
             "package safety tests missing {required}"
         );
     }
+}
+
+fn contains_normalized(haystack: &str, needle: &str) -> bool {
+    let normalized_haystack = haystack.split_whitespace().collect::<Vec<_>>().join(" ");
+    let normalized_needle = needle.split_whitespace().collect::<Vec<_>>().join(" ");
+    normalized_haystack.contains(&normalized_needle)
 }
