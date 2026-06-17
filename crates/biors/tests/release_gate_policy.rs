@@ -245,6 +245,33 @@ fn local_check_scripts_use_rendered_benchmark_docs_gate() {
     );
 }
 
+#[test]
+fn local_check_scripts_keep_preview_candle_out_of_workspace_metadata_gates() {
+    let repo = common::repo_root();
+    let check = read_repo_file(&repo, "scripts/check.sh");
+    let check_fast = read_repo_file(&repo, "scripts/check-fast.sh");
+
+    for (name, script) in [("check.sh", &check), ("check-fast.sh", &check_fast)] {
+        assert!(
+            script.contains("--exclude biors-backend-candle"),
+            "{name} must exclude the preview Candle backend from workspace metadata gates"
+        );
+        assert!(
+            script.contains("CARGO_BUILD_JOBS:=1")
+                && script.contains("CARGO_INCREMENTAL:=0")
+                && script.contains("CARGO_PROFILE_DEV_DEBUG:=0"),
+            "{name} must pin cargo gate settings that avoid local metadata hangs"
+        );
+    }
+
+    assert!(
+        check.contains(
+            "CARGO_BUILD_JOBS=1 cargo test --locked -p biors-backend-candle --test candle_backend"
+        ),
+        "check.sh must keep a runtime smoke test for the preview Candle backend"
+    );
+}
+
 fn read_repo_file(repo: &Path, path: &str) -> String {
     fs::read_to_string(repo.join(path)).unwrap_or_else(|_| panic!("read {path}"))
 }

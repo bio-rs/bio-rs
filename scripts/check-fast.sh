@@ -7,6 +7,13 @@ if [ -f "$HOME/.cargo/env" ]; then
   . "$HOME/.cargo/env"
 fi
 
+: "${CARGO_BUILD_JOBS:=1}"
+: "${CARGO_INCREMENTAL:=0}"
+: "${CARGO_PROFILE_DEV_DEBUG:=0}"
+export CARGO_BUILD_JOBS CARGO_INCREMENTAL CARGO_PROFILE_DEV_DEBUG
+
+workspace_gate_args="--workspace --exclude biors-backend-candle --all-targets --all-features"
+
 echo "==> shell syntax"
 find scripts .githooks -type f -print | while IFS= read -r file; do
   case "$file" in
@@ -41,5 +48,5 @@ python3 scripts/check-rust-version-policy.py
 echo "==> cargo fmt --check"
 cargo fmt --all --check
 
-echo "==> cargo check --workspace --all-targets --all-features"
-cargo check --locked --workspace --all-targets --all-features
+echo "==> cargo check --workspace --exclude biors-backend-candle --all-targets --all-features"
+cargo check --locked $workspace_gate_args

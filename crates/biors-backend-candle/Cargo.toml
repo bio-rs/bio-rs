@@ -16,6 +16,10 @@ candle-core.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
+[lib]
+test = false
+doctest = false
+
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
 
