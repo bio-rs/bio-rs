@@ -16,8 +16,8 @@ scripts/check-security-audit.sh
 echo "==> full release gate"
 scripts/check.sh
 
-echo "==> build release binary"
-cargo build --locked --release -p biors
+echo "==> build release binaries"
+cargo build --locked --release -p biors -p biors-mcp-server
 
 echo "==> public demo dry run with release binary"
 BIORS_BIN=target/release/biors sh scripts/launch-demo.sh
@@ -27,3 +27,6 @@ scripts/check-install-smoke.sh
 
 echo "==> package artifact final test"
 scripts/check-package-artifacts.sh
+
+echo "==> local artifact no-publish QA"
+scripts/check-local-artifact-qa.sh --no-publish

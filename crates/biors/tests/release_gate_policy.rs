@@ -30,6 +30,7 @@ fn final_release_checklist_covers_required_gates() {
             "BIORS_BIN=target/release/biors sh scripts/launch-demo.sh",
             "scripts/check-install-smoke.sh",
             "scripts/check-package-artifacts.sh",
+            "scripts/check-local-artifact-qa.sh --no-publish",
             "python3 scripts/check-release-workflow.py",
         ],
         "final release script missing",
