@@ -25,10 +25,7 @@ impl fmt::Display for PackageArtifactError {
         match self {
             Self::EmptyPath => write!(f, "asset path is required"),
             Self::AbsolutePath { path } => {
-                write!(
-                    f,
-                    "asset path '{path}' must be relative to the package root"
-                )
+                write!(f, "asset path '{path}' must be package-relative")
             }
             Self::PathEscape { path } => {
                 write!(f, "asset path '{path}' must stay inside the package root")

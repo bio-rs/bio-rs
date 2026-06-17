@@ -56,6 +56,21 @@ fn rejects_asset_paths_outside_package_root() {
     );
 }
 
+#[test]
+fn rejects_absolute_artifact_paths() {
+    let mut manifest = common::example_manifest();
+    manifest.model.path = "/tmp/outside-model.onnx".to_string();
+
+    let report = validate_package_manifest_artifacts(&manifest, &common::example_base_dir());
+
+    assert!(!report.valid);
+    assert!(report.structured_issues.iter().any(|issue| {
+        issue.code == PackageValidationIssueCode::InvalidAssetPath
+            && issue.field == "model"
+            && issue.message.contains("must be package-relative")
+    }));
+}
+
 #[cfg(unix)]
 #[test]
 fn rejects_symlinked_artifact_that_escapes_package_root() {

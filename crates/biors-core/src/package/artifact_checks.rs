@@ -194,9 +194,13 @@ fn push_artifact_error(
     error: PackageArtifactError,
 ) {
     match error {
-        PackageArtifactError::AbsolutePath { .. }
-        | PackageArtifactError::EmptyPath
-        | PackageArtifactError::PathEscape { .. } => report.push_issue(
+        PackageArtifactError::AbsolutePath { .. } | PackageArtifactError::EmptyPath => report
+            .push_issue(
+                PackageValidationIssueCode::InvalidAssetPath,
+                field,
+                &format!("{field}: {error}"),
+            ),
+        PackageArtifactError::PathEscape { .. } => report.push_issue(
             PackageValidationIssueCode::InvalidAssetPath,
             field,
             &format!("{field}: asset path '{path}' must stay inside the package root"),

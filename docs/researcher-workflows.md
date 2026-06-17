@@ -113,10 +113,14 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
   - Verify returns observation verification status.
   - Bridge returns a runtime bridge report.
 - Failure case:
-  - Path, checksum, schema, or observation mismatches should be fixed in the
-    package manifest or observed outputs before release-artifact QA. JSON
-    errors include `recovery_hint` for path traversal, checksum mismatch,
-    unsupported public package runtime, malformed JSON, and missing local files.
+  - Absolute paths, `..` traversal, checksum mismatch, unknown schema version,
+    missing files, unsupported public package runtime, or fixture observation
+    mismatch should be fixed in the package manifest or observed outputs before
+    release-artifact QA. JSON errors include `recovery_hint` where the next
+    local action is deterministic.
+  - `package bridge` is contract planning only: use `contract_ready`,
+    `artifact_checked`, and `execution_ready` instead of treating the legacy
+    `ready` alias as execution readiness.
 
 ### local-report-json-output
 
