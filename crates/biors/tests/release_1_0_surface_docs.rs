@@ -47,10 +47,28 @@ fn product_role_doc_accounts_for_current_surfaces() {
 
     let mcp_server = fs::read_to_string(repo.join("crates/biors-mcp-server/src/server.rs"))
         .expect("read MCP server");
+    let mcp_catalog =
+        fs::read_to_string(repo.join("docs/mcp-agent-tools.md")).expect("read MCP catalog");
     for tool in mcp_tools(&mcp_server) {
         assert!(
             doc.contains(&format!("| `{tool}` |")),
             "1.0 stability doc missing MCP tool row: {tool}"
+        );
+        assert!(
+            mcp_catalog.contains(&format!("| `{tool}` |")),
+            "MCP agent catalog missing tool row: {tool}"
+        );
+    }
+    for required in [
+        "include_records",
+        "include_payload",
+        "biors.mcp.compact.v0",
+        "summary/counts/issues by default",
+        "not an autonomous research agent",
+    ] {
+        assert!(
+            mcp_catalog.contains(required),
+            "MCP agent catalog missing compact-output policy text: {required}"
         );
     }
 

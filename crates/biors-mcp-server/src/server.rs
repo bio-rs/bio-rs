@@ -1,3 +1,7 @@
+use crate::compact::{
+    compact_tokenize_response, compact_validate_response, compact_workflow_response,
+    should_compact_fasta,
+};
 use crate::package_validation::{PackageValidateFieldsParams, PackageValidateParams};
 use biors_core::{
     error::BioRsError,
@@ -24,6 +28,8 @@ pub struct TokenizeParams {
     /// dna-iupac-special, rna-iupac, or rna-iupac-special.
     #[serde(default = "default_protein_profile")]
     pub profile: String,
+    #[serde(default)]
+    pub include_records: bool,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
@@ -33,6 +39,8 @@ pub struct ValidateParams {
     /// Sequence kind: "auto", "protein", "dna", or "rna".
     #[serde(default = "default_auto_kind")]
     pub kind: String,
+    #[serde(default)]
+    pub include_records: bool,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
@@ -54,6 +62,8 @@ pub struct WorkflowParams {
     /// Padding policy: "fixed_length" or "no_padding".
     #[serde(default = "default_padding")]
     pub padding: String,
+    #[serde(default)]
+    pub include_payload: bool,
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -160,7 +170,11 @@ impl BiorsMcpServer {
             tokenized.push(t);
         }
 
-        json_response(&tokenized)
+        if should_compact_fasta(&params.fasta_text, params.include_records) {
+            json_response(&compact_tokenize_response(&tokenized))
+        } else {
+            json_response(&tokenized)
+        }
     }
 
     #[tool(description = "Validate biological sequences (protein, DNA, RNA, or auto-detect)")]
@@ -175,7 +189,11 @@ impl BiorsMcpServer {
         )
         .map_err(fasta_invalid_params)?;
 
-        json_response(&report)
+        if should_compact_fasta(&params.fasta_text, params.include_records) {
+            json_response(&compact_validate_response(&report))
+        } else {
+            json_response(&report)
+        }
     }
 
     #[tool(description = "Run end-to-end validation -> tokenization -> model-input workflow")]
@@ -208,7 +226,11 @@ impl BiorsMcpServer {
         )
         .map_err(model_input_invalid_params)?;
 
-        json_response(&output)
+        if should_compact_fasta(&params.fasta_text, params.include_payload) {
+            json_response(&compact_workflow_response(&output))
+        } else {
+            json_response(&output)
+        }
     }
 
     #[tool(

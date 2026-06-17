@@ -30,6 +30,9 @@ Configure your MCP client (Claude Desktop, Cursor, etc.) to launch:
 
 ## Tools
 
+See [MCP Agent Tools](../../docs/mcp-agent-tools.md) for the 1.0 research-agent
+catalog, compact-output policy, schemas, and recommended local sequences.
+
 - `tokenize` — Tokenize protein, DNA, or RNA FASTA text into stable token IDs
 - `validate` — Validate biological sequences (protein, DNA, RNA, or auto-detect)
 - `workflow` — Validate → tokenize → model-input workflow with `kind`
