@@ -164,12 +164,14 @@ PY
   py="$artifact_tmp/python-wheel-venv/bin/python"
   "$py" -m pip install --no-index "$wheel"
   "$py" - <<'PY'
+import json
+
 import biors
 
 records = biors.parse_fasta_records(">seq1\nACDE\n")
 assert len(records) == 1
-report = biors.validate_package_manifest_file("testdata/protein-package/manifest.json")
-assert report.valid is True
+report = json.loads(biors.validate_package_manifest_file("testdata/protein-package/manifest.json"))
+assert report["valid"] is True
 PY
 }
 
