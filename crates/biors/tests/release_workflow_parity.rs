@@ -93,7 +93,7 @@ fn invalid_sequence_cli_core_parity() {
     .expect("core workflow");
 
     assert_eq!(cli_value["data"]["model_ready"], false);
-    assert_eq!(core.model_ready, false);
+    assert!(!core.model_ready);
     assert_eq!(
         cli_value["data"]["readiness_issues"][0]["code"],
         core.readiness_issues[0].code

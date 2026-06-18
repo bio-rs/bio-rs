@@ -116,8 +116,8 @@ fn test_run_workflow_invalid_sequence_parity_with_core_readiness() {
     )
     .unwrap();
 
-    assert_eq!(bool_field(&wasm, "model_ready"), false);
-    assert_eq!(core.model_ready, false);
+    assert!(!bool_field(&wasm, "model_ready"));
+    assert!(!core.model_ready);
     assert_eq!(
         first_readiness_issue_code(&wasm),
         core.readiness_issues[0].code

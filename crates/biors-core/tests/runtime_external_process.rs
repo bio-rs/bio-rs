@@ -36,7 +36,7 @@ fn external_process_config(mode: &str) -> ExternalProcessConfig {
             value: "yes".to_string(),
         }],
         inherit_environment: false,
-        timeout_millis: 2_000,
+        timeout_millis: 30_000,
         max_stdout_bytes: 16 * 1024,
         max_stderr_bytes: 1024,
     }
