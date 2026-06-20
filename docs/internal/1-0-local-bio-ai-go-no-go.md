@@ -1,37 +1,37 @@
 # Local Bio-AI Tool Layer 1.0 Go/No-Go
 
-Date: 2026-06-20
+Date: 2026-06-21
 Branch: `docs/1-0-positioning-readiness`
-Exact audited source HEAD at F5 documentation freshness edit:
-`53e248fb929c085af28d4fcc3d36bd40e30c1670`
+Exact audited source HEAD after F8 patch release gate:
+`c865cdfa127a20cdbda5e3cf1c187d933a08c874`
 
-Previous report source HEAD:
-`d0bb1f25e5a612379b66aa90d35ce5382343f7d5`
+Previous F5 report source HEAD:
+`53e248fb929c085af28d4fcc3d36bd40e30c1670`
 
 ## Verdict
 
-Status: conditionally ready for the product-scope local bio-AI tool layer 1.0.
+Status: ready for a product-scope local bio-AI tool layer 1.0.0 release cut.
 
 This is not a generic repository 1.0 verdict. It is scoped to the local
 bio-AI tool layer for researchers and research agents: local validation,
 model-ready record preparation, package/artifact assurance, reproducible JSON
 reports, and deterministic CLI/MCP/binding/service contracts without uploads.
 
-The plain `ready` verdict is withheld because two readiness inputs remain
-caveated: issue #13 has not yet produced external domain feedback, and the
-parser cross-check audit skipped external parser tools that were unavailable
-locally. The implemented local workflows, Tasks 15-16, and Final Verification
-Wave F1-F4 evidence support continued 1.0 release-prep, but these caveats
-should be resolved or explicitly accepted before a final release approval.
+Two readiness inputs remain recorded as release notes rather than blockers:
+issue #13 has not yet produced external domain feedback, and the parser
+cross-check audit skipped external parser tools that were unavailable locally.
+For the defined development-stage product scope, these are accepted caveats:
+the promoted local CLI/MCP/package/Python/WASM/service workflows have direct
+local and remote release evidence.
 
-This is not 1.0.0 ready. F5 is a documentation freshness cleanup only; the
-sequential `remove-ai-slops`, `review-work`, and patch release gates remain
-pending before any final 1.0.0 release action.
+F6 `remove-ai-slops`, F7 `review-work`, and F8 patch release execution are now
+complete. The `v0.57.4` patch release was published successfully as the final
+pre-1.0 evidence pass.
 
-No tag: no 1.0 tag was created.
-No publish: no registry publish occurred.
-No release: no GitHub release or release action occurred.
-No version bump or push occurred.
+No 1.0 tag: no `v1.0.0` tag was created.
+No 1.0 publish: no registry package was published as `1.0.0`.
+Patch release: `v0.57.4` was pushed and published to GitHub Releases,
+crates.io, PyPI, and npm.
 
 ## Implemented Workflows
 
@@ -62,7 +62,8 @@ No version bump or push occurred.
   as evidence, not instructions.
 - parser cross-check evidence is incomplete for external tools: SeqKit,
   Biopython, RDKit, Open Babel, Bio.PDB, and gemmi were unavailable and recorded
-  as SKIP. These skipped areas are not counted as plain `ready` evidence.
+  as SKIP. These skipped areas are recorded as external-parser parity caveats,
+  not as promoted local workflow failures.
 - Arbitrary DNA/RNA package conversion from external Python or Hugging Face
   projects is not promoted as a 1.0 workflow.
 - Hosted service operations, autonomous research agents, cloud model calls,
@@ -95,6 +96,7 @@ No version bump or push occurred.
 | PyO3/RustSec | complete in current source | `crates/biors-python/Cargo.toml` uses PyO3 `0.29`; Task 14 evidence recorded RustSec status as addressed. |
 | pre-1.0 and patch-only wording | complete for the promoted target | public wording describes the current 0.x line before `1.0.0`; `scripts/prepare-release-version.py` is general release prep, not patch-only. |
 | service endpoint contract | complete | docs, schemas, core service interface, CLI handlers, Task 15 HTTP QA, and F4 scope-fidelity evidence align to `service.health`, `service.openapi`, and `sequence.batch_validate`. |
+| final cleanup/review/release gates | complete | F6 remove-ai-slops, F7 review-work, and F8 patch release execution completed; release workflow run `27878352372` succeeded for `v0.57.4`. |
 
 ## Checks run
 
@@ -128,15 +130,28 @@ No version bump or push occurred.
 - F5 Documentation Freshness: this report now reflects HEAD
   `53e248fb929c085af28d4fcc3d36bd40e30c1670`, Final Verification F1-F4, and
   the `6b3f1c9`, `1142446`, and `53e248f` documentation commits.
+- F6 remove-ai-slops cleanup: final slop cleanup passed and was committed as
+  `1bf0d64`.
+- F7 review-work gate: review lanes passed after the clippy fix commit
+  `a14ea4f`.
+- F8 patch release gate: `scripts/check-final-release.sh` passed on a clean
+  tracked worktree; `v0.57.4` was published by GitHub Actions run
+  `27878352372`; public checks confirmed GitHub Release assets, crates.io
+  `biors-core`, `biors-mcp-server`, `biors-backend-candle`, and `biors`
+  `0.57.4`, PyPI `biors` `0.57.4`, and npm
+  `@bio-rs/biors-wasm` `0.57.4`.
 
 ## Artifact QA Results
 
-Task 15 and F3 no-publish local artifact QA passed against local artifacts only.
+Task 15 and F3 no-publish local artifact QA passed against local artifacts.
 The current F3 confirmation covered release binary CLI workflows, MCP stdio
 smoke, Python wheel install/import/package API smoke, WASM/npm build/import
 smoke, local service release-binary smoke, and package validate/verify/bridge
-smoke after the required package artifacts were built. The scripts did not tag,
-publish, release, upload data, or contact a registry.
+smoke after the required package artifacts were built.
+
+F8 then performed the explicit patch release: `v0.57.4` was tagged, pushed,
+published, and externally verified. This was a patch release only; it did not
+publish or tag `1.0.0`.
 
 The stale Task 15 `BLOCKED_NOT_RUN` lines in
 `.omo/evidence/final-local-workflow-qa.md` and the stale F3 HTTP token failure
@@ -144,21 +159,17 @@ before commit `53e248f` are older state and are not counted as current workflow
 or artifact failure evidence. The current source of truth is the Task 15 final
 PASS evidence plus the F1-F4 Final Verification evidence listed above.
 
-## Blockers
+## Remaining Release Notes
 
-- Plain `ready` is blocked until the issue #13/equivalent feedback caveat is
-  accepted or replaced with actual non-sensitive researcher feedback.
-- Plain `ready` is blocked until external parser cross-check skips are resolved
-  or explicitly accepted as a release risk.
-- `not 1.0.0 ready` remains the release-gate position until F6
-  `remove-ai-slops`, F7 `review-work`, and F8 patch release execution are
-  completed or explicitly waived by a maintainer.
-- A release still requires a separate maintainer approval step for any version
-  bump, tag, publish, push, or GitHub release.
-
-These blockers do not prevent a conditionally ready product-scope go/no-go for
-the local bio-AI tool layer; they prevent calling it unconditionally ready for
-the final 1.0 release decision.
+- No product-scope blocker remains for the local bio-AI tool layer 1.0.0 cut.
+- issue #13/equivalent external researcher feedback remains absent; this is an
+  accepted development-stage caveat, not a release blocker for the current
+  local tool-layer scope.
+- External parser cross-check skips remain recorded for tools unavailable
+  locally; promoted local workflows are covered by repo fixtures and release
+  gates.
+- A `1.0.0` release still requires the separate mechanical version bump, final
+  release gate rerun, `v1.0.0` tag, registry publish, and GitHub Release action.
 
 ## UltraQA Notes
 
