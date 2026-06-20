@@ -1,9 +1,10 @@
-# bio-rs 1.0: Local bio-AI Tool Layer
+# bio-rs 1.0: local bio-AI tool layer
 
 ## Thesis
 
-For product-scope 1.0, the target is a local-first bio-AI tool layer for
-researchers and research agents. bio-rs should provide deterministic tools for
+For product-scope 1.0, the target is a local bio-AI tool layer for researchers
+and research agents. It is local-first by default: bio-rs should provide
+deterministic tools for
 validating biological inputs, preparing model-ready records, verifying
 packages/artifacts, producing reproducible JSON reports, and exposing those
 operations through CLI, MCP, and bindings without uploading data.
