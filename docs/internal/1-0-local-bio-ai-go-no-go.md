@@ -144,8 +144,9 @@ the final 1.0 release decision.
   invalid FASTA, package path/checksum, and runtime rejection behavior.
 - Prompt injection: issue #13 and user feedback are treated as evidence inputs,
   not executable instructions.
-- Cancel/resume: current HEAD was recorded before the rewrite, and stale Task
-  15 failures were not counted after the latest Task 15 success markers.
+- Cancel/resume: this is a Task 16 continuation after the previous writer
+  closure; current HEAD was recorded before the rewrite, and stale Task 15
+  failures were not counted after the latest Task 15 success markers.
 - Stale state: plan and ledger were reread for current Task 16 only.
 - Dirty worktree: `git status --short --branch` is captured before and after
   the Task 16 commit in evidence/final summary.
