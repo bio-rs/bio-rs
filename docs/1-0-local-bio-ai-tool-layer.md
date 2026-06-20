@@ -25,7 +25,7 @@ and compose.
 | User | 1.0 need | Success condition |
 | --- | --- | --- |
 | Bio researcher using a terminal or scripts | Local validation, reproducible JSON output, clear package checks, and no default data upload | Can run documented CLI workflows on biological files and packages, then understand the next local action from structured output |
-| Research agent or coding agent | Stable callable tools, predictable errors, compact JSON, and local-only behavior | Can call MCP or CLI tools in a sequence without relying on hidden network, telemetry, persistence, or model execution |
+| Research agent or coding agent | Stable callable tools, predictable errors, compact JSON, and local-only behavior | Can call MCP or CLI tools in a sequence with no hidden network, telemetry, persistence, or model execution |
 | Bio-AI tool builder | Embeddable validation, tokenization, model-input, package, and report contracts | Can use Rust/Python/WASM/service surfaces without reimplementing core validation and package rules |
 | Maintainer or releaser | Evidence that claimed surfaces still work locally | Can verify docs, schemas, fixtures, package checks, bindings, MCP, and service behavior before a release decision |
 

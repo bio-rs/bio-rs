@@ -59,7 +59,8 @@ import Bio
 print(Bio.__version__)
 PY
 ))"
-    python3 - "$protein" "$dna" "$rna" "$fastq" > "$TMP/biopython-sequence.txt" <<'PY' || STATUS=1
+    section_status=0
+    python3 - "$protein" "$dna" "$rna" "$fastq" > "$TMP/biopython-sequence.txt" <<'PY' || section_status=1
 import sys
 from Bio import SeqIO
 
@@ -76,11 +77,12 @@ for name, path, fmt, expected in checks:
         raise SystemExit(f"{name}: expected {expected}, got {len(records)}")
     print(f"{name}: PASS records={len(records)}")
 PY
-    if [ "$STATUS" -eq 0 ]; then
+    if [ "$section_status" -eq 0 ]; then
       note "- result: PASS - Biopython parsed protein, DNA, RNA, and FASTQ fixtures."
       note "- artifact: biopython-sequence.txt"
     else
       note "- result: FAIL - Biopython sequence count mismatch."
+      STATUS=1
     fi
   else
     note "- tool: SKIP - seqkit and Biopython are unavailable."
@@ -102,7 +104,8 @@ import rdkit
 print(rdkit.__version__)
 PY
 ))"
-    python3 - "$smiles" > "$TMP/rdkit-molecule.txt" <<'PY' || STATUS=1
+    section_status=0
+    python3 - "$smiles" > "$TMP/rdkit-molecule.txt" <<'PY' || section_status=1
 import sys
 from rdkit import Chem
 
@@ -114,11 +117,12 @@ if mol is None:
     raise SystemExit("RDKit failed to parse SMILES")
 print(f"RDKit PASS atoms={mol.GetNumAtoms()}")
 PY
-    if [ "$STATUS" -eq 0 ]; then
+    if [ "$section_status" -eq 0 ]; then
       note "- result: PASS - RDKit parsed the SMILES fixture."
       note "- artifact: rdkit-molecule.txt"
     else
       note "- result: FAIL - RDKit failed the SMILES sanity check."
+      STATUS=1
     fi
   elif command -v obabel >/dev/null 2>&1; then
     note "- tool: Open Babel ($(tool_version obabel -V))"
@@ -149,7 +153,8 @@ import Bio
 print(Bio.__version__)
 PY
 ))"
-    python3 - "$pdb" > "$TMP/biopython-pdb.txt" <<'PY' || STATUS=1
+    section_status=0
+    python3 - "$pdb" > "$TMP/biopython-pdb.txt" <<'PY' || section_status=1
 import sys
 from Bio.PDB import PDBParser
 
@@ -160,11 +165,12 @@ if len(atoms) != 3:
     raise SystemExit(f"expected 3 atoms, got {len(atoms)}")
 print(f"Bio.PDB PASS atoms={len(atoms)}")
 PY
-    if [ "$STATUS" -eq 0 ]; then
+    if [ "$section_status" -eq 0 ]; then
       note "- result: PASS - Bio.PDB parsed the PDB fixture."
       note "- artifact: biopython-pdb.txt"
     else
       note "- result: FAIL - Bio.PDB atom-count mismatch."
+      STATUS=1
     fi
   elif python3 - <<'PY' >/dev/null 2>&1
 import gemmi
@@ -175,7 +181,8 @@ import gemmi
 print(gemmi.__version__)
 PY
 ))"
-    python3 - "$pdb" > "$TMP/gemmi-pdb.txt" <<'PY' || STATUS=1
+    section_status=0
+    python3 - "$pdb" > "$TMP/gemmi-pdb.txt" <<'PY' || section_status=1
 import sys
 import gemmi
 
@@ -185,16 +192,21 @@ if atoms != 3:
     raise SystemExit(f"expected 3 atoms, got {atoms}")
 print(f"gemmi PASS atoms={atoms}")
 PY
-    if [ "$STATUS" -eq 0 ]; then
+    if [ "$section_status" -eq 0 ]; then
       note "- result: PASS - gemmi parsed the PDB fixture."
       note "- artifact: gemmi-pdb.txt"
     else
       note "- result: FAIL - gemmi atom-count mismatch."
+      STATUS=1
     fi
   else
-    awk '/^ATOM  / { count += 1 } END { if (count != 3) exit 1 }' "$pdb" || STATUS=1
     note "- tool: SKIP - Bio.PDB and gemmi are unavailable."
-    note "- result: SKIP - only internal PDB ATOM count sanity was possible; structure external parser checks are not 1.0-ready evidence."
+    if awk '/^ATOM  / { count += 1 } END { if (count != 3) exit 1 }' "$pdb"; then
+      note "- result: SKIP - only internal PDB ATOM count sanity was possible; structure external parser checks are not 1.0-ready evidence."
+    else
+      note "- result: FAIL - internal PDB ATOM count sanity failed."
+      STATUS=1
+    fi
   fi
   note
 }

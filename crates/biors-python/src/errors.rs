@@ -2,7 +2,7 @@ use biors_core::error::{Diagnostic, ErrorLocation};
 use biors_core::model_input::ModelInputBuildError;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyAny, PyDict};
 
 pyo3::create_exception!(biors, BioRsError, PyValueError);
 
@@ -19,19 +19,8 @@ pub(crate) fn py_error(
     Python::attach(|py| {
         let error = BioRsError::new_err(message.clone());
         let value = error.value(py);
-        value.setattr("code", code).expect("set error code");
-        value
-            .setattr("message", message)
-            .expect("set error message");
-        match location {
-            Some(location) => value
-                .setattr("location", location_to_dict(py, location))
-                .expect("set error location"),
-            None => value
-                .setattr("location", py.None())
-                .expect("set error location"),
-        }
-        error
+        set_py_error_attrs(py, &value, code, message, location)
+            .map_or_else(|error| error, |_| error)
     })
 }
 
@@ -57,10 +46,25 @@ pub(crate) fn py_model_input_error(error: ModelInputBuildError) -> PyErr {
     py_error(code, error.to_string(), None)
 }
 
-fn location_to_dict<'py>(py: Python<'py>, location: ErrorLocation) -> Bound<'py, PyDict> {
+fn set_py_error_attrs<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+    code: &'static str,
+    message: String,
+    location: Option<ErrorLocation>,
+) -> PyResult<()> {
+    value.setattr("code", code)?;
+    value.setattr("message", message)?;
+    match location {
+        Some(location) => value.setattr("location", location_to_dict(py, location)?)?,
+        None => value.setattr("location", py.None())?,
+    }
+    Ok(())
+}
+
+fn location_to_dict<'py>(py: Python<'py>, location: ErrorLocation) -> PyResult<Bound<'py, PyDict>> {
     let dict = PyDict::new(py);
-    dict.set_item("line", location.line).expect("set line");
-    dict.set_item("record_index", location.record_index)
-        .expect("set record index");
-    dict
+    dict.set_item("line", location.line)?;
+    dict.set_item("record_index", location.record_index)?;
+    Ok(dict)
 }
