@@ -37,6 +37,10 @@ Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
 
 ### validate-sequence-kinds
 
+This workflow covers protein, DNA, and RNA sequence validation. The CLI kind
+arguments use lowercase enum values while the workflow scope is the biological
+sequence classes.
+
 - Command/tool:
   - `biors seq validate --kind protein testdata/researcher-workflows/protein.fasta`
   - `biors seq validate --kind dna testdata/researcher-workflows/dna.fasta`
