@@ -17,7 +17,7 @@
   "release_status": {
     "status": "regression_guard",
     "recorded_package_version": "0.47.8",
-    "current_workspace_version": "0.57.3",
+    "current_workspace_version": "0.57.4",
     "stale_reason": "Candle backend smoke timing was recorded on biors-backend-candle 0.47.8 and retained as deterministic regression guard evidence until regenerated for the current release candidate.",
     "claim_policy": "Regression guard timing only; not current-version performance evidence and not a public throughput claim."
   },

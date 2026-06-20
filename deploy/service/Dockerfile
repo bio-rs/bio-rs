@@ -1,6 +1,6 @@
 FROM rust:1-slim AS builder
 
-ARG BIORS_VERSION=0.57.3
+ARG BIORS_VERSION=0.57.4
 RUN cargo install biors --version "${BIORS_VERSION}" --locked
 
 FROM debian:stable-slim

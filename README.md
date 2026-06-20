@@ -34,7 +34,7 @@ Face conversion remain protein-first.
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.57.3
+cargo install biors --version 0.57.4
 biors --version
 biors doctor
 biors seq validate --kind auto testdata/sequences/multi.fasta
