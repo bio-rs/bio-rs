@@ -19,8 +19,7 @@ pub(crate) fn py_error(
     Python::attach(|py| {
         let error = BioRsError::new_err(message.clone());
         let value = error.value(py);
-        set_py_error_attrs(py, &value, code, message, location)
-            .map_or_else(|error| error, |_| error)
+        set_py_error_attrs(py, value, code, message, location).map_or_else(|error| error, |_| error)
     })
 }
 
