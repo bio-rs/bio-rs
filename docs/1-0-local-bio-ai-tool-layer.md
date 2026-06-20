@@ -99,6 +99,8 @@ The following are out of scope for product-scope 1.0:
 - No telemetry, analytics, or default external reporting.
 - No cloud model calls, external model inference, or default network execution.
 - No browser model execution or WebGPU/runtime claims.
+- No registry publish, tag creation, or release creation as part of the
+  product-scope 1.0 target.
 - Full arbitrary DNA/RNA package conversion from external Python or
   Hugging Face projects.
 - Broad benchmark claims beyond checked regression guardrails.
