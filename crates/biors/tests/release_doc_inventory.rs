@@ -102,7 +102,7 @@ fn readme_presents_full_bio_ai_contract_surface() {
     );
 
     for expected in [
-        "local bio-AI tool layer",
+        "AI-ready biological data I/O, validation, and tokenization engine",
         "biological researchers",
         "research agents",
         "model-ready inputs",

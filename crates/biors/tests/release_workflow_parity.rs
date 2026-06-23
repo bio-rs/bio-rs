@@ -9,26 +9,24 @@ use std::fs;
 mod common;
 
 #[test]
-fn workflow_parity_doc_maps_surfaces_and_gaps() {
+fn workflow_docs_map_surfaces_and_gaps() {
     let repo = common::repo_root();
     let doc =
-        fs::read_to_string(repo.join("docs/1-0-workflow-parity.md")).expect("read parity doc");
+        fs::read_to_string(repo.join("docs/researcher-workflows.md")).expect("read workflows doc");
 
     for expected in [
-        "protein validate/tokenize/model-input/workflow",
-        "invalid sequence",
-        "package validate/bridge",
-        "service batch validation",
+        "protein-model-ready-workflow",
+        "invalid-workflow-recovery",
+        "package-validate-verify-bridge",
+        "mcp-agent-sequence",
         "CLI",
-        "Rust core",
-        "Python",
         "WASM",
         "MCP",
-        "service",
+        "local HTTP service",
         "not exposed",
         "unsupported on this surface",
     ] {
-        assert!(doc.contains(expected), "parity doc missing {expected}");
+        assert!(doc.contains(expected), "workflow doc missing {expected}");
     }
 }
 

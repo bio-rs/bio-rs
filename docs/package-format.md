@@ -1,10 +1,10 @@
 # bio-rs Package Format
 
 This document defines the portable package layout and manifest v1 contract.
-Packages are local bio-AI tool layer artifacts: researchers and research agents
-can validate package-relative paths, checksums, fixtures, runtime bridge plans,
-and reproducible JSON reports before trusting downstream model or pipeline
-work.
+Packages are artifacts for the AI-ready biological data I/O, validation, and
+tokenization engine: researchers and research agents can validate
+package-relative paths, checksums, fixtures, runtime bridge plans, and
+reproducible JSON reports before trusting downstream model or pipeline work.
 
 ## Directory Layout
 

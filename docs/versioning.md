@@ -29,11 +29,29 @@ be renamed for crate 1.0. Existing schema identifiers such as
 `biors.package.v0` and `biors.package.v1` remain data-contract versions, not
 crate-version mirrors.
 
-For the local bio-AI tool layer, product workflow stability means documented
-researcher and research-agent workflows keep the same command/tool shape,
-machine-readable output envelopes, recovery hints, and local-only defaults
-across compatible releases. A future crate `1.0.0` release may still support
-older schema tags when those tags remain valid and reproducible.
+For the AI-ready biological data I/O, validation, and tokenization engine,
+product workflow stability means documented researcher and research-agent
+workflows keep the same command/tool shape, machine-readable output envelopes,
+recovery hints, and local-only defaults across compatible releases. A future
+crate `1.0.0` release may still support older schema tags when those tags
+remain valid and reproducible.
+
+## Surface Roles
+
+Product workflow stability is organized around roles rather than repository
+layout:
+
+- Primary researcher interface: local CLI workflows a researcher runs directly.
+- Primary agent interface: local MCP tools and compact JSON contracts a
+  research agent can call.
+- Embedding interface: Rust, Python, and WASM APIs for tools that embed bio-rs
+  locally.
+- Secondary local integration: local HTTP/service and diagnostics surfaces that
+  wrap the same contracts.
+- Package/artifact assurance: package validation, verification, bridge,
+  compatibility, diff, and migration surfaces.
+- Preview/internal: useful implementation or preview surfaces that are not
+  product promises.
 
 ## Schema Versioning
 

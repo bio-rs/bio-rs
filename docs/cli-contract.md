@@ -6,10 +6,11 @@ the detailed home for command behavior, schema names, and machine-readable
 payload boundaries; the README stays focused on what bio-rs is for and how to
 try it quickly.
 
-For the local bio-AI tool layer, the CLI is the primary researcher-callable
-surface. Its JSON envelopes are also suitable for research agents that need
-stable validation, model-ready preparation, package verification, and
-reproducible JSON reports without using MCP.
+For the AI-ready biological data I/O, validation, and tokenization engine, the
+CLI is the primary researcher-callable surface. Its JSON envelopes are also
+suitable for research agents that need stable validation, model-ready
+preparation, package verification, and reproducible JSON reports without using
+MCP.
 
 ## Commands
 

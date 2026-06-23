@@ -1,10 +1,10 @@
 # Local Artifact QA
 
-This playbook verifies bio-rs as a local bio-AI tool layer before any public
-release action. The no-publish path uses only local artifacts, local fixtures,
-loopback service calls, and local package files. It must not require network
-access, API keys, tokens, credentials, telemetry, uploads, tags, or registry
-writes.
+This playbook verifies bio-rs as an AI-ready biological data I/O, validation,
+and tokenization engine before any public release action. The no-publish path
+uses only local artifacts, local fixtures, loopback service calls, and local
+package files. It must not require network access, API keys, tokens,
+credentials, telemetry, uploads, tags, or registry writes.
 
 Run the safety-only document check while editing this playbook:
 

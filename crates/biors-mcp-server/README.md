@@ -5,9 +5,10 @@ Model Context Protocol (MCP) server for
 and package-check tools.
 
 This crate makes bio-rs agent-callable over local stdio through deterministic
-JSON contracts. It is the MCP surface of the local bio-AI tool layer for
-research agents that need validation, model-ready preparation, package checks,
-and reproducible JSON without uploading biological data.
+JSON contracts. It is the MCP surface of the AI-ready biological data I/O,
+validation, and tokenization engine for research agents that need validation,
+model-ready preparation, package checks, and reproducible JSON without
+uploading biological data.
 
 ## Usage
 
@@ -30,22 +31,48 @@ Configure your MCP client (Claude Desktop, Cursor, etc.) to launch:
 }
 ```
 
-## Tools
+## Output Policy
 
-See [MCP Agent Tools](../../docs/mcp-agent-tools.md) for the 1.0 research-agent
-catalog, compact-output policy, schemas, and recommended local sequences.
+MCP tools return machine-readable JSON text. For long biological FASTA inputs,
+sequence tools protect agent context by returning summary/counts/issues by
+default using `schema_version: "biors.mcp.compact.v0"`. Request full per-record
+payloads only when the caller actually needs them:
 
-- `tokenize` — Tokenize protein, DNA, or RNA FASTA text into stable token IDs
-- `validate` — Validate biological sequences (protein, DNA, RNA, or auto-detect)
-- `workflow` — Validate → tokenize → model-input workflow with `kind`
-  (`auto`, `protein`, `dna`, or `rna`), explicit tokenizer `profile`,
-  `max_length`, `pad_token_id`, and `padding` (`fixed_length` or
-  `no_padding`) parameters. Explicit kind/profile mismatches are rejected.
-- `package_validate` — Validate a package manifest and its filesystem
-  artifacts. Pass either `manifest_path` or `manifest_json` plus `base_dir`.
-- `package_validate_fields` — Validate only the package manifest JSON fields,
-  without filesystem artifact, checksum, or layout checks.
-- `doctor` — Report platform readiness diagnostics
+- `include_records: true` for `tokenize` and `validate`.
+- `include_payload: true` for `workflow`.
+
+Package tools already return validation summaries and structured issues rather
+than biological payloads. All tools run locally and do not upload data,
+telemetry, or model inputs.
+
+The compact-output contract is summary/counts/issues by default.
+
+## Tool Catalog
+
+| Tool | Purpose | Default payload behavior |
+| --- | --- | --- |
+| `tokenize` | Tokenize FASTA text with a protein, DNA, or RNA tokenizer profile. | Compact for long FASTA unless `include_records=true`. |
+| `validate` | Validate FASTA text as `auto`, `protein`, `dna`, or `rna`. | Compact for long FASTA unless `include_records=true`. |
+| `workflow` | Run validation -> tokenization -> model-input preparation. | Compact for long FASTA unless `include_payload=true`. |
+| `package_validate_fields` | Validate package manifest JSON fields without filesystem artifact checks. | Field-only report with structured issues. |
+| `package_validate` | Validate a package manifest and local artifacts. | Validation report with structured issues; no biological payload expansion. |
+| `doctor` | Report MCP server readiness metadata. | Small diagnostic payload. |
+
+## Agent Sequence
+
+1. Validate sequence input with `validate`.
+2. If counts are acceptable, call `workflow` with a matching `kind`, `profile`,
+   and bounded `max_length`.
+3. Use `package_validate_fields` for manifest-only checks.
+4. Use `package_validate` only when the local package directory is available.
+5. Request `include_records` or `include_payload` only when downstream work
+   genuinely needs full per-record payloads.
+
+## Non-Goals
+
+This server is not an autonomous research agent. It is not hosted execution and
+does not provide cloud model calls, telemetry, literature review, long-term
+memory, or remote lab automation.
 
 ## License
 

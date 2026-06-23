@@ -49,7 +49,7 @@ fn public_docs_preserve_local_no_secret_no_upload_defaults() {
         ("README", "README.md"),
         ("quickstart", "docs/quickstart.md"),
         ("researcher workflows", "docs/researcher-workflows.md"),
-        ("MCP agent tools", "docs/mcp-agent-tools.md"),
+        ("MCP README", "crates/biors-mcp-server/README.md"),
         ("service interface", "docs/service-interface.md"),
         ("WASM API", "docs/wasm-api.md"),
     ];
@@ -114,7 +114,6 @@ fn public_docs_use_researcher_agent_tool_layer_framing() {
         ("Python API", "docs/python-api.md"),
         ("WASM API", "docs/wasm-api.md"),
         ("Candle backend", "docs/candle-backend.md"),
-        ("MCP agent tools", "docs/mcp-agent-tools.md"),
         ("MCP README", "crates/biors-mcp-server/README.md"),
     ];
 
@@ -127,13 +126,12 @@ fn public_docs_use_researcher_agent_tool_layer_framing() {
             contains_any(
                 &normalized,
                 &[
-                    "local bio-AI tool layer",
-                    "local bio-AI integration surface",
+                    "AI-ready biological data I/O, validation, and tokenization engine",
                     "agent-callable",
                     "researcher-callable",
                 ],
             ),
-            "{name} must use the local researcher/agent tool-layer framing"
+            "{name} must use the researcher/agent engine framing"
         );
         combined.push_str(&normalized);
         combined.push('\n');
@@ -150,7 +148,7 @@ fn public_docs_use_researcher_agent_tool_layer_framing() {
             "package",
             "reproducible JSON",
         ],
-        "public docs missing local bio-AI product framing:",
+        "public docs missing AI-ready product framing:",
     );
 
     for forbidden in [

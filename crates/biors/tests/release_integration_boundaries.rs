@@ -5,13 +5,12 @@ mod common;
 #[test]
 fn wasm_and_service_docs_keep_integration_boundaries_explicit() {
     let repo = common::repo_root();
-    let stability = fs::read_to_string(repo.join("docs/1-0-stability.md")).expect("stability doc");
     let wasm = fs::read_to_string(repo.join("docs/wasm-api.md")).expect("WASM docs");
     let service = fs::read_to_string(repo.join("docs/service-interface.md")).expect("service docs");
-    let docs = normalize_whitespace(&format!("{stability}\n{wasm}\n{service}"));
+    let docs = normalize_whitespace(&format!("{wasm}\n{service}"));
 
     for required in [
-        "Local browser/JavaScript validation and workflow embedding, not browser model execution.",
+        "browser-safe and Node.js-safe subset",
         "No hosted service or external runtime is required.",
         "no network access",
         "no `fetch` calls",

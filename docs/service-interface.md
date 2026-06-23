@@ -4,9 +4,10 @@ bio-rs exposes a small deterministic service contract for the built-in local
 HTTP server. It covers health metadata, the served OpenAPI document, and inline
 FASTA batch validation.
 
-The service is a local bio-AI integration surface, not the primary product
-surface. Use it when researcher tools or research agents need loopback HTTP
-JSON around the same local validation contracts exposed by the CLI and MCP.
+The service is a local integration surface for the AI-ready biological data
+I/O, validation, and tokenization engine, not the primary product surface. Use
+it when researcher tools or research agents need loopback HTTP JSON around the
+same local validation contracts exposed by the CLI and MCP.
 
 The contract is available from Rust:
 

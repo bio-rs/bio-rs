@@ -16,6 +16,19 @@ scripts/check-researcher-workflows.sh --all
 Use `BIORS_BIN=/path/to/biors` to check an installed binary. Without
 `BIORS_BIN`, the script uses `target/debug/biors` and builds it when missing.
 
+## Surface Boundaries
+
+CLI and MCP carry the primary researcher and research-agent workflows. Rust,
+Python, and WASM are embedding surfaces for local tools; the local HTTP service
+only exposes health, OpenAPI, and batch sequence validation.
+
+Unsupported gaps are explicit:
+
+- WASM package validation and runtime bridge planning are not exposed.
+- MCP package bridge planning is not exposed.
+- Tokenization, model-input generation, package checks, and runtime bridge
+  planning are unsupported on this surface for the local HTTP service.
+
 ## Recipes
 
 ### validate-fasta-fastq

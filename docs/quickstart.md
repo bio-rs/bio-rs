@@ -3,9 +3,10 @@
 This guide uses the repository test data so each command is reproducible from a
 fresh checkout.
 
-The quickstart exercises the researcher-callable CLI side of the local bio-AI
-tool layer: local validation, model-ready input preparation, package checks,
-and reproducible JSON outputs that research agents can also call through MCP.
+The quickstart exercises the researcher-callable CLI side of the AI-ready
+biological data I/O, validation, and tokenization engine: local validation,
+model-ready input preparation, package checks, and reproducible JSON outputs
+that research agents can also call through MCP.
 
 ## Install
 
