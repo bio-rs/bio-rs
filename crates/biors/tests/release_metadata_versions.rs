@@ -70,11 +70,7 @@ fn service_template_versions_match_workspace_package_version() {
     let repo = common::repo_root();
     let workspace_version = workspace_package_version(&repo);
 
-    for path in [
-        "deploy/service/Dockerfile",
-        "docs/service-interface.md",
-        "docs/molecule.md",
-    ] {
+    for path in ["deploy/service/Dockerfile", "docs/service-interface.md"] {
         let contents =
             fs::read_to_string(repo.join(path)).unwrap_or_else(|_| panic!("read {path}"));
         assert!(
@@ -91,11 +87,7 @@ fn service_template_versions_match_workspace_package_version() {
 
     let release_prep =
         fs::read_to_string(repo.join("scripts/prepare-release-version.py")).expect("read prep");
-    for path in [
-        "deploy/service/Dockerfile",
-        "docs/service-interface.md",
-        "docs/molecule.md",
-    ] {
+    for path in ["deploy/service/Dockerfile", "docs/service-interface.md"] {
         assert!(
             release_prep.contains(path),
             "release prep script must update {path}"

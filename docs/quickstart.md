@@ -256,8 +256,9 @@ biors pipeline \
 Pipeline configs support TOML and JSON. The static workflow runs parse,
 normalize, validate, tokenize, and export stages. `--write-lock` records a
 reproducible execution lock with config, input, vocabulary, output, model, and
-backend pins when package context is supplied. See
-[Pipeline Config](pipeline-config.md).
+backend pins when package context is supplied. The machine-readable config
+contract is `schemas/pipeline-config.v0.json`; CLI behavior is summarized in
+[CLI and JSON Contract](cli-contract.md).
 
 ## Verify Package Fixtures
 
