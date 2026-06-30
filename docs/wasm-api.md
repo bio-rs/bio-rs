@@ -6,11 +6,9 @@ FASTA/FASTQ/PDB/SMILES browser validation helpers, profile-aware
 protein/DNA/RNA tokenization, model-input construction, and the standard
 preprocessing workflow.
 
-This is a local integration surface for the AI-ready biological data I/O,
-validation, and tokenization engine. It is for browser or Node.js tools that
-need researcher-callable validation, tokenization, and workflow embedding. It
-keeps the same local contracts as the CLI/MCP layer without claiming
-browser-side model execution.
+Use this surface for browser or Node.js tools that need researcher-callable
+validation, tokenization, and workflow embedding. It keeps the same local
+contracts as the CLI/MCP layer without claiming browser-side model execution.
 
 > **Status:** The `biors-wasm` crate is implemented in this repository. Tag
 > releases build, test, and publish the npm package through npm trusted

@@ -5,10 +5,9 @@ Model Context Protocol (MCP) server for
 and package-check tools.
 
 This crate makes bio-rs agent-callable over local stdio through deterministic
-JSON contracts. It is the MCP surface of the AI-ready biological data I/O,
-validation, and tokenization engine for research agents that need validation,
-model-ready preparation, package checks, and reproducible JSON without
-uploading biological data.
+JSON contracts. It is for research agents that need validation, model-ready
+preparation, package checks, and reproducible JSON without uploading biological
+data.
 
 ## Usage
 

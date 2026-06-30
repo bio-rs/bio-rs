@@ -2,7 +2,9 @@
 
 Version: 0.58.0
 
-This document is the comprehensive public API reference for `biors-core`, the Rust engine behind bio-rs. It covers every public module, type, trait, and function exposed by the crate.
+This document is the public API reference for `biors-core`, the Rust engine
+behind bio-rs. It summarizes the main public modules, types, traits, and
+functions exposed by the crate.
 
 ## Table of Contents
 
@@ -36,7 +38,8 @@ This document is the comprehensive public API reference for `biors-core`, the Ru
 
 `biors-core` is the Rust library that powers bio-rs. It handles biological sequence parsing, FASTQ/PDB/SMILES/SDF/MOL2 format parsing, unified record conversion, protein/DNA/RNA validation, profile-aware tokenization, model input construction, package manifest management, reproducible report generation, service contracts, runtime planning, and fixture verification. The crate is designed to be dependency-light and deterministic. It uses `serde` for serialization and `sha2` for checksums. It is a `std` crate today; WASM compatibility is maintained through the `wasm32-unknown-unknown` check described below rather than a `no_std` contract.
 
-The library is organized into focused modules. Each module owns one responsibility: FASTA parsing lives in `fasta`, tokenization lives in `tokenizer`, and package management lives in `package`. This makes the API easy to navigate and test.
+The library is organized into focused modules. FASTA parsing lives in `fasta`,
+tokenization lives in `tokenizer`, and package management lives in `package`.
 
 ## Adding biors-core as a Dependency
 
@@ -1384,7 +1387,8 @@ let records = tokenize_fasta_records(&input)?;
 - The `runtime` module's `ExternalProcessBackend` is not available in WASM.
 - `sha2` supports WASM, so checksum computation works everywhere.
 
-The repository CI builds `biors-core` for `wasm32-unknown-unknown` on every commit to guarantee this compatibility.
+The repository CI builds `biors-core` for `wasm32-unknown-unknown` on every
+commit to check this compatibility.
 
 ### Python bindings
 

@@ -4,11 +4,10 @@
 inference experiments. It is separate from `biors-core` so the default parser,
 tokenizer, package, and CLI build stays dependency-light.
 
-Within the AI-ready biological data I/O, validation, and tokenization engine,
-this crate is an experimental integration surface for researchers and research
-agents that already have local model artifacts and need a Rust-native execution
-boundary. It is not required for the primary CLI/MCP validation, model-ready
-input, package, or reproducible JSON workflows.
+This crate is an experimental researcher-callable integration surface for local
+model artifacts that need a Rust-native execution boundary. It is not required
+for the primary CLI/MCP validation, model-ready input, package, or reproducible
+JSON workflows.
 
 Unless a future release explicitly promotes this crate as stable, all Candle
 behavior documented here should be treated as experimental and outside the
