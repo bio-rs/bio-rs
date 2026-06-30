@@ -29,11 +29,11 @@ be renamed for crate 1.0. Existing schema identifiers such as
 `biors.package.v0` and `biors.package.v1` remain data-contract versions, not
 crate-version mirrors.
 
-Product workflow stability means documented researcher and research-agent
-workflows keep the same command/tool shape, machine-readable output envelopes,
-recovery hints, and local-only defaults across compatible releases. A future
-crate `1.0.0` release may still support older schema tags when those tags
-remain valid and reproducible.
+The product workflow stability promise means documented researcher and
+research-agent workflows keep the same command/tool shape, machine-readable
+output envelopes, recovery hints, and local-only defaults across compatible
+releases. A future crate `1.0.0` release may still support older schema tags
+when those tags remain valid and reproducible.
 
 ## Surface Roles
 
