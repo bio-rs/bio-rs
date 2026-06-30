@@ -22,10 +22,6 @@ async fn test_package_bridge_tool_returns_readiness_fields() {
     );
 
     let json = call_tool_json("package_bridge", args).await;
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&json).expect("print JSON")
-    );
     assert_eq!(json["ready"], true);
     assert_eq!(json["contract_ready"], true);
     assert_eq!(json["artifact_checked"], false);
@@ -78,8 +74,39 @@ async fn test_package_bridge_tool_reports_unsupported_runtime_without_execution(
 }
 
 #[tokio::test]
+async fn test_package_bridge_tool_preserves_contract_readiness_when_artifact_validation_fails() {
+    let package_dir = temp_package("mcp-bridge-checksum-package");
+    fs::write(
+        package_dir.join("models/protein-seed.onnx"),
+        b"changed model",
+    )
+    .expect("change model");
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "manifest_path".to_string(),
+        serde_json::Value::String(package_dir.join("manifest.json").display().to_string()),
+    );
+
+    let json = call_tool_json("package_bridge", args).await;
+    assert_eq!(json["ready"], true);
+    assert_eq!(json["contract_ready"], true);
+    assert_eq!(json["artifact_checked"], false);
+    assert_eq!(json["execution_ready"], false);
+    assert!(json["blocking_issues"]
+        .as_array()
+        .expect("blocking issues")
+        .iter()
+        .any(|issue| issue
+            .as_str()
+            .expect("issue text")
+            .contains("checksum mismatch")));
+    assert_json_value_matches_schema(&json, "schemas/package-bridge-output.v0.json");
+}
+
+#[tokio::test]
 async fn test_package_bridge_tool_requires_manifest_context() {
     let error = call_tool_error("package_bridge", serde_json::Map::new()).await;
+    assert!(error.contains("package_bridge"));
     assert!(error.contains("manifest_path"));
     assert!(error.contains("manifest_json"));
 }

@@ -29,7 +29,8 @@ pub fn validate_fields(
 }
 
 pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport, McpError> {
-    let (manifest, base_dir, manifest_path) = load_manifest_and_base_dir(&params)?;
+    let (manifest, base_dir, manifest_path) =
+        load_manifest_and_base_dir(&params, "package_validate")?;
     let validator =
         |path: &Path| biors_core::package::validate_pipeline_config_artifact(&base_dir, path);
     Ok(
@@ -43,7 +44,8 @@ pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport
 }
 
 pub fn bridge(params: PackageBridgeParams) -> Result<RuntimeBridgeReport, McpError> {
-    let (manifest, base_dir, manifest_path) = load_manifest_and_base_dir(&params)?;
+    let (manifest, base_dir, manifest_path) =
+        load_manifest_and_base_dir(&params, "package_bridge")?;
     let mut report = biors_core::package::plan_runtime_bridge(&manifest);
     let validator =
         |path: &Path| biors_core::package::validate_pipeline_config_artifact(&base_dir, path);
@@ -56,8 +58,6 @@ pub fn bridge(params: PackageBridgeParams) -> Result<RuntimeBridgeReport, McpErr
         );
 
     if !validation.valid {
-        report.ready = false;
-        report.contract_ready = false;
         report.blocking_issues.extend(validation.issues);
     }
 
@@ -66,6 +66,7 @@ pub fn bridge(params: PackageBridgeParams) -> Result<RuntimeBridgeReport, McpErr
 
 fn load_manifest_and_base_dir(
     params: &PackageValidateParams,
+    tool_name: &str,
 ) -> Result<(PackageManifest, PathBuf, Option<PathBuf>), McpError> {
     match (&params.manifest_path, &params.manifest_json) {
         (Some(_), Some(_)) => Err(McpError::invalid_params(
@@ -86,7 +87,9 @@ fn load_manifest_and_base_dir(
         (None, Some(manifest_json)) => {
             let Some(base_dir) = &params.base_dir else {
                 return Err(McpError::invalid_params(
-                    "package_validate with manifest_json requires base_dir; use package_validate_fields for field-only validation",
+                    format!(
+                        "{tool_name} with manifest_json requires base_dir; use package_validate_fields for field-only validation"
+                    ),
                     None,
                 ));
             };
@@ -97,7 +100,7 @@ fn load_manifest_and_base_dir(
             ))
         }
         (None, None) => Err(McpError::invalid_params(
-            "package_validate requires manifest_path or manifest_json with base_dir",
+            format!("{tool_name} requires manifest_path or manifest_json with base_dir"),
             None,
         )),
     }
