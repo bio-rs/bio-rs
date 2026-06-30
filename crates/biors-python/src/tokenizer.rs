@@ -14,12 +14,12 @@ pub(crate) fn tokenize_fasta_records(
     let config = tokenizer::protein_tokenizer_config_for_profile(profile);
     let input = fasta::parse_fasta_records_reader(Cursor::new(fasta_text.as_bytes()))
         .map_err(py_diagnostic_error)?;
-    let records = input
+    Ok(input
         .records
         .iter()
         .map(|record| tokenizer::tokenize_protein_with_config(record, &config))
-        .collect::<Vec<_>>();
-    Ok(records.into_iter().map(tokenized_protein_to_py).collect())
+        .map(tokenized_protein_to_py)
+        .collect())
 }
 
 #[pyfunction]

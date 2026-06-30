@@ -136,12 +136,7 @@ fn collect_files(
         return;
     };
 
-    let mut entries = entries
-        .filter_map(Result::ok)
-        .collect::<Vec<std::fs::DirEntry>>();
-    entries.sort_by_key(|entry| entry.path());
-
-    for entry in entries {
+    for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
         let Ok(file_type) = entry.file_type() else {
             continue;

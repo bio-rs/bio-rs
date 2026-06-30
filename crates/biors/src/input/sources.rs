@@ -116,9 +116,8 @@ fn expand_glob(pattern: &Path, invalid_glob_code: &'static str) -> Result<Vec<Pa
         })?;
         let entry_path = entry.path();
         let file_name = entry.file_name();
-        let file_name = match file_name.to_str() {
-            Some(file_name) => file_name,
-            None => continue,
+        let Some(file_name) = file_name.to_str() else {
+            continue;
         };
         let file_type = entry.file_type().map_err(|source| CliError::Read {
             path: entry_path.clone(),
