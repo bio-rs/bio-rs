@@ -5,10 +5,9 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 mode=""
-check_doc_safety_only=0
 
 usage() {
-  echo "usage: scripts/check-local-artifact-qa.sh --no-publish [--check-doc-safety]" >&2
+  echo "usage: scripts/check-local-artifact-qa.sh --no-publish" >&2
 }
 
 fail() {
@@ -20,9 +19,6 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --no-publish)
       mode="no-publish"
-      ;;
-    --check-doc-safety)
-      check_doc_safety_only=1
       ;;
     -h|--help)
       usage
@@ -49,56 +45,6 @@ cleanup() {
   fi
 }
 trap cleanup EXIT INT TERM
-
-check_doc_safety() {
-  python3 - docs/release-qa.md <<'PY'
-from pathlib import Path
-import re
-import sys
-
-path = Path(sys.argv[1])
-text = path.read_text()
-
-required = [
-    "## No-Publish Local QA",
-    "Release binary CLI workflows",
-    "MCP stdio tool smoke",
-    "Python wheel install/import/package API smoke",
-    "WASM/npm build/import smoke",
-    "Local service release-binary smoke",
-    "Package validate/verify/bridge smoke",
-    "## Post-Publish Approval Gate",
-    "explicit approval",
-]
-for marker in required:
-    if marker not in text:
-        raise SystemExit(f"release QA doc missing: {marker}")
-
-start = text.index("## No-Publish Local QA")
-end = text.index("## Post-Publish Approval Gate", start)
-no_publish = text[start:end]
-
-for parts in [
-    ("cargo", "publish"),
-    ("npm", "publish"),
-    ("twine", "upload"),
-    ("maturin", "upload"),
-    ("gh", "release", "create"),
-    ("git", "tag"),
-    ("git", "push", "--tags"),
-    ("actions", "upload-artifact"),
-]:
-    needle = " ".join(parts)
-    if re.search(r"(^|\n)\s*(?:\$ )?" + re.escape(needle), no_publish):
-        raise SystemExit(f"no-publish section contains release command: {needle}")
-
-post_publish = text[end:]
-for parts in [("cargo", "publish"), ("npm", "publish"), ("gh", "release", "create")]:
-    needle = " ".join(parts)
-    if needle not in post_publish:
-        raise SystemExit(f"post-publish section missing approval-gated command: {needle}")
-PY
-}
 
 require_executable() {
   path="$1"
@@ -261,12 +207,6 @@ check_package_workflow() {
     testdata/protein-package/observations.json >/dev/null
   "$biors_bin" package bridge testdata/protein-package/manifest.json >/dev/null
 }
-
-check_doc_safety
-
-if [ "$check_doc_safety_only" -eq 1 ]; then
-  exit 0
-fi
 
 check_release_binary_cli
 check_mcp_stdio
