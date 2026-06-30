@@ -28,7 +28,7 @@ pub(super) fn workflow_provenance(
             name: vocab_name,
             vocab_size: vocab.tokens.len(),
             unknown_token_id: vocab.unknown_token_id,
-            unknown_token_policy: vocab.unknown_token_policy.clone(),
+            unknown_token_policy: vocab.unknown_token_policy,
         },
         model_input_policy: policy,
         hashes,

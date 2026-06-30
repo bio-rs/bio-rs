@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import json
-import subprocess
+
+from benchmark_support import command_output
 
 
 def validate_release_status(
@@ -58,17 +59,3 @@ def cargo_package_version(package_name: str) -> str:
         if package.get("name") == package_name:
             return str(package.get("version"))
     raise AssertionError(f"cargo metadata missing package {package_name}")
-
-
-def command_output(command: list[str]) -> str | None:
-    try:
-        completed = subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return completed.stdout.strip()

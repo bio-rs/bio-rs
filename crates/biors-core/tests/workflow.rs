@@ -1,5 +1,6 @@
 use biors_core::model_input::{ModelInputBuildError, ModelInputPolicy, PaddingPolicy};
 use biors_core::sequence::ProteinSequence;
+use biors_core::tokenizer::UnknownTokenPolicy;
 use biors_core::workflow::prepare_protein_model_input_workflow;
 
 const CORE_WORKFLOW_COMMAND: &str = "biors-core prepare_protein_model_input_workflow";
@@ -34,6 +35,10 @@ fn workflow_preserves_validation_tokenization_and_model_input() {
         .hashes
         .output_data_sha256
         .starts_with("sha256:"));
+    assert_eq!(
+        output.provenance.tokenizer.unknown_token_policy,
+        UnknownTokenPolicy::WarnOrErrorWithUnknownToken
+    );
     assert!(output.readiness_issues.is_empty());
 }
 

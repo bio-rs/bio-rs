@@ -27,7 +27,7 @@ pub(super) fn parse_toml_pipeline_config(
             ) {
                 return Err(referenced_config_error(
                     format!("unknown section '{section}'"),
-                    Some(section.clone()),
+                    Some(section),
                 ));
             }
             continue;
@@ -176,4 +176,18 @@ fn unquote_value(value: &str) -> &str {
         .trim()
         .trim_matches('"')
         .trim_matches('\'')
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_toml_pipeline_config;
+
+    #[test]
+    fn unknown_section_error_keeps_section_location() {
+        let error = parse_toml_pipeline_config("[unknown]\nname = \"x\"\n")
+            .expect_err("unknown TOML section rejected");
+
+        assert_eq!(error.message, "unknown section 'unknown'");
+        assert_eq!(error.location.as_deref(), Some("unknown"));
+    }
 }

@@ -19,8 +19,6 @@ pub struct PackageValidateFieldsParams {
     pub manifest_json: String,
 }
 
-pub type PackageBridgeParams = PackageValidateParams;
-
 pub fn validate_fields(
     params: PackageValidateFieldsParams,
 ) -> Result<PackageValidationReport, McpError> {
@@ -43,7 +41,7 @@ pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport
     )
 }
 
-pub fn bridge(params: PackageBridgeParams) -> Result<RuntimeBridgeReport, McpError> {
+pub fn bridge(params: PackageValidateParams) -> Result<RuntimeBridgeReport, McpError> {
     let (manifest, base_dir, manifest_path) =
         load_manifest_and_base_dir(&params, "package_bridge")?;
     let mut report = biors_core::package::plan_runtime_bridge(&manifest);

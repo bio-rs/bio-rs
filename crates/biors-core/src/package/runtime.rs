@@ -21,11 +21,13 @@ pub fn plan_runtime_bridge(manifest: &PackageManifest) -> RuntimeBridgeReport {
 
     let backend_id = format!("{}:{}", manifest.name, manifest.runtime.backend);
     let provider = execution_provider(manifest);
-    let version = manifest
-        .runtime
-        .version
-        .clone()
-        .or_else(|| Some(format!("{}.v0", manifest.runtime.backend)));
+    let version = Some(
+        manifest
+            .runtime
+            .version
+            .clone()
+            .unwrap_or_else(|| format!("{}.v0", manifest.runtime.backend)),
+    );
     let backend_config = crate::runtime::BackendConfig {
         backend_id,
         provider: provider.clone(),

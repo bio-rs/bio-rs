@@ -10,6 +10,8 @@ import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
+from benchmark_support import command_output
+
 SCHEMA_VERSION = "biors.benchmark.mcp_server.v1"
 RESULT_PATH = Path("benchmarks/mcp_server.json")
 ESTIMATES_PATH = Path("target/criterion/mcp_doctor_request_duplex/new/estimates.json")
@@ -20,20 +22,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sample-size", type=int, default=10)
     parser.add_argument("--no-run", action="store_true")
     return parser.parse_args()
-
-
-def command_output(command: list[str]) -> str | None:
-    try:
-        completed = subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return completed.stdout.strip()
 
 
 def cargo_package_version(package_name: str) -> str | None:
