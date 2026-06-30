@@ -1,6 +1,6 @@
 # biors-core Rust API Reference
 
-Version: 0.58.0
+Version: 0.58.1
 
 This document is the public API reference for `biors-core`, the Rust engine
 behind bio-rs. It summarizes the main public modules, types, traits, and
@@ -47,7 +47,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-biors-core = "0.58.0"
+biors-core = "0.58.1"
 ```
 
 The crate depends on:
@@ -1400,4 +1400,4 @@ distributions alongside the Rust crates.
 
 ---
 
-This document reflects the public API of `biors-core` as of version 0.58.0. If you find a discrepancy between this reference and the source, the source is the authority.
+This document reflects the public API of `biors-core` as of version 0.58.1. If you find a discrepancy between this reference and the source, the source is the authority.

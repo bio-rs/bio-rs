@@ -76,10 +76,10 @@ The checked-in Docker/OCI template is in `deploy/service/Dockerfile`:
 
 ```bash
 docker build -f deploy/service/Dockerfile \
-  --build-arg BIORS_VERSION=0.58.0 \
-  -t biors-service:0.58.0 .
+  --build-arg BIORS_VERSION=0.58.1 \
+  -t biors-service:0.58.1 .
 
-docker run --rm -p 8787:8787 biors-service:0.58.0
+docker run --rm -p 8787:8787 biors-service:0.58.1
 ```
 
 The container binds `0.0.0.0:8787` inside the container so Docker can publish
@@ -145,7 +145,7 @@ schemas by stable `https://bio-rs.dev/schemas/...` identifiers.
 
 ## `biors-service` Crate Review
 
-The 0.58.0 implementation keeps the HTTP runtime inside the `biors` CLI crate
+The 0.58.1 implementation keeps the HTTP runtime inside the `biors` CLI crate
 instead of introducing `crates/biors-service`. That is intentional for this
 release: the current server is small, local-only, dependency-light, and directly
 tied to CLI process lifecycle. Splitting a crate now would add release surface

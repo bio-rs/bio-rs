@@ -10,7 +10,7 @@ JSON outputs that research agents can also call through MCP.
 ## Install
 
 ```bash
-cargo install biors --version 0.58.0
+cargo install biors --version 0.58.1
 biors --version
 biors doctor
 ```
