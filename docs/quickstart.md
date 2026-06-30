@@ -11,7 +11,7 @@ that research agents can also call through MCP.
 ## Install
 
 ```bash
-cargo install biors --version 0.57.4
+cargo install biors --version 0.58.0
 biors --version
 biors doctor
 ```

@@ -1,6 +1,6 @@
 # Molecule Support
 
-Version: 0.57.4
+Version: 0.58.0
 
 bio-rs molecule support is local-first and privacy-first. SMILES, SDF, and MOL2
 parsing run on local input and emit JSON contracts; bio-rs does not upload

@@ -35,7 +35,7 @@ Python/Hugging Face project conversion remains a protein-tokenizer preview.
 ## Quickstart
 
 ```bash
-cargo install biors --version 0.57.4
+cargo install biors --version 0.58.0
 biors --version
 biors doctor
 biors seq validate --kind auto testdata/sequences/multi.fasta
