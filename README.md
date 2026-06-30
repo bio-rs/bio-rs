@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/bio-rs/bio-rs/workflows/CI/badge.svg)](https://github.com/bio-rs/bio-rs/actions)
 [![Release](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml/badge.svg)](https://github.com/bio-rs/bio-rs/actions/workflows/release.yml)
-[![Benchmark](https://img.shields.io/badge/benchmark-regression-blue)](benchmarks/cli_surfaces.md)
+[![Benchmark](https://img.shields.io/badge/benchmark-regression-blue)](benchmarks/cli_surfaces.json)
 [![Contracts](https://img.shields.io/badge/contracts-JSON%20v0-blue)](docs/cli-contract.md)
 [![License: MIT/Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
@@ -48,18 +48,18 @@ More examples: [docs/quickstart.md](docs/quickstart.md)
 
 ## Evidence
 
-Committed benchmark reports track release regressions across CLI, Python, WASM,
+Committed benchmark artifacts track release regressions across CLI, Python, WASM,
 MCP, and optional backend smoke paths. They are reproducible guardrails, not
 universal throughput claims.
 
 Current checked-in examples include:
 
 - CLI DNA/RNA validation on 256 records in about 6 ms:
-  [benchmarks/cli_surfaces.md](benchmarks/cli_surfaces.md)
+  [benchmarks/cli_surfaces.json](benchmarks/cli_surfaces.json)
 - WASM workflow on 256 records in about 8-10 ms:
-  [benchmarks/wasm_bindings.md](benchmarks/wasm_bindings.md)
+  [benchmarks/wasm_bindings.json](benchmarks/wasm_bindings.json)
 - MCP doctor request overhead at about 60 us:
-  [benchmarks/mcp_server.md](benchmarks/mcp_server.md)
+  [benchmarks/mcp_server.json](benchmarks/mcp_server.json)
 
 ## Main Docs
 

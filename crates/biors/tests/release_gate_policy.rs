@@ -213,7 +213,7 @@ fn published_rust_crates_include_discovery_metadata() {
 }
 
 #[test]
-fn local_check_scripts_use_rendered_benchmark_docs_gate() {
+fn local_check_scripts_use_benchmark_artifact_gate() {
     let repo = common::repo_root();
     let check = read_repo_file(&repo, "scripts/check.sh");
     let check_fast = read_repo_file(&repo, "scripts/check-fast.sh");
@@ -222,7 +222,7 @@ fn local_check_scripts_use_rendered_benchmark_docs_gate() {
     for (name, script) in [("check.sh", check), ("check-fast.sh", check_fast)] {
         assert!(
             script.contains("scripts/check-benchmark-docs.sh"),
-            "{name} must run the rendered benchmark docs gate"
+            "{name} must run the benchmark artifact gate"
         );
     }
 
@@ -235,13 +235,13 @@ fn local_check_scripts_use_rendered_benchmark_docs_gate() {
     ] {
         assert!(
             benchmark_gate.contains(artifact_check),
-            "benchmark docs gate must validate {artifact_check}"
+            "benchmark artifact gate must validate {artifact_check}"
         );
     }
 
     assert!(
         !benchmark_gate.contains("fasta_vs_biopython"),
-        "benchmark docs gate must not depend on removed historical FASTA benchmark artifacts"
+        "benchmark artifact gate must not depend on removed historical FASTA benchmark artifacts"
     );
 }
 

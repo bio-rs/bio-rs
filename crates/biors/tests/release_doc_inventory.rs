@@ -103,8 +103,8 @@ fn readme_presents_full_bio_ai_contract_surface() {
         "model artifacts",
         "MCP",
         "local HTTP/service schemas",
-        "Committed benchmark reports",
-        "benchmarks/cli_surfaces.md",
+        "Committed benchmark artifacts",
+        "benchmarks/cli_surfaces.json",
         "docs/sequence-kind-support.md",
     ] {
         assert!(

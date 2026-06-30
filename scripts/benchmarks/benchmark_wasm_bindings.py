@@ -20,11 +20,9 @@ from benchmark_support import (
     command_output,
     write_fasta_bytes,
 )
-from render_wasm_benchmark_report import render_report
 
 SCHEMA_VERSION = "biors.benchmark.wasm_bindings.v1"
 RESULT_PATH = Path("benchmarks/wasm_bindings.json")
-REPORT_PATH = Path("benchmarks/wasm_bindings.md")
 WORK_DIR = Path(".benchmark-wasm")
 PKG_DIR = WORK_DIR / "pkg"
 
@@ -168,9 +166,7 @@ def main() -> int:
         "workloads": workloads,
     }
     RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n")
-    REPORT_PATH.write_text(render_report(result))
     print(f"Wrote WASM benchmark results to {RESULT_PATH}")
-    print(f"Wrote WASM benchmark report to {REPORT_PATH}")
     return 0
 
 

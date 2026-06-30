@@ -10,11 +10,8 @@ import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
-from render_backend_benchmark_report import render_report
-
 SCHEMA_VERSION = "biors.benchmark.backend_smoke.v1"
 RESULT_PATH = Path("benchmarks/backend_smoke.json")
-REPORT_PATH = Path("benchmarks/backend_smoke.md")
 ESTIMATES_PATH = Path("target/criterion/candle_linear_probe_32x128_cpu/new/estimates.json")
 
 
@@ -100,9 +97,7 @@ def main() -> int:
         ],
     }
     RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n")
-    REPORT_PATH.write_text(render_report(result))
     print(f"Wrote backend benchmark results to {RESULT_PATH}")
-    print(f"Wrote backend benchmark report to {REPORT_PATH}")
     return 0
 
 

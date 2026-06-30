@@ -22,11 +22,9 @@ from benchmark_support import (
     write_fasta_bytes,
 )
 from benchmark_cli_surface_workloads import build_workloads
-from render_cli_benchmark_report import render_report
 
 SCHEMA_VERSION = "biors.benchmark.cli_surfaces.v1"
 RESULT_PATH = Path("benchmarks/cli_surfaces.json")
-REPORT_PATH = Path("benchmarks/cli_surfaces.md")
 WORK_DIR = Path(".benchmark-cli-surfaces")
 
 
@@ -161,9 +159,7 @@ def main() -> int:
     }
 
     RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n")
-    REPORT_PATH.write_text(render_report(result))
     print(f"Wrote CLI benchmark results to {RESULT_PATH}")
-    print(f"Wrote CLI benchmark report to {REPORT_PATH}")
     return 0
 
 

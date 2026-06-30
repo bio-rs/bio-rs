@@ -26,7 +26,7 @@ scripts/
 | Workflow invariants | `check-release-workflow.py`, `release/` | Pinning, job order, release markers |
 | Package artifacts | `check-package-artifacts.sh`, `check-release-artifact-contents.py` | Python, npm, crate, binary contents |
 | Registry versions | `check-registry-versions.py` | Tag-release publish preflight |
-| Benchmarks | `benchmarks/`, `check-benchmark-docs.sh` | Reports must match JSON artifacts |
+| Benchmarks | `benchmarks/`, `check-benchmark-docs.sh` | JSON artifacts are the committed benchmark evidence |
 
 ## CONVENTIONS
 
@@ -39,8 +39,8 @@ scripts/
   script pins must stay aligned.
 - GitHub Actions references are pinned by policy; update pin checks with
   workflow changes.
-- Benchmark scripts update both JSON artifacts and rendered Markdown. Keep
-  `check-benchmark-docs.sh` synchronized with every committed benchmark report.
+- Benchmark scripts update JSON artifacts. Keep `check-benchmark-docs.sh`
+  synchronized with every committed benchmark artifact.
 - Registry/version scripts must distinguish local dry-run checks from tag-time
   publish checks.
 

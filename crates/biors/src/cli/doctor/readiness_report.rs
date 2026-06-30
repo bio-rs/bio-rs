@@ -98,7 +98,7 @@ pub(crate) fn build_doctor_report() -> DoctorReport {
             "benchmark",
             "benchmark.docs_check",
             "scripts/check-benchmark-docs.sh",
-            "benchmark documentation check is available",
+            "benchmark artifact check is available",
         ),
         repo_file_check(
             "benchmark",

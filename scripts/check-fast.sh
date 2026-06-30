@@ -30,7 +30,7 @@ python3 scripts/check-module-size.py
 echo "==> sequence-kind support docs"
 python3 scripts/check-sequence-kind-support-docs.py
 
-echo "==> benchmark docs"
+echo "==> benchmark artifacts"
 scripts/check-benchmark-docs.sh
 
 echo "==> release workflow"

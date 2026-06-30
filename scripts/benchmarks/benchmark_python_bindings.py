@@ -21,11 +21,9 @@ from benchmark_support import (
     sha256_text,
     timed_case,
 )
-from render_python_benchmark_report import render_report
 
 SCHEMA_VERSION = "biors.benchmark.python_bindings.v1"
 RESULT_PATH = Path("benchmarks/python_bindings.json")
-REPORT_PATH = Path("benchmarks/python_bindings.md")
 PYTHON_PACKAGE_PATH = Path("crates/biors-python/python")
 
 
@@ -221,9 +219,7 @@ def main() -> int:
     }
 
     RESULT_PATH.write_text(json.dumps(result, indent=2) + "\n")
-    REPORT_PATH.write_text(render_report(result))
     print(f"Wrote Python benchmark results to {RESULT_PATH}")
-    print(f"Wrote Python benchmark report to {REPORT_PATH}")
     return 0
 
 
