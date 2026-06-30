@@ -22,12 +22,13 @@ The surface/status cells are checked against
 | WASM / JavaScript bindings | Supported | Supported | Supported | `validateFasta`, `tokenize`, and `runWorkflow` accept nucleotide kinds/profiles. |
 | MCP server | Supported | Supported | Supported | `validate`, `tokenize`, and `workflow` accept nucleotide kinds/profiles and reject kind/profile mismatches. |
 | Service contract schemas | Supported | Supported | Supported | The local batch validation request schema accepts `auto`, `protein`, `dna`, and `rna` kind policy. |
-| Package manifest validation | Supported | Supported | Supported | Tokenizer config and vocab artifacts are validated for built-in protein, DNA, and RNA profile contracts. `package init --tokenizer-config` generates a matching kind/profile pipeline. |
-| Package conversion from Python/HF projects | Supported for protein preview configs | Not promoted | Not promoted | `convert-hf` and `convert-project` remain protein-tokenizer preview tools until nucleotide project-conversion fixtures exist. |
+| Package manifest validation | Supported | Supported | Supported | Tokenizer config and vocab artifacts are validated for built-in protein, DNA, and RNA profile contracts. `package init --tokenizer-config` generates a matching kind/profile pipeline from explicit assets. |
+| Package conversion from Python/HF projects | Supported for protein preview configs | Not promoted | Not promoted | `convert-hf` and `convert-project` remain protein-tokenizer preview tools until conversion reads vocab/token IDs/normalizer/pre-tokenizer data and proves fixture parity. |
 | Benchmarks | Supported | Supported | Supported | Current nucleotide numbers are committed regression guards only, not public throughput claims. |
 
 Do not describe DNA/RNA as "full support" without naming the remaining
 protein-first project-conversion limitations above. The supported model-ready
-nucleotide path today is explicit profile tokenization, model-input generation,
-workflow output, binding parity, MCP parity, package artifact validation, and
+nucleotide path today is validation, explicit profile tokenization, model-input
+generation, workflow output, binding parity, MCP parity, package manifest and
+artifact validation, explicit package init from tokenizer configs, and
 benchmark regression coverage.

@@ -127,10 +127,12 @@ The `protein-20-special` profile keeps the protein-20 residue IDs stable and
 adds `UNK=20`, `PAD=21`, `CLS=22`, `SEP=23`, and `MASK=24` for model-input
 contract tests and Python preprocessing parity fixtures.
 `tokenizer convert-hf` maps a Hugging Face `tokenizer_config.json` into the
-small bio-rs tokenizer config as a preview. It does not read the Hugging Face
-vocab, token IDs, normalizer, or pre-tokenizer, so validate fixture parity
-before copying the preview fragments into a package. The command keeps
-`output_path` as the host write destination and emits
+small bio-rs protein tokenizer config as a preview. It does not read the
+Hugging Face vocab, token IDs, normalizer, or pre-tokenizer, so validate
+fixture parity before copying the preview fragments into a package. DNA/RNA
+model-input and workflow paths use explicit bio-rs nucleotide profiles; they
+are not promoted through arbitrary Hugging Face tokenizer conversion. The
+command keeps `output_path` as the host write destination and emits
 `preview_tokenizer_asset.path` as a package-relative `tokenizers/...` path.
 
 ## Build Model Input
@@ -293,4 +295,6 @@ multiple ONNX or tokenizer config candidates are found, pass `--model` or
 `--tokenizer-config` explicitly. Its Hugging Face tokenizer conversion path is
 a protein-tokenizer preview: it creates package docs, writes a pipeline config,
 records checksums, and leaves optional model artifact metadata unset for the
-package author to fill in.
+package author to fill in. DNA/RNA package manifest validation and explicit
+`package init --tokenizer-config` skeletons are supported, but arbitrary
+Python/Hugging Face project conversion is not promoted for nucleotide packages.

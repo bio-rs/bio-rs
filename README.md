@@ -28,8 +28,9 @@ calls.
   MCP, and local HTTP/service schemas.
 
 See [docs/sequence-kind-support.md](docs/sequence-kind-support.md) before making
-broad DNA/RNA support claims. Package skeleton generation and Python/Hugging
-Face conversion remain protein-first.
+broad DNA/RNA support claims. DNA/RNA package manifest validation and explicit
+`package init --tokenizer-config` skeletons are supported, but arbitrary
+Python/Hugging Face project conversion remains a protein-tokenizer preview.
 
 ## Quickstart
 

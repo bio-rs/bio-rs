@@ -83,13 +83,15 @@
       "surface": "Package manifest validation",
       "protein": "Supported",
       "dna": "Supported",
-      "rna": "Supported"
+      "rna": "Supported",
+      "notes": "Tokenizer config and vocab artifacts validate for built-in protein, DNA, and RNA profile contracts; explicit package init from tokenizer configs generates matching kind/profile pipelines."
     },
     {
       "surface": "Package conversion from Python/HF projects",
       "protein": "Supported for protein preview configs",
       "dna": "Not promoted",
-      "rna": "Not promoted"
+      "rna": "Not promoted",
+      "notes": "Arbitrary Python/Hugging Face project conversion remains a protein-tokenizer preview until conversion reads vocab, token IDs, normalizer, and pre-tokenizer data and proves fixture parity."
     },
     {
       "surface": "Benchmarks",

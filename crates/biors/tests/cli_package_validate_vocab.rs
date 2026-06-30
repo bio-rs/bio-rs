@@ -60,6 +60,22 @@ fn package_validate_accepts_dna_iupac_vocab() {
 }
 
 #[test]
+fn package_validate_accepts_rna_iupac_vocab() {
+    let output = package_support::package_validate_with_vocab(
+        "valid-rna-vocab",
+        &valid_rna_vocab_json(),
+        Some(("rna-iupac", "rna-iupac.v0")),
+    );
+
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn package_validate_rejects_dna_iupac_vocab_with_wrong_token_order() {
     let value = package_support::validate_package_with_vocab(
         "invalid-dna-vocab-token-order",
@@ -85,4 +101,32 @@ fn package_validate_rejects_dna_iupac_vocab_with_wrong_unknown_id() {
         &value,
         "unknown_token_id must be 4 for dna-iupac",
     );
+}
+
+fn valid_rna_vocab_json() -> String {
+    r#"{
+  "name": "rna-iupac",
+  "tokens": [
+    {
+      "residue": "A",
+      "token_id": 0
+    },
+    {
+      "residue": "C",
+      "token_id": 1
+    },
+    {
+      "residue": "G",
+      "token_id": 2
+    },
+    {
+      "residue": "U",
+      "token_id": 3
+    }
+  ],
+  "unknown_token_id": 4,
+  "unknown_token_policy": "warn_or_error_with_unknown_token"
+}
+"#
+    .to_string()
 }

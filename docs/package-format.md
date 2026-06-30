@@ -217,7 +217,10 @@ intended-use, and limitations.
 `biors package convert-project` cover the Python/Hugging Face project path.
 They write package layout, tokenizer config, pipeline config, docs, fixture
 references, and checksums while leaving optional `model.metadata` for the
-package author to fill in.
+package author to fill in. DNA/RNA package manifest validation and explicit
+`package init --tokenizer-config` skeletons are supported for built-in
+nucleotide profiles, but arbitrary Python/Hugging Face project conversion
+remains a protein-tokenizer preview.
 
 `biors package compatibility <left-manifest> <right-manifest>` reports the
 schema transition from left to right, whether a migration is required, and
@@ -249,7 +252,9 @@ conversion assumptions, warnings, and the SHA-256 of the converted config. It
 does not read Hugging Face vocab files, token IDs, normalizer rules, or
 pre-tokenizer rules. Treat the fragments as scaffolding until fixture parity
 proves the converted bio-rs tokens match the source tokenizer for
-representative protein inputs.
+representative protein inputs. DNA/RNA tokenization and model-input support use
+explicit bio-rs nucleotide profiles; arbitrary Hugging Face nucleotide
+tokenizer conversion is not promoted.
 
 Initialize a package from explicit assets:
 
@@ -296,7 +301,9 @@ such as `.venv`, `.git`, `.cache`, `__pycache__`, notebook checkpoints,
 `--include-generated` only when the intended model or tokenizer config really
 lives in one of those directories. If multiple ONNX or `tokenizer_config.json`
 candidates are found, the command returns their sorted paths and requires
-`--model` or `--tokenizer-config`.
+`--model` or `--tokenizer-config`. The project conversion path stays
+protein-tokenizer preview until it reads tokenizer vocab/token IDs,
+normalizer, and pre-tokenizer data and proves fixture parity.
 
 ## Fixture Verification Mismatches
 
