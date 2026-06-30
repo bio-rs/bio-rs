@@ -9,6 +9,82 @@ use mcp_support::{
 };
 
 #[tokio::test]
+async fn test_package_bridge_tool_returns_readiness_fields() {
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "manifest_path".to_string(),
+        serde_json::Value::String(
+            repo_root()
+                .join("testdata/protein-package/manifest.json")
+                .display()
+                .to_string(),
+        ),
+    );
+
+    let json = call_tool_json("package_bridge", args).await;
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&json).expect("print JSON")
+    );
+    assert_eq!(json["ready"], true);
+    assert_eq!(json["contract_ready"], true);
+    assert_eq!(json["artifact_checked"], false);
+    assert_eq!(json["execution_ready"], false);
+    assert_eq!(json["backend"], "onnx-webgpu");
+    assert_eq!(json["target"], "browser-wasm-webgpu");
+    assert_eq!(json["model_format"], "onnx");
+    assert_json_value_matches_schema(&json, "schemas/package-bridge-output.v0.json");
+}
+
+#[tokio::test]
+async fn test_package_bridge_tool_reports_unsupported_runtime_without_execution() {
+    let mut manifest: Value = serde_json::from_str(
+        &fs::read_to_string(repo_root().join("testdata/protein-package/manifest.json"))
+            .expect("read example manifest"),
+    )
+    .expect("manifest JSON");
+    manifest["runtime"]["backend"] = Value::String("external-process".to_string());
+    manifest["runtime"]["target"] = Value::String("local-cpu".to_string());
+
+    let mut args = serde_json::Map::new();
+    args.insert(
+        "manifest_json".to_string(),
+        serde_json::Value::String(manifest.to_string()),
+    );
+    args.insert(
+        "base_dir".to_string(),
+        serde_json::Value::String(
+            repo_root()
+                .join("testdata/protein-package")
+                .display()
+                .to_string(),
+        ),
+    );
+
+    let json = call_tool_json("package_bridge", args).await;
+    assert_eq!(json["contract_ready"], false);
+    assert_eq!(json["artifact_checked"], false);
+    assert_eq!(json["execution_ready"], false);
+    assert_eq!(json["execution_provider"], "external-process");
+    assert!(json["blocking_issues"]
+        .as_array()
+        .expect("blocking issues")
+        .iter()
+        .any(|issue| issue
+            .as_str()
+            .expect("issue text")
+            .contains("external-process")));
+    assert_json_value_matches_schema(&json, "schemas/package-bridge-output.v0.json");
+}
+
+#[tokio::test]
+async fn test_package_bridge_tool_requires_manifest_context() {
+    let error = call_tool_error("package_bridge", serde_json::Map::new()).await;
+    assert!(error.contains("manifest_path"));
+    assert!(error.contains("manifest_json"));
+}
+
+#[tokio::test]
 async fn test_package_validate_tool() {
     let mut args = serde_json::Map::new();
     args.insert(

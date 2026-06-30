@@ -275,7 +275,10 @@ JSON string.
 ### `plan_runtime_bridge(manifest_json: str) -> str`
 
 Parses a package manifest JSON document and returns the runtime bridge
-compatibility report as a JSON string.
+compatibility report as a JSON string. This is contract planning only: callers
+must inspect `contract_ready`, `artifact_checked`, and `execution_ready`
+together, and must not treat legacy `ready` compatibility as model execution
+readiness.
 
 ## Notebook Pattern
 

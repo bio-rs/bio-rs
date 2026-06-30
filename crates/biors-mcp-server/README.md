@@ -56,6 +56,7 @@ The compact-output contract is summary/counts/issues by default.
 | `workflow` | Run validation -> tokenization -> model-input preparation. | Compact for long FASTA unless `include_payload=true`. |
 | `package_validate_fields` | Validate package manifest JSON fields without filesystem artifact checks. | Field-only report with structured issues. |
 | `package_validate` | Validate a package manifest and local artifacts. | Validation report with structured issues; no biological payload expansion. |
+| `package_bridge` | Plan package runtime bridge contract readiness from a local manifest path or manifest JSON plus base directory. | Bridge report with `contract_ready`, `artifact_checked`, and `execution_ready`; does not execute models. |
 | `doctor` | Report MCP server readiness metadata. | Small diagnostic payload. |
 
 ## Agent Sequence
@@ -65,7 +66,9 @@ The compact-output contract is summary/counts/issues by default.
    and bounded `max_length`.
 3. Use `package_validate_fields` for manifest-only checks.
 4. Use `package_validate` only when the local package directory is available.
-5. Request `include_records` or `include_payload` only when downstream work
+5. Use `package_bridge` when an agent needs package runtime compatibility
+   planning fields without model execution.
+6. Request `include_records` or `include_payload` only when downstream work
    genuinely needs full per-record payloads.
 
 ## Non-Goals

@@ -1,4 +1,4 @@
-use biors_core::package::{PackageManifest, PackageValidationReport};
+use biors_core::package::{PackageManifest, PackageValidationReport, RuntimeBridgeReport};
 use rmcp::{model::ErrorData as McpError, schemars};
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
@@ -19,6 +19,8 @@ pub struct PackageValidateFieldsParams {
     pub manifest_json: String,
 }
 
+pub type PackageBridgeParams = PackageValidateParams;
+
 pub fn validate_fields(
     params: PackageValidateFieldsParams,
 ) -> Result<PackageValidationReport, McpError> {
@@ -38,6 +40,28 @@ pub fn validate(params: PackageValidateParams) -> Result<PackageValidationReport
             Some(&validator),
         ),
     )
+}
+
+pub fn bridge(params: PackageBridgeParams) -> Result<RuntimeBridgeReport, McpError> {
+    let (manifest, base_dir, manifest_path) = load_manifest_and_base_dir(&params)?;
+    let mut report = biors_core::package::plan_runtime_bridge(&manifest);
+    let validator =
+        |path: &Path| biors_core::package::validate_pipeline_config_artifact(&base_dir, path);
+    let validation =
+        biors_core::package::validate_package_manifest_artifacts_with_manifest_path_and_pipeline_config_validator(
+            &manifest,
+            &base_dir,
+            manifest_path.as_deref(),
+            Some(&validator),
+        );
+
+    if !validation.valid {
+        report.ready = false;
+        report.contract_ready = false;
+        report.blocking_issues.extend(validation.issues);
+    }
+
+    Ok(report)
 }
 
 fn load_manifest_and_base_dir(

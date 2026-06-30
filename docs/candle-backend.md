@@ -10,6 +10,10 @@ agents that already have local model artifacts and need a Rust-native execution
 boundary. It is not required for the primary CLI/MCP validation, model-ready
 input, package, or reproducible JSON workflows.
 
+Unless a future release explicitly promotes this crate as stable, all Candle
+behavior documented here should be treated as experimental and outside the
+default product promise.
+
 The first backend adapter is a deterministic CPU linear-probe model:
 
 - load `safetensors` weights with Candle
@@ -116,9 +120,13 @@ additional service runtimes belongs in the compatibility matrix.
 ## Compatibility Matrix
 
 The package bridge compatibility matrix includes Candle CPU as an implemented
-pair:
+experimental compatibility pair:
 
 - `safetensors` + `candle` + `local-cpu` -> `candle-cpu`
+
+That compatibility entry means bridge planning can recognize the declared
+package/runtime pair. It does not make Candle a stable default runtime, and it
+does not turn package bridge output into a model execution result.
 
 The `BackendCapabilities` summary for Candle reports:
 

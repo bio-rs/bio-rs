@@ -25,9 +25,12 @@ only exposes health, OpenAPI, and batch sequence validation.
 Unsupported gaps are explicit:
 
 - WASM package validation and runtime bridge planning are not exposed.
-- MCP package bridge planning is not exposed.
+- CLI and MCP package bridge planning are exposed as contract readiness checks,
+  not model execution.
 - Tokenization, model-input generation, package checks, and runtime bridge
   planning are unsupported on this surface for the local HTTP service.
+- Package bridge reports are contract planning artifacts, not model execution
+  results.
 
 ## Recipes
 

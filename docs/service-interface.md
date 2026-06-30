@@ -38,6 +38,10 @@ object storage access, or hosted workspace operations. Inputs are processed in
 memory and returned to the caller as JSON; the service does not upload
 biological data.
 
+The local HTTP service exposes only health, OpenAPI, and batch sequence
+validation routes. It does not serve tokenization, model-input, package bridge,
+package validation, or model execution routes.
+
 Current endpoints:
 
 | Endpoint | Purpose | Schema |

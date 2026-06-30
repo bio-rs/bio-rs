@@ -2,7 +2,9 @@ use crate::compact::{
     compact_tokenize_response, compact_validate_response, compact_workflow_response,
     should_compact_fasta,
 };
-use crate::package_validation::{PackageValidateFieldsParams, PackageValidateParams};
+use crate::package_validation::{
+    PackageBridgeParams, PackageValidateFieldsParams, PackageValidateParams,
+};
 use biors_core::{
     error::BioRsError,
     model_input::{ModelInputBuildError, ModelInputPolicy, PaddingPolicy},
@@ -250,6 +252,15 @@ impl BiorsMcpServer {
         Parameters(params): Parameters<PackageValidateParams>,
     ) -> Result<CallToolResult, McpError> {
         let report = crate::package_validation::validate(params)?;
+        json_response(&report)
+    }
+
+    #[tool(description = "Plan package runtime bridge readiness without executing model artifacts")]
+    fn package_bridge(
+        &self,
+        Parameters(params): Parameters<PackageBridgeParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let report = crate::package_validation::bridge(params)?;
         json_response(&report)
     }
 
